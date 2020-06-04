@@ -50,7 +50,7 @@ Note that steps cannot be re-ordered.
 
 Adding modifiers:
 
- - _Add modifier_: Adds a new modifier. Note that the order of modifiers doesn't matter and new modifier are always added at the end.
+ - _Add modifier_: Adds a new modifier. Note that the order of modifiers doesn't matter and new modifiers are always added at the end. Modifiers are always executed concurrently.
  - _Clone modifier_: Adds a new modifier that is an exact copy of the current one.
  - _Clone modifier zero values_: Adds a new modifier that is a copy of the current one, except for any value that drives something, such as movements for rigidbodies. This is a useful shortcut when adding modifiers that are similar to the current one, without the character model moving unexpectedly because of compounding modifiers.
 
@@ -79,7 +79,7 @@ Steps are normally executed sequentially, but the progression type can be change
 ### Half move
 A step is typically considered finished when its duration has elapsed completely, after which the next step is executed. When _Half move_ is enabled, a step will only execute up to half its duration before going to the next step. Once all steps have finished executing, Synergy will complete any half-move step in reverse order before doing the next round.
 
-This can be useful for rudimentary animations. For example, step 1 could move an arm up and down and step 2 an hand left and right. If step 1 has _Half move_ enabled, then:
+This can be useful for rudimentary animations. For example, step 1 could move an arm up and down and step 2 a hand left and right. If step 1 has _Half move_ enabled, then:
  - Step 1 moves the arm up and stops.
  - Step 2 moves the hand.
  - Step 1 moves the arm down.
@@ -88,12 +88,14 @@ Note that half moves don't interact well with some advanced features that change
 
 
 ### Step duration
-This controls how long the step executes for as well as the timing for all modifiers. Modifiers are synchronised with their parent step by default. Modifiers will be driven from 0% to 100% during the first half of the duration, and from 100% to 0% for the second half. See [Duration](#duration) for more details.
+This controls how long the step executes for, as well as the timing for all modifiers. Modifiers are synchronised with their parent step by default. Modifiers will be driven from 0% to 100% during the first half of the duration, and from 100% to 0% for the second half. See [Duration](#duration) for more details.
 
 [<img src="doc/duration-random.png" height="400">](doc/duration-random.png)
 
 ### Repeat
-A [random range duration](#random-range). A simple way of repeating the step duration multiple times before moving on to the next step. Note that this doesn't interact well with some features like ramping or modifiers that are not synchronised with the step. A more robust way of repeating movements is to create a step with a longer duration and use unsynchronised modifiers instead.
+A [random range duration](#random-range). A simple way of repeating the step duration multiple times before moving on to the next step. The values are in seconds. The step duration will be repeated until the repeat duration is exceeded.
+
+Note that this doesn't interact well with some features like ramping or modifiers that are not synchronised with the step. A more robust way of repeating movements is to create a step with a longer duration and use unsynchronised modifiers instead.
 
 [<img src="doc/step-repeat.png" height="400">](doc/step-repeat.png)
 
@@ -110,7 +112,7 @@ A modifier drives either a rigidbody, a morph, a light or audio. Some controls a
 
 [<img src="doc/modifier.png" height="400">](doc/modifier.png)
 
-- _Disable other modifiers_: Enables this modifier and disables all the others.
+- _Disable other modifiers_: Enables this modifier and disables all the others in this step.
 - _Enable all modifiers_: Enables all modifiers in this step.
 - _Type_: The type of this modifier.
 - _Sync_: What drives this modifier. See [Synchronisation](#synchronisation).
@@ -134,9 +136,11 @@ Modifiers are driven by a [duration](#duration). This duration can come from dif
 
 The interaction between unsynced modifiers and their parent step is somewhat complicated, because the step has to eventually end so the next one can be executed. If there is only one enabled step, none of the following applies and modifiers just run independently.
 
-Once a step has finished its own duration, it must wait for all the unsynced modifiers to end. However, some modifiers might take longer than others. To avoid long pauses where only one modifier runs while everything else is frozen, the step will allow unsynced modifiers to continue running while waiting. To achieve this, the step will ask all the unsynced modifiers the shortest time they require to finish, which includes halfway delays, but not end delays. The longest time required among all the unsynced modifiers is called the _grace period_. Therefore, the grace period is how long the step has to wait until all unsynced modifiers have completed.
+Once a step has finished its own duration, it must wait for all the unsynced modifiers to end. However, some modifiers might take longer than others. To avoid long pauses where only one modifier runs while everything else is frozen, the step will allow unsynced modifiers to continue running while waiting.
 
-The step will ask all unsynced modifiers to end _before_ the grace period elapses. This allow for some modifiers to continue their movements if they can guarantee they will end before the grace period. If a modifier has a random duration that needs to be regenerated because its interval has elapsed, it will do so if at least some part of the random range is within the grace period, in which case the range will be capped so it doesn't exceed the grace period.
+To achieve this, the step will ask all the unsynced modifiers the shortest time they require to finish, which includes halfway delays, but not end delays. The longest time required among all the unsynced modifiers is called the _grace period_. Therefore, the grace period is how long the step has to wait until all unsynced modifiers have completed.
+
+The step will ask all unsynced modifiers to end _before_ the grace period elapses. This allow for some modifiers to continue their movements if they can guarantee they will end before the grace period. If a modifier has a random duration that needs to be regenerated because its interval has elapsed, it will do so if at least some part of the random range is within the grace period, in which case the range will be clamped so it doesn't exceed the grace period.
 
 All of this is to allow shorter unsynced modifiers to continue running while a longer unsynced modifier finishes. This reduces unnatural pauses while the step is waiting to end.
 
@@ -164,14 +168,14 @@ A rigidbody modifier is used to drive rigidbodies, such as the head or hips.
 
 
 ### Morph
-A morph modifier an drive one or more morphs.
+A morph modifier drives one or more morphs.
 
 [<img src="doc/morph.png" height="400">](doc/morph.png)
 
 - _Morph progression_: Defines how multiple morphs are handled:
   - _Natural_: Drives all morphs randomly based on a master duration and delay.
-  - _Concurrent_: Drives all morphs at the same time based on the modifier.
-  - _Sequential_: Drives morphs one at a time in order based on the modifier.
+  - _Concurrent_: Drives all morphs at the same time based on the modifier duration.
+  - _Sequential_: Drives morphs one at a time in order based on the modifier duration.
   - _Random_: Drives morphs one at a time randomly. Morphs are shuffled before every round. If there is more than one morph, it is guaranteed that the same morph will not be executed twice in a row.
 
 #### Natural progression
@@ -194,7 +198,7 @@ The tall box at the top is a search box. When searching, the list of morphs beco
 The _Show_ list can filter the list to show only morphs that are poses or only morphs that are not poses.
 
 #### Selected morphs
-Once morphs have been selected, they will appear under the collapsible button _Selected morphs_.
+Once morphs have been selected, they will appear under the collapsible button _Selected morphs_. Each morph can be configured individually.
 
 [<img src="doc/morph-selected.png" height="400">](doc/morph-selected.png)
 
@@ -278,7 +282,7 @@ A duration that can vary within a specific range. The values are randomly genera
 
 - _Duration change interval_: The time in seconds before a new random duration is generated. If 0, the duration is randomised every time it finishes.
 
-- _Duration cut-off_: Advanced setting. Determines the exact time when the next random duration is generated when the current duration isn't an exact factor of the interval. This avoids sudden changes in velocities.
+- _Duration cut-off_: Advanced setting. Determines the time when the next random duration is generated when the current duration isn't an exact factor of the interval. This avoids sudden changes in velocities.
   - _Closest to interval_: Default. The next random duration will be generated as close to the given interval as possible, but might be before or after depending on the duration. For example, if the current duration is 1.5s and the change interval is 4s, the next random duration will be generated at 4.5s. If the current duration is 1.8s and the change interval is 4s, the next random duration will be generated at 3.6s.
   - _Always before interval_: The random duration will never last longer than the interval specifies.
   - _Always after interval_: The random duration will always last at least as long as the interval specifies.
@@ -290,7 +294,7 @@ A duration that speeds up and slows down over a period of time.
 
 [<img src="doc/duration-ramp.png" height="400">](doc/duration-ramp.png)
 
-- _Ramp time_: The time during which the durations will be ramped up or down. If the ramp time is 5s, the actual duration will ramp up for 5s, then down for 5s
+- _Ramp time_: The time during which the durations will be ramped up or down. If the ramp time is 5s, the actual duration will ramp up for 5s, then down for 5s.
 - _Minimum duration_: The duration when ramping starts and ends.
 - _Maximum duration_: The duration when ramping is completely up.
 - _Hold maximum_: Time in seconds to hold the duration when ramped up at the maximum.
