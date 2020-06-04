@@ -324,3 +324,5 @@ Synergy uses easings to modify how values change over time.
 
 <sup>_From [https://easings.net/](https://easings.net/)_</sup>
 
+## License
+[Creative Commons Zero](https://creativecommons.org/share-your-work/public-domain/cc0). This project is in the public domain.
