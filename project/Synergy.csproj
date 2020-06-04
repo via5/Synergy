@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{0457357B-0A1A-4223-B190-647FBFBB91F9}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Synergy</RootNamespace>
+    <AssemblyName>Synergy</AssemblyName>
+    <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <NoStdLib>True</NoStdLib>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <LangVersion>6</LangVersion>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <NoStdLib>True</NoStdLib>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <LangVersion>6</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <NoStdLib>True</NoStdLib>
+    <OutputPath>bin\Release\</OutputPath>
+    <LangVersion>6</LangVersion>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="src\Core\Delay.cs" />
+    <Compile Include="src\Core\Duration.cs" />
+    <Compile Include="src\Core\Easings.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Easings.tt</DependentUpon>
+    </Compile>
+    <Compile Include="src\Core\Main.cs" />
+    <Compile Include="src\Core\Manager.cs" />
+    <Compile Include="src\Core\Movement.cs" />
+    <Compile Include="src\Core\Options.cs" />
+    <Compile Include="src\Core\RandomizableValue.cs" />
+    <Compile Include="src\Core\Step.cs" />
+    <Compile Include="src\Core\StepProgressions.cs" />
+    <Compile Include="src\Core\Version.cs" />
+    <Compile Include="src\DummyMain.cs" />
+    <Compile Include="src\Modifiers\Modifier.cs" />
+    <Compile Include="src\Modifiers\ModifierContainer.cs" />
+    <Compile Include="src\Modifiers\ModifierSyncs.cs" />
+    <Compile Include="src\Modifiers\Specific\AudioModifier.cs" />
+    <Compile Include="src\Modifiers\Specific\LightModifier.cs" />
+    <Compile Include="src\Modifiers\Specific\MorphModifier.cs" />
+    <Compile Include="src\Modifiers\Specific\RigidbodyModifier.cs" />
+    <Compile Include="src\UI\MainUI\DelayUI.cs" />
+    <Compile Include="src\UI\MainUI\DurationUI.cs" />
+    <Compile Include="src\UI\MainUI\MainUI.cs" />
+    <Compile Include="src\UI\MainUI\Modifiers\AudioModifierUI.cs" />
+    <Compile Include="src\UI\MainUI\Modifiers\BaseModifierUI.cs" />
+    <Compile Include="src\UI\MainUI\Modifiers\LightModifierUI.cs" />
+    <Compile Include="src\UI\MainUI\Modifiers\ModifierUI.cs" />
+    <Compile Include="src\UI\MainUI\Modifiers\MorphModifierUI.cs" />
+    <Compile Include="src\UI\MainUI\Modifiers\RigidbodyModifierUI.cs" />
+    <Compile Include="src\UI\MainUI\MovementUI.cs" />
+    <Compile Include="src\UI\MainUI\RandomizableValueUI.cs" />
+    <Compile Include="src\UI\MainUI\StepUI.cs" />
+    <Compile Include="src\UI\MonitorUI\DurationMonitorUI.cs" />
+    <Compile Include="src\UI\MonitorUI\Modifiers\AudioModifierMonitorUI.cs" />
+    <Compile Include="src\UI\MonitorUI\Modifiers\LightModifierMonitorUI.cs" />
+    <Compile Include="src\UI\MonitorUI\Modifiers\ModifierMonitorUI.cs" />
+    <Compile Include="src\UI\MonitorUI\Modifiers\ModifierSyncsMonitorUI.cs" />
+    <Compile Include="src\UI\MonitorUI\Modifiers\MorphModifierMonitorUI.cs" />
+    <Compile Include="src\UI\MonitorUI\Modifiers\RigidbodyModifierMonitorUI.cs" />
+    <Compile Include="src\UI\MonitorUI\MonitorUI.cs" />
+    <Compile Include="src\UI\MonitorUI\MovementMonitorUI.cs" />
+    <Compile Include="src\UI\Widgets\AtomList.cs" />
+    <Compile Include="src\UI\Widgets\AudioClipsCheckboxes.cs" />
+    <Compile Include="src\UI\Widgets\Collapsible.cs" />
+    <Compile Include="src\UI\Widgets\MorphCheckboxes.cs" />
+    <Compile Include="src\UI\Widgets\RigidbodyList.cs" />
+    <Compile Include="src\UI\Widgets\Widgets.cs" />
+    <Compile Include="src\Utilities\Factory.cs" />
+    <Compile Include="src\Utilities\JsonUtilities.cs" />
+    <Compile Include="src\Utilities\Range.cs" />
+    <Compile Include="src\Utilities\Timer.cs" />
+    <Compile Include="src\Utilities\Utilities.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\VaM_Data\Managed\Assembly-CSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="mscorlib">
+      <Aliases>global, mscorlib</Aliases>
+      <HintPath>..\..\..\..\..\VaM_Data\Managed\mscorlib.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <HintPath>..\..\..\..\..\VaM_Data\Managed\System.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\VaM_Data\Managed\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AssetBundleModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\VaM_Data\Managed\UnityEngine.AssetBundleModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AudioModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\VaM_Data\Managed\UnityEngine.AudioModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\VaM_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\VaM_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.TextRenderingModule, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\VaM_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\VaM_Data\Managed\UnityEngine.UI.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="src\Core\Easings.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Easings.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

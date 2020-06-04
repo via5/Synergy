@@ -1,0 +1,270 @@
+﻿using System.Collections.Generic;
+
+namespace Synergy
+{
+	class Manager : IJsonable
+	{
+		private List<Step> steps_ = new List<Step>();
+		private IStepProgression progression_ = null;
+
+		public Manager()
+		{
+			StepProgression = new SequentialStepProgression();
+		}
+
+		public List<Step> Steps
+		{
+			get
+			{
+				return steps_;
+			}
+		}
+
+		public IStepProgression StepProgression
+		{
+			get
+			{
+				return progression_;
+			}
+
+			set
+			{
+				if (progression_ != null)
+				{
+					progression_.AboutToBeRemoved();
+					progression_.ParentManager = null;
+				}
+
+				progression_ = value;
+
+				if (progression_ != null)
+					progression_.ParentManager = this;
+			}
+		}
+
+		public void Clear()
+		{
+			while (steps_.Count != 0)
+				DeleteStep(steps_[0]);
+
+			StepProgression = new SequentialStepProgression();
+		}
+
+		public Step CurrentStep
+		{
+			get
+			{
+				return progression_?.Current;
+			}
+		}
+
+		public void AddStep(Step s = null)
+		{
+			InsertStep(steps_.Count, s);
+		}
+
+		public void InsertStep(int at, Step s = null)
+		{
+			if (s == null)
+				s = new Step();
+
+			steps_.Insert(at, s);
+			progression_?.StepInserted(at, s);
+		}
+
+		public void DeleteStep(Step s)
+		{
+			s.AboutToBeRemoved();
+			steps_.Remove(s);
+			progression_?.StepDeleted(s);
+		}
+
+		public Step GetStep(int i)
+		{
+			if (i < 0 || i >= steps_.Count)
+				return null;
+
+			return steps_[i];
+		}
+
+		public int IndexOfStep(Step s)
+		{
+			return steps_.IndexOf(s);
+		}
+
+		public bool IsOnlyEnabledStep(Step s)
+		{
+			foreach (var ss in steps_)
+			{
+				if (ss.Enabled && ss != s)
+					return false;
+			}
+
+			return true;
+		}
+
+		public void ResetAllSteps()
+		{
+			foreach (var s in steps_)
+				s.Reset();
+		}
+
+		public void Tick(float deltaTime)
+		{
+			progression_?.Tick(deltaTime);
+		}
+
+		public void Set()
+		{
+			var current = CurrentStep;
+
+			foreach (var s in steps_)
+			{
+				bool paused = false;
+
+				if (current != null && current != s)
+					paused = true;
+
+				s.Set(paused);
+			}
+		}
+
+		public void LoadPreset(string path, int flags)
+		{
+			J.Node.SaveType = SaveTypes.Preset;
+
+			var node = J.Node.Wrap(SuperController.singleton.LoadJSON(path));
+
+			if (Bits.IsSet(flags, Utilities.FullPreset))
+			{
+				if (Bits.IsSet(flags, Utilities.PresetReplace))
+				{
+					FromJSON(node);
+				}
+				else if (Bits.IsSet(flags, Utilities.PresetAppend))
+				{
+					var m = new Manager();
+					m.FromJSON(node);
+
+					foreach (var s in m.Steps)
+						AddStep(s);
+				}
+			}
+			else if (Bits.IsSet(flags, Utilities.StepPreset))
+			{
+				if (Bits.IsSet(flags, Utilities.PresetReplace))
+				{
+					var s = Synergy.Instance.UI.CurrentStep;
+					if (s == null)
+					{
+						Synergy.LogError("no current step");
+						return;
+					}
+
+					s.FromJSON(node);
+					s.Reset();
+				}
+				else if (Bits.IsSet(flags, Utilities.PresetAppend))
+				{
+					var s = new Step();
+					s.FromJSON(node);
+					AddStep(s);
+					s.Reset();
+				}
+			}
+			else if (Bits.IsSet(flags, Utilities.ModifierPreset))
+			{
+				if (Bits.IsSet(flags, Utilities.PresetReplace))
+				{
+					var m = Synergy.Instance.UI.CurrentModifier;
+					if (m == null)
+					{
+						Synergy.LogError("no current modifier");
+						return;
+					}
+
+					m.FromJSON(node);
+				}
+				else if (Bits.IsSet(flags, Utilities.PresetAppend))
+				{
+					var s = Synergy.Instance.UI.CurrentStep;
+					if (s == null)
+					{
+						Synergy.LogError("no current step");
+						return;
+					}
+
+					var m = new ModifierContainer();
+					m.FromJSON(node);
+
+					s.AddModifier(m);
+				}
+			}
+
+			J.Node.SaveType = SaveTypes.None;
+		}
+
+		public void SavePreset(string path, int flags)
+		{
+			J.Node.SaveType = SaveTypes.Preset;
+
+			if (Bits.IsSet(flags, Utilities.FullPreset))
+			{
+				var o = ToJSON() as J.Object;
+				o.Add("version", Version.String);
+				o.Save(path);
+			}
+			else if (Bits.IsSet(flags, Utilities.StepPreset))
+			{
+				var s = Synergy.Instance.UI.CurrentStep;
+				if (s == null)
+					return;
+
+				var o = s.ToJSON() as J.Object;
+				o.Add("version", Version.String);
+				o.Save(path);
+			}
+			else if (Bits.IsSet(flags, Utilities.ModifierPreset))
+			{
+				var m = Synergy.Instance.UI.CurrentModifier;
+				if (m == null)
+					return;
+
+				var o = m.ToJSON() as J.Object;
+				o.Add("version", Version.String);
+				o.Save(path);
+			}
+
+			J.Node.SaveType = SaveTypes.None;
+		}
+
+		public J.Node ToJSON()
+		{
+			var o = new J.Object();
+
+			o.Add("steps", steps_);
+			o.Add("progression", progression_);
+
+			return o;
+		}
+
+		public bool FromJSON(J.Node n)
+		{
+			Clear();
+
+			var o = n.AsObject("Manager");
+			if (o == null)
+				return false;
+
+			o.Opt("steps", ref steps_);
+
+			IStepProgression sp = null;
+			o.Opt<StepProgressionFactory, IStepProgression>(
+				"progression", ref sp);
+
+			StepProgression = sp;
+
+			return true;
+		}
+	}
+}

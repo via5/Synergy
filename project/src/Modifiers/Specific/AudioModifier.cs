@@ -1,0 +1,297 @@
+﻿using System.Collections.Generic;
+
+namespace Synergy
+{
+	class AudioModifier : AtomModifier
+	{
+		public const int StartingState = 0;
+		public const int InDelayState = 1;
+		public const int NoSourceState = 2;
+		public const int NoClipsState = 3;
+		public const int PlayingState = 4;
+		public const int PausedState = 5;
+
+		private AudioSourceControl source_ = null;
+		private List<NamedAudioClip> clips_ = new List<NamedAudioClip>();
+		private ShuffledOrder clipOrder_ = new ShuffledOrder();
+		private int currentIndex_ = -1;
+		private NamedAudioClip currentClip_ = null;
+		private bool newClip_ = false;
+		private IDuration delay_ = new RandomDuration();
+		private bool inDelay_ = false;
+		private bool needsDelay_ = false;
+		private int state_ = StartingState;
+
+		public AudioModifier()
+		{
+			CheckSource();
+		}
+
+		public static string FactoryTypeName { get; } = "audio";
+		public override string GetFactoryTypeName() { return FactoryTypeName; }
+
+		public static string DisplayName { get; } = "Audio";
+		public override string GetDisplayName() { return DisplayName; }
+
+		public override IModifier Clone(int cloneFlags = 0)
+		{
+			var m = new AudioModifier();
+			CopyTo(m, cloneFlags);
+			return m;
+		}
+
+		protected void CopyTo(AudioModifier m, int cloneFlags)
+		{
+			base.CopyTo(m, cloneFlags);
+			m.source_ = source_;
+			m.clips_ = new List<NamedAudioClip>(clips_);
+			m.clipOrder_ = clipOrder_.Clone();
+			m.currentIndex_ = currentIndex_;
+			m.delay_ = delay_?.Clone(cloneFlags);
+		}
+
+
+		public override FloatRange PreferredRange
+		{
+			get
+			{
+				return new FloatRange(0, 1);
+			}
+		}
+
+		public List<NamedAudioClip> Clips
+		{
+			get
+			{
+				return new List<NamedAudioClip>(clips_);
+			}
+
+			set
+			{
+				clips_ = new List<NamedAudioClip>(value);
+				Reshuffle();
+			}
+		}
+
+		public NamedAudioClip CurrentClip
+		{
+			get
+			{
+				return currentClip_;
+			}
+		}
+
+		public AudioSourceControl Source
+		{
+			get
+			{
+				return source_;
+			}
+		}
+
+		public IDuration Delay
+		{
+			get
+			{
+				return delay_;
+			}
+
+			set
+			{
+				delay_ = value;
+
+				if (delay_ == null)
+					inDelay_ = false;
+			}
+		}
+
+		public int State
+		{
+			get
+			{
+				return state_;
+			}
+		}
+
+
+		public override J.Node ToJSON()
+		{
+			var o = base.ToJSON().AsObject();
+
+			if (clips_.Count > 0)
+			{
+				var clipsArray = new J.Array();
+				foreach (var clip in clips_)
+					clipsArray.Add(clip.uid);
+
+				o.Add("clips", clipsArray);
+			}
+
+			return o;
+		}
+
+		public override bool FromJSON(J.Node n)
+		{
+			if (!base.FromJSON(n))
+				return false;
+
+			var o = n.AsObject("AudioModifier");
+			if (o == null)
+				return false;
+
+			if (o.HasChildArray("clips"))
+			{
+				var clipsArray = o.Get("clips").AsArray();
+
+				if (clipsArray != null)
+				{
+					var cm = URLAudioClipManager.singleton;
+
+					clipsArray.ForEach((clipNode) =>
+					{
+						var clipUID = clipNode?.AsString("Clip node");
+						if (string.IsNullOrEmpty(clipUID))
+							return;
+
+						var clip = cm.GetClip(clipUID);
+
+						if (clip == null)
+							Synergy.LogError("clip '" + clipUID + "' not found");
+						else
+							clips_.Add(clip);
+					});
+
+					Reshuffle();
+				}
+			}
+
+			return true;
+		}
+
+		protected override void DoTick(
+			float deltaTime, float progress, bool firstHalf)
+		{
+			if (inDelay_)
+			{
+				delay_.Tick(deltaTime);
+
+				if (delay_.Finished)
+				{
+					inDelay_ = false;
+					delay_.Reset();
+				}
+
+				return;
+			}
+
+
+			base.DoTick(deltaTime, progress, firstHalf);
+
+			if (source_ == null)
+			{
+				state_ = NoSourceState;
+				return;
+			}
+
+			if (currentClip_ != null)
+			{
+				if (source_.audioSource.isPlaying || source_.audioSource.time > 0)
+				{
+					state_ = PlayingState;
+					return;
+				}
+			}
+
+			if (clips_.Count == 0)
+			{
+				state_ = NoClipsState;
+				return;
+			}
+
+			if (newClip_)
+			{
+				state_ = PlayingState;
+				return;
+			}
+
+			if (needsDelay_)
+			{
+				needsDelay_ = false;
+				inDelay_ = true;
+				state_ = InDelayState;
+				return;
+			}
+
+			++currentIndex_;
+			if (currentIndex_ >= clipOrder_.Count)
+				Reshuffle();
+
+			currentClip_ = clips_[clipOrder_.Get(currentIndex_)];
+			newClip_ = true;
+			needsDelay_ = true;
+
+			state_ = PlayingState;
+		}
+
+		protected override void DoTickPaused(float deltaTime)
+		{
+			base.DoTickPaused(deltaTime);
+
+			if (delay_ != null && inDelay_)
+				delay_.Tick(deltaTime);
+		}
+
+		protected override void DoSet(bool paused)
+		{
+			base.DoSet(paused);
+
+			if (inDelay_)
+				return;
+
+			if (newClip_)
+			{
+				source_.PlayNow(currentClip_);
+				source_.audioSource.time = 0;
+				newClip_ = false;
+			}
+		}
+
+		public void StopAudio()
+		{
+			if (source_ != null)
+				source_.Stop();
+		}
+
+		public void AddClip(NamedAudioClip c)
+		{
+			if (c != null)
+			{
+				clips_.Add(c);
+				Reshuffle();
+			}
+		}
+
+
+		protected override string MakeName()
+		{
+			return "Audio";
+		}
+
+		protected override void AtomChanged()
+		{
+			CheckSource();
+		}
+
+		private void CheckSource()
+		{
+			source_ = Utilities.AtomAudioSource(Atom);
+		}
+
+
+		private void Reshuffle()
+		{
+			clipOrder_.Shuffle(clips_.Count);
+			currentIndex_ = 0;
+		}
+	}
+}
