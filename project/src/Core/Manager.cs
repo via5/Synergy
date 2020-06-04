@@ -75,8 +75,10 @@ namespace Synergy
 		public void DeleteStep(Step s)
 		{
 			s.AboutToBeRemoved();
+
+			var i = steps_.IndexOf(s);
 			steps_.Remove(s);
-			progression_?.StepDeleted(s);
+			progression_?.StepDeleted(i);
 		}
 
 		public Step GetStep(int i)

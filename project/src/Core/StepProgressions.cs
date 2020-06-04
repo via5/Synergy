@@ -1,5 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System;
+using System.Linq;
 
 namespace Synergy
 {
@@ -11,7 +12,7 @@ namespace Synergy
 		void Next();
 		void AboutToBeRemoved();
 		void StepInserted(int at, Step s);
-		void StepDeleted(Step s);
+		void StepDeleted(int at);
 	}
 
 	class StepProgressionFactory : BasicFactory<IStepProgression>
@@ -63,7 +64,7 @@ namespace Synergy
 			s.Reset();
 		}
 
-		public virtual void StepDeleted(Step s)
+		public virtual void StepDeleted(int at)
 		{
 			// no-op
 		}
@@ -89,7 +90,6 @@ namespace Synergy
 		private bool forwards_ = true;
 
 
-		protected abstract int Count { get; }
 		protected abstract int GetStepIndex(int i);
 		protected abstract void AddToOrder(int stepIndex);
 		protected abstract void RemoveFromOrder(int stepIndex);
@@ -100,7 +100,7 @@ namespace Synergy
 		{
 			get
 			{
-				if (current_ < 0 || current_ >= Count)
+				if (current_ < 0 || current_ >= Steps.Count)
 					return null;
 
 				return GetStep(current_);
@@ -109,12 +109,12 @@ namespace Synergy
 
 		protected Step GetStep(int orderIndex)
 		{
-			if (orderIndex < 0 || orderIndex >= Count)
+			if (orderIndex < 0 || orderIndex >= Steps.Count)
 				return null;
 
 			var stepIndex = GetStepIndex(orderIndex);
 
-			if (stepIndex < 0 || stepIndex >= Count)
+			if (stepIndex < 0 || stepIndex >= Steps.Count)
 				return null;
 
 			return Steps[stepIndex];
@@ -156,7 +156,7 @@ namespace Synergy
 
 		public override void Next()
 		{
-			if (Count == 0)
+			if (Steps.Count == 0)
 			{
 				current_ = -1;
 				forwards_ = true;
@@ -171,7 +171,7 @@ namespace Synergy
 
 				current_ += dir;
 
-				if (current_ < 0 || current_ >= Count)
+				if (current_ < 0 || current_ >= Steps.Count)
 				{
 					forwards_ = !forwards_;
 					++dirCount;
@@ -192,7 +192,7 @@ namespace Synergy
 				}
 			}
 
-			if (current_ >= 0 && current_ < Count)
+			if (current_ >= 0 && current_ < Steps.Count)
 			{
 				if (forwards_)
 					GetStep(current_).Resume();
@@ -206,25 +206,23 @@ namespace Synergy
 		public override void StepInserted(int at, Step s)
 		{
 			base.StepInserted(at, s);
-			AddToOrder(at);
+			AddToOrder(Steps.Count - 1);
 		}
 
-		public override void StepDeleted(Step s)
+		public override void StepDeleted(int stepIndex)
 		{
-			base.StepDeleted(s);
+			base.StepDeleted(stepIndex);
 
-			bool deletingCurrent = (Current == s);
+			bool deletingCurrent = (current_ == stepIndex);
 
 			if (deletingCurrent)
 				Next();
-
-			var stepIndex = Steps.IndexOf(s);
 
 			RemoveFromOrder(stepIndex);
 
 			if (deletingCurrent)
 			{
-				if (Count == 0)
+				if (Steps.Count == 0)
 					current_ = -1;
 				else
 					--current_;
@@ -260,11 +258,6 @@ namespace Synergy
 
 		private List<int> order_ = new List<int>();
 
-
-		protected override int Count
-		{
-			get { return order_.Count; }
-		}
 
 		protected override int GetStepIndex(int i)
 		{
@@ -305,11 +298,6 @@ namespace Synergy
 		public override string GetDisplayName() { return DisplayName; }
 
 		private ShuffledOrder order_ = new ShuffledOrder();
-
-		protected override int Count
-		{
-			get { return order_.Count; }
-		}
 
 		protected override int GetStepIndex(int i)
 		{
