@@ -659,6 +659,8 @@ namespace Synergy
 
 			if (Bits.IsSet(flags_, Tall))
 				element_.height = LineHeight * 2;
+
+			element_.toggle.interactable = !Bits.IsSet(flags_, Disabled);
 		}
 
 		protected override void DoRemoveFromUI()

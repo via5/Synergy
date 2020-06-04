@@ -102,7 +102,7 @@ namespace Synergy
 				if (time_.Current <= 0)
 					return 1;
 
-				return time_.Elapsed / time_.Current;
+				return time_.Elapsed / (time_.Current / 2);
 			}
 		}
 

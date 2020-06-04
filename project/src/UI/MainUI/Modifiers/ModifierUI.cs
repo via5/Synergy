@@ -100,10 +100,9 @@ namespace Synergy
 			widgets_.AddToUI(modifierSync_);
 
 			if (modifierSyncUI_ != null)
-			{
 				modifierSyncUI_.AddToUI(m.ModifierSync);
-				widgets_.AddToUI(new SmallSpacer(Widget.Right));
-			}
+
+			widgets_.AddToUI(new SmallSpacer(Widget.Right));
 
 			if (specificUI_ != null)
 			{

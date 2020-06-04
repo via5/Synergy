@@ -33,7 +33,7 @@
 
 			durationCollapsible_ = new Collapsible("Duration");
 			durationWidgets_ = new DurationWidgets(
-				"Duration", DurationTypeChanged);
+				"", DurationTypeChanged);
 
 			repeatWidgets_ = new RandomizableTimeWidgets("Repeat");
 			repeatCollapsible_ = new Collapsible("Repeat");

@@ -21,8 +21,15 @@ namespace Synergy
 			name_ = name;
 			callback_ = callback;
 
+			string typeLabel = "";
+
+			if (name == "")
+				typeLabel = "Duration type";
+			else
+				typeLabel = name + " duration type";
+
 			durationType_ = new FactoryStringList<DurationFactory, IDuration>(
-				name + " type", "", TypeChanged, flags);
+				typeLabel, "", TypeChanged, flags);
 		}
 
 		public override bool Enabled
@@ -184,13 +191,13 @@ namespace Synergy
 			: base(name)
 		{
 			over_ = new FloatSlider(
-				MakeText("Total duration"), DurationChanged, flags);
+				MakeText("Ramp time"), DurationChanged, flags);
 
 			min_ = new FloatSlider(
-				MakeText("Minimum"), MinimumChanged, flags);
+				MakeText("Minimum duration"), MinimumChanged, flags);
 
 			max_ = new FloatSlider(
-				MakeText("Maximum"), MaximumChanged, flags);
+				MakeText("Maximum duration"), MaximumChanged, flags);
 
 			hold_ = new FloatSlider(
 				MakeText("Hold maximum"), HoldChanged, flags);

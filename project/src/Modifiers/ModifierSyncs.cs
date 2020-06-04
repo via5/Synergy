@@ -201,7 +201,12 @@ namespace Synergy
 				if (duration_ == null)
 					return 0;
 
-				return duration_.TimeRemaining;
+				var t = duration_.TimeRemaining;
+
+				if ((inFirstHalf_ && delay_.Halfway) || delay_.Active)
+					t += delay_.Duration.TimeRemaining;
+
+				return t;
 			}
 		}
 

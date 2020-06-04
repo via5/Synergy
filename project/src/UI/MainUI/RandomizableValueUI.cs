@@ -85,7 +85,7 @@ namespace Synergy
 				InitialChanged, flags);
 
 			range_ = new FloatSlider(
-				name + " range", 0, new FloatRange(0, 0),
+				name + " random range", 0, new FloatRange(0, 0),
 				RangeChanged, flags);
 		}
 	}
@@ -103,7 +103,7 @@ namespace Synergy
 				InitialChanged, flags);
 
 			range_ = new FloatSlider(
-				name + " range", 0, new FloatRange(0, 0),
+				name + " random range", 0, new FloatRange(0, 0),
 				RangeChanged, flags);
 
 			cutoff_ = new StringList(

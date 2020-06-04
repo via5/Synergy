@@ -305,9 +305,12 @@ namespace Synergy
 		{
 			base.AboutToBeRemoved();
 
-			Light light = Atom.GetComponentInChildren<Light>();
-			if (light != null)
-				property_?.Reset(light);
+			if (Atom != null)
+			{
+				Light light = Atom.GetComponentInChildren<Light>();
+				if (light != null)
+					property_?.Reset(light);
+			}
 		}
 
 		public ILightProperty Property
