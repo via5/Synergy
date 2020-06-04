@@ -45,7 +45,9 @@ namespace Synergy
 			set
 			{
 				manager_ = value;
-				StepsChanged();
+
+				if (manager_ != null)
+					StepsChanged();
 			}
 		}
 
