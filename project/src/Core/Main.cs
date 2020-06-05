@@ -67,49 +67,6 @@ namespace Synergy
 
 		private void CreateTestStuff(Atom a)
 		{
-			var s = new Step();
-
-			var mm = new MorphModifier();
-
-			mm.AddMorph(
-				Utilities.GetAtomMorph(a, "Mouth Open"),
-				new Movement(
-					//new RandomizableFloat(0.5f, 0.0f),
-					//new RandomizableFloat(0.8f, 0.0f)));
-					new RandomizableFloat(0.05f, 0.05f),
-					new RandomizableFloat(0.7f, 0.3f)));
-
-			mm.AddMorph(
-				Utilities.GetAtomMorph(a, "Lips Pucker"),
-				new Movement(
-					new RandomizableFloat(0.05f, 0.05f),
-					new RandomizableFloat(0.7f, 0.3f)));
-
-			//mm.AddMorph(
-			//    Utilities.GetAtomMorph(a, "Tongue Twist"),
-			//    new FloatRange(-0.5f, 0.5f));
-			//
-			//mm.AddMorph(
-			//    Utilities.GetAtomMorph(a, "Tongue Curl"),
-			//    new FloatRange(-0.4f, 0.3f));
-			//
-			//mm.AddMorph(
-			//    Utilities.GetAtomMorph(a, "Tongue Roll 1"),
-			//    new FloatRange(0.0f, 0.4f));
-			//
-			//mm.AddMorph(
-			//    Utilities.GetAtomMorph(a, "Tongue In-Out"),
-			//    new FloatRange(0.0f, 2.0f));
-			//
-			//mm.AddMorph(
-			//    Utilities.GetAtomMorph(a, "Tongue Length"),
-			//    new FloatRange(0.2f, 0.2f));
-
-			s.AddModifier(new ModifierContainer(mm));
-			s.Duration = new RandomDuration(5.0f);
-
-			manager_.AddStep(s);
-			//manager_.AddStep();
 		}
 
 		public Timer CreateTimer(float seconds, Timer.Callback callback)

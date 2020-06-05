@@ -6,6 +6,8 @@ At its core, Synergy has the notion of _steps_ and _modifiers_. Each step can co
 
 ## Table of contents
 - [Getting started](#getting-started)
+  * [A simple head animation](#a-simple-head-animation)
+  * [A ramping head and steady mouth](#a-ramping-head-and-steady-mouth)
 - [User interface](#user-interface)
 - [Step](#step)
   * [Progression](#progression)
@@ -34,7 +36,7 @@ Once a step has been added, _Add modifier_ will add a new modifier in this step.
 
 [<img src="doc/empty-step.png" height="300">](doc/empty-step.png)
 
-Synergy now has one step and one modifier.
+Synergy now has one step and one modifier in this step.
 
 [<img src="doc/base.png" height="400">](doc/base.png)
 
@@ -46,7 +48,7 @@ Adding steps:
  - _Insert step after_: Adds a new step after the current one.
  - _Clone step_: Adds a new step after the current one with the same settings and modifiers as the current one.
 
-Note that steps cannot be re-ordered.
+Note that steps cannot currently be re-ordered.
 
 Adding modifiers:
 
@@ -54,6 +56,65 @@ Adding modifiers:
  - _Clone modifier_: Adds a new modifier that is an exact copy of the current one.
  - _Clone modifier zero values_: Adds a new modifier that is a copy of the current one, except for any value that drives something, such as movements for rigidbodies. This is a useful shortcut when adding modifiers that are similar to the current one, without the character model moving unexpectedly because of compounding modifiers.
 
+
+### A simple head animation
+
+[Here's a video of the result](doc/head.mp4).
+
+1) Add the script on a Person atom
+
+2) Add a new step and a modifier inside that step
+
+3) Change the duration of the step to 2 seconds
+
+   [<img src="doc/head-1.png" height="400">](doc/head-1.png)
+
+4) Set the modifier type to _Rigidbody_
+
+   [<img src="doc/head-2.png" height="400">](doc/head-2.png)
+
+5) Set the _Receiver_ to _head_.
+
+   [<img src="doc/head-3.png" height="400">](doc/head-3.png)
+
+5) Change the _minimum_ to -100 and the _maximum_ to 100
+
+   [<img src="doc/head-4.png" height="400">](doc/head-4.png)
+
+
+### A ramping head and steady mouth
+
+[Here's a video of the result](doc/ramp.mp4).
+
+1) Add a new step
+  - Change its duration type to _Ramp_
+  - Set _ramp time_ to 5s
+  - Set _minimum_ to 2
+  - Set _maximum_ to 0.5
+  - Set _hold maximum_ to 3s
+
+   [<img src="doc/ramp-1.png" height="400">](doc/ramp-1.png)
+
+4) Add a first modifier by clicking _Add modifier_ on top
+  - Set its type to _Rigidbody_
+  - Select _head_ as the receiver
+  - Change the _move type_ to _Relative torque_
+  - Change the _direction_ to _Y_
+  - Set the _minimum_ to -20 and the _maximum_ to 20
+
+   [<img src="doc/ramp-2.png" height="400">](doc/ramp-2.png)
+
+5) Add a second modifier by clicking _Add modifier_ on top
+  - Set its type to _Morph_
+  - Set _Sync_ to _Unsynced_
+  - Click the _Duration_ button that appeared below, set _Duration_ to 2s
+  - Scroll to the bottom, click _Morphs_
+  - In the search box, type `mouth open`
+  - Select the _Mouth Open_ morph that appears below
+
+   [<img src="doc/ramp-3.png" height="400">](doc/ramp-3.png)&nbsp;&nbsp;&nbsp;&nbsp;[<img src="doc/ramp-4.png" height="400">](doc/ramp-4.png)
+
+Notice the head movement speed ramping up and down, but the mouth opening and closing at a steady rate. To change the settings of the first modifier, the list at the very top allows for switching between modifiers
 
 ## User interface
 Some widgets are used extensively in Synergy:
@@ -294,7 +355,7 @@ A duration that speeds up and slows down over a period of time.
 
 [<img src="doc/duration-ramp.png" height="400">](doc/duration-ramp.png)
 
-- _Ramp time_: The time during which the durations will be ramped up or down. If the ramp time is 5s, the actual duration will ramp up for 5s, then down for 5s.
+- _Ramp time_: The time during which the duration will be ramped up or down. If the ramp time is 5s, the actual duration will ramp up for 5s, then down for 5s.
 - _Minimum duration_: The duration when ramping starts and ends.
 - _Maximum duration_: The duration when ramping is completely up.
 - _Hold maximum_: Time in seconds to hold the duration when ramped up at the maximum.

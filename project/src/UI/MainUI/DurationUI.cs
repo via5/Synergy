@@ -129,7 +129,7 @@ namespace Synergy
 
 		protected string MakeText(string s)
 		{
-			if (name_ == "")
+			if (name_ == "" || name_ == "Duration")
 				return s;
 			else
 				return name_ + " " + char.ToLower(s[0]) + s.Substring(1);
