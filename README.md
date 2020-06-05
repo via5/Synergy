@@ -5,6 +5,7 @@ Synergy is a plugin that can create random animations based on a variety of para
 At its core, Synergy has the notion of _steps_ and _modifiers_. Each step can contain one or more modifiers, which are used to drive certain parameters such as forces on a rigidbody or morph values. A step has a _duration_, which is used to synchronise the modifiers. Once the duration has elapsed, Synergy moves on to the next step.
 
 ## Table of contents
+- [Table of contents](#table-of-contents)
 - [Getting started](#getting-started)
   * [A simple head animation](#a-simple-head-animation)
   * [A ramping head and steady mouth](#a-ramping-head-and-steady-mouth)
@@ -17,6 +18,8 @@ At its core, Synergy has the notion of _steps_ and _modifiers_. Each step can co
   * [Delay](#delay)
 - [Modifier](#modifier)
   * [Synchronisation](#synchronisation)
+  * [Unsynced modifiers](#unsynced-modifiers)
+  * [Step duration and unsynced modifiers](#step-duration-and-unsynced-modifiers)
   * [Rigidbody](#rigidbody)
   * [Morph](#morph)
   * [Light](#light)
@@ -24,6 +27,8 @@ At its core, Synergy has the notion of _steps_ and _modifiers_. Each step can co
 - [Presets](#presets)
 - [Monitor](#monitor)
 - [Duration](#duration)
+  * [Random range](#random-range)
+  * [Ramp](#ramp)
 - [Movement](#movement)
 - [Easings](#easings)
 
@@ -176,7 +181,7 @@ A modifier drives either a rigidbody, a morph, a light or audio. Some controls a
 - _Disable other modifiers_: Enables this modifier and disables all the others in this step.
 - _Enable all modifiers_: Enables all modifiers in this step.
 - _Type_: The type of this modifier.
-- _Sync_: What drives this modifier. See [Synchronisation](#synchronisation).
+- _Sync_: The duration used by this modifier. See [Modifier duration](#modifier-duration) and [Synchronisation](#synchronisation).
 
 The name of a modifier cannot currently be changed manually. It is automatically generated based on the modifier type and some parameters. For example, a rigidbody modifier that uses a relative force on X for the head receiver of a Person atom will be named "RF Person head X". These are the abbreviations used:
 
@@ -189,19 +194,44 @@ The name of a modifier cannot currently be changed manually. It is automatically
 
 
 ### Synchronisation
-Modifiers are driven by a [duration](#duration). This duration can come from different places:
-- _Step duration_: Uses the duration of the step that contains this modifier.
+A modifier has a _duration_, which is used to drive its parameters. Typically, the parameters will be at 50% of their range when the duration is at 50% of its progress. By default, the duration of a modifier is the duration of its parent step. This allows for adding multiple modifiers to a step and have them synchronised. However, the _synchronisation_ option of a modifier can be changed so that it uses a different duration.
+
+- _Step duration_: This is the default. Uses the duration of the step that contains this modifier.
 - _Step progress_: If the step uses a [random range duration](#random-range), this is the same as _step duration_. If it uses a ramp, the modifier will steadily move towards 100% during ramp up and move towards 0% during ramp down (that is, the duration is the ramp time).
 - _Other modifier_: Uses whatever duration the selected modifier uses.
 - _Unsynced_: The modifier has its own duration and delay, independent of the step.
 
-The interaction between unsynced modifiers and their parent step is somewhat complicated, because the step has to eventually end so the next one can be executed. If there is only one enabled step, none of the following applies and modifiers just run independently.
+
+### Unsynced modifiers
+Synergy has several options to manage unsynced modifiers because they are a great way of adding secondary movements. For example, a regular hip thrust works well with random, unsynchronised head movements such as slow rotations. There are three ways of achieving this:
+
+ - Concurrent steps: The hip thrust and head movements can be added to two independent steps if the step progression is set to _concurrent_. The hip step can have a steady, fast rhythm, while the head step can have a slower, random duration. However, this makes it impossible to add a _second_ set of animations that executes after some time since it would execute concurrently. The various head movements like forces and rotations would also all be synchronised with each other since they're all in the same step. Head movements look better if they're all allowed to run independently and randomly.
+
+ - Unsynced modifiers: All the hip and head modifiers can be added to the same step and be set as unsynced. The step duration would only be used as a time limit after which all modifiers stop as soon as they can. This can create good movement, but some animations look better if several movements are synced, such as a hip thrust, which is typically a combination of forces on Z and rotations on X. If these two movements are completely unsynchronised, they might end up fighting each other eventually, especially if their movement timings has randomness.
+
+ - Synced and unsynced modifiers: The best way of handling this is to then have _some_ modifiers be synced, but others not, all in the same step. This allows for good hip thrusts while having natural a head motion. Since everything is in one step, the progression can be sequential and other animations can be created in subsequent steps. There are two ways of doing this:
+
+	- Pick one movement as being the main one. In this case, it would be the hip thrust. All the hip thrust modifiers would be synced with the step (the default setting), while all the head modifiers would be unsynced, as they're considered secondary movements. Other unsynced modifiers like hand or feet movements can also be added.
+
+	  The step duration then drives the hip movements, while secondary movements are unsynced and move naturally with some randomness. Once the step duration has elapsed, the various unsynced modifiers will be allowed to run to completion. Once that's over, another step with a brand new animation can be executed.
+
+    - Create a main hip movement as an unsynced modifier, such as a force on Z. Then, the other hip modifiers such as torques can have their _sync_ option set to _Other modifier_ and linked with the first hip modifier. After that, other unsynced modifiers can be added for the head movements. In this case, the step duration is only used as a time limit, it doesn't drive anything. This is equivalent to the above, but can be more difficult to manage through the UI.
+
+As with everything, a combination of all of the above can give a lot of flexibility. A step can have some synced modifiers, some unsynced modifiers and some modifiers synced with each others.
+
+
+### Step duration and unsynced modifiers
+The interaction between unsynced modifiers and their parent step is somewhat complicated, because the step has to eventually end so the next one can be executed. If there is only one enabled step, none of the following applies and modifiers are allowed to run independently indefinitely.
 
 Once a step has finished its own duration, it must wait for all the unsynced modifiers to end. However, some modifiers might take longer than others. To avoid long pauses where only one modifier runs while everything else is frozen, the step will allow unsynced modifiers to continue running while waiting.
 
-To achieve this, the step will ask all the unsynced modifiers the shortest time they require to finish, which includes halfway delays, but not end delays. The longest time required among all the unsynced modifiers is called the _grace period_. Therefore, the grace period is how long the step has to wait until all unsynced modifiers have completed.
+As an example, if a step has a duration of 5s but contains an unsynced modifier with a duration of 8s, the step will finish its execution after 5s, but the modifier will still require three more seconds. Synergy will try keep as many things moving as possible during these three seconds.
 
-The step will ask all unsynced modifiers to end _before_ the grace period elapses. This allow for some modifiers to continue their movements if they can guarantee they will end before the grace period. If a modifier has a random duration that needs to be regenerated because its interval has elapsed, it will do so if at least some part of the random range is within the grace period, in which case the range will be clamped so it doesn't exceed the grace period.
+To achieve this, the step will ask all the unsynced modifiers for the shortest time they require to finish, which includes halfway delays, but not end delays. The longest time required among all the unsynced modifiers is called the _grace period_. Therefore, the grace period is how long the step has to wait until all unsynced modifiers have completed.
+
+The step will then ask all unsynced modifiers to end _before_ the grace period elapses. This allow for some modifiers to continue their movements if they can guarantee they will end before the grace period is over. If the grace period is 3s but another unsynced modifier only needs 1.5s to run, it will be allowed to run twice while the step waits 3s for the slower modifier to end.
+
+If a modifier has a random duration that needs to be regenerated because its interval has elapsed, it will do so if at least some part of the random range is within the grace period, in which case the range will be clamped so it doesn't exceed the grace period.
 
 All of this is to allow shorter unsynced modifiers to continue running while a longer unsynced modifier finishes. This reduces unnatural pauses while the step is waiting to end.
 
