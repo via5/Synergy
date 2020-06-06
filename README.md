@@ -33,6 +33,8 @@ At its core, Synergy has the notion of _steps_ and _modifiers_. Each step can co
 - [Easings](#easings)
 
 ## Getting started
+You can add the plugin on a Person or on any atom. Synergy doesn't really care where it's added. Adding it to a Person will automatically use that Person by default anywhere Synergy needs an atom, that's all.
+
 After the plugin has been added, the user interface is empty. _Insert step after_ will add a new step.
 
 [<img src="doc/empty.png" height="300">](doc/empty.png)
@@ -41,11 +43,11 @@ Once a step has been added, _Add modifier_ will add a new modifier in this step.
 
 [<img src="doc/empty-step.png" height="300">](doc/empty-step.png)
 
-Synergy now has one step and one modifier in this step.
+Synergy now has one step and one modifier in this step. When there are more than one step, or more than one modifier in the selected step, the lists at the top can be used to switch betweem them.
 
 [<img src="doc/base.png" height="400">](doc/base.png)
 
-The left side is used to configure the step. The right side configures a modifier. The selected step or modifier can be changed in the list at the top. Other steps or modifiers can be added using the buttons below the lists.
+The left side is used to configure the step. The right side configures a modifier. Other steps or modifiers can be added using the buttons below the lists.
 
 Adding steps:
 
@@ -197,7 +199,7 @@ The name of a modifier cannot currently be changed manually. It is automatically
 A modifier has a _duration_, which is used to drive its parameters. Typically, the parameters will be at 50% of their range when the duration is at 50% of its progress. By default, the duration of a modifier is the duration of its parent step. This allows for adding multiple modifiers to a step and have them synchronised. However, the _synchronisation_ option of a modifier can be changed so that it uses a different duration.
 
 - _Step duration_: This is the default. Uses the duration of the step that contains this modifier.
-- _Step progress_: If the step uses a [random range duration](#random-range), this is the same as _step duration_. If it uses a ramp, the modifier will steadily move towards 100% during ramp up and move towards 0% during ramp down (that is, the duration is the ramp time).
+- _Step progress_: If the step uses a [random range duration](#random-range), this is the same as _step duration_. If it uses a ramp, the modifier will steadily move towards 100% during ramp up and move towards 0% during ramp down (that is, the duration is twice the ramp time plus the hold maximum time).
 - _Other modifier_: Uses whatever duration the selected modifier uses.
 - _Unsynced_: The modifier has its own duration and delay, independent of the step.
 
@@ -205,7 +207,7 @@ A modifier has a _duration_, which is used to drive its parameters. Typically, t
 ### Unsynced modifiers
 Synergy has several options to manage unsynced modifiers because they are a great way of adding secondary movements. For example, a regular hip thrust works well with random, unsynchronised head movements such as slow rotations. There are three ways of achieving this:
 
- - Concurrent steps: The hip thrust and head movements can be added to two independent steps if the step progression is set to _concurrent_. The hip step can have a steady, fast rhythm, while the head step can have a slower, random duration. However, this makes it impossible to add a _second_ set of animations that executes after some time since it would execute concurrently. The various head movements like forces and rotations would also all be synchronised with each other since they're all in the same step. Head movements look better if they're all allowed to run independently and randomly.
+ - Concurrent steps: The hip thrust and head movements can be added to two independent steps if the [step progression](#progression) is set to _concurrent_. The hip step can have a steady, fast rhythm, while the head step can have a slower, random duration. However, this makes it impossible to add a _second_ set of animations that executes after some time since it would execute concurrently. The various head movements like forces and rotations would also all be synchronised with each other since they're all in the same step. Head movements look better if they're all allowed to run independently and randomly.
 
  - Unsynced modifiers: All the hip and head modifiers can be added to the same step and be set as unsynced. The step duration would only be used as a time limit after which all modifiers stop as soon as they can. This can create good movement, but some animations look better if several movements are synced, such as a hip thrust, which is typically a combination of forces on Z and rotations on X. If these two movements are completely unsynchronised, they might end up fighting each other eventually, especially if their movement timings has randomness.
 
@@ -213,9 +215,9 @@ Synergy has several options to manage unsynced modifiers because they are a grea
 
 	- Pick one movement as being the main one. In this case, it would be the hip thrust. All the hip thrust modifiers would be synced with the step (the default setting), while all the head modifiers would be unsynced, as they're considered secondary movements. Other unsynced modifiers like hand or feet movements can also be added.
 
-	  The step duration then drives the hip movements, while secondary movements are unsynced and move naturally with some randomness. Once the step duration has elapsed, the various unsynced modifiers will be allowed to run to completion. Once that's over, another step with a brand new animation can be executed.
+	  The step duration (which can be a ramp) then drives the hip movements, while secondary movements are unsynced and move naturally with some randomness. Once the step duration has elapsed, the various unsynced modifiers will be allowed to run to completion. Once that's over, another step with a brand new animation can be executed.
 
-    - Create a main hip movement as an unsynced modifier, such as a force on Z. Then, the other hip modifiers such as torques can have their _sync_ option set to _Other modifier_ and linked with the first hip modifier. After that, other unsynced modifiers can be added for the head movements. In this case, the step duration is only used as a time limit, it doesn't drive anything. This is equivalent to the above, but can be more difficult to manage through the UI.
+    - Create a main hip movement as an unsynced modifier, such as a force on Z. Then, the other hip modifiers such as torques can have their _sync_ option set to _Other modifier_ and linked with the first hip modifier. After that, other unsynced modifiers can be added for the head movements. In this case, the step duration is only used as a time limit, it doesn't drive anything. This is equivalent to the above, but can be more difficult to manage through the UI because the step options become mostly irrelevant and a lot of switching between modifiers is required.
 
 As with everything, a combination of all of the above can give a lot of flexibility. A step can have some synced modifiers, some unsynced modifiers and some modifiers synced with each others.
 
