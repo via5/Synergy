@@ -342,7 +342,8 @@ namespace Synergy
 
 		public void TickPaused(float deltaTime)
 		{
-			DoModifierTicksPaused(deltaTime);
+			if (!HalfMove)
+				DoModifierTicksPaused(deltaTime);
 		}
 
 		private bool DoDelay(float deltaTime)
