@@ -829,6 +829,10 @@ namespace Synergy
 
 			element_.buttonText.alignment = align_;
 
+			// add some padding when right aligned, it's too close to the edge
+			if (element_.label != "" && IsRightAligned)
+				element_.label += " ";
+
 			int newLines = 0;
 			foreach (char c in Text)
 			{
@@ -837,6 +841,17 @@ namespace Synergy
 			}
 
 			Height = 30 + (30 * newLines);
+		}
+
+		private bool IsRightAligned
+		{
+			get
+			{
+				return
+					(align_ == TextAnchor.UpperRight) ||
+					(align_ == TextAnchor.MiddleRight) ||
+					(align_ == TextAnchor.LowerRight);
+			}
 		}
 	}
 

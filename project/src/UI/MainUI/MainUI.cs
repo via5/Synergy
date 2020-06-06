@@ -161,7 +161,7 @@ namespace Synergy
 		private void AddMonitorToUI()
 		{
 			AddMonitorToggle();
-			widgets_.AddToUI(new SmallSpacer(Widget.Right));
+			widgets_.AddToUI(new Label(Version.DisplayString, Widget.Right, TextAnchor.MiddleRight));
 
 			AddStepSelector();
 			AddModifierSelector();
