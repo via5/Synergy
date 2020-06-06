@@ -189,6 +189,17 @@ namespace Synergy
 				c_?.Add(key, new JSONData(b));
 			}
 
+			public void Add(string key, BoolParameter b)
+			{
+				var o = new J.Object();
+				o.Add("value", b.InternalValue);
+
+				if (b.Registered)
+					o.Add("parameter", b.Name);
+
+				c_?.Add(key, o.Impl);
+			}
+
 			public void Add(string key, float f)
 			{
 				c_?.Add(key, new JSONData(f));
@@ -242,6 +253,31 @@ namespace Synergy
 					v = c_[key].AsBool;
 				else
 					v = def;
+			}
+
+			public void Opt(string key, ref BoolParameter v)
+			{
+				if (!HasKey(key))
+					return;
+
+				var node = c_[key];
+
+				var o = node as JSONClass;
+
+				if (o == null)
+				{
+					v.Value = node.AsBool;
+				}
+				else
+				{
+					v.Value = o["value"].AsBool;
+
+					if (o.HasKey("parameter"))
+					{
+						v.Name = o["parameter"];
+						v.Register();
+					}
+				}
 			}
 
 			public void Opt(string key, ref float v)

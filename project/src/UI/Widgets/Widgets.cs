@@ -11,6 +11,7 @@ namespace Synergy
 		void AddToUI();
 		void RemoveFromUI();
 		Selectable GetSelectable();
+		UIDynamic DynamicElement { get; }
 	}
 
 	class WidgetList
@@ -46,6 +47,7 @@ namespace Synergy
 		public abstract void AddToUI();
 		public abstract void RemoveFromUI();
 		public abstract Selectable GetSelectable();
+		public abstract UIDynamic DynamicElement { get; }
 
 		protected Synergy sc_ = Synergy.Instance;
 	}
@@ -71,6 +73,14 @@ namespace Synergy
 		}
 
 		public UIElement Element
+		{
+			get
+			{
+				return element_;
+			}
+		}
+
+		public override UIDynamic DynamicElement
 		{
 			get
 			{
@@ -638,6 +648,8 @@ namespace Synergy
 		public delegate void Callback(bool b);
 
 		private readonly Callback callback_;
+		private BoolParameter parameter_ = null;
+		private SubCheckbox animatable_ = null;
 
 		public Checkbox(string name, Callback callback=null, int flags = 0)
 			: this(name, false, callback, flags)
@@ -661,6 +673,105 @@ namespace Synergy
 				element_.height = LineHeight * 2;
 
 			element_.toggle.interactable = !Bits.IsSet(flags_, Disabled);
+
+			if (parameter_ != null)
+			{
+				if (Synergy.Instance.Options.PickAnimatable)
+				{
+					animatable_ = new SubCheckbox(
+						this, "Animatable", parameter_.Registered,
+						AnimatableChanged);
+
+					animatable_.AddToUI();
+				}
+			}
+		}
+
+		protected override void DoRemoveFromUI()
+		{
+			if (element_)
+			{
+				sc_.RemoveToggle(element_);
+				element_ = null;
+			}
+
+			if (animatable_ != null)
+				animatable_.RemoveFromUI();
+		}
+
+		public override Selectable GetSelectable()
+		{
+			return element_?.toggle;
+		}
+
+		public bool Value
+		{
+			get { return storable_.val; }
+			set { storable_.valNoCallback = value; }
+		}
+
+		public BoolParameter Parameter
+		{
+			get { return parameter_; }
+			set { parameter_ = value; }
+		}
+
+		private void Changed(bool b)
+		{
+			Utilities.Handler(() =>
+			{
+				callback_?.Invoke(b);
+			});
+		}
+
+		private void AnimatableChanged(bool b)
+		{
+			Utilities.Handler(() =>
+			{
+				if (parameter_ != null)
+				{
+					if (b)
+						parameter_.Register();
+					else
+						parameter_.Unregister();
+				}
+			});
+		}
+	}
+
+
+	class SubCheckbox : BasicWidget<JSONStorableBool, UIDynamicToggle>
+	{
+		public delegate void Callback(bool b);
+
+		private readonly IWidget parent_;
+		private readonly Callback callback_;
+
+		public SubCheckbox(IWidget parent, string name, Callback callback = null, int flags = 0)
+			: this(parent, name, false, callback, flags)
+		{
+		}
+
+		public SubCheckbox(IWidget parent, string name, bool value, Callback callback, int flags = 0)
+			: base(flags)
+		{
+			parent_ = parent;
+			storable_ = new JSONStorableBool(name, value, Changed);
+			callback_ = callback;
+		}
+
+		protected override void DoAddToUI()
+		{
+			RemoveFromUI();
+
+			element_ = sc_.CreateToggle(storable_, Bits.IsSet(flags_, Right));
+			element_.toggle.interactable = !Bits.IsSet(flags_, Disabled);
+
+			element_.transform.SetParent(parent_.DynamicElement.transform, false);
+			element_.transform.GetComponent<RectTransform>().offsetMin = new Vector2(305, -50);
+			element_.transform.GetComponent<RectTransform>().offsetMax = new Vector2(30, 0);
+			element_.labelText.fontSize = 32;
+			element_.toggle.transform.localScale = new Vector3(0.75f, 0.75f, 0.75f);
 		}
 
 		protected override void DoRemoveFromUI()
@@ -691,6 +802,7 @@ namespace Synergy
 			});
 		}
 	}
+
 
 	class Button : BasicWidget<object, UIDynamicButton>
 	{

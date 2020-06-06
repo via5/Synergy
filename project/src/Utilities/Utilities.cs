@@ -325,4 +325,98 @@ namespace Synergy
 			}
 		}
 	}
+
+
+	public class BoolParameter
+	{
+		private string name_;
+		private bool value_;
+		private bool? override_;
+		private JSONStorableBool boolStorable_ = null;
+		private JSONStorableFloat floatStorable_ = null;
+
+		public BoolParameter(string name, bool v)
+		{
+			name_ = name;
+			value_ = v;
+		}
+
+		public bool Value
+		{
+			get
+			{
+				if (override_.HasValue)
+					return override_.Value;
+				else
+					return value_;
+			}
+
+			set
+			{
+				value_ = value;
+			}
+		}
+
+		public bool InternalValue
+		{
+			get { return value_; }
+			set { value_ = value; }
+		}
+
+		public bool Registered
+		{
+			get { return (boolStorable_ != null); }
+		}
+
+		public string Name
+		{
+			get { return name_; }
+			set { name_ = value; }
+		}
+
+		public void Register()
+		{
+			Unregister();
+
+			Synergy.LogInfo("registering");
+
+			boolStorable_ = new JSONStorableBool(
+				name_, value_, BoolChanged);
+
+			boolStorable_.storeType = JSONStorableParam.StoreType.Full;
+			Synergy.Instance.RegisterBool(boolStorable_);
+
+			floatStorable_ = new JSONStorableFloat(
+				name_ + ".f", 0, FloatChanged, 0, 1);
+
+			floatStorable_.storeType = JSONStorableParam.StoreType.Full;
+			Synergy.Instance.RegisterFloat(floatStorable_);
+		}
+
+		public void Unregister()
+		{
+			if (boolStorable_ != null)
+			{
+				Synergy.LogInfo("unregistering");
+
+				Synergy.Instance.DeregisterBool(boolStorable_);
+				boolStorable_ = null;
+
+				Synergy.Instance.DeregisterFloat(floatStorable_);
+				floatStorable_ = null;
+			}
+
+			override_ = null;
+		}
+
+		private void BoolChanged(bool b)
+		{
+			override_ = b;
+		}
+
+		private void FloatChanged(float f)
+		{
+			override_ = (f >= 0.5);
+		}
+	}
 }

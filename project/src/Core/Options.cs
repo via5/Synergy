@@ -5,6 +5,7 @@
 		private bool resetValuesOnFreeze_ = false;
 		private bool resetCountersOnThaw_ = false;
 		private bool verboseLog_ = false;
+		private bool pickingAnimatable_ = true;
 
 		public bool ResetValuesOnFreeze
 		{
@@ -22,6 +23,12 @@
 		{
 			get { return verboseLog_; }
 			set { verboseLog_ = value; }
+		}
+
+		public bool PickAnimatable
+		{
+			get { return pickingAnimatable_; }
+			set { pickingAnimatable_ = value; }
 		}
 
 		public J.Node ToJSON()

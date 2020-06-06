@@ -266,7 +266,6 @@ namespace Synergy
 			widgets_.AddToUI(cloneModifierZero_);
 			widgets_.AddToUI(new LargeSpacer(Widget.Right));
 			widgets_.AddToUI(new SmallSpacer(Widget.Right));
-			//widgets_.AddToUI(new Spacer(35, Widget.Right));
 			modifier_.AddToUI(CurrentModifier);
 
 			cloneModifier_.Enabled = (CurrentModifier != null);

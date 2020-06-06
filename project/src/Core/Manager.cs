@@ -70,6 +70,7 @@ namespace Synergy
 
 			steps_.Insert(at, s);
 			progression_?.StepInserted(at, s);
+			s.Added();
 		}
 
 		public void DeleteStep(Step s)
@@ -79,6 +80,8 @@ namespace Synergy
 			var i = steps_.IndexOf(s);
 			steps_.Remove(s);
 			progression_?.StepDeleted(i);
+
+			s.Removed();
 		}
 
 		public Step GetStep(int i)
@@ -259,6 +262,9 @@ namespace Synergy
 				return false;
 
 			o.Opt("steps", ref steps_);
+
+			foreach (var s in steps_)
+				s.Added();
 
 			IStepProgression sp = null;
 			o.Opt<StepProgressionFactory, IStepProgression>(

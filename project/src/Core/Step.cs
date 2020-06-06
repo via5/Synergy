@@ -6,12 +6,12 @@ namespace Synergy
 {
 	class Step : IJsonable
 	{
-		private bool enabled_ = true;
+		private BoolParameter enabled_ = new BoolParameter("Enabled", true);
 		private string name_ = null;
 		private IDuration duration_ = null;
 		private RandomizableTime repeat_ = null;
 		private Delay delay_ = null;
-		private bool halfMove_ = false;
+		private BoolParameter halfMove_ = new BoolParameter("HalfMove", false);
 		private List<ModifierContainer> modifiers_ = null;
 
 		private bool inFirstHalf_ = true;
@@ -34,12 +34,12 @@ namespace Synergy
 					DeleteModifier(modifiers_[0]);
 			}
 
-			enabled_ = true;
+			enabled_.Value = true;
 			name_ = null;
 			duration_ = new RandomDuration();
 			repeat_ = new RandomizableTime(0);
 			delay_ = new Delay();
-			halfMove_ = false;
+			halfMove_.Value = false;
 			inFirstHalf_ = true;
 			modifiers_ = new List<ModifierContainer>();
 			enabledModifiers_ = new List<ModifierContainer>();
@@ -58,7 +58,7 @@ namespace Synergy
 		{
 			s.Clear();
 
-			s.enabled_ = enabled_;
+			s.enabled_.Value = enabled_.Value;
 
 			if (!Bits.IsSet(cloneFlags, Utilities.CloneZero))
 			{
@@ -76,8 +76,13 @@ namespace Synergy
 
 		public bool Enabled
 		{
+			get { return enabled_.Value; }
+			set { enabled_.Value = value; }
+		}
+
+		public BoolParameter EnabledParameter
+		{
 			get { return enabled_; }
-			set { enabled_ = value; }
 		}
 
 		public string UserDefinedName
@@ -127,8 +132,13 @@ namespace Synergy
 
 		public bool HalfMove
 		{
+			get { return halfMove_.Value; }
+			set { halfMove_.Value = value; }
+		}
+
+		public BoolParameter HalfMoveParameter
+		{
 			get { return halfMove_; }
-			set { halfMove_ = value; }
 		}
 
 		public float TotalProgress
@@ -164,17 +174,30 @@ namespace Synergy
 		}
 
 
+		public void Added()
+		{
+			// no-op
+		}
+
 		public void AboutToBeRemoved()
 		{
+			enabled_.Unregister();
+			halfMove_.Unregister();
+
 			foreach (var m in modifiers_)
 				m.AboutToBeRemoved();
+		}
+
+		public void Removed()
+		{
+			// no-op
 		}
 
 		public J.Node ToJSON()
 		{
 			var o = new J.Object();
 
-			o.Add("enabled", Enabled);
+			o.Add("enabled", enabled_);
 			o.Add("name", name_);
 			o.Add("duration", duration_);
 			o.Add("repeat", repeat_);
@@ -315,7 +338,7 @@ namespace Synergy
 				if (delay_.Active)
 					return DoDelay(deltaTime);
 
-				if (halfMove_)
+				if (HalfMove)
 				{
 					if (repeat_.Finished)
 					{
@@ -335,7 +358,7 @@ namespace Synergy
 			catch (Exception e)
 			{
 				Synergy.LogError(e.ToString());
-				Enabled = false;
+				enabled_.Value = false;
 				return false;
 			}
 		}
@@ -465,7 +488,7 @@ namespace Synergy
 
 			if (duration_.Finished)
 			{
-				if (repeat_.Finished && !halfMove_)
+				if (repeat_.Finished && !HalfMove)
 				{
 					if (Synergy.Instance.Manager.IsOnlyEnabledStep(this) ||
 					    !HasUnfinishedModifiers())

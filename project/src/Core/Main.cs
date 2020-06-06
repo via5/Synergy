@@ -67,6 +67,13 @@ namespace Synergy
 
 		private void CreateTestStuff(Atom a)
 		{
+			var s = new Step();
+
+			var rm = new RigidbodyModifier(a, Utilities.FindRigidbody(a, "head"));
+			rm.Movement.Maximum.Initial = 50;
+
+			s.AddModifier(new ModifierContainer(rm));
+			manager_.AddStep(s);
 		}
 
 		public Timer CreateTimer(float seconds, Timer.Callback callback)
@@ -136,6 +143,9 @@ namespace Synergy
 
 		protected void OnGUI()
 		{
+			if (!enabled_)
+				return;
+
 			Utilities.Handler(() =>
 			{
 				timers_.CheckTimers();
@@ -148,16 +158,21 @@ namespace Synergy
 			bool includeAppearance = true,
 			bool forceStore = false)
 		{
-			var c = base.GetJSON(includePhysical, includeAppearance);
+			JSONClass c = null;
 
-			var o = J.Object.Wrap(c);
-			J.Node.SaveType = SaveTypes.Scene;
+			Utilities.Handler(() =>
+			{
+				c = base.GetJSON(includePhysical, includeAppearance);
 
-			o.Add("version", Version.String);
-			o.Add("options", options_);
-			o.Add("manager", manager_);
+				var o = J.Object.Wrap(c);
+				J.Node.SaveType = SaveTypes.Scene;
 
-			J.Node.SaveType = SaveTypes.None;
+				o.Add("version", Version.String);
+				o.Add("options", options_);
+				o.Add("manager", manager_);
+
+				J.Node.SaveType = SaveTypes.None;
+			});
 
 			return c;
 		}
@@ -169,17 +184,20 @@ namespace Synergy
 			JSONArray presetAtoms = null,
 			bool setMissingToDefault = true)
 		{
-			base.RestoreFromJSON(
-				c, restorePhysical, restoreAppearance,
-				presetAtoms, setMissingToDefault);
+			Utilities.Handler(() =>
+			{
+				base.RestoreFromJSON(
+					c, restorePhysical, restoreAppearance,
+					presetAtoms, setMissingToDefault);
 
-			var o = J.Object.Wrap(c);
-			J.Node.SaveType = SaveTypes.Scene;
+				var o = J.Object.Wrap(c);
+				J.Node.SaveType = SaveTypes.Scene;
 
-			o.Opt("options", ref options_);
-			o.Opt("manager", ref manager_);
+				o.Opt("options", ref options_);
+				o.Opt("manager", ref manager_);
 
-			J.Node.SaveType = SaveTypes.None;
+				J.Node.SaveType = SaveTypes.None;
+			});
 		}
 
 
