@@ -684,6 +684,8 @@ namespace Synergy
 
 					animatable_.AddToUI();
 				}
+
+				Value = parameter_.Value;
 			}
 		}
 

@@ -199,8 +199,8 @@ namespace Synergy
 		private float max_ = 0;
 		private float over_ = 1;
 		private float hold_ = 0;
-		private bool rampUp_ = true;
-		private bool rampDown_ = true;
+		private BoolParameter rampUp_ = new BoolParameter("RampUp", true);
+		private BoolParameter rampDown_ = new BoolParameter("RampDown", true);
 
 		private bool goingUp_ = true;
 		private float current_ = 0;
@@ -338,14 +338,24 @@ namespace Synergy
 
 		public bool RampUp
 		{
+			get { return rampUp_.Value; }
+			set { rampUp_.Value = value; }
+		}
+
+		public BoolParameter RampUpParameter
+		{
 			get { return rampUp_; }
-			set { rampUp_ = value; }
 		}
 
 		public bool RampDown
 		{
+			get { return rampDown_.Value; }
+			set { rampDown_.Value = value; }
+		}
+
+		public BoolParameter RampDownParameter
+		{
 			get { return rampDown_; }
-			set { rampDown_ = value; }
 		}
 
 		public IEasing Easing
@@ -418,7 +428,7 @@ namespace Synergy
 			{
 				if (goingUp_)
 				{
-					if (rampUp_)
+					if (RampUp)
 						totalElapsed_ += delta;
 					else
 						totalElapsed_ = over_;
@@ -435,7 +445,7 @@ namespace Synergy
 				{
 					if (!holding_)
 					{
-						if (rampDown_)
+						if (RampDown)
 						{
 							totalElapsed_ -= delta;
 

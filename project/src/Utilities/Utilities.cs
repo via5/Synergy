@@ -378,8 +378,6 @@ namespace Synergy
 		{
 			Unregister();
 
-			Synergy.LogInfo("registering");
-
 			boolStorable_ = new JSONStorableBool(
 				name_, value_, BoolChanged);
 
@@ -397,8 +395,6 @@ namespace Synergy
 		{
 			if (boolStorable_ != null)
 			{
-				Synergy.LogInfo("unregistering");
-
 				Synergy.Instance.DeregisterBool(boolStorable_);
 				boolStorable_ = null;
 

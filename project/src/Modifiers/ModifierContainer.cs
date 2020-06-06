@@ -4,7 +4,7 @@
 	{
 		private Step step_ = null;
 		private IModifier modifier_ = null;
-		private bool enabled_ = true;
+		private BoolParameter enabled_ = new BoolParameter("Enabled", true);
 
 		public ModifierContainer()
 			: this(null)
@@ -27,7 +27,7 @@
 		{
 			m.step_ = step_;
 			m.modifier_ = modifier_?.Clone(cloneFlags);
-			m.enabled_ = enabled_;
+			m.enabled_.Value = enabled_.Value;
 		}
 
 
@@ -73,15 +73,20 @@
 		{
 			get
 			{
-				return enabled_;
+				return enabled_.Value;
 			}
 
 			set
 			{
-				enabled_ = value;
-				if (!enabled_ && modifier_ != null)
+				enabled_.Value = value;
+				if (!enabled_.Value && modifier_ != null)
 					modifier_.Reset();
 			}
+		}
+
+		public BoolParameter EnabledParameter
+		{
+			get { return enabled_; }
 		}
 
 		public string Name

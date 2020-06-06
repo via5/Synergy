@@ -224,6 +224,8 @@ namespace Synergy
 				hold_.Value = 0;
 				rampUp_.Value = false;
 				rampDown_.Value = false;
+				rampUp_.Parameter = null;
+				rampDown_.Parameter = null;
 			}
 			else
 			{
@@ -231,8 +233,8 @@ namespace Synergy
 				min_.Value = duration_.Range.Minimum;
 				max_.Value = duration_.Range.Maximum;
 				hold_.Value = duration_.Hold;
-				rampUp_.Value = duration_.RampUp;
-				rampDown_.Value = duration_.RampDown;
+				rampUp_.Parameter = duration_.RampUpParameter;
+				rampDown_.Parameter = duration_.RampDownParameter;
 			}
 
 			easing_.Value = duration_.Easing;

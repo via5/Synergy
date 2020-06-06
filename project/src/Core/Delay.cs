@@ -4,9 +4,9 @@
 	{
 		private IDuration duration_ = new RandomDuration();
 
-		private bool halfway_ = false;
-		private bool endForwards_ = false;
-		private bool endBackwards_ = false;
+		private BoolParameter halfway_ = new BoolParameter("Halfway", false);
+		private BoolParameter endForwards_ = new BoolParameter("EndForwards", false);
+		private BoolParameter endBackwards_ = new BoolParameter("EndBackwards", false);
 
 
 		public Delay()
@@ -18,8 +18,8 @@
 			if (d != null)
 				duration_ = d;
 
-			halfway_ = halfway;
-			endForwards_ = endForwards;
+			halfway_.Value = halfway;
+			endForwards_.Value = endForwards;
 		}
 
 		public Delay Clone(int cloneFlags = 0)
@@ -45,20 +45,35 @@
 
 		public bool Halfway
 		{
+			get { return halfway_.Value; }
+			set { halfway_.Value = value; }
+		}
+
+		public BoolParameter HalfwayParameter
+		{
 			get { return halfway_; }
-			set { halfway_ = value; }
 		}
 
 		public bool EndForwards
 		{
+			get { return endForwards_.Value; }
+			set { endForwards_.Value = value; }
+		}
+
+		public BoolParameter EndForwardsParameter
+		{
 			get { return endForwards_; }
-			set { endForwards_ = value; }
 		}
 
 		public bool EndBackwards
 		{
+			get { return endBackwards_.Value; }
+			set { endBackwards_.Value = value; }
+		}
+
+		public BoolParameter EndBackwardsParameter
+		{
 			get { return endBackwards_; }
-			set { endBackwards_ = value; }
 		}
 
 		public bool Active { get; set; } = false;

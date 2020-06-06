@@ -28,14 +28,14 @@ namespace Synergy
 				remove_ = new ConfirmableButton("Remove", Remove, flags);
 				movementUI_ = new MovementUI(flags);
 
+				enabled_.Parameter = sm_.EnabledParameter;
+				movementUI_.SetValue(sm_.Movement, sm_.PreferredRange);
+
 				collapsible_.Add(enabled_);
 				collapsible_.Add(remove_);
 
 				foreach (var w in movementUI_.GetWidgets())
 					collapsible_.Add(w);
-
-				enabled_.Value = sm_.Enabled;
-				movementUI_.SetValue(sm_.Movement, sm_.PreferredRange);
 				RenameCollapsible();
 			}
 

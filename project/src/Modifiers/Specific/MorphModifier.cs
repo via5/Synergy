@@ -12,7 +12,7 @@ namespace Synergy
 
 		private Atom atom_ = null;
 		private DAZMorph morph_ = null;
-		private bool enabled_ = true;
+		private BoolParameter enabled_ = new BoolParameter("Enabled", true);
 		private Movement movement_ = null;
 		private float magnitude_ = NoMagnitude;
 
@@ -58,15 +58,23 @@ namespace Synergy
 
 		public bool Enabled
 		{
-			get { return enabled_; }
+			get
+			{
+				return enabled_.Value;
+			}
 
 			set
 			{
 				if (!value)
 					Reset();
 
-				enabled_ = value;
+				enabled_.Value = value;
 			}
+		}
+
+		public BoolParameter EnabledParameter
+		{
+			get { return enabled_; }
 		}
 
 		public Movement Movement
@@ -112,7 +120,7 @@ namespace Synergy
 		{
 			magnitude_ = NoMagnitude;
 
-			if (morph_ != null && enabled_)
+			if (morph_ != null && Enabled)
 				morph_.morphValue = morph_.startValue;
 		}
 
@@ -124,7 +132,7 @@ namespace Synergy
 
 		public void Set()
 		{
-			if (!enabled_)
+			if (!Enabled)
 				return;
 
 			if (magnitude_ == NoMagnitude)
@@ -957,6 +965,13 @@ namespace Synergy
 		private IMorphProgression progression_ = null;
 
 
+		public static string FactoryTypeName { get; } = "morph";
+		public override string GetFactoryTypeName() { return FactoryTypeName; }
+
+		public static string DisplayName { get; } = "Morph";
+		public override string GetDisplayName() { return DisplayName; }
+
+
 		public MorphModifier()
 		{
 			if (!Utilities.AtomHasMorphs(Atom))
@@ -965,11 +980,12 @@ namespace Synergy
 			Progression = new NaturalMorphProgression();
 		}
 
-		public static string FactoryTypeName { get; } = "morph";
-		public override string GetFactoryTypeName() { return FactoryTypeName; }
-
-		public static string DisplayName { get; } = "Morph";
-		public override string GetDisplayName() { return DisplayName; }
+		public MorphModifier(Atom a, DAZMorph m)
+		{
+			Atom = a;
+			Progression = new NaturalMorphProgression();
+			AddMorph(m);
+		}
 
 		public override FloatRange PreferredRange
 		{

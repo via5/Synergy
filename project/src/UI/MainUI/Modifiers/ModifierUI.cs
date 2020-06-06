@@ -63,7 +63,7 @@ namespace Synergy
 				return;
 
 			header_.Text = currentModifier_.Name;
-			enabled_.Value = sm.Enabled;
+			enabled_.Parameter = sm.EnabledParameter;
 
 			var m = currentModifier_.Modifier;
 

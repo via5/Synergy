@@ -54,8 +54,8 @@ namespace Synergy
 				RegisterString(new JSONStorableString("dummy", ""));
 				SetStringParamValue("dummy", "dummy");
 
-				if (GetAtomById("movetestatom") != null)
-					CreateTestStuff(GetAtomById("movetestatom"));
+				if (GetAtomById("synergytestatom") != null)
+					CreateTestStuff(GetAtomById("synergytestatom"));
 
 				ui_ = new MainUI();
 				ui_.Create();
@@ -69,10 +69,13 @@ namespace Synergy
 		{
 			var s = new Step();
 
-			var rm = new RigidbodyModifier(a, Utilities.FindRigidbody(a, "head"));
-			rm.Movement.Maximum.Initial = 50;
+			//var rm = new RigidbodyModifier(a, Utilities.FindRigidbody(a, "head"));
+			//rm.Movement.Maximum.Initial = 50;
+			//s.AddModifier(new ModifierContainer(rm));
 
-			s.AddModifier(new ModifierContainer(rm));
+			var mm = new MorphModifier(a, Utilities.GetAtomMorph(a, "Mouth Open"));
+			s.AddModifier(new ModifierContainer(mm));
+
 			manager_.AddStep(s);
 		}
 
