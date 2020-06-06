@@ -327,13 +327,22 @@ namespace Synergy
 	}
 
 
-	public class BoolParameter
+	public interface IParameter
+	{
+		string Name { get; set; }
+		string TypeName { get; }
+		bool Registered { get; }
+		void Register();
+		void Unregister();
+	}
+
+	public class BoolParameter : IParameter
 	{
 		private string name_;
 		private bool value_;
 		private bool? override_;
-		private JSONStorableBool boolStorable_ = null;
-		private JSONStorableFloat floatStorable_ = null;
+		private JSONStorableBool storableBool_ = null;
+		private JSONStorableFloat storableFloat_ = null;
 
 		public BoolParameter(string name, bool v)
 		{
@@ -365,41 +374,64 @@ namespace Synergy
 
 		public bool Registered
 		{
-			get { return (boolStorable_ != null); }
+			get { return (storableBool_ != null); }
 		}
 
 		public string Name
 		{
-			get { return name_; }
-			set { name_ = value; }
+			get
+			{
+				return name_;
+			}
+
+			set
+			{
+				name_ = value;
+
+				if (Registered)
+					Register();
+			}
+		}
+
+		public string TypeName
+		{
+			get { return "Bool"; }
+		}
+
+		public JSONStorableBool StorableBool
+		{
+			get { return storableBool_; }
+		}
+
+		public JSONStorableFloat StorableFloat
+		{
+			get { return storableFloat_; }
 		}
 
 		public void Register()
 		{
 			Unregister();
 
-			boolStorable_ = new JSONStorableBool(
+			storableBool_ = new JSONStorableBool(
 				name_, value_, BoolChanged);
 
-			boolStorable_.storeType = JSONStorableParam.StoreType.Full;
-			Synergy.Instance.RegisterBool(boolStorable_);
+			storableBool_.storeType = JSONStorableParam.StoreType.Full;
 
-			floatStorable_ = new JSONStorableFloat(
+			storableFloat_ = new JSONStorableFloat(
 				name_ + ".f", 0, FloatChanged, 0, 1);
 
-			floatStorable_.storeType = JSONStorableParam.StoreType.Full;
-			Synergy.Instance.RegisterFloat(floatStorable_);
+			storableFloat_.storeType = JSONStorableParam.StoreType.Full;
+
+			Synergy.Instance.RegisterParameter(this);
 		}
 
 		public void Unregister()
 		{
-			if (boolStorable_ != null)
+			if (storableBool_ != null)
 			{
-				Synergy.Instance.DeregisterBool(boolStorable_);
-				boolStorable_ = null;
-
-				Synergy.Instance.DeregisterFloat(floatStorable_);
-				floatStorable_ = null;
+				Synergy.Instance.UnregisterParameter(this);
+				storableBool_ = null;
+				storableFloat_ = null;
 			}
 
 			override_ = null;

@@ -6,12 +6,12 @@ namespace Synergy
 {
 	class Step : IJsonable
 	{
-		private BoolParameter enabled_ = new BoolParameter("Enabled", true);
+		private BoolParameter enabled_ = new BoolParameter("StepEnabled", true);
 		private string name_ = null;
 		private IDuration duration_ = null;
 		private RandomizableTime repeat_ = null;
 		private Delay delay_ = null;
-		private BoolParameter halfMove_ = new BoolParameter("HalfMove", false);
+		private BoolParameter halfMove_ = new BoolParameter("StepHalfMove", false);
 		private List<ModifierContainer> modifiers_ = null;
 
 		private bool inFirstHalf_ = true;

@@ -4,9 +4,9 @@
 	{
 		private IDuration duration_ = new RandomDuration();
 
-		private BoolParameter halfway_ = new BoolParameter("Halfway", false);
-		private BoolParameter endForwards_ = new BoolParameter("EndForwards", false);
-		private BoolParameter endBackwards_ = new BoolParameter("EndBackwards", false);
+		private BoolParameter halfway_ = new BoolParameter("DelayHalfway", false);
+		private BoolParameter endForwards_ = new BoolParameter("DelayEndForwards", false);
+		private BoolParameter endBackwards_ = new BoolParameter("DelayEndBackwards", false);
 
 
 		public Delay()

@@ -1,5 +1,6 @@
 using SimpleJSON;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Synergy
@@ -14,6 +15,7 @@ namespace Synergy
 		private Options options_ = new Options();
 		private TimerManager timers_ = new TimerManager();
 		private MainUI ui_ = null;
+		private List<IParameter> parameters_ = new List<IParameter>();
 
 		public Synergy()
 		{
@@ -87,6 +89,25 @@ namespace Synergy
 		public void RemoveTimer(Timer t)
 		{
 			timers_.RemoveTimer(t);
+		}
+
+		public void RegisterParameter(BoolParameter p)
+		{
+			RegisterBool(p.StorableBool);
+			RegisterFloat(p.StorableFloat);
+			parameters_.Add(p);
+		}
+
+		public void UnregisterParameter(BoolParameter p)
+		{
+			DeregisterBool(p.StorableBool);
+			DeregisterFloat(p.StorableFloat);
+			parameters_.Remove(p);
+		}
+
+		public List<IParameter> Parameters
+		{
+			get { return parameters_; }
 		}
 
 		protected void Update()

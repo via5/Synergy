@@ -472,7 +472,10 @@ namespace Synergy
 			input_.textComponent = element_.UItext;
 			storable_.inputField = input_;
 			input_.onValueChanged.AddListener(Changed);
-			element_.height = 30;
+
+			var ly = element_.GetComponent<LayoutElement>();
+			ly.minHeight = 50;
+			element_.height = 50;
 		}
 
 		protected override void DoRemoveFromUI()
