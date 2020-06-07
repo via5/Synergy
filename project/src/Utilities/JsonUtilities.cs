@@ -200,6 +200,28 @@ namespace Synergy
 				c_?.Add(key, o.Impl);
 			}
 
+			public void Add(string key, FloatParameter b)
+			{
+				var o = new J.Object();
+				o.Add("value", b.InternalValue);
+
+				if (b.Registered)
+					o.Add("parameter", b.Name);
+
+				c_?.Add(key, o.Impl);
+			}
+
+			public void Add(string key, IntParameter b)
+			{
+				var o = new J.Object();
+				o.Add("value", b.InternalValue);
+
+				if (b.Registered)
+					o.Add("parameter", b.Name);
+
+				c_?.Add(key, o.Impl);
+			}
+
 			public void Add(string key, float f)
 			{
 				c_?.Add(key, new JSONData(f));
@@ -271,6 +293,56 @@ namespace Synergy
 				else
 				{
 					v.Value = o["value"].AsBool;
+
+					if (o.HasKey("parameter"))
+					{
+						v.Name = o["parameter"];
+						v.Register();
+					}
+				}
+			}
+
+			public void Opt(string key, ref FloatParameter v)
+			{
+				if (!HasKey(key))
+					return;
+
+				var node = c_[key];
+
+				var o = node as JSONClass;
+
+				if (o == null)
+				{
+					v.Value = node.AsFloat;
+				}
+				else
+				{
+					v.Value = o["value"].AsFloat;
+
+					if (o.HasKey("parameter"))
+					{
+						v.Name = o["parameter"];
+						v.Register();
+					}
+				}
+			}
+
+			public void Opt(string key, ref IntParameter v)
+			{
+				if (!HasKey(key))
+					return;
+
+				var node = c_[key];
+
+				var o = node as JSONClass;
+
+				if (o == null)
+				{
+					v.Value = node.AsInt;
+				}
+				else
+				{
+					v.Value = o["value"].AsInt;
 
 					if (o.HasKey("parameter"))
 					{

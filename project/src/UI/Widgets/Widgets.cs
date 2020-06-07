@@ -199,7 +199,7 @@ namespace Synergy
 	}
 
 
-	abstract class BasicSlider<T> :
+	abstract class BasicSlider<T, Parameter> :
 		BasicWidget<JSONStorableFloat, UIDynamicSlider>
 	{
 		public BasicSlider(int flags)
@@ -208,6 +208,7 @@ namespace Synergy
 		}
 
 		public abstract T Value { get; set; }
+		public abstract Parameter ValueParameter { get; set; }
 		public abstract T Default { get; set; }
 		public abstract Range<T> Range { get; set; }
 
@@ -217,11 +218,13 @@ namespace Synergy
 	}
 
 
-	class FloatSlider : BasicSlider<float>
+	class FloatSlider : BasicSlider<float, FloatParameter>
 	{
 		public delegate void Callback(float value);
 
 		private readonly Callback callback_;
+		private FloatParameter parameter_ = null;
+		private SubCheckbox animatable_ = null;
 
 		public FloatSlider(string name, Callback callback=null, int flags=0)
 			: this(name, 0, new FloatRange(0, 0), callback, flags)
@@ -252,6 +255,20 @@ namespace Synergy
 				element_.defaultButtonEnabled = false;
 				element_.quickButtonsEnabled = false;
 			}
+
+			if (parameter_ != null)
+			{
+				if (Synergy.Instance.Options.PickAnimatable)
+				{
+					animatable_ = new SubCheckbox(
+						this, "Animatable", parameter_.Registered,
+						AnimatableChanged);
+
+					animatable_.AddToUI();
+				}
+
+				Value = parameter_.Value;
+			}
 		}
 
 		protected override void DoRemoveFromUI()
@@ -261,6 +278,9 @@ namespace Synergy
 				sc_.RemoveSlider(element_);
 				element_ = null;
 			}
+
+			if (animatable_ != null)
+				animatable_.RemoveFromUI();
 		}
 
 		public override Selectable GetSelectable()
@@ -292,10 +312,15 @@ namespace Synergy
 			set { Set(storable_.min, storable_.max, value); }
 		}
 
+		public override FloatParameter ValueParameter
+		{
+			get { return parameter_; }
+			set { parameter_ = value; }
+		}
+
 		public override float Default
 		{
 			get { return storable_.defaultVal; }
-			//set { storable_.defaultVal = value; }
 			set { storable_.defaultVal = 0; }
 		}
 
@@ -328,14 +353,35 @@ namespace Synergy
 				callback_?.Invoke(v);
 			});
 		}
+
+		private void AnimatableChanged(bool b)
+		{
+			Utilities.Handler(() =>
+			{
+				if (parameter_ != null)
+				{
+					if (b)
+					{
+						parameter_.SpecificName = storable_.name;
+						parameter_.Register();
+					}
+					else
+					{
+						parameter_.Unregister();
+					}
+				}
+			});
+		}
 	}
 
 
-	class IntSlider : BasicSlider<int>
+	class IntSlider : BasicSlider<int, IntParameter>
 	{
 		public delegate void Callback(int value);
 
 		private readonly Callback callback_;
+		private IntParameter parameter_ = null;
+		private SubCheckbox animatable_ = null;
 
 		public IntSlider(
 			string name, int value, IntRange range,
@@ -362,6 +408,20 @@ namespace Synergy
 				element_.defaultButtonEnabled = false;
 				element_.quickButtonsEnabled = false;
 			}
+
+			if (parameter_ != null)
+			{
+				if (Synergy.Instance.Options.PickAnimatable)
+				{
+					animatable_ = new SubCheckbox(
+						this, "Animatable", parameter_.Registered,
+						AnimatableChanged);
+
+					animatable_.AddToUI();
+				}
+
+				Value = parameter_.Value;
+			}
 		}
 
 		protected override void DoRemoveFromUI()
@@ -371,6 +431,9 @@ namespace Synergy
 				sc_.RemoveSlider(element_);
 				element_ = null;
 			}
+
+			if (animatable_ != null)
+				animatable_.RemoveFromUI();
 		}
 
 		public override Selectable GetSelectable()
@@ -402,6 +465,12 @@ namespace Synergy
 		{
 			get { return (int)storable_.val; }
 			set { storable_.valNoCallback = value; }
+		}
+
+		public override IntParameter ValueParameter
+		{
+			get { return parameter_; }
+			set { parameter_ = value; }
 		}
 
 		public override int Default
@@ -438,6 +507,25 @@ namespace Synergy
 			Utilities.Handler(() =>
 			{
 				callback_?.Invoke((int)v);
+			});
+		}
+
+		private void AnimatableChanged(bool b)
+		{
+			Utilities.Handler(() =>
+			{
+				if (parameter_ != null)
+				{
+					if (b)
+					{
+						parameter_.SpecificName = storable_.name;
+						parameter_.Register();
+					}
+					else
+					{
+						parameter_.Unregister();
+					}
+				}
 			});
 		}
 	}
@@ -736,9 +824,14 @@ namespace Synergy
 				if (parameter_ != null)
 				{
 					if (b)
+					{
+						parameter_.SpecificName = storable_.name;
 						parameter_.Register();
+					}
 					else
+					{
 						parameter_.Unregister();
+					}
 				}
 			});
 		}

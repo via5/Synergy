@@ -3,29 +3,32 @@ using System.Collections.Generic;
 
 namespace Synergy
 {
-	abstract class BasicRandomizableValue<T> : IJsonable
+	abstract class BasicRandomizableValue<T, Parameter> : IJsonable
+		where Parameter : BasicParameter<T>
 	{
-		protected T initial_;
-		protected T range_;
-		protected float interval_;
+		protected Parameter initial_;
+		protected Parameter range_;
+		protected FloatParameter interval_;
 
 		protected T current_;
 		protected float elapsed_;
 		protected float totalElapsed_;
 
 
-		public BasicRandomizableValue(T initial, T range, float interval)
+		public BasicRandomizableValue(
+			Parameter initial, Parameter range, FloatParameter interval)
 		{
 			initial_ = initial;
 			range_ = range;
 			interval_ = interval;
 
-			current_ = initial_;
+			current_ = initial.Value;
 			elapsed_ = 0;
 			totalElapsed_ = float.MaxValue;
 		}
 
-		protected void CopyTo(BasicRandomizableValue<T> r, int cloneFlags)
+		protected void CopyTo(
+			BasicRandomizableValue<T, Parameter> r, int cloneFlags)
 		{
 			if (!Bits.IsSet(cloneFlags, Utilities.CloneZero))
 			{
@@ -34,27 +37,42 @@ namespace Synergy
 				r.interval_ = interval_;
 			}
 
-			current_ = initial_;
+			current_ = initial_.Value;
 			elapsed_ = 0;
 			totalElapsed_ = float.MaxValue;
 		}
 
 		public T Initial
 		{
+			get { return initial_.Value; }
+			set { initial_.Value = value; }
+		}
+
+		public Parameter InitialParameter
+		{
 			get { return initial_; }
-			set { initial_ = value; }
 		}
 
 		public T Range
 		{
+			get { return range_.Value; }
+			set { range_.Value = value; }
+		}
+
+		public Parameter RangeParameter
+		{
 			get { return range_; }
-			set { range_ = value; }
 		}
 
 		public float Interval
 		{
+			get { return interval_.Value; }
+			set { interval_.Value = value; }
+		}
+
+		public FloatParameter IntervalParameter
+		{
 			get { return interval_; }
-			set { interval_ = value; }
 		}
 
 
@@ -75,7 +93,7 @@ namespace Synergy
 
 		public virtual float ActualInterval
 		{
-			get { return interval_; }
+			get { return interval_.Value; }
 		}
 
 
@@ -104,15 +122,18 @@ namespace Synergy
 	}
 
 
-	class RandomizableFloat : BasicRandomizableValue<float>
+	class RandomizableFloat : BasicRandomizableValue<float, FloatParameter>
 	{
 		public RandomizableFloat()
-			: base(0, 0, 0)
+			: this(0, 0, 0)
 		{
 		}
 
 		public RandomizableFloat(float initial, float range, float interval=0.0f)
-			: base(initial, range, interval)
+			: base(
+				  new FloatParameter(initial),
+				  new FloatParameter(range),
+				  new FloatParameter(interval))
 		{
 		}
 
@@ -150,20 +171,24 @@ namespace Synergy
 		protected override void Next()
 		{
 			current_ = UnityEngine.Random.Range(
-				initial_ - range_, initial_ + range_);
+				initial_.Value - range_.Value,
+				initial_.Value + range_.Value);
 		}
 	}
 
 
-	class RandomizableInt : BasicRandomizableValue<int>
+	class RandomizableInt : BasicRandomizableValue<int, IntParameter>
 	{
 		public RandomizableInt(int initial=0)
-			: base(initial, 0, 0)
+			: this(initial, 0, 0)
 		{
 		}
 
 		public RandomizableInt(int initial, int range, int interval)
-			: base(initial, range, interval)
+			: base(
+				  new IntParameter(initial),
+				  new IntParameter(range),
+				  new FloatParameter(interval))
 		{
 		}
 
@@ -201,12 +226,13 @@ namespace Synergy
 		protected override void Next()
 		{
 			current_ = UnityEngine.Random.Range(
-				initial_ - range_, initial_ + range_);
+				initial_.Value - range_.Value,
+				initial_.Value + range_.Value);
 		}
 	}
 
 
-	class RandomizableTime : BasicRandomizableValue<float>
+	class RandomizableTime : BasicRandomizableValue<float, FloatParameter>
 	{
 		public const int CutoffClosest = 0;
 		public const int CutoffFloor = 1;
@@ -217,14 +243,17 @@ namespace Synergy
 
 
 		public RandomizableTime(float initial = 0)
-			: base(initial, 0, 0)
+			: this(initial, 0, 0)
 		{
 		}
 
 		public RandomizableTime(
 			float initial, float range, float interval,
-			int cutoff = CutoffClosest)
-				: base(initial, range, interval)
+			int cutoff=CutoffClosest)
+				: base(
+					  new FloatParameter(initial),
+					  new FloatParameter(range),
+					  new FloatParameter(interval))
 		{
 			cutoff_ = cutoff;
 		}
@@ -335,7 +364,7 @@ namespace Synergy
 			get
 			{
 				if (current_ <= 0)
-					return interval_;
+					return interval_.Value;
 
 				switch (cutoff_)
 				{
@@ -350,7 +379,7 @@ namespace Synergy
 
 					case CutoffExact:
 					default:
-						return interval_;
+						return interval_.Value;
 				}
 			}
 		}
@@ -409,18 +438,19 @@ namespace Synergy
 		protected override void Next()
 		{
 			current_ = UnityEngine.Random.Range(
-				initial_ - range_, initial_ + range_);
+				initial_.Value - range_.Value,
+				initial_.Value + range_.Value);
 		}
 
 		private bool Next(float maxTime)
 		{
-			if (maxTime < (initial_ - range_))
+			if (maxTime < (initial_.Value - range_.Value))
 			{
 				// not enough time left
 				return false;
 			}
 
-			if (maxTime >= (initial_ + range_))
+			if (maxTime >= (initial_.Value + range_.Value))
 			{
 				// plenty of time
 				Next();
@@ -436,17 +466,17 @@ namespace Synergy
 
 		private float ClosestInterval()
 		{
-			if (current_ > interval_)
+			if (current_ > interval_.Value)
 			{
 				return current_;
 			}
-			else if (current_ < interval_)
+			else if (current_ < interval_.Value)
 			{
-				float previous = (float)Math.Floor(interval_ / current_) * current_;
+				float previous = (float)Math.Floor(interval_.Value / current_) * current_;
 				float next = previous + current_;
 
-				float previousDelta = interval_ - previous;
-				float nextDelta = next - interval_;
+				float previousDelta = interval_.Value - previous;
+				float nextDelta = next - interval_.Value;
 
 				if (previousDelta < nextDelta)
 					return previous;
@@ -455,28 +485,28 @@ namespace Synergy
 			}
 			else
 			{
-				return interval_;
+				return interval_.Value;
 			}
 		}
 
 		private float FloorInterval()
 		{
-			if (current_ > interval_)
+			if (current_ > interval_.Value)
 				return current_;
-			else if (current_ < interval_)
-				return (float)Math.Floor(interval_ / current_) * current_;
+			else if (current_ < interval_.Value)
+				return (float)Math.Floor(interval_.Value / current_) * current_;
 			else
-				return interval_;
+				return interval_.Value;
 		}
 
 		private float CeilInterval()
 		{
-			if (current_ > interval_)
+			if (current_ > interval_.Value)
 				return current_;
-			else if (current_ < interval_)
-				return (float)Math.Floor(interval_ / current_) * current_ + current_;
+			else if (current_ < interval_.Value)
+				return (float)Math.Floor(interval_.Value / current_) * current_ + current_;
 			else
-				return interval_;
+				return interval_.Value;
 		}
 	}
 }

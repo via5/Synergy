@@ -76,6 +76,7 @@ namespace Synergy
 			//s.AddModifier(new ModifierContainer(rm));
 
 			var mm = new MorphModifier(a, Utilities.GetAtomMorph(a, "Mouth Open"));
+			mm.Progression = new ConcurrentMorphProgression();
 			s.AddModifier(new ModifierContainer(mm));
 
 			manager_.AddStep(s);
@@ -103,6 +104,59 @@ namespace Synergy
 			DeregisterBool(p.StorableBool);
 			DeregisterFloat(p.StorableFloat);
 			parameters_.Remove(p);
+		}
+
+		public void RegisterParameter(FloatParameter p)
+		{
+			RegisterFloat(p.Storable);
+			parameters_.Add(p);
+		}
+
+		public void UnregisterParameter(FloatParameter p)
+		{
+			DeregisterFloat(p.Storable);
+			parameters_.Remove(p);
+		}
+
+		public void RegisterParameter(IntParameter p)
+		{
+			RegisterFloat(p.Storable);
+			parameters_.Add(p);
+		}
+
+		public void UnregisterParameter(IntParameter p)
+		{
+			DeregisterFloat(p.Storable);
+			parameters_.Remove(p);
+		}
+
+		public IParameter FindParameter(string name)
+		{
+			foreach (var p in parameters_)
+			{
+				if (p.Name == name)
+					return p;
+			}
+
+			return null;
+		}
+
+		public string MakeParameterName(string baseName)
+		{
+			var p = FindParameter(baseName);
+			if (p == null)
+				return baseName;
+
+			for (int i = 1; i < 100; ++i)
+			{
+				string name = baseName + " (" + i.ToString() + ")";
+
+				p = FindParameter(name);
+				if (p == null)
+					return name;
+			}
+
+			return Guid.NewGuid().ToString();
 		}
 
 		public List<IParameter> Parameters

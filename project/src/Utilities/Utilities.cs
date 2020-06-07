@@ -336,21 +336,83 @@ namespace Synergy
 		void Unregister();
 	}
 
-	public class BoolParameter : IParameter
+
+	public abstract class BasicParameter<T> : IParameter
 	{
-		private string name_;
+		private string baseName_ = "";
+		private string specificName_ = null;
+		private string autoName_ = null;
+		private string customName_ = null;
+
+		public BasicParameter()
+		{
+		}
+
+		public string BaseName
+		{
+			set { baseName_ = value; }
+		}
+
+		public string SpecificName
+		{
+			set { specificName_ = value; }
+		}
+
+		public string Name
+		{
+			get
+			{
+				if (customName_ != null)
+					return customName_;
+
+				if (autoName_ != null)
+					return autoName_;
+
+				string s = baseName_;
+
+				if (specificName_ != null)
+				{
+					if (s != "")
+						s += " ";
+
+					s += specificName_;
+				}
+
+				autoName_ = Synergy.Instance.MakeParameterName(s);
+
+				return autoName_;
+			}
+
+			set
+			{
+				customName_ = value;
+
+				if (Registered)
+					Register();
+			}
+		}
+
+		public abstract T Value { get; set; }
+		public abstract string TypeName { get; }
+		public abstract bool Registered { get; }
+		public abstract void Register();
+		public abstract void Unregister();
+	}
+
+
+	public class BoolParameter : BasicParameter<bool>
+	{
 		private bool value_;
 		private bool? override_;
 		private JSONStorableBool storableBool_ = null;
 		private JSONStorableFloat storableFloat_ = null;
 
-		public BoolParameter(string name, bool v)
+		public BoolParameter(bool v)
 		{
-			name_ = name;
 			value_ = v;
 		}
 
-		public bool Value
+		public override bool Value
 		{
 			get
 			{
@@ -372,28 +434,12 @@ namespace Synergy
 			set { value_ = value; }
 		}
 
-		public bool Registered
+		public override bool Registered
 		{
 			get { return (storableBool_ != null); }
 		}
 
-		public string Name
-		{
-			get
-			{
-				return name_;
-			}
-
-			set
-			{
-				name_ = value;
-
-				if (Registered)
-					Register();
-			}
-		}
-
-		public string TypeName
+		public override string TypeName
 		{
 			get { return "Bool"; }
 		}
@@ -408,24 +454,22 @@ namespace Synergy
 			get { return storableFloat_; }
 		}
 
-		public void Register()
+		public override void Register()
 		{
 			Unregister();
 
-			storableBool_ = new JSONStorableBool(
-				name_, value_, BoolChanged);
-
+			storableBool_ = new JSONStorableBool(Name, value_, BoolChanged);
 			storableBool_.storeType = JSONStorableParam.StoreType.Full;
 
 			storableFloat_ = new JSONStorableFloat(
-				name_ + ".f", 0, FloatChanged, 0, 1);
+				Name + ".f", 0, FloatChanged, 0, 1);
 
 			storableFloat_.storeType = JSONStorableParam.StoreType.Full;
 
 			Synergy.Instance.RegisterParameter(this);
 		}
 
-		public void Unregister()
+		public override void Unregister()
 		{
 			if (storableBool_ != null)
 			{
@@ -445,6 +489,158 @@ namespace Synergy
 		private void FloatChanged(float f)
 		{
 			override_ = (f >= 0.5);
+		}
+	}
+
+
+	public class FloatParameter : BasicParameter<float>
+	{
+		private float value_;
+		private float? override_;
+		private JSONStorableFloat storable_ = null;
+
+		public FloatParameter(float v)
+		{
+			value_ = v;
+		}
+
+		public override float Value
+		{
+			get
+			{
+				if (override_.HasValue)
+					return override_.Value;
+				else
+					return value_;
+			}
+
+			set
+			{
+				value_ = value;
+			}
+		}
+
+		public float InternalValue
+		{
+			get { return value_; }
+			set { value_ = value; }
+		}
+
+		public override bool Registered
+		{
+			get { return (storable_ != null); }
+		}
+
+		public override string TypeName
+		{
+			get { return "Float"; }
+		}
+
+		public JSONStorableFloat Storable
+		{
+			get { return storable_; }
+		}
+
+		public override void Register()
+		{
+			Unregister();
+
+			storable_ = new JSONStorableFloat(Name + ".f", 0, Changed, 0, 1);
+			storable_.storeType = JSONStorableParam.StoreType.Full;
+
+			Synergy.Instance.RegisterParameter(this);
+		}
+
+		public override void Unregister()
+		{
+			if (storable_ != null)
+			{
+				Synergy.Instance.UnregisterParameter(this);
+				storable_ = null;
+			}
+
+			override_ = null;
+		}
+
+		private void Changed(float f)
+		{
+			override_ = f;
+		}
+	}
+
+
+	public class IntParameter : BasicParameter<int>
+	{
+		private int value_;
+		private int? override_;
+		private JSONStorableFloat storable_ = null;
+
+		public IntParameter(int v)
+		{
+			value_ = v;
+		}
+
+		public override int Value
+		{
+			get
+			{
+				if (override_.HasValue)
+					return override_.Value;
+				else
+					return value_;
+			}
+
+			set
+			{
+				value_ = value;
+			}
+		}
+
+		public int InternalValue
+		{
+			get { return value_; }
+			set { value_ = value; }
+		}
+
+		public override bool Registered
+		{
+			get { return (storable_ != null); }
+		}
+
+		public override string TypeName
+		{
+			get { return "Int"; }
+		}
+
+		public JSONStorableFloat Storable
+		{
+			get { return storable_; }
+		}
+
+		public override void Register()
+		{
+			Unregister();
+
+			storable_ = new JSONStorableFloat(Name + ".f", 0, Changed, 0, 1);
+			storable_.storeType = JSONStorableParam.StoreType.Full;
+
+			Synergy.Instance.RegisterParameter(this);
+		}
+
+		public override void Unregister()
+		{
+			if (storable_ != null)
+			{
+				Synergy.Instance.UnregisterParameter(this);
+				storable_ = null;
+			}
+
+			override_ = null;
+		}
+
+		private void Changed(float f)
+		{
+			override_ = (int)Math.Round(f);
 		}
 	}
 }

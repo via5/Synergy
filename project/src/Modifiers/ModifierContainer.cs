@@ -4,7 +4,7 @@
 	{
 		private Step step_ = null;
 		private IModifier modifier_ = null;
-		private BoolParameter enabled_ = new BoolParameter("ModifierEnabled", true);
+		private BoolParameter enabled_ = new BoolParameter(true);
 
 		public ModifierContainer()
 			: this(null)
@@ -110,6 +110,11 @@
 					return modifier_.Name;
 				}
 			}
+		}
+
+		public void Added()
+		{
+			enabled_.BaseName = Name;
 		}
 
 		public void AboutToBeRemoved()
