@@ -199,8 +199,8 @@ namespace Synergy
 		private float max_ = 0;
 		private float over_ = 1;
 		private float hold_ = 0;
-		private BoolParameter rampUp_ = new BoolParameter(true);
-		private BoolParameter rampDown_ = new BoolParameter(true);
+		private BoolParameter rampUp_ = new BoolParameter("RampUp", true);
+		private BoolParameter rampDown_ = new BoolParameter("RampDown", true);
 
 		private bool goingUp_ = true;
 		private float current_ = 0;

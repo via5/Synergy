@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Synergy
 {
@@ -131,9 +132,11 @@ namespace Synergy
 
 		public RandomizableFloat(float initial, float range, float interval=0.0f)
 			: base(
-				  new FloatParameter(initial),
-				  new FloatParameter(range),
-				  new FloatParameter(interval))
+				  new FloatParameter(
+					  "Initial", initial, 500, Parameter.AllowNegative),
+				  new FloatParameter(
+					  "Range", range, 500, Parameter.AllowNegative),
+				  new FloatParameter("Interval", interval, 10))
 		{
 		}
 
@@ -186,9 +189,11 @@ namespace Synergy
 
 		public RandomizableInt(int initial, int range, int interval)
 			: base(
-				  new IntParameter(initial),
-				  new IntParameter(range),
-				  new FloatParameter(interval))
+				  new IntParameter(
+					  "Initial", initial, 500, Parameter.AllowNegative),
+				  new IntParameter(
+					  "Range", range, 500, Parameter.AllowNegative),
+				  new FloatParameter("Interval", interval, 10))
 		{
 		}
 
@@ -251,9 +256,9 @@ namespace Synergy
 			float initial, float range, float interval,
 			int cutoff=CutoffClosest)
 				: base(
-					  new FloatParameter(initial),
-					  new FloatParameter(range),
-					  new FloatParameter(interval))
+					  new FloatParameter( "Initial", initial, 10),
+					  new FloatParameter("Range", range, 10),
+					  new FloatParameter("Interval", interval, 10))
 		{
 			cutoff_ = cutoff;
 		}

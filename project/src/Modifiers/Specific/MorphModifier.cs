@@ -12,7 +12,7 @@ namespace Synergy
 
 		private Atom atom_ = null;
 		private DAZMorph morph_ = null;
-		private BoolParameter enabled_ = new BoolParameter(true);
+		private BoolParameter enabled_ = new BoolParameter("Enabled", true);
 		private Movement movement_ = null;
 		private float magnitude_ = NoMagnitude;
 

@@ -4,7 +4,7 @@
 	{
 		private Step step_ = null;
 		private IModifier modifier_ = null;
-		private BoolParameter enabled_ = new BoolParameter(true);
+		private BoolParameter enabled_ = new BoolParameter("Enabled", true);
 
 		public ModifierContainer()
 			: this(null)

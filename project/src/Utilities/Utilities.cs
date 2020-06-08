@@ -53,6 +53,31 @@ namespace Synergy
 			}
 		}
 
+		public static FloatRange MakeFloatRange(
+			float value, float min, float max,
+			float rangeIncrement, bool allowNegative)
+		{
+			if (allowNegative)
+			{
+				if (value < min)
+					min = -(((int)Math.Abs(value / rangeIncrement)) + 1) * rangeIncrement;
+
+				min = Math.Min(min, -rangeIncrement);
+			}
+			else
+			{
+				min = 0;
+			}
+
+
+			if (value > max)
+				max = (((int)Math.Abs(value / rangeIncrement)) + 1) * rangeIncrement;
+
+			max = Math.Max(max, rangeIncrement);
+
+			return new FloatRange(min, max);
+		}
+
 
 		public static void Handler(Action a)
 		{
@@ -337,15 +362,40 @@ namespace Synergy
 	}
 
 
-	public abstract class BasicParameter<T> : IParameter
+	public abstract class Parameter : IParameter
+	{
+		public const int NoFlags = 0x00;
+		public const int AllowNegative = 0x01;
+		public const int Constrained = 0x02;
+
+		public abstract string Name { get; set; }
+		public abstract string TypeName { get; }
+		public abstract bool Registered { get; }
+		public abstract void Register();
+		public abstract void Unregister();
+	}
+
+
+	public abstract class BasicParameter<T> : Parameter
 	{
 		private string baseName_ = "";
 		private string specificName_ = null;
 		private string autoName_ = null;
 		private string customName_ = null;
 
-		public BasicParameter()
+		protected T value_;
+		protected T override_;
+		protected readonly T rangeIncrement_;
+		protected readonly int flags_;
+
+		public BasicParameter(
+			string baseName, T value,
+			T rangeIncrement, int flags)
 		{
+			baseName_ = baseName;
+			value_ = value;
+			rangeIncrement_ = rangeIncrement;
+			flags_ = flags;
 		}
 
 		public string BaseName
@@ -358,7 +408,7 @@ namespace Synergy
 			set { specificName_ = value; }
 		}
 
-		public string Name
+		public override string Name
 		{
 			get
 			{
@@ -393,31 +443,49 @@ namespace Synergy
 		}
 
 		public abstract T Value { get; set; }
-		public abstract string TypeName { get; }
-		public abstract bool Registered { get; }
-		public abstract void Register();
-		public abstract void Unregister();
+
+		public T InternalValue
+		{
+			get { return value_; }
+		}
+
+		protected abstract void AdjustStorable();
+
+		protected void SetOverride(T v)
+		{
+			override_ = v;
+		}
+
+		protected T RangeIncrement
+		{
+			get { return rangeIncrement_; }
+		}
+
+		protected int Flags
+		{
+			get { return flags_; }
+		}
 	}
 
 
-	public class BoolParameter : BasicParameter<bool>
+	public abstract class BasicParameter2<T, StorableType> : BasicParameter<T>
+		where StorableType : JSONStorableParam
 	{
-		private bool value_;
-		private bool? override_;
-		private JSONStorableBool storableBool_ = null;
-		private JSONStorableFloat storableFloat_ = null;
+		private StorableType storable_ = null;
 
-		public BoolParameter(bool v)
+		protected BasicParameter2(
+			string baseName, T value,
+			T rangeIncrement, int flags)
+				: base(baseName, value, rangeIncrement, flags)
 		{
-			value_ = v;
 		}
 
-		public override bool Value
+		public override T Value
 		{
 			get
 			{
-				if (override_.HasValue)
-					return override_.Value;
+				if (storable_ != null)
+					return override_;
 				else
 					return value_;
 			}
@@ -425,28 +493,45 @@ namespace Synergy
 			set
 			{
 				value_ = value;
+				AdjustStorable();
 			}
-		}
-
-		public bool InternalValue
-		{
-			get { return value_; }
-			set { value_ = value; }
 		}
 
 		public override bool Registered
 		{
-			get { return (storableBool_ != null); }
+			get { return (storable_ != null); }
+		}
+
+		public StorableType Storable
+		{
+			get { return storable_; }
+		}
+
+		protected void SetStorable(StorableType s)
+		{
+			storable_ = s;
+
+			if (storable_ != null)
+			{
+				storable_.storeType = JSONStorableParam.StoreType.Full;
+				AdjustStorable();
+			}
+		}
+	}
+
+
+	public class BoolParameter : BasicParameter2<bool, JSONStorableBool>
+	{
+		private JSONStorableFloat storableFloat_ = null;
+
+		public BoolParameter(string baseName, bool v)
+			: base(baseName, v, false, Parameter.Constrained)
+		{
 		}
 
 		public override string TypeName
 		{
 			get { return "Bool"; }
-		}
-
-		public JSONStorableBool StorableBool
-		{
-			get { return storableBool_; }
 		}
 
 		public JSONStorableFloat StorableFloat
@@ -458,11 +543,10 @@ namespace Synergy
 		{
 			Unregister();
 
-			storableBool_ = new JSONStorableBool(Name, value_, BoolChanged);
-			storableBool_.storeType = JSONStorableParam.StoreType.Full;
+			SetStorable(new JSONStorableBool(Name, Value, BoolChanged));
 
 			storableFloat_ = new JSONStorableFloat(
-				Name + ".f", 0, FloatChanged, 0, 1);
+				Name + ".f", 0, FloatChanged, 0, 1, true);
 
 			storableFloat_.storeType = JSONStorableParam.StoreType.Full;
 
@@ -471,64 +555,38 @@ namespace Synergy
 
 		public override void Unregister()
 		{
-			if (storableBool_ != null)
-			{
-				Synergy.Instance.UnregisterParameter(this);
-				storableBool_ = null;
-				storableFloat_ = null;
-			}
+			if (Storable == null)
+				return;
 
-			override_ = null;
+			Synergy.Instance.UnregisterParameter(this);
+			SetStorable(null);
+			storableFloat_ = null;
 		}
 
 		private void BoolChanged(bool b)
 		{
-			override_ = b;
+			SetOverride(b);
 		}
 
 		private void FloatChanged(float f)
 		{
-			override_ = (f >= 0.5);
+			SetOverride(f >= 0.5);
+		}
+
+		protected override void AdjustStorable()
+		{
+			// no-op
 		}
 	}
 
 
-	public class FloatParameter : BasicParameter<float>
+	public class FloatParameter : BasicParameter2<float, JSONStorableFloat>
 	{
-		private float value_;
-		private float? override_;
-		private JSONStorableFloat storable_ = null;
-
-		public FloatParameter(float v)
+		public FloatParameter(
+			string baseName, float value,
+			float rangeIncrement, int flags = NoFlags)
+				: base(baseName, value, rangeIncrement, flags)
 		{
-			value_ = v;
-		}
-
-		public override float Value
-		{
-			get
-			{
-				if (override_.HasValue)
-					return override_.Value;
-				else
-					return value_;
-			}
-
-			set
-			{
-				value_ = value;
-			}
-		}
-
-		public float InternalValue
-		{
-			get { return value_; }
-			set { value_ = value; }
-		}
-
-		public override bool Registered
-		{
-			get { return (storable_ != null); }
 		}
 
 		public override string TypeName
@@ -536,75 +594,52 @@ namespace Synergy
 			get { return "Float"; }
 		}
 
-		public JSONStorableFloat Storable
-		{
-			get { return storable_; }
-		}
-
 		public override void Register()
 		{
 			Unregister();
 
-			storable_ = new JSONStorableFloat(Name + ".f", 0, Changed, 0, 1);
-			storable_.storeType = JSONStorableParam.StoreType.Full;
+			SetStorable(new JSONStorableFloat(
+				Name, 0, Changed, 0, 0, Bits.IsSet(Flags, Constrained)));
 
 			Synergy.Instance.RegisterParameter(this);
 		}
 
 		public override void Unregister()
 		{
-			if (storable_ != null)
+			if (Storable != null)
 			{
 				Synergy.Instance.UnregisterParameter(this);
-				storable_ = null;
+				SetStorable(null);
 			}
-
-			override_ = null;
 		}
 
 		private void Changed(float f)
 		{
-			override_ = f;
+			SetOverride(f);
+		}
+
+		protected override void AdjustStorable()
+		{
+			if (Storable == null)
+				return;
+
+			var r = Utilities.MakeFloatRange(
+				Value, Storable.min, Storable.max,
+				RangeIncrement, Bits.IsSet(Flags, AllowNegative));
+
+			Storable.min = r.Minimum;
+			Storable.max = r.Maximum;
 		}
 	}
 
 
-	public class IntParameter : BasicParameter<int>
+	public class IntParameter : BasicParameter2<int, JSONStorableFloat>
 	{
-		private int value_;
-		private int? override_;
-		private JSONStorableFloat storable_ = null;
-
-		public IntParameter(int v)
+		public IntParameter(
+			string baseName, int value,
+			int rangeIncrement, int flags = NoFlags)
+				: base(baseName, value, rangeIncrement, flags)
 		{
-			value_ = v;
-		}
-
-		public override int Value
-		{
-			get
-			{
-				if (override_.HasValue)
-					return override_.Value;
-				else
-					return value_;
-			}
-
-			set
-			{
-				value_ = value;
-			}
-		}
-
-		public int InternalValue
-		{
-			get { return value_; }
-			set { value_ = value; }
-		}
-
-		public override bool Registered
-		{
-			get { return (storable_ != null); }
 		}
 
 		public override string TypeName
@@ -612,35 +647,41 @@ namespace Synergy
 			get { return "Int"; }
 		}
 
-		public JSONStorableFloat Storable
-		{
-			get { return storable_; }
-		}
-
 		public override void Register()
 		{
 			Unregister();
 
-			storable_ = new JSONStorableFloat(Name + ".f", 0, Changed, 0, 1);
-			storable_.storeType = JSONStorableParam.StoreType.Full;
+			SetStorable(new JSONStorableFloat(
+				Name, 0, Changed, 0, 1, Bits.IsSet(Flags, Constrained)));
 
 			Synergy.Instance.RegisterParameter(this);
 		}
 
 		public override void Unregister()
 		{
-			if (storable_ != null)
+			if (Storable != null)
 			{
 				Synergy.Instance.UnregisterParameter(this);
-				storable_ = null;
+				SetStorable(null);
 			}
-
-			override_ = null;
 		}
 
 		private void Changed(float f)
 		{
-			override_ = (int)Math.Round(f);
+			SetOverride((int)Math.Round(f));
+		}
+
+		protected override void AdjustStorable()
+		{
+			if (Storable == null)
+				return;
+
+			var r = Utilities.MakeFloatRange(
+				Value, Storable.min, Storable.max,
+				RangeIncrement, Bits.IsSet(Flags, AllowNegative));
+
+			Storable.min = r.Minimum;
+			Storable.max = r.Maximum;
 		}
 	}
 }

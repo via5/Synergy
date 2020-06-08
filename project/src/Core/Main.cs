@@ -71,15 +71,16 @@ namespace Synergy
 		{
 			var s = new Step();
 
-			//var rm = new RigidbodyModifier(a, Utilities.FindRigidbody(a, "head"));
-			//rm.Movement.Maximum.Initial = 50;
-			//s.AddModifier(new ModifierContainer(rm));
+			var rm = new RigidbodyModifier(a, Utilities.FindRigidbody(a, "head"));
+			rm.Movement.Maximum.Initial = 50;
+			s.AddModifier(new ModifierContainer(rm));
 
-			var mm = new MorphModifier(a, Utilities.GetAtomMorph(a, "Mouth Open"));
-			mm.Progression = new ConcurrentMorphProgression();
-			s.AddModifier(new ModifierContainer(mm));
+			//var mm = new MorphModifier(a, Utilities.GetAtomMorph(a, "Mouth Open"));
+			//mm.Progression = new ConcurrentMorphProgression();
+			//s.AddModifier(new ModifierContainer(mm));
 
 			manager_.AddStep(s);
+			rm.Movement.Maximum.InitialParameter.Register();
 		}
 
 		public Timer CreateTimer(float seconds, Timer.Callback callback)
@@ -94,14 +95,14 @@ namespace Synergy
 
 		public void RegisterParameter(BoolParameter p)
 		{
-			RegisterBool(p.StorableBool);
+			RegisterBool(p.Storable);
 			RegisterFloat(p.StorableFloat);
 			parameters_.Add(p);
 		}
 
 		public void UnregisterParameter(BoolParameter p)
 		{
-			DeregisterBool(p.StorableBool);
+			DeregisterBool(p.Storable);
 			DeregisterFloat(p.StorableFloat);
 			parameters_.Remove(p);
 		}

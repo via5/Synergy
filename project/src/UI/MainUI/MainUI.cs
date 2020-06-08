@@ -190,6 +190,12 @@ namespace Synergy
 			widgets_.AddToUI(b);
 			widgets_.AddToUI(new Label("Renaming will break any links", Widget.Right));
 
+			if (Synergy.Instance.Parameters.Count == 0)
+			{
+				widgets_.AddToUI(new Label("No animatables"));
+				return;
+			}
+
 			foreach (var p in Synergy.Instance.Parameters)
 			{
 				Textbox name = null;
