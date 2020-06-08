@@ -2,10 +2,13 @@
 
 namespace Synergy
 {
-	class Manager : IJsonable
+	sealed class Manager : IJsonable
 	{
 		private List<Step> steps_ = new List<Step>();
-		private IStepProgression progression_ = null;
+
+		private readonly ExplicitHolder<IStepProgression> progression_ =
+			new ExplicitHolder<IStepProgression>();
+
 
 		public Manager()
 		{
@@ -24,21 +27,16 @@ namespace Synergy
 		{
 			get
 			{
-				return progression_;
+				return progression_.HeldValue;
 			}
 
 			set
 			{
-				if (progression_ != null)
-				{
-					progression_.AboutToBeRemoved();
-					progression_.ParentManager = null;
-				}
+				progression_.HeldValue?.Removed();
+				progression_.Set(value);
 
-				progression_ = value;
-
-				if (progression_ != null)
-					progression_.ParentManager = this;
+				if (progression_.HeldValue != null)
+					progression_.HeldValue.ParentManager = this;
 			}
 		}
 
@@ -54,7 +52,7 @@ namespace Synergy
 		{
 			get
 			{
-				return progression_?.Current;
+				return StepProgression?.Current;
 			}
 		}
 
@@ -69,17 +67,15 @@ namespace Synergy
 				s = new Step();
 
 			steps_.Insert(at, s);
-			progression_?.StepInserted(at, s);
+			StepProgression?.StepInserted(at, s);
 			s.Added();
 		}
 
 		public void DeleteStep(Step s)
 		{
-			s.AboutToBeRemoved();
-
 			var i = steps_.IndexOf(s);
 			steps_.Remove(s);
-			progression_?.StepDeleted(i);
+			StepProgression?.StepDeleted(i);
 
 			s.Removed();
 		}
@@ -116,7 +112,7 @@ namespace Synergy
 
 		public void Tick(float deltaTime)
 		{
-			progression_?.Tick(deltaTime);
+			StepProgression?.Tick(deltaTime);
 		}
 
 		public void Set()
@@ -248,7 +244,7 @@ namespace Synergy
 			var o = new J.Object();
 
 			o.Add("steps", steps_);
-			o.Add("progression", progression_);
+			o.Add("progression", StepProgression);
 
 			return o;
 		}
@@ -269,7 +265,6 @@ namespace Synergy
 			IStepProgression sp = null;
 			o.Opt<StepProgressionFactory, IStepProgression>(
 				"progression", ref sp);
-
 			StepProgression = sp;
 
 			return true;

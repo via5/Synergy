@@ -5,7 +5,10 @@ namespace Synergy
 	interface IModifierSync : IFactoryObject
 	{
 		IModifier ParentModifier { get; set; }
+
 		IModifierSync Clone(int cloneFlags = 0);
+		void Removed();
+
 		void StopWhenFinished(float timeRemaining);
 		void Resume();
 		bool Tick(float deltaTime);
@@ -22,7 +25,7 @@ namespace Synergy
 		float StopGracePeriod { get; }
 	}
 
-	class ModifierSyncFactory : BasicFactory<IModifierSync>
+	sealed class ModifierSyncFactory : BasicFactory<IModifierSync>
 	{
 		public override List<IModifierSync> GetAllObjects()
 		{
@@ -62,6 +65,11 @@ namespace Synergy
 
 		public abstract IModifierSync Clone(int cloneFlags = 0);
 
+		public virtual void Removed()
+		{
+			ParentModifier = null;
+		}
+
 		public abstract bool Finished { get; }
 		public abstract float TimeRemaining { get; }
 
@@ -88,7 +96,7 @@ namespace Synergy
 	}
 
 
-	class DurationSyncedModifier : BasicModifierSync
+	sealed class DurationSyncedModifier : BasicModifierSync
 	{
 		public static string FactoryTypeName { get; } = "duration";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -161,7 +169,7 @@ namespace Synergy
 	}
 
 
-	class UnsyncedModifier : BasicModifierSync
+	sealed class UnsyncedModifier : BasicModifierSync
 	{
 		public static string FactoryTypeName { get; } = "unsynced";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -169,28 +177,38 @@ namespace Synergy
 		public static string DisplayName { get; } = "Unsynced";
 		public override string GetDisplayName() { return DisplayName; }
 
-		private IDuration duration_ = new RandomDuration();
-		private Delay delay_ = new Delay();
+		private readonly ExplicitHolder<IDuration> duration_ =
+			new ExplicitHolder<IDuration>();
+
+		private readonly ExplicitHolder<Delay> delay_ =
+			new ExplicitHolder<Delay>();
+
 		private bool inFirstHalf_ = true;
 
 
 		public UnsyncedModifier()
+			: this(new RandomDuration(), new Delay())
 		{
 		}
 
 		public UnsyncedModifier(IDuration d, Delay delay = null)
 		{
-			duration_ = d;
+			if (d == null)
+				Duration = new RandomDuration(1);
+			else
+				Duration = d;
 
-			if (delay != null)
-				delay_ = delay;
+			if (delay == null)
+				Delay = new Delay();
+			else
+				Delay = delay;
 		}
 
 		public override bool Finished
 		{
 			get
 			{
-				return duration_.Finished;
+				return Duration.Finished;
 			}
 		}
 
@@ -201,10 +219,10 @@ namespace Synergy
 				if (duration_ == null)
 					return 0;
 
-				var t = duration_.TimeRemaining;
+				var t = Duration.TimeRemaining;
 
-				if ((inFirstHalf_ && delay_.Halfway) || delay_.Active)
-					t += delay_.Duration.TimeRemaining;
+				if ((inFirstHalf_ && Delay.Halfway) || Delay.Active)
+					t += Delay.Duration.TimeRemaining;
 
 				return t;
 			}
@@ -217,30 +235,55 @@ namespace Synergy
 			return m;
 		}
 
-		protected void CopyTo(UnsyncedModifier m, int cloneFlags)
+		public override void Removed()
 		{
-			m.duration_ = duration_?.Clone(cloneFlags);
-			m.delay_ = delay_.Clone(cloneFlags);
+			base.Removed();
+			Duration = null;
+			Delay = null;
+		}
+
+		private void CopyTo(UnsyncedModifier m, int cloneFlags)
+		{
+			m.Duration = Duration?.Clone(cloneFlags);
+			m.Delay = Delay.Clone(cloneFlags);
 		}
 
 		public IDuration Duration
 		{
-			get { return duration_; }
-			set { duration_ = value; }
+			get
+			{
+				return duration_.HeldValue;
+			}
+
+			set
+			{
+				duration_.HeldValue?.Removed();
+				duration_.Set(value);
+			}
 		}
 
 		public Delay Delay
 		{
-			get { return delay_; }
-			set { delay_ = value; }
+			get
+			{
+				return delay_.HeldValue;
+			}
+
+			set
+			{
+				if (delay_.HeldValue != null)
+					delay_.HeldValue.Removed();
+
+				delay_.Set(value);
+			}
 		}
 
 		public override bool Tick(float deltaTime)
 		{
-			if (delay_.Active)
+			if (Delay.Active)
 				return DoDelay(deltaTime);
 
-			duration_.Tick(deltaTime);
+			Duration.Tick(deltaTime);
 
 			return true;
 		}
@@ -257,24 +300,24 @@ namespace Synergy
 
 		public override void PostTick()
 		{
-			if (duration_.Finished)
+			if (Duration.Finished)
 			{
-				if (delay_.EndForwards)
+				if (Delay.EndForwards)
 				{
 					if (MustStopWhenFinished)
 					{
-						if (delay_.Duration.Current >= StopGracePeriod)
+						if (Delay.Duration.Current >= StopGracePeriod)
 							return;
 					}
 
-					delay_.Active = true;
-					delay_.StopAfter = true;
-					delay_.ResetDurationAfter = true;
+					Delay.Active = true;
+					Delay.StopAfter = true;
+					Delay.ResetDurationAfter = true;
 				}
 				else
 				{
 					if (MustStopWhenFinished)
-						duration_.Reset(StopGracePeriod);
+						Duration.Reset(StopGracePeriod);
 					else
 						Reset();
 
@@ -283,12 +326,12 @@ namespace Synergy
 			}
 			else
 			{
-				var firstHalf = duration_.InFirstHalf;
+				var firstHalf = Duration.InFirstHalf;
 
-				if ((inFirstHalf_ && !firstHalf) && delay_.Halfway)
+				if ((inFirstHalf_ && !firstHalf) && Delay.Halfway)
 				{
 					inFirstHalf_ = firstHalf;
-					delay_.Active = true;
+					Delay.Active = true;
 				}
 				else
 				{
@@ -300,27 +343,27 @@ namespace Synergy
 		public override float GetProgress(IModifier m, float stepProgress, bool stepForwards)
 		{
 			if (IsInFirstHalf(m, stepProgress, stepForwards))
-				return duration_.FirstHalfProgress;
+				return Duration.FirstHalfProgress;
 			else
-				return duration_.SecondHalfProgress;
+				return Duration.SecondHalfProgress;
 		}
 
 		public override bool IsInFirstHalf(IModifier m, float stepProgress, bool stepForwards)
 		{
-			return duration_.InFirstHalf;
+			return Duration.InFirstHalf;
 		}
 
 		public override void Reset()
 		{
-			duration_.Reset();
+			Duration.Reset();
 		}
 
 		public override J.Node ToJSON()
 		{
 			var o = new J.Object();
 
-			o.Add("duration", duration_);
-			o.Add("delay", delay_);
+			o.Add("duration", Duration);
+			o.Add("delay", Delay);
 
 			return o;
 		}
@@ -331,32 +374,41 @@ namespace Synergy
 			if (o == null)
 				return false;
 
-			o.Opt<DurationFactory, IDuration>("duration", ref duration_);
-			o.Opt("delay", ref delay_);
+			{
+				IDuration d = null;
+				o.Opt<DurationFactory, IDuration>("duration", ref d);
+				Duration = d;
+			}
+
+			{
+				Delay d = null;
+				o.Opt("delay", ref d);
+				Delay = d;
+			}
 
 			return true;
 		}
 
 		private bool DoDelay(float deltaTime)
 		{
-			delay_.Duration.Tick(deltaTime);
+			Delay.Duration.Tick(deltaTime);
 
-			if (!delay_.Duration.Finished)
+			if (!Delay.Duration.Finished)
 				return true;
 
-			delay_.Duration.Reset();
-			delay_.Active = false;
+			Delay.Duration.Reset();
+			Delay.Active = false;
 
-			if (delay_.StopAfter)
+			if (Delay.StopAfter)
 			{
-				delay_.StopAfter = false;
+				Delay.StopAfter = false;
 
-				if (delay_.ResetDurationAfter)
+				if (Delay.ResetDurationAfter)
 				{
-					delay_.ResetDurationAfter = false;
+					Delay.ResetDurationAfter = false;
 
 					if (MustStopWhenFinished)
-						duration_.Reset(StopGracePeriod);
+						Duration.Reset(StopGracePeriod);
 					else
 						Reset();
 				}
@@ -369,7 +421,7 @@ namespace Synergy
 	}
 
 
-	class StepProgressSyncedModifier : BasicModifierSync
+	sealed class StepProgressSyncedModifier : BasicModifierSync
 	{
 		public static string FactoryTypeName { get; } = "stepProgress";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -451,7 +503,7 @@ namespace Synergy
 	}
 
 
-	class OtherModifierSyncedModifier : BasicModifierSync
+	sealed class OtherModifierSyncedModifier : BasicModifierSync
 	{
 		public static string FactoryTypeName { get; } = "otherModifier";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -497,7 +549,7 @@ namespace Synergy
 			return m;
 		}
 
-		protected void CopyTo(OtherModifierSyncedModifier m, int cloneFlags)
+		private void CopyTo(OtherModifierSyncedModifier m, int cloneFlags)
 		{
 			m.modifier_ = modifier_?.Clone(cloneFlags);
 			m.modifierIndex_ = modifierIndex_;

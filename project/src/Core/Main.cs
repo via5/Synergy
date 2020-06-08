@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Synergy
 {
-	class Synergy : MVRScript
+	sealed class Synergy : MVRScript
 	{
 		private static Synergy instance_ = null;
 		private readonly SuperController sc_ = SuperController.singleton;
@@ -13,7 +13,7 @@ namespace Synergy
 		private bool frozen_ = false;
 		private Manager manager_ = new Manager();
 		private Options options_ = new Options();
-		private TimerManager timers_ = new TimerManager();
+		private readonly TimerManager timers_ = new TimerManager();
 		private MainUI ui_ = null;
 		private List<IParameter> parameters_ = new List<IParameter>();
 
@@ -165,7 +165,7 @@ namespace Synergy
 			get { return parameters_; }
 		}
 
-		protected void Update()
+		public void Update()
 		{
 			Utilities.Handler(() =>
 			{
@@ -178,7 +178,7 @@ namespace Synergy
 			timers_.TickTimers(deltaTime);
 		}
 
-		protected void FixedUpdate()
+		public void FixedUpdate()
 		{
 			if (!enabled_)
 				return;
@@ -220,7 +220,7 @@ namespace Synergy
 				manager_.Set();
 		}
 
-		protected void OnGUI()
+		public void OnGUI()
 		{
 			if (!enabled_)
 				return;

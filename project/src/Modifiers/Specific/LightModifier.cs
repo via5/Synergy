@@ -3,7 +3,15 @@ using UnityEngine;
 
 namespace Synergy
 {
-	class LightPropertyFactory : BasicFactory<ILightProperty>
+	interface ILightProperty : IFactoryObject
+	{
+		ILightProperty Clone(int cloneFlags = 0);
+		FloatRange PreferredRange { get; }
+		void Set(Light light, float magnitude);
+		void Reset(Light light);
+	}
+
+	sealed class LightPropertyFactory : BasicFactory<ILightProperty>
 	{
 		public override List<ILightProperty> GetAllObjects()
 		{
@@ -20,14 +28,6 @@ namespace Synergy
 		}
 	}
 
-
-	interface ILightProperty : IFactoryObject
-	{
-		ILightProperty Clone(int cloneFlags = 0);
-		FloatRange PreferredRange { get; }
-		void Set(Light light, float magnitude);
-		void Reset(Light light);
-	}
 
 	abstract class BasicLightProperty : ILightProperty
 	{
@@ -58,7 +58,7 @@ namespace Synergy
 		public abstract void Reset(Light light);
 	}
 
-	class IntensityLightProperty : BasicLightProperty
+	sealed class IntensityLightProperty : BasicLightProperty
 	{
 		public static string FactoryTypeName { get; } = "intensity";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -90,7 +90,7 @@ namespace Synergy
 		}
 	}
 
-	class RangeLightProperty : BasicLightProperty
+	sealed class RangeLightProperty : BasicLightProperty
 	{
 		public static string FactoryTypeName { get; } = "range";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -122,7 +122,7 @@ namespace Synergy
 		}
 	}
 
-	class SpotAngleLightProperty : BasicLightProperty
+	sealed class SpotAngleLightProperty : BasicLightProperty
 	{
 		public static string FactoryTypeName { get; } = "spotAngle";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -154,7 +154,7 @@ namespace Synergy
 		}
 	}
 
-	class ColorLightProperty : BasicLightProperty
+	sealed class ColorLightProperty : BasicLightProperty
 	{
 		public static string FactoryTypeName { get; } = "color";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -195,7 +195,7 @@ namespace Synergy
 		}
 	}
 
-	class ShadowStrengthLightProperty : BasicLightProperty
+	sealed class ShadowStrengthLightProperty : BasicLightProperty
 	{
 		public static string FactoryTypeName { get; } = "shadowStrength";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -219,7 +219,7 @@ namespace Synergy
 		}
 	}
 
-	class EnabledLightProperty : BasicLightProperty
+	sealed class EnabledLightProperty : BasicLightProperty
 	{
 		public static string FactoryTypeName { get; } = "onoff";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -243,7 +243,7 @@ namespace Synergy
 		}
 	}
 
-	class CastShadowsLightProperty : BasicLightProperty
+	sealed class CastShadowsLightProperty : BasicLightProperty
 	{
 		public static string FactoryTypeName { get; } = "castShadows";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -271,8 +271,15 @@ namespace Synergy
 	}
 
 
-	class LightModifier : AtomWithMovementModifier
+	sealed class LightModifier : AtomWithMovementModifier
 	{
+		public static string FactoryTypeName { get; } = "light";
+		public override string GetFactoryTypeName() { return FactoryTypeName; }
+
+		public static string DisplayName { get; } = "Light";
+		public override string GetDisplayName() { return DisplayName; }
+
+
 		private ILightProperty property_ = null;
 
 
@@ -282,12 +289,6 @@ namespace Synergy
 				Atom = null;
 		}
 
-		public static string FactoryTypeName { get; } = "light";
-		public override string GetFactoryTypeName() { return FactoryTypeName; }
-
-		public static string DisplayName { get; } = "Light";
-		public override string GetDisplayName() { return DisplayName; }
-
 		public override IModifier Clone(int cloneFlags = 0)
 		{
 			var m = new LightModifier();
@@ -295,15 +296,15 @@ namespace Synergy
 			return m;
 		}
 
-		protected void CopyTo(LightModifier m, int cloneFlags)
+		private void CopyTo(LightModifier m, int cloneFlags)
 		{
 			base.CopyTo(m, cloneFlags);
 			m.property_ = property_?.Clone(cloneFlags);
 		}
 
-		public override void AboutToBeRemoved()
+		public override void Removed()
 		{
-			base.AboutToBeRemoved();
+			base.Removed();
 
 			if (Atom != null)
 			{

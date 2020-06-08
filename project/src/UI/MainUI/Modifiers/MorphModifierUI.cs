@@ -370,7 +370,7 @@ namespace Synergy
 			if (progression_ == null)
 				return;
 
-			holdHalfway_.Value = progression_.HoldHalfway;
+			holdHalfway_.Parameter = progression_.HoldHalfwayParameter;
 			holdHalfway_.AddToUI();
 		}
 

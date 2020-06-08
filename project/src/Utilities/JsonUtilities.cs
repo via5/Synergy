@@ -277,7 +277,7 @@ namespace Synergy
 					v = def;
 			}
 
-			public void Opt(string key, ref BoolParameter v)
+			public void Opt(string key, BoolParameter v)
 			{
 				if (!HasKey(key))
 					return;
@@ -302,7 +302,7 @@ namespace Synergy
 				}
 			}
 
-			public void Opt(string key, ref FloatParameter v)
+			public void Opt(string key, FloatParameter v)
 			{
 				if (!HasKey(key))
 					return;
@@ -327,7 +327,7 @@ namespace Synergy
 				}
 			}
 
-			public void Opt(string key, ref IntParameter v)
+			public void Opt(string key, IntParameter v)
 			{
 				if (!HasKey(key))
 					return;

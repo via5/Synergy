@@ -13,6 +13,22 @@ namespace Synergy
 		}
 	}
 
+	sealed class ExplicitHolder<T>
+		where T : class
+	{
+		private T value_ = null;
+
+		public T HeldValue
+		{
+			get { return value_; }
+		}
+
+		public void Set(T t)
+		{
+			value_ = t;
+		}
+	}
+
 	class Utilities
 	{
 		public const int CloneZero = 1;
@@ -385,6 +401,7 @@ namespace Synergy
 
 		protected T value_;
 		protected T override_;
+		protected bool hasOverride_ = false;
 		protected readonly T rangeIncrement_;
 		protected readonly int flags_;
 
@@ -400,6 +417,7 @@ namespace Synergy
 
 		public string BaseName
 		{
+			get { return baseName_; }
 			set { baseName_ = value; }
 		}
 
@@ -454,6 +472,7 @@ namespace Synergy
 		protected void SetOverride(T v)
 		{
 			override_ = v;
+			hasOverride_ = true;
 		}
 
 		protected T RangeIncrement
@@ -484,7 +503,7 @@ namespace Synergy
 		{
 			get
 			{
-				if (storable_ != null)
+				if (hasOverride_)
 					return override_;
 				else
 					return value_;

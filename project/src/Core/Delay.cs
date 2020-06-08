@@ -1,25 +1,44 @@
-﻿namespace Synergy
-{
-	class Delay : IJsonable
-	{
-		private IDuration duration_ = new RandomDuration();
+﻿using System;
 
-		private BoolParameter halfway_ = new BoolParameter("Halfway", false);
-		private BoolParameter endForwards_ = new BoolParameter("EndForwards", false);
-		private BoolParameter endBackwards_ = new BoolParameter("EndBackwards", false);
+namespace Synergy
+{
+	sealed class Delay : IJsonable
+	{
+		private readonly ExplicitHolder<IDuration> duration_ =
+			new ExplicitHolder<IDuration>();
+
+		private readonly BoolParameter halfway_ =
+			new BoolParameter("Halfway", false);
+
+		private readonly BoolParameter endForwards_ =
+			new BoolParameter("EndForwards", false);
+
+		private readonly BoolParameter endBackwards_ =
+			new BoolParameter("EndBackwards", false);
 
 
 		public Delay()
+			: this(null, false, false)
 		{
 		}
 
 		public Delay(IDuration d, bool halfway, bool endForwards)
 		{
-			if (d != null)
-				duration_ = d;
+			if (d == null)
+				Duration = new RandomDuration();
+			else
+				Duration = d;
 
 			halfway_.Value = halfway;
 			endForwards_.Value = endForwards;
+		}
+
+		public void Removed()
+		{
+			Duration = null;
+			halfway_.Unregister();
+			endForwards_.Unregister();
+			endBackwards_.Unregister();
 		}
 
 		public Delay Clone(int cloneFlags = 0)
@@ -31,16 +50,26 @@
 
 		private void CopyTo(Delay d, int cloneFlags)
 		{
-			d.duration_ = duration_?.Clone(cloneFlags);
-			d.halfway_ = halfway_;
-			d.endForwards_ = endForwards_;
-			d.endBackwards_ = endBackwards_;
+			d.Duration = Duration?.Clone(cloneFlags);
+			d.halfway_.Value = halfway_.Value;
+			d.endForwards_.Value = endForwards_.Value;
+			d.endBackwards_.Value = endBackwards_.Value;
 		}
 
 		public IDuration Duration
 		{
-			get { return duration_; }
-			set { duration_ = value; }
+			get
+			{
+				return duration_.HeldValue;
+			}
+
+			set
+			{
+				if (duration_.HeldValue != null)
+					duration_.HeldValue.Removed();
+
+				duration_.Set(value);
+			}
 		}
 
 		public bool Halfway
@@ -84,11 +113,10 @@
 		{
 			var o = new J.Object();
 
-			o.Add("duration", duration_);
+			o.Add("duration", Duration);
 			o.Add("halfway", Halfway);
 			o.Add("endForwards", EndForwards);
 			o.Add("endBackwards", EndBackwards);
-			o.Add("endForwards", EndForwards);
 
 			return o;
 		}
@@ -99,11 +127,13 @@
 			if (o == null)
 				return false;
 
-			o.Opt<DurationFactory, IDuration>("duration", ref duration_);
-			o.Opt("halfway", ref halfway_);
-			o.Opt("endForwards", ref endForwards_);
-			o.Opt("endBackwards", ref endBackwards_);
-			o.Opt("endForwards", ref endForwards_);
+			IDuration d = null;
+			o.Opt<DurationFactory, IDuration>("duration", ref d);
+			Duration = d;
+
+			o.Opt("halfway", halfway_);
+			o.Opt("endForwards", endForwards_);
+			o.Opt("endBackwards", endBackwards_);
 
 			return true;
 		}

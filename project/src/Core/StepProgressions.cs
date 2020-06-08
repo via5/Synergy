@@ -10,12 +10,12 @@ namespace Synergy
 		Step Current { get; }
 		void Tick(float deltaTime);
 		void Next();
-		void AboutToBeRemoved();
+		void Removed();
 		void StepInserted(int at, Step s);
 		void StepDeleted(int at);
 	}
 
-	class StepProgressionFactory : BasicFactory<IStepProgression>
+	sealed class StepProgressionFactory : BasicFactory<IStepProgression>
 	{
 		public override List<IStepProgression> GetAllObjects()
 		{
@@ -56,9 +56,9 @@ namespace Synergy
 		public abstract void Tick(float deltaTime);
 		public abstract void Next();
 
-		public virtual void AboutToBeRemoved()
+		public virtual void Removed()
 		{
-			// no-op
+			ParentManager = null;
 		}
 
 		public virtual void StepInserted(int at, Step s)
@@ -85,6 +85,7 @@ namespace Synergy
 		public abstract J.Node ToJSON();
 		public abstract bool FromJSON(J.Node n);
 	}
+
 
 	abstract class OrderedStepProgression : BasicStepProgression
 	{
@@ -250,7 +251,7 @@ namespace Synergy
 		}
 	}
 
-	class SequentialStepProgression : OrderedStepProgression
+	sealed class SequentialStepProgression : OrderedStepProgression
 	{
 		public static string FactoryTypeName { get; } = "sequential";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -291,7 +292,7 @@ namespace Synergy
 		}
 	}
 
-	class RandomStepProgression : OrderedStepProgression
+	sealed class RandomStepProgression : OrderedStepProgression
 	{
 		public static string FactoryTypeName { get; } = "random";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -322,7 +323,7 @@ namespace Synergy
 		}
 	}
 
-	class ConcurrentStepProgression : BasicStepProgression
+	sealed class ConcurrentStepProgression : BasicStepProgression
 	{
 		public static string FactoryTypeName { get; } = "concurrent";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }

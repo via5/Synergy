@@ -1,42 +1,46 @@
 ﻿namespace Synergy
 {
-	class Movement : IJsonable
+	sealed class Movement : IJsonable
 	{
 		private IEasing easing_ = new SinusoidalEasing();
-		private RandomizableFloat minimum_ = new RandomizableFloat();
-		private RandomizableFloat maximum_ = new RandomizableFloat();
+
+		private readonly ExplicitHolder<RandomizableFloat> minimum_ =
+			new ExplicitHolder<RandomizableFloat>();
+
+		private readonly ExplicitHolder<RandomizableFloat> maximum_ =
+			new ExplicitHolder<RandomizableFloat>();
+
 		private float magnitude_ = 0;
 		private bool forwards_ = true;
+
 
 		public Movement()
 			: this(0, 0)
 		{
 		}
 
-		public Movement(RandomizableFloat min, RandomizableFloat max)
-		{
-			minimum_ = min;
-			maximum_ = max;
-		}
-
 		public Movement(float min, float max)
+			: this(
+				  new RandomizableFloat(min, 0),
+				  new RandomizableFloat(max, 0))
 		{
-			minimum_.Initial = min;
-			maximum_.Initial = max;
-
-			minimum_.Reset();
-			maximum_.Reset();
 		}
 
 		public Movement(FloatRange r)
+			: this(
+				  new RandomizableFloat(
+					  r.Minimum + (r.Distance / 4),
+					  r.Distance / 2),
+				  new RandomizableFloat(
+					  r.Maximum - (r.Distance / 4),
+					  r.Distance / 2))
 		{
-			minimum_.Initial = r.Minimum + (r.Distance / 4);
-			minimum_.Range = r.Distance / 2;
-			minimum_.Reset();
+		}
 
-			maximum_.Initial = r.Maximum - (r.Distance / 4);
-			maximum_.Range = r.Distance / 2;
-			maximum_.Reset();
+		public Movement(RandomizableFloat min, RandomizableFloat max)
+		{
+			Minimum = min;
+			Maximum = max;
 		}
 
 		public Movement Clone(int cloneFlags = 0)
@@ -46,18 +50,24 @@
 			return r;
 		}
 
-		protected void CopyTo(Movement r, int cloneFlags)
+		private void CopyTo(Movement r, int cloneFlags)
 		{
 			r.easing_ = easing_?.Clone(cloneFlags);
 
 			if (!Bits.IsSet(cloneFlags, Utilities.CloneZero))
 			{
-				r.minimum_ = minimum_?.Clone(cloneFlags);
-				r.maximum_ = maximum_?.Clone(cloneFlags);
+				r.Minimum = Minimum?.Clone(cloneFlags);
+				r.Maximum = Maximum?.Clone(cloneFlags);
 			}
 
 			r.magnitude_ = 0;
 			r.forwards_ = true;
+		}
+
+		public void Removed()
+		{
+			Minimum = null;
+			Maximum = null;
 		}
 
 
@@ -69,14 +79,32 @@
 
 		public RandomizableFloat Minimum
 		{
-			get { return minimum_; }
-			set { minimum_ = value; }
+			get
+			{
+				return minimum_.HeldValue;
+			}
+
+			set
+			{
+				minimum_.HeldValue?.Removed();
+				minimum_.Set(value);
+				minimum_.HeldValue?.Reset();
+			}
 		}
 
 		public RandomizableFloat Maximum
 		{
-			get { return maximum_; }
-			set { maximum_ = value; }
+			get
+			{
+				return maximum_.HeldValue;
+			}
+
+			set
+			{
+				maximum_.HeldValue?.Removed();
+				maximum_.Set(value);
+				maximum_.HeldValue?.Reset();
+			}
 		}
 
 		public float Target
@@ -84,9 +112,9 @@
 			get
 			{
 				if (forwards_)
-					return maximum_.Current;
+					return Maximum.Current;
 				else
-					return minimum_.Current;
+					return Minimum.Current;
 			}
 		}
 
@@ -104,7 +132,7 @@
 		{
 			get
 			{
-				return new FloatRange(minimum_.Current, maximum_.Current);
+				return new FloatRange(Minimum.Current, Maximum.Current);
 			}
 		}
 
@@ -112,17 +140,17 @@
 		{
 			get
 			{
-				if (maximum_.Initial > minimum_.Initial)
+				if (Maximum.Initial > Minimum.Initial)
 				{
 					return new FloatRange(
-						minimum_.Initial - minimum_.Range,
-						maximum_.Initial + maximum_.Range);
+						Minimum.Initial - Minimum.Range,
+						Maximum.Initial + Maximum.Range);
 				}
 				else
 				{
 					return new FloatRange(
-						maximum_.Initial - maximum_.Range,
-						minimum_.Initial + minimum_.Range);
+						Maximum.Initial - Maximum.Range,
+						Minimum.Initial + Minimum.Range);
 				}
 			}
 		}
@@ -132,16 +160,16 @@
 			if (forwards)
 			{
 				if (forwards_)
-					maximum_.Tick(deltaTime);
+					Maximum.Tick(deltaTime);
 				else
-					maximum_.Reset();
+					Maximum.Reset();
 			}
 			else
 			{
 				if (!forwards_)
-					minimum_.Tick(deltaTime);
+					Minimum.Tick(deltaTime);
 				else
-					minimum_.Reset();
+					Minimum.Reset();
 			}
 
 			magnitude_ = CalculateMagnitude(progress, forwards);
@@ -164,8 +192,8 @@
 			var o = new J.Object();
 
 			o.Add("easing", easing_);
-			o.Add("minimum", minimum_);
-			o.Add("maximum", maximum_);
+			o.Add("minimum", Minimum);
+			o.Add("maximum", Maximum);
 
 			return o;
 		}
@@ -177,8 +205,18 @@
 				return false;
 
 			o.Opt<EasingFactory, IEasing>("easing", ref easing_);
-			o.Opt("minimum", ref minimum_);
-			o.Opt("maximum", ref maximum_);
+
+			{
+				RandomizableFloat m = null;
+				o.Opt("minimum", ref m);
+				Minimum = m;
+			}
+
+			{
+				RandomizableFloat m = null;
+				o.Opt("maximum", ref m);
+				Maximum = m;
+			}
 
 			return true;
 		}

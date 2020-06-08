@@ -1,8 +1,9 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Synergy
 {
-	class AudioModifier : AtomModifier
+	sealed class AudioModifier : AtomModifier
 	{
 		public const int StartingState = 0;
 		public const int InDelayState = 1;
@@ -17,13 +18,15 @@ namespace Synergy
 		private int currentIndex_ = -1;
 		private NamedAudioClip currentClip_ = null;
 		private bool newClip_ = false;
-		private IDuration delay_ = new RandomDuration();
+		private readonly ExplicitHolder<IDuration> delay_ =
+			new ExplicitHolder<IDuration>();
 		private bool inDelay_ = false;
 		private bool needsDelay_ = false;
 		private int state_ = StartingState;
 
 		public AudioModifier()
 		{
+			Delay = new RandomDuration(1);
 			CheckSource();
 		}
 
@@ -40,14 +43,20 @@ namespace Synergy
 			return m;
 		}
 
-		protected void CopyTo(AudioModifier m, int cloneFlags)
+		private void CopyTo(AudioModifier m, int cloneFlags)
 		{
 			base.CopyTo(m, cloneFlags);
 			m.source_ = source_;
 			m.clips_ = new List<NamedAudioClip>(clips_);
 			m.clipOrder_ = clipOrder_.Clone();
 			m.currentIndex_ = currentIndex_;
-			m.delay_ = delay_?.Clone(cloneFlags);
+			m.Delay = Delay?.Clone(cloneFlags);
+		}
+
+		public override void Removed()
+		{
+			base.Removed();
+			Delay = null;
 		}
 
 
@@ -93,14 +102,15 @@ namespace Synergy
 		{
 			get
 			{
-				return delay_;
+				return delay_.HeldValue;
 			}
 
 			set
 			{
-				delay_ = value;
+				delay_.HeldValue?.Removed();
+				delay_.Set(value);
 
-				if (delay_ == null)
+				if (value == null)
 					inDelay_ = false;
 			}
 		}
@@ -173,12 +183,12 @@ namespace Synergy
 		{
 			if (inDelay_)
 			{
-				delay_.Tick(deltaTime);
+				Delay.Tick(deltaTime);
 
-				if (delay_.Finished)
+				if (Delay.Finished)
 				{
 					inDelay_ = false;
-					delay_.Reset();
+					Delay.Reset();
 				}
 
 				return;
@@ -237,8 +247,8 @@ namespace Synergy
 		{
 			base.DoTickPaused(deltaTime);
 
-			if (delay_ != null && inDelay_)
-				delay_.Tick(deltaTime);
+			if (delay_.HeldValue != null && inDelay_)
+				Delay.Tick(deltaTime);
 		}
 
 		protected override void DoSet(bool paused)

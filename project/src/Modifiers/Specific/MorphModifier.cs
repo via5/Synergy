@@ -6,15 +6,21 @@ using SimpleJSON;
 
 namespace Synergy
 {
-	class SelectedMorph : IJsonable
+	sealed class SelectedMorph : IJsonable
 	{
 		private const float NoMagnitude = float.MinValue;
 
 		private Atom atom_ = null;
 		private DAZMorph morph_ = null;
-		private BoolParameter enabled_ = new BoolParameter("Enabled", true);
-		private Movement movement_ = null;
+
+		private readonly BoolParameter enabled_ =
+			new BoolParameter("Enabled", true);
+
+		private readonly ExplicitHolder<Movement> movement_ =
+			new ExplicitHolder<Movement>();
+
 		private float magnitude_ = NoMagnitude;
+
 
 		public SelectedMorph()
 		{
@@ -52,7 +58,6 @@ namespace Synergy
 		public DAZMorph Morph
 		{
 			get { return morph_; }
-
 			set { morph_ = value; }
 		}
 
@@ -79,8 +84,16 @@ namespace Synergy
 
 		public Movement Movement
 		{
-			get { return movement_; }
-			set { movement_ = value; }
+			get
+			{
+				return movement_.HeldValue;
+			}
+
+			set
+			{
+				movement_.HeldValue?.Removed();
+				movement_.Set(value);
+			}
 		}
 
 
@@ -106,9 +119,16 @@ namespace Synergy
 		{
 			sm.atom_ = atom_;
 			sm.morph_ = morph_;
-			sm.enabled_ = enabled_;
-			sm.movement_ = movement_?.Clone(cloneFlags);
+			sm.enabled_.Value = enabled_.Value;
+			sm.Movement = Movement?.Clone(cloneFlags);
 			sm.magnitude_ = magnitude_;
+		}
+
+		public void Removed()
+		{
+			enabled_.Unregister();
+			Movement = null;
+			Reset();
 		}
 
 		public void Resume()
@@ -126,7 +146,7 @@ namespace Synergy
 
 		public void Tick(float deltaTime, float progress, bool firstHalf)
 		{
-			movement_.Tick(deltaTime, progress, firstHalf);
+			Movement.Tick(deltaTime, progress, firstHalf);
 			magnitude_ = Movement.Magnitude;
 		}
 
@@ -149,7 +169,7 @@ namespace Synergy
 			if (morph_ != null)
 				o.Add("uid", morph_.uid);
 
-			o.Add("movement", movement_);
+			o.Add("movement", Movement);
 			o.Add("enabled", enabled_);
 
 			return o;
@@ -178,8 +198,11 @@ namespace Synergy
 				}
 			}
 
-			o.Opt("movement", ref movement_);
-			o.Opt("enabled", ref enabled_);
+			Movement m = null;
+			o.Opt("movement", ref m);
+			Movement = m;
+
+			o.Opt("enabled", enabled_);
 
 			return true;
 		}
@@ -195,6 +218,7 @@ namespace Synergy
 		float TimeRemaining { get; }
 
 		IMorphProgression Clone(int cloneFlags = 0);
+		void Removed();
 
 		void Tick(float deltaTime, float progress, bool firstHalf);
 		void TickPaused(float deltaTime);
@@ -209,7 +233,7 @@ namespace Synergy
 	}
 
 
-	class MorphProgressionFactory : BasicFactory<IMorphProgression>
+	sealed class MorphProgressionFactory : BasicFactory<IMorphProgression>
 	{
 		public override List<IMorphProgression> GetAllObjects()
 		{
@@ -241,6 +265,11 @@ namespace Synergy
 		public virtual float TimeRemaining { get { return 0; } }
 
 		public abstract IMorphProgression Clone(int cloneFlags = 0);
+
+		public virtual void Removed()
+		{
+			morphs_ = null;
+		}
 
 		public abstract void Tick(
 			float deltaTime, float progress, bool firstHalf);
@@ -301,7 +330,7 @@ namespace Synergy
 	}
 
 
-	class NaturalMorphProgression : BasicMorphProgression
+	sealed class NaturalMorphProgression : BasicMorphProgression
 	{
 		private const float NoLastValue = float.MaxValue;
 
@@ -311,8 +340,12 @@ namespace Synergy
 		public static string DisplayName { get; } = "Natural";
 		public override string GetDisplayName() { return DisplayName; }
 
-		private IDuration masterDuration_ = null;
-		private Delay masterDelay_ = null;
+		private readonly ExplicitHolder<IDuration> masterDuration_ =
+			new ExplicitHolder<IDuration>();
+
+		private readonly ExplicitHolder<Delay> masterDelay_ =
+			new ExplicitHolder<Delay>();
+
 		private bool stop_ = false;
 
 		public class CustomTarget
@@ -385,12 +418,13 @@ namespace Synergy
 		{
 			get
 			{
-				return masterDuration_;
+				return masterDuration_.HeldValue;
 			}
 
 			set
 			{
-				masterDuration_ = value;
+				masterDuration_.HeldValue?.Removed();
+				masterDuration_.Set(value);
 			}
 		}
 
@@ -401,8 +435,16 @@ namespace Synergy
 
 		public Delay Delay
 		{
-			get { return masterDelay_; }
-			set { masterDelay_ = value; }
+			get
+			{
+				return masterDelay_.HeldValue;
+			}
+
+			set
+			{
+				masterDelay_.HeldValue?.Removed();
+				masterDelay_.Set(value);
+			}
 		}
 
 		public override bool HasOwnDuration
@@ -448,6 +490,12 @@ namespace Synergy
 			var p = new NaturalMorphProgression();
 			CopyTo(p, cloneFlags);
 			return p;
+		}
+
+		public override void Removed()
+		{
+			Duration = null;
+			Delay = null;
 		}
 
 		private CustomTarget GetTargetForDefaultValue(int i)
@@ -520,12 +568,12 @@ namespace Synergy
 
 					if (mi.delay.ResetDurationAfter)
 					{
-						mi.ResetDuration(masterDuration_, masterDelay_);
+						mi.ResetDuration(Duration, Delay);
 						mi.delay.ResetDurationAfter = false;
 					}
 					else
 					{
-						mi.ResetDelay(masterDelay_);
+						mi.ResetDelay(Delay);
 					}
 				}
 
@@ -556,7 +604,7 @@ namespace Synergy
 						}
 						else
 						{
-							mi.ResetDuration(masterDuration_, masterDelay_);
+							mi.ResetDuration(Duration, Delay);
 						}
 					}
 				}
@@ -675,11 +723,11 @@ namespace Synergy
 				mi.stopping = false;
 				mi.finished = false;
 				mi.target = null;
-				mi.ResetDuration(masterDuration_, masterDelay_);
+				mi.ResetDuration(Duration, Delay);
 			}
 		}
 
-		protected void CopyTo(NaturalMorphProgression m, int cloneFlags)
+		private void CopyTo(NaturalMorphProgression m, int cloneFlags)
 		{
 			base.CopyTo(m, cloneFlags);
 		}
@@ -687,7 +735,7 @@ namespace Synergy
 		public override void MorphAdded(int i)
 		{
 			var mi = new MorphInfo(
-				masterDuration_.Clone(), masterDelay_.Clone());
+				Duration.Clone(), Delay.Clone());
 
 			morphInfos_.Insert(i, mi);
 		}
@@ -709,8 +757,8 @@ namespace Synergy
 		{
 			var o = new J.Object();
 
-			o.Add("duration", masterDuration_);
-			o.Add("delay", masterDelay_);
+			o.Add("duration", Duration);
+			o.Add("delay", Delay);
 
 			return o;
 		}
@@ -721,15 +769,24 @@ namespace Synergy
 			if (o == null)
 				return false;
 
-			o.Opt<DurationFactory, IDuration>("duration", ref masterDuration_);
-			o.Opt("delay", ref masterDelay_);
+			{
+				IDuration d = null;
+				o.Opt<DurationFactory, IDuration>("duration", ref d);
+				Duration = d;
+			}
+
+			{
+				Delay d = null;
+				o.Opt("delay", ref d);
+				Delay = d;
+			}
 
 			return true;
 		}
 	}
 
 
-	class ConcurrentMorphProgression : BasicMorphProgression
+	sealed class ConcurrentMorphProgression : BasicMorphProgression
 	{
 		public static string FactoryTypeName { get; } = "concurrent";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -751,7 +808,7 @@ namespace Synergy
 				sm.Tick(deltaTime, progress, firstHalf);
 		}
 
-		protected void CopyTo(ConcurrentMorphProgression m, int cloneFlags)
+		private void CopyTo(ConcurrentMorphProgression m, int cloneFlags)
 		{
 			base.CopyTo(m, cloneFlags);
 		}
@@ -776,19 +833,31 @@ namespace Synergy
 
 	abstract class OrderedMorphProgression : BasicMorphProgression
 	{
-		private bool holdHalfway_ = false;
+		private readonly BoolParameter holdHalfway_ =
+			new BoolParameter("HoldHalfway", false);
 
 
 		public bool HoldHalfway
 		{
+			get { return holdHalfway_.Value; }
+			set { holdHalfway_.Value = value; }
+		}
+
+		public BoolParameter HoldHalfwayParameter
+		{
 			get { return holdHalfway_; }
-			set { holdHalfway_ = value; }
 		}
 
 
 		protected void CopyTo(OrderedMorphProgression m, int cloneFlags)
 		{
-			m.holdHalfway_ = holdHalfway_;
+			m.holdHalfway_.Value = holdHalfway_.Value;
+		}
+
+		public override void Removed()
+		{
+			base.Removed();
+			holdHalfway_.Unregister();
 		}
 
 		public override void Tick(
@@ -797,7 +866,7 @@ namespace Synergy
 			float singleMorph = 1.0f / morphs_.Count;
 			float p = progress;
 
-			if (holdHalfway_)
+			if (HoldHalfway)
 			{
 				for (int i = 0; i < morphs_.Count; ++i)
 				{
@@ -846,7 +915,7 @@ namespace Synergy
 
 		public override void Set(bool paused)
 		{
-			if (paused && !holdHalfway_)
+			if (paused && !HoldHalfway)
 				return;
 
 			foreach (var sm in morphs_)
@@ -857,7 +926,7 @@ namespace Synergy
 		{
 			var o = new J.Object();
 
-			o.Add("holdHalfway", holdHalfway_);
+			o.Add("holdHalfway", HoldHalfway);
 
 			return o;
 		}
@@ -868,7 +937,7 @@ namespace Synergy
 			if (o == null)
 				return false;
 
-			o.Opt("holdHalfway", ref holdHalfway_);
+			o.Opt("holdHalfway", holdHalfway_);
 
 			return true;
 		}
@@ -882,7 +951,7 @@ namespace Synergy
 	}
 
 
-	class SequentialMorphProgression : OrderedMorphProgression
+	sealed class SequentialMorphProgression : OrderedMorphProgression
 	{
 		public static string FactoryTypeName { get; } = "sequential";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -897,7 +966,7 @@ namespace Synergy
 			return p;
 		}
 
-		protected void CopyTo(SequentialMorphProgression m, int cloneFlags)
+		private void CopyTo(SequentialMorphProgression m, int cloneFlags)
 		{
 			base.CopyTo(m, cloneFlags);
 		}
@@ -909,7 +978,7 @@ namespace Synergy
 	}
 
 
-	class RandomMorphProgression : OrderedMorphProgression
+	sealed class RandomMorphProgression : OrderedMorphProgression
 	{
 		public static string FactoryTypeName { get; } = "random";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -926,7 +995,7 @@ namespace Synergy
 			return p;
 		}
 
-		protected void CopyTo(RandomMorphProgression m, int cloneFlags)
+		private void CopyTo(RandomMorphProgression m, int cloneFlags)
 		{
 			base.CopyTo(m, cloneFlags);
 		}
@@ -958,11 +1027,13 @@ namespace Synergy
 	}
 
 
-	class MorphModifier : AtomModifier
+	sealed class MorphModifier : AtomModifier
 	{
 		private readonly List<SelectedMorph> morphs_ =
 			new List<SelectedMorph>();
-		private IMorphProgression progression_ = null;
+
+		private readonly ExplicitHolder<IMorphProgression> progression_ =
+			new ExplicitHolder<IMorphProgression>();
 
 
 		public static string FactoryTypeName { get; } = "morph";
@@ -1010,20 +1081,18 @@ namespace Synergy
 		{
 			get
 			{
-				return progression_;
+				return progression_.HeldValue;
 			}
 
 			set
 			{
-				if (progression_ != null)
-					progression_.Morphs = null;
+				progression_.HeldValue?.Removed();
+				progression_.Set(value);
 
-				progression_ = value;
-
-				if (progression_ != null)
+				if (progression_.HeldValue != null)
 				{
-					progression_.Morphs = morphs_;
-					progression_.MorphsChanged();
+					progression_.HeldValue.Morphs = morphs_;
+					progression_.HeldValue.MorphsChanged();
 				}
 			}
 		}
@@ -1032,8 +1101,8 @@ namespace Synergy
 		{
 			get
 			{
-				if (progression_.HasOwnDuration)
-					return progression_.Finished;
+				if (Progression.HasOwnDuration)
+					return Progression.Finished;
 				else
 					return base.Finished;
 			}
@@ -1043,8 +1112,8 @@ namespace Synergy
 		{
 			get
 			{
-				if (progression_.HasOwnDuration)
-					return progression_.TimeRemaining;
+				if (Progression.HasOwnDuration)
+					return Progression.TimeRemaining;
 				else
 					return base.TimeRemaining;
 			}
@@ -1054,8 +1123,8 @@ namespace Synergy
 		{
 			base.Stop(timeRemaining);
 
-			if (progression_.HasOwnDuration)
-				progression_.Stop(timeRemaining);
+			if (Progression.HasOwnDuration)
+				Progression.Stop(timeRemaining);
 		}
 
 
@@ -1066,22 +1135,24 @@ namespace Synergy
 			return m;
 		}
 
-		protected void CopyTo(MorphModifier m, int cloneFlags)
+		private void CopyTo(MorphModifier m, int cloneFlags)
 		{
 			base.CopyTo(m, cloneFlags);
 
 			foreach (var sm in morphs_)
 				m.morphs_.Add(sm.Clone(cloneFlags));
 
-			m.Progression = progression_?.Clone(cloneFlags);
+			m.Progression = Progression.Clone(cloneFlags);
 		}
 
-		public override void AboutToBeRemoved()
+		public override void Removed()
 		{
-			base.AboutToBeRemoved();
+			base.Removed();
+
+			Progression = null;
 
 			foreach (var m in morphs_)
-				m.Reset();
+				m.Removed();
 		}
 
 		public SelectedMorph AddMorph(DAZMorph m)
@@ -1112,7 +1183,7 @@ namespace Synergy
 		public void AddMorph(SelectedMorph sm)
 		{
 			morphs_.Add(sm);
-			progression_.MorphAdded(morphs_.Count - 1);
+			Progression.MorphAdded(morphs_.Count - 1);
 			FireNameChanged();
 		}
 
@@ -1126,7 +1197,7 @@ namespace Synergy
 					morphs_.RemoveAt(i);
 
 					sm.Reset();
-					progression_.MorphRemoved(i);
+					Progression.MorphRemoved(i);
 
 					break;
 				}
@@ -1153,37 +1224,37 @@ namespace Synergy
 			foreach (var m in morphs)
 				morphs_.Add(SelectedMorph.Create(Atom, m));
 
-			progression_.MorphsChanged();
+			Progression.MorphsChanged();
 		}
 
 		protected override void DoResume()
 		{
-			progression_.Resume();
+			Progression.Resume();
 		}
 
 		protected override void DoSet(bool paused)
 		{
 			base.DoSet(paused);
-			progression_.Set(paused);
+			Progression.Set(paused);
 		}
 
 		protected override void DoTick(
 			float deltaTime, float progress, bool firstHalf)
 		{
 			base.DoTick(deltaTime, progress, firstHalf);
-			progression_.Tick(deltaTime, progress, firstHalf);
+			Progression.Tick(deltaTime, progress, firstHalf);
 		}
 
 		protected override void DoTickPaused(float deltaTime)
 		{
 			base.DoTickPaused(deltaTime);
-			progression_.TickPaused(deltaTime);
+			Progression.TickPaused(deltaTime);
 		}
 
 		public override void Reset()
 		{
 			base.Reset();
-			progression_.Reset();
+			Progression.Reset();
 		}
 
 		protected override string MakeName()
@@ -1219,7 +1290,7 @@ namespace Synergy
 			var o = base.ToJSON().AsObject();
 
 			o.Add("selectedMorphs", morphs_);
-			o.Add("progression", progression_);
+			o.Add("progression", Progression);
 
 			return o;
 		}
@@ -1248,14 +1319,11 @@ namespace Synergy
 					});
 				}
 
+				IMorphProgression p = null;
 				o.Opt<MorphProgressionFactory, IMorphProgression>(
-					"progression", ref progression_);
+					"progression", ref p);
 
-				if (progression_ != null)
-				{
-					progression_.Morphs = morphs_;
-					progression_.MorphsChanged();
-				}
+				Progression = p;
 			}
 
 			return true;

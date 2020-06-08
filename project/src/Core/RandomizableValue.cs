@@ -7,9 +7,9 @@ namespace Synergy
 	abstract class BasicRandomizableValue<T, Parameter> : IJsonable
 		where Parameter : BasicParameter<T>
 	{
-		protected Parameter initial_;
-		protected Parameter range_;
-		protected FloatParameter interval_;
+		protected readonly Parameter initial_;
+		protected readonly Parameter range_;
+		protected readonly FloatParameter interval_;
 
 		protected T current_;
 		protected float elapsed_;
@@ -33,14 +33,21 @@ namespace Synergy
 		{
 			if (!Bits.IsSet(cloneFlags, Utilities.CloneZero))
 			{
-				r.initial_ = initial_;
-				r.range_ = range_;
-				r.interval_ = interval_;
+				r.initial_.Value = initial_.Value;
+				r.range_.Value = range_.Value;
+				r.interval_.Value = interval_.Value;
 			}
 
 			current_ = initial_.Value;
 			elapsed_ = 0;
 			totalElapsed_ = float.MaxValue;
+		}
+
+		public virtual void Removed()
+		{
+			initial_.Unregister();
+			range_.Unregister();
+			interval_.Unregister();
 		}
 
 		public T Initial
@@ -164,9 +171,9 @@ namespace Synergy
 			if (o == null)
 				return false;
 
-			o.Opt("initial", ref initial_);
-			o.Opt("range", ref range_);
-			o.Opt("interval", ref interval_);
+			o.Opt("initial", initial_);
+			o.Opt("range", range_);
+			o.Opt("interval", interval_);
 
 			return true;
 		}
@@ -221,9 +228,9 @@ namespace Synergy
 			if (o == null)
 				return false;
 
-			o.Opt("initial", ref initial_);
-			o.Opt("range", ref range_);
-			o.Opt("interval", ref interval_);
+			o.Opt("initial", initial_);
+			o.Opt("range", range_);
+			o.Opt("interval", interval_);
 
 			return true;
 		}
@@ -415,9 +422,9 @@ namespace Synergy
 			if (o == null)
 				return false;
 
-			o.Opt("initial", ref initial_);
-			o.Opt("range", ref range_);
-			o.Opt("interval", ref interval_);
+			o.Opt("initial", initial_);
+			o.Opt("range", range_);
+			o.Opt("interval", interval_);
 			o.Opt("cutoff", ref cutoff_);
 
 			return true;

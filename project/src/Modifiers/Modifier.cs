@@ -26,10 +26,10 @@ namespace Synergy
 		void TickDelayed(float deltaTime, float stepProgress, bool stepFirstHalf);
 		void Set(bool paused);
 		void Stop(float timeRemaining);
-		void AboutToBeRemoved();
+		void Removed();
 	}
 
-	class ModifierFactory : BasicFactory<IModifier>
+	sealed class ModifierFactory : BasicFactory<IModifier>
 	{
 		public override List<IModifier> GetAllObjects()
 		{
@@ -49,7 +49,9 @@ namespace Synergy
 
 		private string name_ = null;
 		private Step parent_ = null;
-		private IModifierSync sync_ = null;
+
+		private readonly ExplicitHolder<IModifierSync> sync_ =
+			new ExplicitHolder<IModifierSync>();
 
 		protected BasicModifier()
 		{
@@ -101,18 +103,16 @@ namespace Synergy
 		{
 			get
 			{
-				return sync_;
+				return sync_.HeldValue;
 			}
 
 			set
 			{
-				if (sync_ != null)
-					sync_.ParentModifier = null;
+				sync_.HeldValue?.Removed();
+				sync_.Set(value);
 
-				sync_ = value;
-
-				if (sync_ != null)
-					sync_.ParentModifier = this;
+				if (sync_.HeldValue != null)
+					sync_.HeldValue.ParentModifier = this;
 			}
 		}
 
@@ -120,10 +120,10 @@ namespace Synergy
 		{
 			get
 			{
-				if (sync_ == null)
+				if (ModifierSync == null)
 					return true;
 
-				return sync_.Finished;
+				return ModifierSync.Finished;
 			}
 		}
 
@@ -131,30 +131,37 @@ namespace Synergy
 		{
 			get
 			{
-				if (sync_ == null)
+				if (ModifierSync == null)
 					return 0;
 
-				return sync_.TimeRemaining;
+				return ModifierSync.TimeRemaining;
 			}
 		}
 
 		public virtual void Stop(float timeRemaining)
 		{
-			if (sync_ != null)
-				sync_.StopWhenFinished(timeRemaining);
+			if (ModifierSync != null)
+				ModifierSync.StopWhenFinished(timeRemaining);
 		}
 
 		protected void CopyTo(BasicModifier m, int cloneFlags)
 		{
-			m.sync_ = sync_?.Clone(cloneFlags);
+			m.ModifierSync = ModifierSync?.Clone(cloneFlags);
+		}
+
+		public virtual void Removed()
+		{
+			ParentStep = null;
+			ModifierSync = null;
 		}
 
 		public virtual void Reset()
 		{
-			if (sync_ != null)
-				sync_.Resume();
-
-			sync_?.Reset();
+			if (ModifierSync != null)
+			{
+				ModifierSync.Resume();
+				ModifierSync.Reset();
+			}
 		}
 
 		public void Tick(float deltaTime, float stepProgress, bool stepFirstHalf)
@@ -162,45 +169,40 @@ namespace Synergy
 			if (sync_ == null)
 				return;
 
-			if (sync_.Tick(deltaTime))
+			if (ModifierSync.Tick(deltaTime))
 			{
 				DoTick(
 					deltaTime,
-					sync_.GetProgress(this, stepProgress, stepFirstHalf),
-					sync_.IsInFirstHalf(this, stepProgress, stepFirstHalf));
+					ModifierSync.GetProgress(this, stepProgress, stepFirstHalf),
+					ModifierSync.IsInFirstHalf(this, stepProgress, stepFirstHalf));
 
-				sync_.PostTick();
+				ModifierSync.PostTick();
 			}
 		}
 
 		public void Resume()
 		{
-			if (sync_ != null)
-				sync_.Resume();
+			if (ModifierSync != null)
+				ModifierSync.Resume();
 
 			DoResume();
 		}
 
 		public void TickPaused(float deltaTime)
 		{
-			sync_.TickPaused(deltaTime);
+			ModifierSync.TickPaused(deltaTime);
 			DoTickPaused(deltaTime);
 		}
 
 		public void TickDelayed(float deltaTime, float stepProgress, bool stepFirstHalf)
 		{
-			if (sync_.TickDelayed(deltaTime))
+			if (ModifierSync.TickDelayed(deltaTime))
 				Tick(deltaTime, stepProgress, stepFirstHalf);
 		}
 
 		public void Set(bool paused)
 		{
 			DoSet(paused);
-		}
-
-		public virtual void AboutToBeRemoved()
-		{
-			// no-op
 		}
 
 		protected abstract string MakeName();
@@ -236,7 +238,7 @@ namespace Synergy
 			var o = new J.Object();
 
 			o.Add("name", name_);
-			o.Add("sync", sync_);
+			o.Add("sync", ModifierSync);
 
 			return o;
 		}
@@ -248,10 +250,10 @@ namespace Synergy
 				return false;
 
 			o.Opt("name", ref name_);
-			o.Opt<ModifierSyncFactory, IModifierSync>("sync", ref sync_);
 
-			if (sync_ != null)
-				sync_.ParentModifier = this;
+			IModifierSync s = null;
+			o.Opt<ModifierSyncFactory, IModifierSync>("sync", ref s);
+			ModifierSync = s;
 
 			return true;
 		}
@@ -356,43 +358,58 @@ namespace Synergy
 	abstract class AtomWithMovementModifier : AtomModifier
 	{
 		public event PreferredRangeChangedHandler PreferredRangeChanged;
-		private Movement movement_ = null;
-
-		public Movement Movement
-		{
-			get { return movement_; }
-			set { movement_ = value; }
-		}
+		private readonly ExplicitHolder<Movement> movement_ =
+			new ExplicitHolder<Movement>();
 
 		protected AtomWithMovementModifier()
 		{
-			movement_ = new Movement(0, 0);
+			Movement = new Movement(0, 0);
 		}
 
 		protected void CopyTo(AtomWithMovementModifier m, int cloneFlags)
 		{
 			base.CopyTo(m, cloneFlags);
-			m.movement_ = movement_.Clone(cloneFlags);
+			m.Movement = Movement.Clone(cloneFlags);
+		}
+
+		public override void Removed()
+		{
+			base.Removed();
+			Movement = null;
+		}
+
+		public Movement Movement
+		{
+			get
+			{
+				return movement_.HeldValue;
+			}
+
+			set
+			{
+				movement_.HeldValue?.Removed();
+				movement_.Set(value);
+			}
 		}
 
 		public override void Reset()
 		{
 			base.Reset();
-			movement_.Reset();
+			Movement.Reset();
 		}
 
 		protected override void DoTick(
 			float deltaTime, float progress, bool firstHalf)
 		{
 			base.DoTick(deltaTime, progress, firstHalf);
-			movement_.Tick(deltaTime, progress, firstHalf);
+			Movement.Tick(deltaTime, progress, firstHalf);
 		}
 
 		public override J.Node ToJSON()
 		{
 			var o = base.ToJSON().AsObject();
 
-			o.Add("movement", movement_);
+			o.Add("movement", Movement);
 
 			return o;
 		}
@@ -406,7 +423,9 @@ namespace Synergy
 			if (o == null)
 				return false;
 
-			o.Opt("movement", ref movement_);
+			Movement m = null;
+			o.Opt("movement", ref m);
+			Movement = m;
 
 			return true;
 		}
