@@ -5,7 +5,7 @@
 		private bool resetValuesOnFreeze_ = false;
 		private bool resetCountersOnThaw_ = false;
 		private bool verboseLog_ = false;
-		private bool pickingAnimatable_ = true;
+		private bool pickingAnimatable_ = false;
 
 		public bool ResetValuesOnFreeze
 		{
