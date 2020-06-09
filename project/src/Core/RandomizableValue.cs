@@ -254,7 +254,12 @@ namespace Synergy
 		private int cutoff_ = 0;
 
 
-		public RandomizableTime(float initial = 0)
+		public RandomizableTime()
+			: this(0, 0, 0)
+		{
+		}
+
+		public RandomizableTime(float initial)
 			: this(initial, 0, 0)
 		{
 		}

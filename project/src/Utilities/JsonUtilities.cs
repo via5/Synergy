@@ -395,8 +395,11 @@ namespace Synergy
 			}
 
 			public void Opt<T>(string key, ref T v)
-				where T : IJsonable
+				where T : IJsonable, new()
 			{
+				if (v == null)
+					v = new T();
+
 				if (HasKey(key))
 					v.FromJSON(Node.Wrap(c_[key]));
 			}
