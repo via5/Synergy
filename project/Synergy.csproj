@@ -67,6 +67,12 @@
     <Compile Include="src\Modifiers\Specific\MorphModifier.cs" />
     <Compile Include="src\Modifiers\Specific\MorphProgressions.cs" />
     <Compile Include="src\Modifiers\Specific\RigidbodyModifier.cs" />
+    <Compile Include="src\UI\Library\BorderLayout.cs" />
+    <Compile Include="src\UI\Library\Label.cs" />
+    <Compile Include="src\UI\Library\Layout.cs" />
+    <Compile Include="src\UI\Library\Root.cs" />
+    <Compile Include="src\UI\Library\Utilities.cs" />
+    <Compile Include="src\UI\Library\Widget.cs" />
     <Compile Include="src\UI\MainUI\DelayUI.cs" />
     <Compile Include="src\UI\MainUI\DurationUI.cs" />
     <Compile Include="src\UI\MainUI\MainUI.cs" />

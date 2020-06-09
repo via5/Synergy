@@ -17,6 +17,12 @@ project\src\Modifiers\Specific\LightModifier.cs
 project\src\Modifiers\Specific\MorphModifier.cs
 project\src\Modifiers\Specific\MorphProgressions.cs
 project\src\Modifiers\Specific\RigidbodyModifier.cs
+project\src\UI\Library\BorderLayout.cs
+project\src\UI\Library\Label.cs
+project\src\UI\Library\Layout.cs
+project\src\UI\Library\Root.cs
+project\src\UI\Library\Utilities.cs
+project\src\UI\Library\Widget.cs
 project\src\UI\MainUI\DelayUI.cs
 project\src\UI\MainUI\DurationUI.cs
 project\src\UI\MainUI\MainUI.cs

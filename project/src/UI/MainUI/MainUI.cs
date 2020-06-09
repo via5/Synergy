@@ -142,6 +142,11 @@ namespace Synergy
 
 		private void ResetUI()
 		{
+			new UI.Test();
+/*
+
+
+
 			Synergy.LogVerbose("resetting ui");
 
 			ReselectStepAndModifier();
@@ -162,7 +167,7 @@ namespace Synergy
 				AddMainToUI();
 
 			needsReset_ = false;
-			Synergy.LogVerbose("done resetting ui");
+			Synergy.LogVerbose("done resetting ui");*/
 		}
 
 		private void AddMonitorToUI()
