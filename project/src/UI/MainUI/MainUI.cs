@@ -22,7 +22,6 @@ namespace Synergy
 		private StepProgressionStringList stepProgression_;
 		private StepUI step_;
 
-		private PresetsUI presets_;
 		private StringList modifiersList_;
 		private Button addModifier_;
 		private Button cloneModifier_;
@@ -34,6 +33,7 @@ namespace Synergy
 
 		private bool inMonitor_ = false;
 		private bool inOptions_ = false;
+		private bool inManageAnimatables_ = false;
 		private readonly WidgetList widgets_ = new WidgetList();
 		private readonly List<Action> handlerRemovers_ = new List<Action>();
 
@@ -47,7 +47,7 @@ namespace Synergy
 		{
 			toggleMonitor_ = new Button("Monitor", ToggleMonitor);
 
-			presets_ = new PresetsUI(Widget.Right);
+			options_ = new OptionsUI(Widget.Right);
 
 			stepsList_ = new StringList(
 				"Steps", "", new List<string>(), StepChanged);
@@ -76,7 +76,6 @@ namespace Synergy
 			step_ = new StepUI();
 			modifier_ = new ModifierUI(this);
 			monitor_ = new MonitorUI();
-			options_ = new OptionsUI();
 
 			ResetUI();
 		}
@@ -89,8 +88,8 @@ namespace Synergy
 			if (inMonitor_)
 				monitor_.Update();
 
-			if (inOptions_)
-				options_.Update();
+			//if (inOptions_)
+			//	options_.Update();
 		}
 
 		public void NeedsReset(string why)
@@ -109,6 +108,12 @@ namespace Synergy
 		{
 			inOptions_ = !inOptions_;
 			NeedsReset("toggling options");
+		}
+
+		public void ToggleManageAnimatables()
+		{
+			inManageAnimatables_ = !inManageAnimatables_;
+			NeedsReset("toggling manage animatables");
 		}
 
 
@@ -145,12 +150,14 @@ namespace Synergy
 			step_.RemoveFromUI();
 			modifier_.RemoveFromUI();
 			monitor_.RemoveFromUI();
-			options_.RemoveFromUI();
+			//options_.RemoveFromUI();
 
 			if (inMonitor_)
 				AddMonitorToUI();
 			else if (inOptions_)
 				AddOptionsToUI();
+			else if (inManageAnimatables_)
+				AddManageAnimatablesToUI();
 			else
 				AddMainToUI();
 
@@ -172,13 +179,60 @@ namespace Synergy
 		private void AddOptionsToUI()
 		{
 			//AddOptionsToggle();
-			options_.AddToUI();
+			//options_.AddToUI();
+		}
+
+		private void AddManageAnimatablesToUI()
+		{
+			var b = new Button("Back", ToggleManageAnimatables);
+			b.BackgroundColor = Color.green;
+
+			widgets_.AddToUI(b);
+			widgets_.AddToUI(new Label("Renaming will break any links", Widget.Right));
+
+			if (Synergy.Instance.Parameters.Count == 0)
+			{
+				widgets_.AddToUI(new Label("No animatables"));
+				return;
+			}
+
+			foreach (var p in Synergy.Instance.Parameters)
+			{
+				Textbox name = null;
+				Button toggle = null;
+
+				name = new Textbox("Name", p.Name, (string s) =>
+				{
+					p.Name = s;
+				});
+
+				toggle = new Button("Remove", () =>
+				{
+					if (p.Registered)
+					{
+						p.Unregister();
+						toggle.Text = "Add";
+						toggle.BackgroundColor = Utilities.DefaultButtonColor;
+					}
+					else
+					{
+						p.Register();
+						toggle.Text = "Remove";
+						toggle.BackgroundColor = Color.red;
+					}
+				}, Widget.Right);
+
+				toggle.BackgroundColor = Color.red;
+
+				widgets_.AddToUI(name);
+				widgets_.AddToUI(toggle);
+			}
 		}
 
 		private void AddMainToUI()
 		{
 			AddMonitorToggle();
-			widgets_.AddToUI(presets_.Collapsible);
+			widgets_.AddToUI(options_.Collapsible);
 
 			AddStepSelector();
 			AddStepUI();
@@ -266,7 +320,6 @@ namespace Synergy
 			widgets_.AddToUI(cloneModifierZero_);
 			widgets_.AddToUI(new LargeSpacer(Widget.Right));
 			widgets_.AddToUI(new SmallSpacer(Widget.Right));
-			//widgets_.AddToUI(new Spacer(35, Widget.Right));
 			modifier_.AddToUI(CurrentModifier);
 
 			cloneModifier_.Enabled = (CurrentModifier != null);
@@ -464,13 +517,40 @@ namespace Synergy
 	}
 
 
-	class PresetsUI
+	class OptionsUI
 	{
-		private readonly Collapsible collapsible_;
+		private readonly Options options_ = Synergy.Instance.Options;
 
-		public PresetsUI(int flags = 0)
+		private readonly Collapsible collapsible_;
+		private readonly Checkbox resetValuesOnFreeze_;
+		private readonly Checkbox resetCountersOnThaw_;
+		private readonly Checkbox pickAnimatable_;
+		private readonly Button manageAnimatable_;
+
+		public OptionsUI(int flags = 0)
 		{
-			collapsible_ = new Collapsible("Presets", null, flags);
+			collapsible_ = new Collapsible("Options and presets", null, flags);
+
+
+			resetValuesOnFreeze_ = new Checkbox(
+				"Reset values on freeze", options_.ResetValuesOnFreeze,
+				ResetValuesOnFreezeChanged, flags);
+
+			resetCountersOnThaw_ = new Checkbox(
+				"Reset counters on thaw", options_.ResetCountersOnThaw,
+				ResetCountersOnThaw, flags);
+
+			pickAnimatable_ = new Checkbox(
+				"Pick animatable", PickAnimatableChanged, flags);
+
+			manageAnimatable_ = new Button(
+				"Manage animatables", ManageAnimatables, flags);
+
+			collapsible_.Add(resetValuesOnFreeze_);
+			collapsible_.Add(resetCountersOnThaw_);
+			collapsible_.Add(pickAnimatable_);
+			collapsible_.Add(manageAnimatable_);
+			collapsible_.Add(new SmallSpacer(flags));
 
 
 			collapsible_.Add(new Button(
@@ -660,43 +740,6 @@ namespace Synergy
 				Utilities.ModifierPresetExtension, Utilities.PresetSavePath,
 				false, true, false, null, false, shortcuts);
 		}
-	}
-
-
-	class OptionsUI
-	{
-		private readonly Options options_ = Synergy.Instance.Options;
-		private readonly Checkbox resetValuesOnFreeze_;
-		private readonly Checkbox resetCountersOnThaw_;
-
-		private readonly WidgetList widgets_ = new WidgetList();
-
-		public OptionsUI()
-		{
-			resetValuesOnFreeze_ = new Checkbox(
-				"Reset values on freeze", options_.ResetValuesOnFreeze,
-				ResetValuesOnFreezeChanged);
-
-			resetCountersOnThaw_ = new Checkbox(
-				"Reset counters on thaw", options_.ResetCountersOnThaw,
-				ResetCountersOnThaw);
-		}
-
-		public void AddToUI()
-		{
-			widgets_.AddToUI(new SmallSpacer());
-			widgets_.AddToUI(resetValuesOnFreeze_);
-			widgets_.AddToUI(resetCountersOnThaw_);
-		}
-
-		public void RemoveFromUI()
-		{
-			widgets_.RemoveFromUI();
-		}
-
-		public void Update()
-		{
-		}
 
 
 		private void ResetValuesOnFreezeChanged(bool b)
@@ -707,6 +750,17 @@ namespace Synergy
 		private void ResetCountersOnThaw(bool b)
 		{
 			options_.ResetCountersOnThaw = b;
+		}
+
+		private void PickAnimatableChanged(bool b)
+		{
+			Synergy.Instance.Options.PickAnimatable = b;
+			Synergy.Instance.UI.NeedsReset("pick animatable changed");
+		}
+
+		private void ManageAnimatables()
+		{
+			Synergy.Instance.UI.ToggleManageAnimatables();
 		}
 	}
 }

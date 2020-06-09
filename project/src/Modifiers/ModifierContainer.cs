@@ -1,10 +1,15 @@
 ﻿namespace Synergy
 {
-	class ModifierContainer : IJsonable
+	sealed class ModifierContainer : IJsonable
 	{
 		private Step step_ = null;
-		private IModifier modifier_ = null;
-		private bool enabled_ = true;
+
+		private readonly ExplicitHolder<IModifier> modifier_ =
+			new ExplicitHolder<IModifier>();
+
+		private readonly BoolParameter enabled_ =
+			new BoolParameter("Enabled", true);
+
 
 		public ModifierContainer()
 			: this(null)
@@ -13,7 +18,7 @@
 
 		public ModifierContainer(IModifier m)
 		{
-			modifier_ = m;
+			Modifier = m;
 		}
 
 		public ModifierContainer Clone(int cloneFlags = 0)
@@ -23,11 +28,11 @@
 			return m;
 		}
 
-		protected void CopyTo(ModifierContainer m, int cloneFlags)
+		private void CopyTo(ModifierContainer m, int cloneFlags)
 		{
 			m.step_ = step_;
-			m.modifier_ = modifier_?.Clone(cloneFlags);
-			m.enabled_ = enabled_;
+			m.Modifier = Modifier?.Clone(cloneFlags);
+			m.enabled_.Value = enabled_.Value;
 		}
 
 
@@ -42,8 +47,8 @@
 			{
 				step_ = value;
 
-				if (modifier_ != null)
-					modifier_.ParentStep = value;
+				if (Modifier != null)
+					Modifier.ParentStep = value;
 			}
 		}
 
@@ -51,21 +56,16 @@
 		{
 			get
 			{
-				return modifier_;
+				return modifier_.HeldValue;
 			}
 
 			set
 			{
-				if (modifier_ != null)
-				{
-					modifier_.AboutToBeRemoved();
-					modifier_.ParentStep = null;
-				}
+				modifier_.HeldValue?.Removed();
+				modifier_.Set(value);
 
-				modifier_ = value;
-
-				if (modifier_ != null)
-					modifier_.ParentStep = step_;
+				if (modifier_.HeldValue != null)
+					modifier_.HeldValue.ParentStep = step_;
 			}
 		}
 
@@ -73,22 +73,27 @@
 		{
 			get
 			{
-				return enabled_;
+				return enabled_.Value;
 			}
 
 			set
 			{
-				enabled_ = value;
-				if (!enabled_ && modifier_ != null)
-					modifier_.Reset();
+				enabled_.Value = value;
+				if (!enabled_.Value && Modifier != null)
+					Modifier.Reset();
 			}
+		}
+
+		public BoolParameter EnabledParameter
+		{
+			get { return enabled_; }
 		}
 
 		public string Name
 		{
 			get
 			{
-				if (modifier_ == null)
+				if (Modifier == null)
 				{
 					if (step_ == null)
 					{
@@ -102,21 +107,27 @@
 				}
 				else
 				{
-					return modifier_.Name;
+					return Modifier.Name;
 				}
 			}
 		}
 
-		public void AboutToBeRemoved()
+		public void Added()
 		{
-			modifier_?.AboutToBeRemoved();
+			enabled_.BaseName = Name;
+		}
+
+		public void Removed()
+		{
+			Modifier = null;
+			enabled_.Unregister();
 		}
 
 		public J.Node ToJSON()
 		{
 			var o = new J.Object();
 
-			o.Add("modifier", modifier_);
+			o.Add("modifier", Modifier);
 			o.Add("enabled", enabled_);
 
 			return o;
@@ -128,8 +139,11 @@
 			if (o == null)
 				return false;
 
-			o.Opt<ModifierFactory, IModifier>("modifier", ref modifier_);
-			o.Opt("enabled", ref enabled_);
+			IModifier m = null;
+			o.Opt<ModifierFactory, IModifier>("modifier", ref m);
+			Modifier = m;
+
+			o.Opt("enabled", enabled_);
 
 			return true;
 		}

@@ -215,6 +215,7 @@ namespace Synergy
 			removedCallback_ = removedCallback;
 			root_ = new MorphCategory(name_, flags_, this);
 			search_ = new Textbox("Search", "", SearchChanged, flags_);
+			search_.Height = 100;
 
 			show_ = new StringList(
 				"Show", "all",

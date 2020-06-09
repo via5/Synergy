@@ -15,6 +15,7 @@ namespace Synergy
 		float Current { get; }
 
 		IDuration Clone(int cloneFlags = 0);
+		void Removed();
 
 		void Tick(float delta);
 		void Reset();
@@ -22,7 +23,7 @@ namespace Synergy
 	}
 
 
-	class DurationFactory : BasicFactory<IDuration>
+	sealed class DurationFactory : BasicFactory<IDuration>
 	{
 		public override List<IDuration> GetAllObjects()
 		{
@@ -51,6 +52,11 @@ namespace Synergy
 
 		public abstract IDuration Clone(int cloneFlags = 0);
 
+		public virtual void Removed()
+		{
+			// no-op
+		}
+
 		public abstract void Tick(float delta);
 		public abstract void Reset();
 		public abstract void Reset(float maxTime);
@@ -60,7 +66,7 @@ namespace Synergy
 	}
 
 
-	class RandomDuration : BasicDuration
+	sealed class RandomDuration : BasicDuration
 	{
 		public static string FactoryTypeName { get; } = "randomRange";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -68,72 +74,82 @@ namespace Synergy
 		public static string DisplayName { get; } = "Random range";
 		public override string GetDisplayName() { return DisplayName; }
 
-		private RandomizableTime time_ = new RandomizableTime(1);
+		private readonly ExplicitHolder<RandomizableTime> time_ =
+			new ExplicitHolder<RandomizableTime>();
 
 
 		public RandomDuration()
+			: this(1)
 		{
 		}
 
 		public RandomDuration(float s, float r=0)
 		{
-			time_ = new RandomizableTime(s, r, 0);
+			Time = new RandomizableTime(s, r, 0);
 		}
 
 		public override float FirstHalfProgress
 		{
-			get { return time_.FirstHalfProgress; }
+			get { return Time.FirstHalfProgress; }
 		}
 
 		public override float SecondHalfProgress
 		{
-			get { return time_.SecondHalfProgress; }
+			get { return Time.SecondHalfProgress; }
 		}
 
 		public override bool InFirstHalf
 		{
-			get { return time_.InFirstHalf; }
+			get { return Time.InFirstHalf; }
 		}
 
 		public override float TotalProgress
 		{
 			get
 			{
-				if (time_.Current <= 0)
+				if (Time.Current <= 0)
 					return 1;
 
-				return time_.Elapsed / (time_.Current / 2);
+				return Time.Elapsed / (Time.Current / 2);
 			}
 		}
 
 		public override bool InFirstHalfTotal
 		{
-			get { return time_.InFirstHalf; }
+			get { return Time.InFirstHalf; }
 		}
 
 		public override bool Finished
 		{
-			get { return time_.Finished; }
+			get { return Time.Finished; }
 		}
 
 		public override float TimeRemaining
 		{
 			get
 			{
-				return time_.TimeRemaining;
+				return Time.TimeRemaining;
 			}
 		}
 
 		public override float Current
 		{
-			get { return time_.Current; }
+			get { return Time.Current; }
 		}
 
 		public RandomizableTime Time
 		{
 			get
 			{
-				return time_;
+				return time_.HeldValue;
+			}
+
+			private set
+			{
+				if (time_.HeldValue != null)
+					time_.HeldValue.Removed();
+
+				time_.Set(value);
 			}
 		}
 
@@ -144,31 +160,37 @@ namespace Synergy
 			return d;
 		}
 
-		protected void CopyTo(RandomDuration d, int cloneFlags)
+		private void CopyTo(RandomDuration d, int cloneFlags)
 		{
-			d.time_ = time_.Clone(cloneFlags);
+			d.Time = Time.Clone(cloneFlags);
+		}
+
+		public override void Removed()
+		{
+			base.Removed();
+			Time = null;
 		}
 
 		public override void Tick(float delta)
 		{
-			time_.Tick(delta);
+			Time.Tick(delta);
 		}
 
 		public override void Reset()
 		{
-			time_.Reset();
+			Time.Reset();
 		}
 
 		public override void Reset(float maxTime)
 		{
-			time_.Reset(maxTime);
+			Time.Reset(maxTime);
 		}
 
 		public override J.Node ToJSON()
 		{
 			var o = new J.Object();
 
-			o.Add("time", time_);
+			o.Add("time", Time);
 
 			return o;
 		}
@@ -179,14 +201,16 @@ namespace Synergy
 			if (o == null)
 				return false;
 
-			o.Opt("time", ref time_);
+			RandomizableTime t = null;
+			o.Opt("time", ref t);
+			Time = t;
 
 			return true;
 		}
 	}
 
 
-	class RampDuration : BasicDuration
+	sealed class RampDuration : BasicDuration
 	{
 		public static string FactoryTypeName { get; } = "ramp";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -199,8 +223,12 @@ namespace Synergy
 		private float max_ = 0;
 		private float over_ = 1;
 		private float hold_ = 0;
-		private bool rampUp_ = true;
-		private bool rampDown_ = true;
+
+		private readonly BoolParameter rampUp_ =
+			new BoolParameter("RampUp", true);
+
+		private readonly BoolParameter rampDown_ =
+			new BoolParameter("RampDown", true);
 
 		private bool goingUp_ = true;
 		private float current_ = 0;
@@ -338,14 +366,24 @@ namespace Synergy
 
 		public bool RampUp
 		{
+			get { return rampUp_.Value; }
+			set { rampUp_.Value = value; }
+		}
+
+		public BoolParameter RampUpParameter
+		{
 			get { return rampUp_; }
-			set { rampUp_ = value; }
 		}
 
 		public bool RampDown
 		{
+			get { return rampDown_.Value; }
+			set { rampDown_.Value = value; }
+		}
+
+		public BoolParameter RampDownParameter
+		{
 			get { return rampDown_; }
-			set { rampDown_ = value; }
 		}
 
 		public IEasing Easing
@@ -399,7 +437,14 @@ namespace Synergy
 			return d;
 		}
 
-		protected void CopyTo(RampDuration d, int cloneFlags)
+		public override void Removed()
+		{
+			base.Removed();
+			rampUp_.Unregister();
+			rampDown_.Unregister();
+		}
+
+		private void CopyTo(RampDuration d, int cloneFlags)
 		{
 			d.easing_ = easing_?.Clone(cloneFlags);
 
@@ -409,6 +454,8 @@ namespace Synergy
 				d.max_ = max_;
 				d.over_ = over_;
 				d.current_ = current_;
+				rampUp_.Value = d.rampUp_.Value;
+				rampDown_.Value = d.rampDown_.Value;
 			}
 		}
 
@@ -418,7 +465,7 @@ namespace Synergy
 			{
 				if (goingUp_)
 				{
-					if (rampUp_)
+					if (RampUp)
 						totalElapsed_ += delta;
 					else
 						totalElapsed_ = over_;
@@ -435,7 +482,7 @@ namespace Synergy
 				{
 					if (!holding_)
 					{
-						if (rampDown_)
+						if (RampDown)
 						{
 							totalElapsed_ -= delta;
 
@@ -538,8 +585,8 @@ namespace Synergy
 			o.Opt("maximum", ref max_);
 			o.Opt("over", ref over_);
 			o.Opt("hold", ref hold_);
-			o.Opt("rampUp", ref rampUp_);
-			o.Opt("rampDown", ref rampDown_);
+			o.Opt("rampUp", rampUp_);
+			o.Opt("rampDown", rampDown_);
 
 			return true;
 		}

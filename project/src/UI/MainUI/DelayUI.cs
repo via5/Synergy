@@ -36,15 +36,18 @@ namespace Synergy
 			if (d == null)
 			{
 				halfway_.Value = false;
+				halfway_.Parameter = null;
 				endForwards_.Value = false;
+				endForwards_.Parameter = null;
 				endBackwards_.Value = false;
+				endBackwards_.Parameter = null;
 				durationWidgets_.SetValue(null);
 			}
 			else
 			{
-				halfway_.Value = d.Halfway;
-				endForwards_.Value = d.EndForwards;
-				endBackwards_.Value = d.EndBackwards;
+				halfway_.Parameter = d.HalfwayParameter;
+				endForwards_.Parameter = d.EndForwardsParameter;
+				endBackwards_.Parameter = d.EndBackwardsParameter;
 				durationWidgets_.SetValue(d.Duration);
 			}
 		}

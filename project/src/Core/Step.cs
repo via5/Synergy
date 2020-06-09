@@ -1,17 +1,28 @@
-﻿using System;
+﻿using LeapInternal;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Synergy
 {
-	class Step : IJsonable
+	sealed class Step : IJsonable
 	{
-		private bool enabled_ = true;
+		private readonly BoolParameter enabled_ =
+			new BoolParameter("Enabled", true);
+
 		private string name_ = null;
-		private IDuration duration_ = null;
-		private RandomizableTime repeat_ = null;
-		private Delay delay_ = null;
-		private bool halfMove_ = false;
+		private readonly ExplicitHolder<IDuration> duration_ =
+			new ExplicitHolder<IDuration>();
+
+		private ExplicitHolder<RandomizableTime> repeat_ =
+			new ExplicitHolder<RandomizableTime>();
+
+		private readonly ExplicitHolder<Delay> delay_ =
+			new ExplicitHolder<Delay>();
+
+		private readonly BoolParameter halfMove_ =
+			new BoolParameter("HalfMove", false);
+
 		private List<ModifierContainer> modifiers_ = null;
 
 		private bool inFirstHalf_ = true;
@@ -34,12 +45,12 @@ namespace Synergy
 					DeleteModifier(modifiers_[0]);
 			}
 
-			enabled_ = true;
+			enabled_.Value = true;
 			name_ = null;
-			duration_ = new RandomDuration();
-			repeat_ = new RandomizableTime(0);
-			delay_ = new Delay();
-			halfMove_ = false;
+			Duration = new RandomDuration();
+			Repeat = new RandomizableTime(0);
+			Delay = new Delay();
+			halfMove_.Value = false;
 			inFirstHalf_ = true;
 			modifiers_ = new List<ModifierContainer>();
 			enabledModifiers_ = new List<ModifierContainer>();
@@ -58,26 +69,50 @@ namespace Synergy
 		{
 			s.Clear();
 
-			s.enabled_ = enabled_;
+			s.enabled_.Value = enabled_.Value;
 
 			if (!Bits.IsSet(cloneFlags, Utilities.CloneZero))
 			{
-				s.duration_ = duration_?.Clone(cloneFlags);
-				s.repeat_ = repeat_.Clone(cloneFlags);
-				s.delay_ = delay_.Clone(cloneFlags);
+				s.Duration = Duration?.Clone(cloneFlags);
+				s.Repeat = Repeat.Clone(cloneFlags);
+				s.Delay = Delay.Clone(cloneFlags);
 			}
 
-			s.halfMove_ = halfMove_;
+			s.halfMove_.Value = halfMove_.Value;
 
 			foreach (var m in modifiers_)
 				s.AddModifier(m.Clone(cloneFlags));
 		}
 
+		public void Added()
+		{
+			enabled_.BaseName = Name;
+			halfMove_.BaseName = Name;
+		}
+
+		public void Removed()
+		{
+			Duration = null;
+			Repeat = null;
+			Delay = null;
+
+			enabled_.Unregister();
+			halfMove_.Unregister();
+
+			foreach (var m in modifiers_)
+				m.Removed();
+		}
+
 
 		public bool Enabled
 		{
+			get { return enabled_.Value; }
+			set { enabled_.Value = value; }
+		}
+
+		public BoolParameter EnabledParameter
+		{
 			get { return enabled_; }
-			set { enabled_ = value; }
 		}
 
 		public string UserDefinedName
@@ -109,36 +144,65 @@ namespace Synergy
 
 		public IDuration Duration
 		{
-			get { return duration_; }
-			set { duration_ = value; }
+			get
+			{
+				return duration_.HeldValue;
+			}
+
+			set
+			{
+				duration_.HeldValue?.Removed();
+				duration_.Set(value);
+			}
 		}
 
 		public RandomizableTime Repeat
 		{
-			get { return repeat_; }
-			set { repeat_ = value; }
+			get
+			{
+				return repeat_.HeldValue;
+			}
+
+			set
+			{
+				repeat_.HeldValue?.Removed();
+				repeat_.Set(value);
+			}
 		}
 
 		public Delay Delay
 		{
-			get { return delay_; }
-			set { delay_ = value; }
+			get
+			{
+				return delay_.HeldValue;
+			}
+
+			set
+			{
+				delay_.HeldValue?.Removed();
+				delay_.Set(value);
+			}
 		}
 
 		public bool HalfMove
 		{
+			get { return halfMove_.Value; }
+			set { halfMove_.Value = value; }
+		}
+
+		public BoolParameter HalfMoveParameter
+		{
 			get { return halfMove_; }
-			set { halfMove_ = value; }
 		}
 
 		public float TotalProgress
 		{
 			get
 			{
-				if (duration_ == null)
+				if (duration_.HeldValue == null)
 					return 1;
 
-				return duration_.TotalProgress;
+				return Duration.TotalProgress;
 			}
 		}
 
@@ -146,10 +210,10 @@ namespace Synergy
 		{
 			get
 			{
-				if (duration_ == null)
+				if (duration_.HeldValue == null)
 					return false;
 
-				return duration_.InFirstHalfTotal;
+				return Duration.InFirstHalfTotal;
 			}
 		}
 
@@ -164,21 +228,15 @@ namespace Synergy
 		}
 
 
-		public void AboutToBeRemoved()
-		{
-			foreach (var m in modifiers_)
-				m.AboutToBeRemoved();
-		}
-
 		public J.Node ToJSON()
 		{
 			var o = new J.Object();
 
-			o.Add("enabled", Enabled);
+			o.Add("enabled", enabled_);
 			o.Add("name", name_);
-			o.Add("duration", duration_);
-			o.Add("repeat", repeat_);
-			o.Add("delay", delay_);
+			o.Add("duration", Duration);
+			o.Add("repeat", Repeat);
+			o.Add("delay", Delay);
 			o.Add("halfMove", halfMove_);
 			o.Add("modifiers", modifiers_);
 
@@ -193,13 +251,28 @@ namespace Synergy
 			if (o == null)
 				return false;
 
-			o.Opt("enabled", ref enabled_);
+			o.Opt("enabled", enabled_);
 			o.Opt("name", ref name_);
-			o.Opt<DurationFactory, IDuration>("duration", ref duration_);
-			o.Opt("repeat", ref repeat_);
-			o.Opt("delay", ref delay_);
-			o.Opt("halfMove", ref halfMove_);
+			o.Opt("halfMove", halfMove_);
 			o.Opt("modifiers", ref modifiers_);
+
+			{
+				IDuration d = null;
+				o.Opt<DurationFactory, IDuration>("duration", ref d);
+				Duration = d;
+			}
+
+			{
+				RandomizableTime t = null;
+				o.Opt("repeat", ref t);
+				Repeat = t;
+			}
+
+			{
+				Delay d = null;
+				o.Opt("delay", ref d);
+				Delay = d;
+			}
 
 			foreach (var m in modifiers_)
 			{
@@ -216,6 +289,7 @@ namespace Synergy
 		{
 			m.Step = this;
 			modifiers_.Add(m);
+			m.Added();
 		}
 
 		public void AddEmptyModifier()
@@ -225,7 +299,7 @@ namespace Synergy
 
 		public void DeleteModifier(ModifierContainer m)
 		{
-			m.AboutToBeRemoved();
+			m.Removed();
 
 			// todo: needs a generic notification
 			foreach (var sm in modifiers_)
@@ -276,8 +350,8 @@ namespace Synergy
 
 		public void Reset()
 		{
-			duration_.Reset();
-			repeat_.Reset();
+			Duration.Reset();
+			Repeat.Reset();
 
 			if (!Synergy.Instance.Manager.IsOnlyEnabledStep(this))
 			{
@@ -312,12 +386,12 @@ namespace Synergy
 		{
 			try
 			{
-				if (delay_.Active)
+				if (Delay.Active)
 					return DoDelay(deltaTime);
 
-				if (halfMove_)
+				if (HalfMove)
 				{
-					if (repeat_.Finished)
+					if (Repeat.Finished)
 					{
 						return DoHalfMove(deltaTime, stepForwards);
 					}
@@ -335,7 +409,7 @@ namespace Synergy
 			catch (Exception e)
 			{
 				Synergy.LogError(e.ToString());
-				Enabled = false;
+				enabled_.Value = false;
 				return false;
 			}
 		}
@@ -348,30 +422,30 @@ namespace Synergy
 
 		private bool DoDelay(float deltaTime)
 		{
-			bool firstHalf = duration_.InFirstHalf;
+			bool firstHalf = Duration.InFirstHalf;
 			float progress;
 
 			if (firstHalf)
-				progress = duration_.FirstHalfProgress;
+				progress = Duration.FirstHalfProgress;
 			else
-				progress = duration_.SecondHalfProgress;
+				progress = Duration.SecondHalfProgress;
 
-			delay_.Duration.Tick(deltaTime);
+			Delay.Duration.Tick(deltaTime);
 			DoModifierTicksDelayed(deltaTime, progress, firstHalf);
 
-			if (!delay_.Duration.Finished)
+			if (!Delay.Duration.Finished)
 				return true;
 
-			delay_.Duration.Reset();
-			delay_.Active = false;
+			Delay.Duration.Reset();
+			Delay.Active = false;
 
-			if (delay_.StopAfter)
+			if (Delay.StopAfter)
 			{
-				delay_.StopAfter = false;
+				Delay.StopAfter = false;
 
-				if (delay_.ResetDurationAfter)
+				if (Delay.ResetDurationAfter)
 				{
-					delay_.ResetDurationAfter = false;
+					Delay.ResetDurationAfter = false;
 					Reset();
 				}
 
@@ -383,19 +457,19 @@ namespace Synergy
 
 		private bool DoHalfMove(float deltaTime, bool stepForwards)
 		{
-			duration_.Tick(deltaTime);
+			Duration.Tick(deltaTime);
 
 			if (stepForwards)
 			{
-				float progress = duration_.FirstHalfProgress;
+				float progress = Duration.FirstHalfProgress;
 				DoModifierTicks(deltaTime, progress, true);
 
 				if (progress == 1.0f)
 				{
-					if (delay_.Halfway || delay_.EndForwards)
+					if (Delay.Halfway || Delay.EndForwards)
 					{
-						delay_.Active = true;
-						delay_.StopAfter = true;
+						Delay.Active = true;
+						Delay.StopAfter = true;
 					}
 					else
 					{
@@ -405,19 +479,19 @@ namespace Synergy
 			}
 			else
 			{
-				float progress = duration_.SecondHalfProgress;
+				float progress = Duration.SecondHalfProgress;
 				DoModifierTicks(deltaTime, progress, false);
 
-				if (duration_.Finished && !HasUnfinishedModifiers())
+				if (Duration.Finished && !HasUnfinishedModifiers())
 				{
 					waitingFor_ = null;
 					gracePeriod_ = -1;
 
-					if (delay_.EndBackwards)
+					if (Delay.EndBackwards)
 					{
-						delay_.Active = true;
-						delay_.StopAfter = true;
-						delay_.ResetDurationAfter = true;
+						Delay.Active = true;
+						Delay.StopAfter = true;
+						Delay.ResetDurationAfter = true;
 					}
 					else
 					{
@@ -434,39 +508,39 @@ namespace Synergy
 		{
 			if (!stepForwards)
 			{
-				if (delay_.EndBackwards)
+				if (Delay.EndBackwards)
 				{
-					delay_.Active = true;
-					delay_.StopAfter = true;
-					delay_.ResetDurationAfter = true;
+					Delay.Active = true;
+					Delay.StopAfter = true;
+					Delay.ResetDurationAfter = true;
 
 					return true;
 				}
 
-				duration_.Tick(deltaTime);
-				repeat_.Tick(deltaTime);
+				Duration.Tick(deltaTime);
+				Repeat.Tick(deltaTime);
 
 				return false;
 			}
 
-			duration_.Tick(deltaTime);
-			repeat_.Tick(deltaTime);
+			Duration.Tick(deltaTime);
+			Repeat.Tick(deltaTime);
 
 
-			bool firstHalf = duration_.InFirstHalf;
+			bool firstHalf = Duration.InFirstHalf;
 			float progress;
 
 			if (firstHalf)
-				progress = duration_.FirstHalfProgress;
+				progress = Duration.FirstHalfProgress;
 			else
-				progress = duration_.SecondHalfProgress;
+				progress = Duration.SecondHalfProgress;
 
 			DoModifierTicks(deltaTime, progress, firstHalf);
 
 
-			if (duration_.Finished)
+			if (Duration.Finished)
 			{
-				if (repeat_.Finished && !halfMove_)
+				if (Repeat.Finished && !HalfMove)
 				{
 					if (Synergy.Instance.Manager.IsOnlyEnabledStep(this) ||
 					    !HasUnfinishedModifiers())
@@ -474,11 +548,11 @@ namespace Synergy
 						waitingFor_ = null;
 						gracePeriod_ = -1;
 
-						if (delay_.EndForwards)
+						if (Delay.EndForwards)
 						{
-							delay_.Active = true;
-							delay_.StopAfter = true;
-							delay_.ResetDurationAfter = true;
+							Delay.Active = true;
+							Delay.StopAfter = true;
+							Delay.ResetDurationAfter = true;
 						}
 						else
 						{
@@ -489,15 +563,15 @@ namespace Synergy
 				}
 				else
 				{
-					duration_.Reset();
+					Duration.Reset();
 				}
 			}
 			else
 			{
-				if ((inFirstHalf_ && !firstHalf) && delay_.Halfway)
+				if ((inFirstHalf_ && !firstHalf) && Delay.Halfway)
 				{
 					inFirstHalf_ = firstHalf;
-					delay_.Active = true;
+					Delay.Active = true;
 				}
 				else
 				{

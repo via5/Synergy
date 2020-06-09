@@ -53,8 +53,8 @@
 				return;
 
 			header_.Text = currentStep_.Name;
-			enabled_.Value = currentStep_.Enabled;
-			halfMove_.Value = currentStep_.HalfMove;
+			enabled_.Parameter = currentStep_.EnabledParameter;
+			halfMove_.Parameter = currentStep_.HalfMoveParameter;
 			durationWidgets_.SetValue(currentStep_?.Duration);
 			repeatWidgets_.SetValue(currentStep_.Repeat, new FloatRange(0, 10));
 			delayWidgets_.SetValue(currentStep_?.Delay);

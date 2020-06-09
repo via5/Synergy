@@ -2,12 +2,13 @@
 
 namespace Synergy
 {
-	abstract class RandomizableValueWidgets<T> : CompoundWidget
+	abstract class RandomizableValueWidgets<T, Parameter> : CompoundWidget
+		where Parameter : BasicParameter<T>
 	{
-		protected BasicRandomizableValue<T> value_ = null;
+		protected BasicRandomizableValue<T, Parameter> value_ = null;
 
-		protected BasicSlider<T> initial_ = null;
-		protected BasicSlider<T> range_ = null;
+		protected BasicSlider<T, Parameter> initial_ = null;
+		protected BasicSlider<T, Parameter> range_ = null;
 		protected readonly FloatSlider interval_;
 
 		public RandomizableValueWidgets(string name, int flags)
@@ -18,21 +19,22 @@ namespace Synergy
 				IntervalChanged, flags);
 		}
 
-		public void SetValue(BasicRandomizableValue<T> v, Range<T> preferredRange)
+		public void SetValue(
+			BasicRandomizableValue<T, Parameter> v, Range<T> preferredRange)
 		{
 			value_ = v;
 
 			if (value_ != null)
 			{
-				initial_.Value = value_.Initial;
+				initial_.ValueParameter = value_.InitialParameter;
 				initial_.Default = value_.Initial;
 				initial_.Range = preferredRange;
 
-				range_.Value = value_.Range;
+				range_.ValueParameter = value_.RangeParameter;
 				range_.Default = value_.Range;
 				range_.Range = preferredRange;
 
-				interval_.Value = value_.Interval;
+				interval_.ValueParameter = value_.IntervalParameter;
 				interval_.Default = value_.Interval;
 			}
 		}
@@ -75,7 +77,8 @@ namespace Synergy
 	}
 
 
-	class RandomizableFloatWidgets : RandomizableValueWidgets<float>
+	class RandomizableFloatWidgets
+		: RandomizableValueWidgets<float, FloatParameter>
 	{
 		public RandomizableFloatWidgets(string name, int flags = 0)
 			: base(name, flags)
@@ -91,7 +94,8 @@ namespace Synergy
 	}
 
 
-	class RandomizableTimeWidgets : RandomizableValueWidgets<float>
+	class RandomizableTimeWidgets
+		: RandomizableValueWidgets<float, FloatParameter>
 	{
 		private readonly StringList cutoff_;
 
@@ -138,7 +142,8 @@ namespace Synergy
 	}
 
 
-	class RandomizableIntWidgets : RandomizableValueWidgets<int>
+	class RandomizableIntWidgets
+		: RandomizableValueWidgets<int, IntParameter>
 	{
 		public RandomizableIntWidgets(string name, int flags = 0)
 			: base(name, flags)
@@ -154,11 +159,12 @@ namespace Synergy
 	}
 
 
-	abstract class RandomizableValueMonitorWidgets<T> : CompoundWidget
+	abstract class RandomizableValueMonitorWidgets<T, Parameter> : CompoundWidget
+		where Parameter : BasicParameter<T>
 	{
 		private readonly string name_;
 
-		protected BasicSlider<T> current_;
+		protected BasicSlider<T, Parameter> current_;
 		protected readonly FloatSlider next_;
 
 		protected RandomizableValueMonitorWidgets(string name, int flags)
@@ -191,7 +197,7 @@ namespace Synergy
 				w.RemoveFromUI();
 		}
 
-		public virtual void SetValue(BasicRandomizableValue<T> value)
+		public virtual void SetValue(BasicRandomizableValue<T, Parameter> value)
 		{
 			if (value == null)
 				return;
@@ -222,7 +228,7 @@ namespace Synergy
 
 
 	class RandomizableFloatMonitorWidgets
-		: RandomizableValueMonitorWidgets<float>
+		: RandomizableValueMonitorWidgets<float, FloatParameter>
 	{
 		public RandomizableFloatMonitorWidgets(string name, int flags = 0)
 			: base(name, flags)
@@ -235,7 +241,7 @@ namespace Synergy
 
 
 	class RandomizableIntMonitorWidgets
-		: RandomizableValueMonitorWidgets<int>
+		: RandomizableValueMonitorWidgets<int, IntParameter>
 	{
 		public RandomizableIntMonitorWidgets(string name, int flags = 0)
 			: base(name, flags)
@@ -248,7 +254,7 @@ namespace Synergy
 
 
 	class RandomizableTimeMonitorWidgets
-		: RandomizableValueMonitorWidgets<float>
+		: RandomizableValueMonitorWidgets<float, FloatParameter>
 	{
 		private readonly FloatSlider progress_;
 
@@ -271,7 +277,8 @@ namespace Synergy
 			return list;
 		}
 
-		public override void SetValue(BasicRandomizableValue<float> value)
+		public override void SetValue(
+			BasicRandomizableValue<float, FloatParameter> value)
 		{
 			base.SetValue(value);
 

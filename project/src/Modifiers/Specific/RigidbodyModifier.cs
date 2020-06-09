@@ -4,7 +4,7 @@ using Leap.Unity;
 
 namespace Synergy
 {
-	class RigidbodyMovementTypeFactory :
+	sealed class RigidbodyMovementTypeFactory :
 		BasicFactory<IRigidbodyMovementType>
 	{
 		public override List<IRigidbodyMovementType> GetAllObjects()
@@ -49,7 +49,7 @@ namespace Synergy
 		public abstract void Set(Rigidbody receiver, Vector3 magnitude);
 	}
 
-	class ForceMovementType : BasicRigidbodyMovementType
+	sealed class ForceMovementType : BasicRigidbodyMovementType
 	{
 		public static string FactoryTypeName { get; } = "force";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -70,7 +70,7 @@ namespace Synergy
 		}
 	}
 
-	class RelativeForceMovementType : BasicRigidbodyMovementType
+	sealed class RelativeForceMovementType : BasicRigidbodyMovementType
 	{
 		public static string FactoryTypeName { get; } = "relativeForce";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -91,7 +91,7 @@ namespace Synergy
 		}
 	}
 
-	class TorqueMovementType : BasicRigidbodyMovementType
+	sealed class TorqueMovementType : BasicRigidbodyMovementType
 	{
 		public static string FactoryTypeName { get; } = "torque";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -112,7 +112,7 @@ namespace Synergy
 		}
 	}
 
-	class RelativeTorqueMovementType : BasicRigidbodyMovementType
+	sealed class RelativeTorqueMovementType : BasicRigidbodyMovementType
 	{
 		public static string FactoryTypeName { get; } = "relativeTorque";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -134,7 +134,7 @@ namespace Synergy
 	}
 
 
-	class RigidbodyModifier : AtomWithMovementModifier
+	sealed class RigidbodyModifier : AtomWithMovementModifier
 	{
 		private const float NoMagnitude = float.MinValue;
 
@@ -217,7 +217,7 @@ namespace Synergy
 			return m;
 		}
 
-		protected void CopyTo(RigidbodyModifier m, int cloneFlags)
+		private void CopyTo(RigidbodyModifier m, int cloneFlags)
 		{
 			base.CopyTo(m, cloneFlags);
 			m.type_ = type_?.Clone(cloneFlags);

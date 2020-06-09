@@ -1,10 +1,11 @@
 using SimpleJSON;
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Synergy
 {
-	class Synergy : MVRScript
+	sealed class Synergy : MVRScript
 	{
 		private static Synergy instance_ = null;
 		private readonly SuperController sc_ = SuperController.singleton;
@@ -12,8 +13,9 @@ namespace Synergy
 		private bool frozen_ = false;
 		private Manager manager_ = new Manager();
 		private Options options_ = new Options();
-		private TimerManager timers_ = new TimerManager();
+		private readonly TimerManager timers_ = new TimerManager();
 		private MainUI ui_ = null;
+		private List<IParameter> parameters_ = new List<IParameter>();
 
 		public Synergy()
 		{
@@ -54,8 +56,8 @@ namespace Synergy
 				RegisterString(new JSONStorableString("dummy", ""));
 				SetStringParamValue("dummy", "dummy");
 
-				if (GetAtomById("movetestatom") != null)
-					CreateTestStuff(GetAtomById("movetestatom"));
+				if (GetAtomById("synergytestatom") != null)
+					CreateTestStuff(GetAtomById("synergytestatom"));
 
 				ui_ = new MainUI();
 				ui_.Create();
@@ -67,6 +69,18 @@ namespace Synergy
 
 		private void CreateTestStuff(Atom a)
 		{
+			var s = new Step();
+
+			var rm = new RigidbodyModifier(a, Utilities.FindRigidbody(a, "head"));
+			rm.Movement.Maximum.Initial = 50;
+			s.AddModifier(new ModifierContainer(rm));
+
+			//var mm = new MorphModifier(a, Utilities.GetAtomMorph(a, "Mouth Open"));
+			//mm.Progression = new ConcurrentMorphProgression();
+			//s.AddModifier(new ModifierContainer(mm));
+
+			manager_.AddStep(s);
+			rm.Movement.Maximum.InitialParameter.Register();
 		}
 
 		public Timer CreateTimer(float seconds, Timer.Callback callback)
@@ -79,7 +93,79 @@ namespace Synergy
 			timers_.RemoveTimer(t);
 		}
 
-		protected void Update()
+		public void RegisterParameter(BoolParameter p)
+		{
+			RegisterBool(p.Storable);
+			RegisterFloat(p.StorableFloat);
+			parameters_.Add(p);
+		}
+
+		public void UnregisterParameter(BoolParameter p)
+		{
+			DeregisterBool(p.Storable);
+			DeregisterFloat(p.StorableFloat);
+			parameters_.Remove(p);
+		}
+
+		public void RegisterParameter(FloatParameter p)
+		{
+			RegisterFloat(p.Storable);
+			parameters_.Add(p);
+		}
+
+		public void UnregisterParameter(FloatParameter p)
+		{
+			DeregisterFloat(p.Storable);
+			parameters_.Remove(p);
+		}
+
+		public void RegisterParameter(IntParameter p)
+		{
+			RegisterFloat(p.Storable);
+			parameters_.Add(p);
+		}
+
+		public void UnregisterParameter(IntParameter p)
+		{
+			DeregisterFloat(p.Storable);
+			parameters_.Remove(p);
+		}
+
+		public IParameter FindParameter(string name)
+		{
+			foreach (var p in parameters_)
+			{
+				if (p.Name == name)
+					return p;
+			}
+
+			return null;
+		}
+
+		public string MakeParameterName(string baseName)
+		{
+			var p = FindParameter(baseName);
+			if (p == null)
+				return baseName;
+
+			for (int i = 1; i < 100; ++i)
+			{
+				string name = baseName + " (" + i.ToString() + ")";
+
+				p = FindParameter(name);
+				if (p == null)
+					return name;
+			}
+
+			return Guid.NewGuid().ToString();
+		}
+
+		public List<IParameter> Parameters
+		{
+			get { return parameters_; }
+		}
+
+		public void Update()
 		{
 			Utilities.Handler(() =>
 			{
@@ -92,7 +178,7 @@ namespace Synergy
 			timers_.TickTimers(deltaTime);
 		}
 
-		protected void FixedUpdate()
+		public void FixedUpdate()
 		{
 			if (!enabled_)
 				return;
@@ -134,8 +220,11 @@ namespace Synergy
 				manager_.Set();
 		}
 
-		protected void OnGUI()
+		public void OnGUI()
 		{
+			if (!enabled_)
+				return;
+
 			Utilities.Handler(() =>
 			{
 				timers_.CheckTimers();
@@ -148,16 +237,21 @@ namespace Synergy
 			bool includeAppearance = true,
 			bool forceStore = false)
 		{
-			var c = base.GetJSON(includePhysical, includeAppearance);
+			JSONClass c = null;
 
-			var o = J.Object.Wrap(c);
-			J.Node.SaveType = SaveTypes.Scene;
+			Utilities.Handler(() =>
+			{
+				c = base.GetJSON(includePhysical, includeAppearance);
 
-			o.Add("version", Version.String);
-			o.Add("options", options_);
-			o.Add("manager", manager_);
+				var o = J.Object.Wrap(c);
+				J.Node.SaveType = SaveTypes.Scene;
 
-			J.Node.SaveType = SaveTypes.None;
+				o.Add("version", Version.String);
+				o.Add("options", options_);
+				o.Add("manager", manager_);
+
+				J.Node.SaveType = SaveTypes.None;
+			});
 
 			return c;
 		}
@@ -169,17 +263,20 @@ namespace Synergy
 			JSONArray presetAtoms = null,
 			bool setMissingToDefault = true)
 		{
-			base.RestoreFromJSON(
-				c, restorePhysical, restoreAppearance,
-				presetAtoms, setMissingToDefault);
+			Utilities.Handler(() =>
+			{
+				base.RestoreFromJSON(
+					c, restorePhysical, restoreAppearance,
+					presetAtoms, setMissingToDefault);
 
-			var o = J.Object.Wrap(c);
-			J.Node.SaveType = SaveTypes.Scene;
+				var o = J.Object.Wrap(c);
+				J.Node.SaveType = SaveTypes.Scene;
 
-			o.Opt("options", ref options_);
-			o.Opt("manager", ref manager_);
+				o.Opt("options", ref options_);
+				o.Opt("manager", ref manager_);
 
-			J.Node.SaveType = SaveTypes.None;
+				J.Node.SaveType = SaveTypes.None;
+			});
 		}
 
 

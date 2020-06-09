@@ -18,6 +18,11 @@ namespace Synergy
 
 	class FloatRange : Range<float>
 	{
+		public FloatRange()
+			: this(0, 0)
+		{
+		}
+
 		public FloatRange(float min, float max)
 		{
 			Minimum = min;
