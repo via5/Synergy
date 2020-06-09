@@ -28,7 +28,7 @@ namespace Synergy.UI
 
 		public Root()
 		{
-			Bounds = Rect.MinMaxRect(2, -27, 1077, 1198);
+			Bounds = Rectangle.FromPoints(2, -27, 1077, 1198);
 
 			{
 				var b = Synergy.Instance.CreateButton("b");

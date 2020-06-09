@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
 
 namespace Synergy.UI
 {
@@ -8,7 +7,7 @@ namespace Synergy.UI
 		private Widget parent_ = null;
 		private readonly List<Widget> children_ = new List<Widget>();
 		private Layout layout_ = null;
-		private Rect bounds_ = new Rect();
+		private Rectangle bounds_ = new Rectangle();
 
 		public Widget()
 		{
@@ -68,7 +67,7 @@ namespace Synergy.UI
 			return new Size(-1, -1);
 		}
 
-		public Rect Bounds
+		public Rectangle Bounds
 		{
 			get { return bounds_; }
 			set { bounds_ = value; }

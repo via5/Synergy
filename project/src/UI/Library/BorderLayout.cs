@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace Synergy.UI
 {
@@ -88,18 +87,18 @@ namespace Synergy.UI
 
 		public override void DoLayout()
 		{
-			Rect av = new Rect(Parent.Bounds);
-			Rect center = new Rect(av);
+			Rectangle av = new Rectangle(Parent.Bounds);
+			Rectangle center = new Rectangle(av);
 
-			center.yMin += DoTop(av);
-			center.yMax -= DoBottom(av);
-			center.xMin += DoLeft(av);
-			center.xMax -= DoRight(av);
+			center.top += DoTop(av);
+			center.bottom -= DoBottom(av);
+			center.left += DoLeft(av);
+			center.right -= DoRight(av);
 
 			DoCenter(center);
 		}
 
-		private float DoTop(Rect av)
+		private float DoTop(Rectangle av)
 		{
 			float tallest = 0;
 
@@ -108,21 +107,21 @@ namespace Synergy.UI
 				float wh = w.PreferredSize.height;
 				tallest = Math.Max(tallest, wh);
 
-				Rect r = new Rect();
+				Rectangle r = new Rectangle();
 
-				r.xMin = av.xMin;
-				r.yMin = av.yMin;
-				r.xMax = r.xMin + av.width;
-				r.yMax = r.yMin + wh;
+				r.left = av.left;
+				r.top = av.top;
+				r.right = r.left + av.width;
+				r.bottom = r.top + wh;
 
 				var lw = SideWidth(LeftSide);
 				var rw = SideWidth(RightSide);
 
 				if (corners_[TopLeft] != TopSide)
-					r.xMin += lw;
+					r.left += lw;
 
 				if (corners_[TopRight] != TopSide)
-					r.xMax -= rw;
+					r.right -= rw;
 
 				w.Bounds = r;
 			}
@@ -130,7 +129,7 @@ namespace Synergy.UI
 			return tallest;
 		}
 
-		private float DoBottom(Rect av)
+		private float DoBottom(Rectangle av)
 		{
 			float tallest = 0;
 
@@ -139,21 +138,21 @@ namespace Synergy.UI
 				float wh = w.PreferredSize.height;
 				tallest = Math.Max(tallest, wh);
 
-				Rect r = new Rect();
+				Rectangle r = new Rectangle();
 
-				r.xMin = av.xMin;
-				r.yMin = av.yMax - wh;
-				r.xMax = r.xMin + av.width;
-				r.yMax = r.yMin + wh;
+				r.left = av.left;
+				r.top = av.bottom - wh;
+				r.right = r.left + av.width;
+				r.bottom = r.top + wh;
 
 				var lw = SideWidth(LeftSide);
 				var rw = SideWidth(RightSide);
 
 				if (corners_[BottomLeft] != BottomSide)
-					r.xMin += lw;
+					r.left += lw;
 
 				if (corners_[BottomRight] != BottomSide)
-					r.xMax -= rw;
+					r.right -= rw;
 
 				w.Bounds = r;
 			}
@@ -161,7 +160,7 @@ namespace Synergy.UI
 			return tallest;
 		}
 
-		private float DoLeft(Rect av)
+		private float DoLeft(Rectangle av)
 		{
 			float widest = 0;
 
@@ -170,22 +169,22 @@ namespace Synergy.UI
 				float ww = w.PreferredSize.width;
 				widest = Math.Max(widest, ww);
 
-				Rect r = new Rect();
+				Rectangle r = new Rectangle();
 
-				r.xMin = av.xMin;
-				r.yMin = av.yMin;
+				r.left = av.left;
+				r.top = av.top;
 
-				r.xMax = r.xMin + ww;
-				r.yMax = r.yMin + av.height;
+				r.right = r.left + ww;
+				r.bottom = r.top + av.height;
 
 				var th = SideHeight(TopSide);
 				var bh = SideHeight(BottomSide);
 
 				if (corners_[TopLeft] != LeftSide)
-					r.yMin += th;
+					r.top += th;
 
 				if (corners_[BottomLeft] != LeftSide)
-					r.yMax -= bh;
+					r.bottom -= bh;
 
 				w.Bounds = r;
 			}
@@ -193,7 +192,7 @@ namespace Synergy.UI
 			return widest;
 		}
 
-		private float DoRight(Rect av)
+		private float DoRight(Rectangle av)
 		{
 			float widest = 0;
 
@@ -202,22 +201,22 @@ namespace Synergy.UI
 				float ww = w.PreferredSize.width;
 				widest = Math.Max(widest, ww);
 
-				Rect r = new Rect();
+				Rectangle r = new Rectangle();
 
-				r.xMin = av.xMax - ww;
-				r.yMin = av.yMin;
+				r.left = av.right - ww;
+				r.top = av.top;
 
-				r.xMax = r.xMin + ww;
-				r.yMax = r.yMin + av.height;
+				r.right = r.left + ww;
+				r.bottom = r.top + av.height;
 
 				var th = SideHeight(TopSide);
 				var bh = SideHeight(BottomSide);
 
 				if (corners_[TopRight] != RightSide)
-					r.yMin += th;
+					r.top += th;
 
 				if (corners_[BottomRight] != RightSide)
-					r.yMax -= bh;
+					r.bottom -= bh;
 
 				w.Bounds = r;
 			}
@@ -225,7 +224,7 @@ namespace Synergy.UI
 			return widest;
 		}
 
-		private void DoCenter(Rect av)
+		private void DoCenter(Rectangle av)
 		{
 			foreach (var w in sides_[CenterSide])
 				w.Bounds = av;
