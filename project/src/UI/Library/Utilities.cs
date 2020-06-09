@@ -1,5 +1,23 @@
-﻿namespace Synergy.UI
+﻿using Leap.Unity;
+
+namespace Synergy.UI
 {
+	class Point
+	{
+		public float X, Y;
+
+		public Point()
+			: this(0, 0)
+		{
+		}
+
+		public Point(float x, float y)
+		{
+			X = x;
+			Y = y;
+		}
+	}
+
 	class Size
 	{
 		public float width, height;
@@ -18,23 +36,28 @@
 
 	class Rectangle
 	{
-		public float left, top, right, bottom;
+		public float Left, Top, Right, Bottom;
 
 		public Rectangle()
 		{
 		}
 
 		public Rectangle(Rectangle r)
-			: this(r.left, r.top, r.size)
+			: this(r.Left, r.Top, r.Size)
 		{
 		}
 
-		public Rectangle(float xx, float yy, Size s)
+		public Rectangle(Point p, Size s)
+			: this(p.X, p.Y, s)
 		{
-			left = xx;
-			top = yy;
-			right = left + s.width;
-			bottom = top + s.height;
+		}
+
+		public Rectangle(float x, float y, Size s)
+		{
+			Left = x;
+			Top = y;
+			Right = Left + s.width;
+			Bottom = Top + s.height;
 		}
 
 		static public Rectangle FromSize(float x, float y, float w, float h)
@@ -47,19 +70,51 @@
 			return new Rectangle(x1, y1, new Size(x2 - x1, y2 - y1));
 		}
 
-		public float width
+		public float Width
 		{
-			get { return right - left; }
+			get { return Right - Left; }
 		}
 
-		public float height
+		public float Height
 		{
-			get { return bottom - top; }
+			get { return Bottom - Top; }
 		}
 
-		public Size size
+		public Point TopLeft
 		{
-			get { return new Size(width, height); }
+			get { return new Point(Left, Top); }
+		}
+
+		public Point TopRight
+		{
+			get { return new Point(Right, Top); }
+		}
+
+		public Point BottomLeft
+		{
+			get { return new Point(Left, Bottom); }
+		}
+
+		public Point BottomRight
+		{
+			get { return new Point(Right, Bottom); }
+		}
+
+		public Point Center
+		{
+			get { return new Point(Left + Width / 2, Top + Height / 2); }
+		}
+
+		public Size Size
+		{
+			get { return new Size(Width, Height); }
+		}
+
+		public override string ToString()
+		{
+			return
+				"(" + Left.ToString() + "," + Top.ToString() + ")-" +
+				"(" + Right.ToString() + "," + Bottom.ToString() + ")";
 		}
 	}
 }

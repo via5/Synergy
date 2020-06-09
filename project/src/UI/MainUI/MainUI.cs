@@ -142,10 +142,11 @@ namespace Synergy
 
 		private void ResetUI()
 		{
-			new UI.Test();
-/*
-
-
+			if (Synergy.Instance.DefaultAtom.name == "synergyuitest")
+			{
+				new UI.Test();
+				return;
+			}
 
 			Synergy.LogVerbose("resetting ui");
 
@@ -167,7 +168,7 @@ namespace Synergy
 				AddMainToUI();
 
 			needsReset_ = false;
-			Synergy.LogVerbose("done resetting ui");*/
+			Synergy.LogVerbose("done resetting ui");
 		}
 
 		private void AddMonitorToUI()

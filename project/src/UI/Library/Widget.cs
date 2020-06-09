@@ -29,11 +29,13 @@ namespace Synergy.UI
 			}
 		}
 
-		public void Add(Widget w, LayoutData d)
+		public T Add<T>(T w, LayoutData d = null)
+			where T : Widget
 		{
 			w.parent_ = this;
 			children_.Add(w);
 			layout_?.Add(w, d);
+			return w;
 		}
 
 		public void DoLayout()

@@ -3,43 +3,48 @@ using UnityEngine.UI;
 
 namespace Synergy.UI
 {
-	class Label2 : Widget
+	class Label : Widget
 	{
 		private GameObject object_ = null;
+		private string text_ = "";
+
+		public Label(string t = "")
+		{
+			text_ = t;
+		}
 
 		protected override void DoCreate()
 		{
-			var m = Synergy.Instance.manager;
-
-			var t = UnityEngine.Object.Instantiate(m.configurableButtonPrefab);
-			object_ = t.gameObject;
+			object_ = new GameObject(text_);
 			object_.transform.SetParent(Root.PluginParent, false);
 
-			var rect = object_.GetComponent<RectTransform>();
-
-			rect.offsetMin = new Vector2(Bounds.left, -Bounds.bottom);
-			rect.offsetMax = new Vector2(Bounds.right, -Bounds.top);
+			var rect = object_.AddComponent<RectTransform>();
+			rect.transform.SetParent(Root.PluginParent, false);
+			rect.offsetMin = new Vector2(Bounds.Left, Bounds.Top);
+			rect.offsetMax = new Vector2(Bounds.Right, Bounds.Bottom);
 			rect.anchorMin = new Vector2(0, 0);
 			rect.anchorMax = new Vector2(0, 0);
+			rect.anchoredPosition = new Vector2(Bounds.Center.X, -Bounds.Center.Y);
 
-			var db = object_.GetComponent<UIDynamicButton>();
-			var text = db.buttonText;
+			var text = object_.AddComponent<Text>();
 
 			text.alignment = TextAnchor.MiddleCenter;
-			text.color = Color.black;
+			text.color = new Color(0.85f, 0.85f, 0.85f);
 			text.raycastTarget = false;
-			text.text = "Test";
+			text.text = text_;
+			text.fontSize = Root.DefaultFontSize;
+			text.font = Root.DefaultFont;
 
-			var layoutElement = object_.GetComponent<LayoutElement>();
-			layoutElement.minWidth = Bounds.width;
-			layoutElement.preferredWidth = Bounds.width;
-			layoutElement.flexibleWidth = Bounds.width;
+			var layoutElement = object_.AddComponent<LayoutElement>();
+			layoutElement.minWidth = Bounds.Width;
+			layoutElement.preferredWidth = Bounds.Width;
+			layoutElement.flexibleWidth = Bounds.Width;
 			layoutElement.ignoreLayout = true;
 		}
 
 		protected override Size GetPreferredSize()
 		{
-			return new Size(Root.TextLength("Test"), 40);
+			return new Size(Root.TextLength(text_), 40);
 		}
 
 		public override string TypeName

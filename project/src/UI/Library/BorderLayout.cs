@@ -34,8 +34,8 @@ namespace Synergy.UI
 		private const int BottomRight = 3;
 
 
-		private List<Widget>[] sides_ = new List<Widget>[5];
-		private int[] corners_ = new int[4];
+		private readonly List<Widget>[] sides_ = new List<Widget>[5];
+		private readonly int[] corners_ = new int[4];
 
 		public BorderLayout()
 		{
@@ -48,7 +48,7 @@ namespace Synergy.UI
 			corners_[BottomRight] = BottomSide;
 		}
 
-		public override void Add(Widget w, LayoutData data = null)
+		protected override void AddImpl(Widget w, LayoutData data = null)
 		{
 			var d = data as Data;
 			if (d == null)
@@ -62,38 +62,19 @@ namespace Synergy.UI
 				return;
 			}
 
-			if (Contains(w))
-			{
-				Synergy.LogError(
-					"border layout already has widget " + w.DebugLine);
-
-				return;
-			}
-
 			var s = sides_[d.side];
 			s.Add(w);
 		}
 
-		public bool Contains(Widget w)
-		{
-			foreach (var s in sides_)
-			{
-				if (s.Contains(w))
-					return true;
-			}
-
-			return false;
-		}
-
-		public override void DoLayout()
+		protected override void LayoutImpl()
 		{
 			Rectangle av = new Rectangle(Parent.Bounds);
 			Rectangle center = new Rectangle(av);
 
-			center.top += DoTop(av);
-			center.bottom -= DoBottom(av);
-			center.left += DoLeft(av);
-			center.right -= DoRight(av);
+			center.Top += DoTop(av);
+			center.Bottom -= DoBottom(av);
+			center.Left += DoLeft(av);
+			center.Right -= DoRight(av);
 
 			DoCenter(center);
 		}
@@ -109,19 +90,19 @@ namespace Synergy.UI
 
 				Rectangle r = new Rectangle();
 
-				r.left = av.left;
-				r.top = av.top;
-				r.right = r.left + av.width;
-				r.bottom = r.top + wh;
+				r.Left = av.Left;
+				r.Top = av.Top;
+				r.Right = r.Left + av.Width;
+				r.Bottom = r.Top + wh;
 
 				var lw = SideWidth(LeftSide);
 				var rw = SideWidth(RightSide);
 
 				if (corners_[TopLeft] != TopSide)
-					r.left += lw;
+					r.Left += lw;
 
 				if (corners_[TopRight] != TopSide)
-					r.right -= rw;
+					r.Right -= rw;
 
 				w.Bounds = r;
 			}
@@ -140,19 +121,19 @@ namespace Synergy.UI
 
 				Rectangle r = new Rectangle();
 
-				r.left = av.left;
-				r.top = av.bottom - wh;
-				r.right = r.left + av.width;
-				r.bottom = r.top + wh;
+				r.Left = av.Left;
+				r.Top = av.Bottom - wh;
+				r.Right = r.Left + av.Width;
+				r.Bottom = r.Top + wh;
 
 				var lw = SideWidth(LeftSide);
 				var rw = SideWidth(RightSide);
 
 				if (corners_[BottomLeft] != BottomSide)
-					r.left += lw;
+					r.Left += lw;
 
 				if (corners_[BottomRight] != BottomSide)
-					r.right -= rw;
+					r.Right -= rw;
 
 				w.Bounds = r;
 			}
@@ -171,20 +152,20 @@ namespace Synergy.UI
 
 				Rectangle r = new Rectangle();
 
-				r.left = av.left;
-				r.top = av.top;
+				r.Left = av.Left;
+				r.Top = av.Top;
 
-				r.right = r.left + ww;
-				r.bottom = r.top + av.height;
+				r.Right = r.Left + ww;
+				r.Bottom = r.Top + av.Height;
 
 				var th = SideHeight(TopSide);
 				var bh = SideHeight(BottomSide);
 
 				if (corners_[TopLeft] != LeftSide)
-					r.top += th;
+					r.Top += th;
 
 				if (corners_[BottomLeft] != LeftSide)
-					r.bottom -= bh;
+					r.Bottom -= bh;
 
 				w.Bounds = r;
 			}
@@ -203,20 +184,20 @@ namespace Synergy.UI
 
 				Rectangle r = new Rectangle();
 
-				r.left = av.right - ww;
-				r.top = av.top;
+				r.Left = av.Right - ww;
+				r.Top = av.Top;
 
-				r.right = r.left + ww;
-				r.bottom = r.top + av.height;
+				r.Right = r.Left + ww;
+				r.Bottom = r.Top + av.Height;
 
 				var th = SideHeight(TopSide);
 				var bh = SideHeight(BottomSide);
 
 				if (corners_[TopRight] != RightSide)
-					r.top += th;
+					r.Top += th;
 
 				if (corners_[BottomRight] != RightSide)
-					r.bottom -= bh;
+					r.Bottom -= bh;
 
 				w.Bounds = r;
 			}
