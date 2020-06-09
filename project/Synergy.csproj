@@ -65,6 +65,7 @@
     <Compile Include="src\Modifiers\Specific\AudioModifier.cs" />
     <Compile Include="src\Modifiers\Specific\LightModifier.cs" />
     <Compile Include="src\Modifiers\Specific\MorphModifier.cs" />
+    <Compile Include="src\Modifiers\Specific\MorphProgressions.cs" />
     <Compile Include="src\Modifiers\Specific\RigidbodyModifier.cs" />
     <Compile Include="src\UI\MainUI\DelayUI.cs" />
     <Compile Include="src\UI\MainUI\DurationUI.cs" />
@@ -95,6 +96,7 @@
     <Compile Include="src\UI\Widgets\Widgets.cs" />
     <Compile Include="src\Utilities\Factory.cs" />
     <Compile Include="src\Utilities\JsonUtilities.cs" />
+    <Compile Include="src\Utilities\Parameters.cs" />
     <Compile Include="src\Utilities\Range.cs" />
     <Compile Include="src\Utilities\Timer.cs" />
     <Compile Include="src\Utilities\Utilities.cs" />

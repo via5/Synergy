@@ -15,6 +15,7 @@ project\src\Modifiers\ModifierSyncs.cs
 project\src\Modifiers\Specific\AudioModifier.cs
 project\src\Modifiers\Specific\LightModifier.cs
 project\src\Modifiers\Specific\MorphModifier.cs
+project\src\Modifiers\Specific\MorphProgressions.cs
 project\src\Modifiers\Specific\RigidbodyModifier.cs
 project\src\UI\MainUI\DelayUI.cs
 project\src\UI\MainUI\DurationUI.cs
@@ -45,6 +46,7 @@ project\src\UI\Widgets\RigidbodyList.cs
 project\src\UI\Widgets\Widgets.cs
 project\src\Utilities\Factory.cs
 project\src\Utilities\JsonUtilities.cs
+project\src\Utilities\Parameters.cs
 project\src\Utilities\Range.cs
 project\src\Utilities\Timer.cs
 project\src\Utilities\Utilities.cs
