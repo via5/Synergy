@@ -26,15 +26,15 @@ namespace Synergy
 
 			if (value_ != null)
 			{
-				initial_.ValueParameter = value_.InitialParameter;
+				initial_.Parameter = value_.InitialParameter;
 				initial_.Default = value_.Initial;
 				initial_.Range = preferredRange;
 
-				range_.ValueParameter = value_.RangeParameter;
+				range_.Parameter = value_.RangeParameter;
 				range_.Default = value_.Range;
 				range_.Range = preferredRange;
 
-				interval_.ValueParameter = value_.IntervalParameter;
+				interval_.Parameter = value_.IntervalParameter;
 				interval_.Default = value_.Interval;
 			}
 		}

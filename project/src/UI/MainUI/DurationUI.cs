@@ -229,10 +229,10 @@ namespace Synergy
 			}
 			else
 			{
-				over_.Value = duration_.Over;
-				min_.Value = duration_.Range.Minimum;
-				max_.Value = duration_.Range.Maximum;
-				hold_.Value = duration_.Hold;
+				over_.Parameter = duration_.OverParameter;
+				min_.Parameter = duration_.MinimumParameter;
+				max_.Parameter = duration_.MaximumParameter;
+				hold_.Parameter = duration_.HoldParameter;
 				rampUp_.Parameter = duration_.RampUpParameter;
 				rampDown_.Parameter = duration_.RampDownParameter;
 			}

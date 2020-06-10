@@ -199,7 +199,7 @@ namespace Synergy
 	}
 
 
-	abstract class BasicSlider<T, Parameter> :
+	abstract class BasicSlider<T, ParameterType> :
 		BasicWidget<JSONStorableFloat, UIDynamicSlider>
 	{
 		public BasicSlider(int flags)
@@ -208,7 +208,7 @@ namespace Synergy
 		}
 
 		public abstract T Value { get; set; }
-		public abstract Parameter ValueParameter { get; set; }
+		public abstract ParameterType Parameter { get; set; }
 		public abstract T Default { get; set; }
 		public abstract Range<T> Range { get; set; }
 
@@ -312,7 +312,7 @@ namespace Synergy
 			set { Set(storable_.min, storable_.max, value); }
 		}
 
-		public override FloatParameter ValueParameter
+		public override FloatParameter Parameter
 		{
 			get { return parameter_; }
 			set { parameter_ = value; }
@@ -467,7 +467,7 @@ namespace Synergy
 			set { storable_.valNoCallback = value; }
 		}
 
-		public override IntParameter ValueParameter
+		public override IntParameter Parameter
 		{
 			get { return parameter_; }
 			set { parameter_ = value; }

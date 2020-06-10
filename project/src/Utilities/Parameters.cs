@@ -40,10 +40,10 @@ namespace Synergy
 		protected readonly int flags_;
 
 		public BasicParameter(
-			string baseName, T value,
+			string specificName, T value,
 			T rangeIncrement, int flags)
 		{
-			baseName_ = baseName;
+			specificName_ = specificName;
 			value_ = value;
 			rangeIncrement_ = rangeIncrement;
 			flags_ = flags;
@@ -127,9 +127,9 @@ namespace Synergy
 		private StorableType storable_ = null;
 
 		protected BasicParameter2(
-			string baseName, T value,
+			string specificName, T value,
 			T rangeIncrement, int flags)
-				: base(baseName, value, rangeIncrement, flags)
+				: base(specificName, value, rangeIncrement, flags)
 		{
 		}
 
@@ -177,8 +177,8 @@ namespace Synergy
 	{
 		private JSONStorableFloat storableFloat_ = null;
 
-		public BoolParameter(string baseName, bool v)
-			: base(baseName, v, false, Parameter.Constrained)
+		public BoolParameter(string specificName, bool v)
+			: base(specificName, v, false, Parameter.Constrained)
 		{
 		}
 
@@ -236,9 +236,9 @@ namespace Synergy
 	public class FloatParameter : BasicParameter2<float, JSONStorableFloat>
 	{
 		public FloatParameter(
-			string baseName, float value,
+			string specificName, float value,
 			float rangeIncrement, int flags = NoFlags)
-				: base(baseName, value, rangeIncrement, flags)
+				: base(specificName, value, rangeIncrement, flags)
 		{
 		}
 
@@ -289,9 +289,9 @@ namespace Synergy
 	public class IntParameter : BasicParameter2<int, JSONStorableFloat>
 	{
 		public IntParameter(
-			string baseName, int value,
+			string specificName, int value,
 			int rangeIncrement, int flags = NoFlags)
-				: base(baseName, value, rangeIncrement, flags)
+				: base(specificName, value, rangeIncrement, flags)
 		{
 		}
 

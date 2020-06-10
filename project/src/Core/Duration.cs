@@ -219,10 +219,18 @@ namespace Synergy
 		public override string GetDisplayName() { return DisplayName; }
 
 		private IEasing easing_ = new LinearEasing();
-		private float min_ = 0;
-		private float max_ = 0;
-		private float over_ = 1;
-		private float hold_ = 0;
+
+		private readonly FloatParameter min_ =
+			new FloatParameter("Minimum", 1, 10);
+
+		private readonly FloatParameter max_ =
+			new FloatParameter("Maximum", 1, 10);
+
+		private readonly FloatParameter over_ =
+			new FloatParameter("RampTime", 1, 10);
+
+		private readonly FloatParameter hold_ =
+			new FloatParameter("HoldMaximum", 0, 10);
 
 		private readonly BoolParameter rampUp_ =
 			new BoolParameter("RampUp", true);
@@ -244,10 +252,10 @@ namespace Synergy
 
 		public RampDuration(float min, float max, float over, float hold)
 		{
-			min_ = min;
-			max_ = max;
-			over_ = over;
-			hold_ = hold;
+			min_.Value = min;
+			max_.Value = max;
+			over_.Value = over;
+			hold_.Value = hold;
 		}
 
 		public override float FirstHalfProgress
@@ -312,14 +320,14 @@ namespace Synergy
 
 				if (goingUp_)
 				{
-					t += over_ - totalElapsed_;
-					t += hold_;
-					t += over_;
+					t += Over - totalElapsed_;
+					t += Hold;
+					t += Over;
 				}
 				else if (holding_)
 				{
-					t += hold_ - holdingElapsed_;
-					t += over_;
+					t += Hold - holdingElapsed_;
+					t += Over;
 				}
 				else
 				{
@@ -337,31 +345,51 @@ namespace Synergy
 
 		public float Over
 		{
+			get { return over_.Value; }
+			set { over_.Value = value; }
+		}
+
+		public FloatParameter OverParameter
+		{
 			get { return over_; }
-			set { over_ = value; }
 		}
 
 		public FloatRange Range
 		{
-			get { return new FloatRange(min_, max_); }
+			get { return new FloatRange(Minimum, Maximum); }
 		}
 
 		public float Minimum
 		{
+			get { return min_.Value; }
+			set { min_.Value = value; }
+		}
+
+		public FloatParameter MinimumParameter
+		{
 			get { return min_; }
-			set { min_ = value; }
 		}
 
 		public float Maximum
 		{
+			get { return max_.Value; }
+			set { max_.Value = value; }
+		}
+
+		public FloatParameter MaximumParameter
+		{
 			get { return max_; }
-			set { max_ = value; }
 		}
 
 		public float Hold
 		{
+			get { return hold_.Value; }
+			set { hold_.Value = value; }
+		}
+
+		public FloatParameter HoldParameter
+		{
 			get { return hold_; }
-			set { hold_ = value; }
 		}
 
 		public bool RampUp
@@ -407,10 +435,10 @@ namespace Synergy
 		{
 			get
 			{
-				if (over_ <= 0)
+				if (Over <= 0)
 					return 1;
 
-				return Utilities.Clamp(totalElapsed_ / over_, 0, 1);
+				return Utilities.Clamp(totalElapsed_ / Over, 0, 1);
 			}
 		}
 
@@ -418,10 +446,10 @@ namespace Synergy
 		{
 			get
 			{
-				if (hold_ <= 0)
+				if (Hold <= 0)
 					return 1;
 
-				return holdingElapsed_ / hold_;
+				return holdingElapsed_ / Hold;
 			}
 		}
 
@@ -440,6 +468,11 @@ namespace Synergy
 		public override void Removed()
 		{
 			base.Removed();
+
+			min_.Unregister();
+			max_.Unregister();
+			over_.Unregister();
+			hold_.Unregister();
 			rampUp_.Unregister();
 			rampDown_.Unregister();
 		}
@@ -450,13 +483,14 @@ namespace Synergy
 
 			if (!Bits.IsSet(cloneFlags, Utilities.CloneZero))
 			{
-				d.min_ = min_;
-				d.max_ = max_;
-				d.over_ = over_;
-				d.current_ = current_;
-				rampUp_.Value = d.rampUp_.Value;
-				rampDown_.Value = d.rampDown_.Value;
+				d.min_.Value = min_.Value;
+				d.max_.Value = max_.Value;
+				d.over_.Value = over_.Value;
+				d.hold_.Value = hold_.Value;
 			}
+
+			rampUp_.Value = d.rampUp_.Value;
+			rampDown_.Value = d.rampDown_.Value;
 		}
 
 		public override void Tick(float delta)
@@ -468,11 +502,11 @@ namespace Synergy
 					if (RampUp)
 						totalElapsed_ += delta;
 					else
-						totalElapsed_ = over_;
+						totalElapsed_ = Over;
 
-					if (totalElapsed_ >= over_)
+					if (totalElapsed_ >= Over)
 					{
-						totalElapsed_ = over_;
+						totalElapsed_ = Over;
 						Next();
 						goingUp_ = false;
 						holding_ = true;
@@ -508,7 +542,7 @@ namespace Synergy
 			if (holding_)
 			{
 				holdingElapsed_ += delta;
-				if (holdingElapsed_ >= hold_)
+				if (holdingElapsed_ >= Hold)
 				{
 					holding_ = false;
 					holdingElapsed_ = 0;
@@ -539,7 +573,7 @@ namespace Synergy
 
 		public override void Reset(float maxTime)
 		{
-			if ((over_ * 2 + hold_) > maxTime)
+			if ((Over * 2 + Hold) > maxTime)
 				return ;
 
 			Reset();
@@ -551,10 +585,10 @@ namespace Synergy
 			{
 				float m = easing_.Magnitude(Progress);
 
-				if (max_ > min_)
-					current_ = min_ + m * Range.Distance;
+				if (Maximum > Minimum)
+					current_ = Minimum + m * Range.Distance;
 				else
-					current_ = min_ - m * Range.Distance;
+					current_ = Minimum - m * Range.Distance;
 			}
 		}
 
@@ -581,10 +615,10 @@ namespace Synergy
 
 			o.Opt<EasingFactory, IEasing>("easing", ref easing_);
 
-			o.Opt("minimum", ref min_);
-			o.Opt("maximum", ref max_);
-			o.Opt("over", ref over_);
-			o.Opt("hold", ref hold_);
+			o.Opt("minimum", min_);
+			o.Opt("maximum", max_);
+			o.Opt("over", over_);
+			o.Opt("hold", hold_);
 			o.Opt("rampUp", rampUp_);
 			o.Opt("rampDown", rampDown_);
 
