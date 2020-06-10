@@ -24,7 +24,7 @@ At its core, Synergy has the notion of _steps_ and _modifiers_. Each step can co
   * [Morph](#morph)
   * [Light](#light)
   * [Audio](#audio)
-- [Presets](#presets)
+- [Options and presets](#options-and-presets)
 - [Monitor](#monitor)
 - [Duration](#duration)
   * [Random range](#random-range)
@@ -329,22 +329,60 @@ An audio modifier can play audio clips on an audio object or on the head audio o
 - _Add file..._: Adds a new audio file to the scene. This is equivalent to adding a clip in the _Scene Audio_ tab.
 
 
-## Presets
-Expanding the _Presets_ section in the top-right gives option to save or load presets.
+## Options and presets
+Expanding the _Options and presets_ section in the top-right allows for changing options and save or load presets.
 
 [<img src="doc/presets.png" height="400">](doc/presets.png)
 
-There are three groups of buttons:
-- _Full_: A full preset contains all the steps and their modifiers.
-- _Step_: A preset for a single step.
-- _Modifier_: A preset for a single modifier.
+The first two options specify how the _Freeze Motion/Sound_ checkbox interacts with Synergy:
 
-Each group has three buttons:
-- _Save_: Saves the preset.
-- _Replace_: Replace everything, the current step, or the current modifier.
-- _Append_: Appends all the step, one step, or one modifier.
+- _Reset positions on freeze_: Whether all modifiers are temporarily reset to their default values when freezing. This will snap back the model to its default position when freezing and snap back to the last position when unfreezing.
+- _Reset counters on thaw_: Whether all modifiers are reset to their default values when unfreezing.
 
-Presets are saved in `Saves/Synergy` by default. Full presets have the extension `.syn`, step presets `.synstep` and modifier presets `.synmodifier`.
+The next two buttons are for configuring animatable properties so other plugins can interact when them. See [_Animatable properties_](#animatable-properties):
+
+- _Pick animatable_: Adds a checkbox to all the properties that can be animated.
+- _Manage animatables_: Shows all the properties that are currently marked as animatable and allow for renaming and deleting them.
+
+The remaining buttons are for managing presets. Presets are saved in `Saves/Synergy` by default.
+
+Full presets (`.syn` files):
+- _Full: save_: Saves a preset contains all the steps and their modifiers.
+- _Full: load, replace everything_: Loads a full preset and replaces everything in the current instance.
+- _Full: load, append steps_: Loads a full preset and appends all of its steps to the current instance.
+
+Step presets (`.synstep` files):
+- _Step: save current_: Saves the current step.
+- _Step: load, replace current_: Replaces the current step by the preset.
+- _Step: load, add modifiers to current step_: Extracts all the modifiers from the step preset and appends them to the current step.
+- _Step: load, append as new step_: Loads the step preset as a new step.
+
+Modifier presets (`.synmodifier` files):
+- _Modifier: save current_: Saves the current modifier.
+- _Modifier: load, replace current_: Replaces the current modifier by the preset.
+- _Modifier: load, append to current step_: Loads the modifier preset as a new modifier in the current step.
+
+
+## Animatable properties
+Because a Synergy instance can potentially have hundreds of parameters, they are not exported by default. To make a parameter available to other scripts, it must be marked as _animatable_, much like a morph. Selecting the _Pick animatable_ checkbox in the [options](#options-and-presets) will add a checkbox named _Animatable_ next to all the parameters that support it.
+
+[<img src="doc/animatable.png" height="400">](doc/animatable.png)
+
+Once a parameter has been marked as animatable, it will be registered globally, allowing other plugins to change it. The _Manage animatable_ button in the options will show a new screen with all the animatable parameters.
+
+[<img src="doc/manage-animatables.png" height="400">](doc/manage-animatables.png)
+
+Parameter names can be customised. Clicking _Remove_ is equivalent to unchecking the _Animtable_ checkbox on the parameter. The button will change into _Add_
+
+
+Note that once a parameter is used by another plugin, its name cannot be changed without breaking the link between that plugin and Synergy. Therefore, it is recommended to rename parameters manually immediately after making them animatable, before using them in other plugins. Although Synergy will give default names to parameters, they're not always very useful.
+
+As an example, this is the [Timeline plugin by AcidBubbles](https://github.com/acidbubbles/vam-timeline) recognising Synergy parameters:
+
+[<img src="doc/timeline.png" height="400">](doc/timeline.png)
+
+### On/off (bool) parameters
+Some plugins can only manage numeric parameters ("floats"). Since Synergy also has on/off or enabled/disabled parameters ("bools"), those are exported twice, as a bool _and_ a float. For a parameter name `example`, there will be a bool parameter `example` and a float parameter `example.f`. They both control the same value. The float parameter will be equivalent to `false` when below 0.5 and `true` from 0.5 to 1.0.
 
 
 ## Monitor
