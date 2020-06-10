@@ -172,6 +172,23 @@ namespace Synergy
 					AddStep(s);
 					s.Reset();
 				}
+				else if (Bits.IsSet(flags, Utilities.PresetMerge))
+				{
+					var s = Synergy.Instance.UI.CurrentStep;
+					if (s == null)
+					{
+						Synergy.LogError("no current step");
+						return;
+					}
+
+					var newStep = new Step();
+					newStep.FromJSON(node);
+
+					foreach (var m in newStep.Modifiers)
+						s.AddModifier(new ModifierContainer(m.Modifier));
+
+					s.Reset();
+				}
 			}
 			else if (Bits.IsSet(flags, Utilities.ModifierPreset))
 			{

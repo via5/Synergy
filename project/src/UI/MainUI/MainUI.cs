@@ -578,7 +578,12 @@ namespace Synergy
 				flags));
 
 			collapsible_.Add(new Button(
-				"Step: load, append",
+				"Step: load, add modifiers to current step",
+				() => { LoadStep(Utilities.PresetMerge); },
+				flags));
+
+			collapsible_.Add(new Button(
+				"Step: load, append as new step",
 				() => { LoadStep(Utilities.PresetAppend); },
 				flags));
 
@@ -594,7 +599,7 @@ namespace Synergy
 				flags));
 
 			collapsible_.Add(new Button(
-				"Modifier: load, append",
+				"Modifier: load, append to current step",
 				() => { LoadModifier(Utilities.PresetAppend); },
 				flags));
 
