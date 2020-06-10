@@ -1,0 +1,20 @@
+2.0  10 June 2020
+Changes:
+  - Animatable properties
+  - Change default ramp minimum, maximum and ramp time values to 1 instead of 0
+  - Added version number in the monitor
+  - "Presets" is now "Options and presets", added pause options
+  - Added preset option to merge step modifiers
+
+Fixes:
+  - Some slider names had duplicate words like "Duration duration"
+  - Steps with half moves would unexpectedly reset movements
+
+
+1.2  4 June 2020
+Fixes:
+  - Loading scenes was broken and would always have errors
+
+
+1.0  4 June 2020
+Initial release
