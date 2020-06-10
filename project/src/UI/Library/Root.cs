@@ -1,4 +1,4 @@
-﻿using System.Security.Permissions;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace Synergy.UI
@@ -9,20 +9,43 @@ namespace Synergy.UI
 
 		public Test()
 		{
-			//root_.Layout = new HorizontalFlow();
-			//root_.Add(new Label());
-			//root_.Add(new Label());
-			//root_.Add(new LabelLabel());
-
 			root_.Layout = new BorderLayout();
-			root_.Add(new Label("left"), BorderLayout.Left);
-			root_.Add(new Label("top"), BorderLayout.Top);
-			root_.Add(new Label("right"), BorderLayout.Right);
-			root_.Add(new Label("bottom"), BorderLayout.Bottom);
-			root_.Add(new Label("center"), BorderLayout.Center);
+
+			var top = new Widget();
+			top.Layout = new HorizontalFlow(20);
+			top.Add(new Button("button"));
+			top.Add(new ComboBox(new List<string>{ "a", "b" }));
+			top.Add(new Label("label"));
+
+			var bottom = new Widget();
+			bottom.Layout = new HorizontalFlow(20);
+			bottom.Add(new Button("button"));
+			bottom.Add(new ComboBox(new List<string> { "a", "b" }));
+			bottom.Add(new Label("label"));
+
+			root_.Add(top, BorderLayout.Top);
+			//root_.Add(bottom, BorderLayout.Bottom);
+
+			//
+			//var cb = new ComboBox();
+			//cb.AddItem("Step 1");
+			//cb.AddItem("Step 2");
+			//cb.AddItem("Step 3");
+			//
+			//root_.Add(new Label("Step:"));
+			//root_.Add(cb);
+
+			//root_.Layout = new BorderLayout();
+			//root_.Add(new Label("left"), BorderLayout.Left);
+			//root_.Add(new Label("top"), BorderLayout.Top);
+			//root_.Add(new Label("right"), BorderLayout.Right);
+			//root_.Add(new Label("bottom"), BorderLayout.Bottom);
+			//root_.Add(new Label("center"), BorderLayout.Center);
 
 			root_.DoLayout();
 			root_.Create();
+
+			root_.Dump();
 		}
 	}
 
@@ -50,10 +73,21 @@ namespace Synergy.UI
 			}
 
 			var p = PluginParent;
+
 			var content = p.parent;
+			if (PluginParent == content) Synergy.LogError("1");
 			var viewport = content.parent;
+			if (PluginParent == viewport) Synergy.LogError("2");
 			var scrollview = viewport.parent;
+			if (PluginParent == scrollview) Synergy.LogError("3");
 			var scriptui = scrollview.parent;
+			if (PluginParent == scriptui) Synergy.LogError("4");
+
+			var pp = scriptui.parent;
+			if (PluginParent == pp) Synergy.LogError("5");
+
+			pp = pp.parent;
+			if (PluginParent == pp) Synergy.LogError("6");
 
 			var a = scrollview.GetComponent<UnityEngine.UI.Image>();
 			a.color = new Color(0.15f, 0.15f, 0.15f);

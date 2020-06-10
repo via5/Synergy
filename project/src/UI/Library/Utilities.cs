@@ -1,7 +1,18 @@
 ﻿using Leap.Unity;
+using System;
+using UnityEngine;
 
 namespace Synergy.UI
 {
+	class Utilities
+	{
+		public static void DumpComponents(GameObject o)
+		{
+			foreach (var c in o.GetComponents(typeof(Component)))
+				Synergy.LogError(c.ToString());
+		}
+	}
+
 	class Point
 	{
 		public float X, Y;
@@ -31,6 +42,18 @@ namespace Synergy.UI
 		{
 			width = w;
 			height = h;
+		}
+
+		public static Size Max(Size a, Size b)
+		{
+			return new Size(
+				Math.Max(a.width, b.width),
+				Math.Max(a.height, b.height));
+		}
+
+		public override string ToString()
+		{
+			return width.ToString() + "*" + height.ToString();
 		}
 	}
 

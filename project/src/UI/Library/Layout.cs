@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Synergy.UI
 {
@@ -22,11 +23,16 @@ namespace Synergy.UI
 			get { return children_; }
 		}
 
+		public Size PreferredSize
+		{
+			get { return GetPreferredSize(); }
+		}
+
 		public void Add(Widget w, LayoutData data = null)
 		{
 			if (Contains(w))
 			{
-				Synergy.LogError("layout already has widget " + w.DebugLine);
+				Synergy.LogError("layout already has widget " + w.Name);
 				return;
 			}
 
@@ -49,12 +55,31 @@ namespace Synergy.UI
 			// no-op
 		}
 
+		protected virtual Size GetPreferredSize()
+		{
+			return new Size(Widget.DontCare, Widget.DontCare);
+		}
+
 		protected abstract void LayoutImpl();
 	}
 
 
 	class HorizontalFlow : Layout
 	{
+		private float spacing_ = 0;
+
+
+		public HorizontalFlow(int spacing = 0)
+		{
+			Spacing = spacing;
+		}
+
+		public float Spacing
+		{
+			get { return spacing_; }
+			set { spacing_ = value; }
+		}
+
 		protected override void LayoutImpl()
 		{
 			var r = new Rectangle(Parent.Bounds);
@@ -63,8 +88,27 @@ namespace Synergy.UI
 			{
 				var wr = new Rectangle(r.TopLeft, w.PreferredSize);
 				w.Bounds = wr;
-				r.Left += wr.Width;
+				r.Left += wr.Width + spacing_;
 			}
+		}
+
+		protected override Size GetPreferredSize()
+		{
+			float totalWidth = 0;
+			float tallest = 0;
+
+			for (int i=0; i<Children.Count; ++i)
+			{
+				if (i > 0)
+					totalWidth += spacing_;
+
+				var ps = Children[i].PreferredSize;
+
+				totalWidth += ps.width;
+				tallest = Math.Max(tallest, ps.height);
+			}
+
+			return new Size(totalWidth, tallest);
 		}
 	}
 }
