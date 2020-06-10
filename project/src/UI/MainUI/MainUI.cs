@@ -533,7 +533,7 @@ namespace Synergy
 
 
 			resetValuesOnFreeze_ = new Checkbox(
-				"Reset values on freeze", options_.ResetValuesOnFreeze,
+				"Reset positions on freeze", options_.ResetValuesOnFreeze,
 				ResetValuesOnFreezeChanged, flags);
 
 			resetCountersOnThaw_ = new Checkbox(
