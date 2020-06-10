@@ -201,10 +201,16 @@ namespace Synergy
 				Textbox name = null;
 				Button toggle = null;
 
-				name = new Textbox("Name", p.Name, (string s) =>
+				name = new Textbox("Name", p.Name);
+				name.AfterEdit = (string s) =>
 				{
+					var other = Synergy.Instance.FindParameter(s);
+					if (other != null && other != p)
+						s = Synergy.Instance.MakeParameterName(s);
+
 					p.Name = s;
-				});
+					name.Value = s;
+				};
 
 				toggle = new Button("Remove", () =>
 				{

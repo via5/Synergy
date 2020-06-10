@@ -535,18 +535,34 @@ namespace Synergy
 	{
 		public delegate void Callback(string value);
 
-		private readonly Callback callback_;
+		private Callback changedCallback_;
+		private Callback afterEditCallback_;
 		private InputField input_ = null;
 
 		private int oldCaret_ = -1;
 		private int oldAnchor_ = -1;
 		private int oldFocus_ = -1;
 
+		private bool inCallback_ = false;
+		private bool ignore_ = false;
+
 		public Textbox(string name, string def="", Callback callback=null, int flags=0)
 			: base(flags)
 		{
-			callback_ = callback;
+			changedCallback_ = callback;
 			storable_ = new JSONStorableString(name, def);
+		}
+
+		public Callback Changed
+		{
+			get { return changedCallback_; }
+			set { changedCallback_ = value; }
+		}
+
+		public Callback AfterEdit
+		{
+			get { return afterEditCallback_; }
+			set { afterEditCallback_ = value; }
 		}
 
 		protected override void DoAddToUI()
@@ -559,7 +575,8 @@ namespace Synergy
 			input_ = element_.gameObject.AddComponent<InputField>();
 			input_.textComponent = element_.UItext;
 			storable_.inputField = input_;
-			input_.onValueChanged.AddListener(Changed);
+			input_.onValueChanged.AddListener(OnChanged);
+			input_.onEndEdit.AddListener(OnEndEdit);
 
 			var ly = element_.GetComponent<LayoutElement>();
 			ly.minHeight = 50;
@@ -587,10 +604,27 @@ namespace Synergy
 
 			set
 			{
-				storable_.valNoCallback = value;
+				if (inCallback_)
+				{
+					Synergy.Instance.CreateTimer(Timer.Immediate, () =>
+					{
+						Value = value;
+					});
+				}
 
-				if (input_ != null)
-					input_.text = value;
+				ignore_ = true;
+
+				try
+				{
+					storable_.valNoCallback = value;
+
+					if (input_ != null)
+						input_.text = value;
+				}
+				finally
+				{
+					ignore_ = false;
+				}
 			}
 		}
 
@@ -603,7 +637,7 @@ namespace Synergy
 
 			if (oldCaret_ != -1)
 			{
-				Synergy.Instance.CreateTimer(0.001f, () =>
+				Synergy.Instance.CreateTimer(Timer.Immediate, () =>
 				{
 					input_.caretPosition = oldCaret_;
 					input_.selectionAnchorPosition = oldAnchor_;
@@ -613,8 +647,13 @@ namespace Synergy
 			}
 		}
 
-		private void Changed(string v)
+		private void OnChanged(string v)
 		{
+			if (ignore_)
+				return;
+
+			inCallback_ = true;
+
 			Utilities.Handler(() =>
 			{
 				if (input_ == null)
@@ -630,8 +669,25 @@ namespace Synergy
 					oldFocus_ = input_.selectionFocusPosition;
 				}
 
-				callback_?.Invoke(v);
+				changedCallback_?.Invoke(v);
 			});
+
+			inCallback_ = false;
+		}
+
+		private void OnEndEdit(string v)
+		{
+			if (ignore_)
+				return;
+
+			inCallback_ = true;
+
+			Utilities.Handler(() =>
+			{
+				afterEditCallback_?.Invoke(v);
+			});
+
+			inCallback_ = false;
 		}
 	}
 

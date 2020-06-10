@@ -39,6 +39,7 @@ namespace Synergy
 	class Timer
 	{
 		public delegate void Callback();
+		public const float Immediate = float.MinValue;
 
 		private readonly TimerManager manager_;
 		private readonly float time_;
@@ -78,6 +79,9 @@ namespace Synergy
 		{
 			get
 			{
+				if (time_ == Immediate)
+					return (elapsed_ > 0);
+
 				return (elapsed_ >= time_);
 			}
 		}
