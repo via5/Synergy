@@ -25,6 +25,7 @@ At its core, Synergy has the notion of _steps_ and _modifiers_. Each step can co
   * [Light](#light)
   * [Audio](#audio)
 - [Options and presets](#options-and-presets)
+- [Animatable properties](#animatable-properties)
 - [Monitor](#monitor)
 - [Duration](#duration)
   * [Random range](#random-range)
