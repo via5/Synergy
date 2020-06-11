@@ -96,7 +96,13 @@ namespace Synergy.UI
 
 			var steptab = new Widget();
 			steptab.Layout = new BorderLayout();
-			steptab.Add(new Label("step tab"), BorderLayout.Top);
+
+			var stepcontrols = new Widget();
+			stepcontrols.Layout = new HorizontalFlow();
+			stepcontrols.Add(new CheckBox("Step enabled"));
+			stepcontrols.Add(new CheckBox("Half move"));
+
+			steptab.Add(stepcontrols, BorderLayout.Top);
 
 			var modifierstab = new Widget();
 			modifierstab.Layout = new BorderLayout();
@@ -141,6 +147,7 @@ namespace Synergy.UI
 		static public Font DefaultFont =
 			(Font)Resources.GetBuiltinResource(typeof(Font), "Arial.ttf");
 		static public int DefaultFontSize = 28;
+		static public Color DefaultTextColor = new Color(0.85f, 0.85f, 0.85f);
 
 		static private TextGenerator tg_ = null;
 		static private TextGenerationSettings ts_;

@@ -34,7 +34,7 @@ namespace Synergy.UI
 		{
 			textObject_ = Object.AddComponent<Text>();
 			textObject_.alignment = TextAnchor.MiddleLeft;
-			textObject_.color = new Color(0.85f, 0.85f, 0.85f);
+			textObject_.color = Root.DefaultTextColor;
 			textObject_.raycastTarget = false;
 			textObject_.text = text_;
 			textObject_.fontSize = Root.DefaultFontSize;
