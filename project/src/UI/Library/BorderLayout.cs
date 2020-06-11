@@ -66,6 +66,18 @@ namespace Synergy.UI
 			s.Add(w);
 		}
 
+		protected override void RemoveImpl(Widget w)
+		{
+			foreach (var side in sides_)
+			{
+				if (side.Remove(w))
+					return;
+			}
+
+			Synergy.LogError(
+				"border layout: can't remove '" + w.Name + "', not found");
+		}
+
 		protected override void LayoutImpl()
 		{
 			Rectangle av = new Rectangle(Parent.Bounds);

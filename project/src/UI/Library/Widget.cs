@@ -17,6 +17,7 @@ namespace Synergy.UI
 		private Rectangle bounds_ = new Rectangle();
 		private Size minSize_ = new Size(0, 0);
 		private GameObject object_ = null;
+		private bool visible_ = true;
 
 		public Widget(string name = "")
 		{
@@ -44,6 +45,39 @@ namespace Synergy.UI
 			get { return object_; }
 		}
 
+		public bool StrictlyVisible
+		{
+			get { return visible_; }
+		}
+
+		public bool Visible
+		{
+			get
+			{
+				if (!visible_)
+					return false;
+
+				var p = parent_;
+				while (p != null)
+				{
+					if (!p.visible_)
+						return false;
+
+					p = p.parent_;
+				}
+
+				return true;
+			}
+
+			set
+			{
+				visible_ = value;
+				UpdateVisibility();
+
+				Synergy.LogVerbose(Name + " visible=" + visible_.ToString());
+			}
+		}
+
 		public T Add<T>(T w, LayoutData d = null)
 			where T : Widget
 		{
@@ -51,6 +85,21 @@ namespace Synergy.UI
 			children_.Add(w);
 			layout_?.Add(w, d);
 			return w;
+		}
+
+		public void Remove(Widget w)
+		{
+			if (!children_.Remove(w))
+			{
+				Synergy.LogError(
+					"can't remove widget '" + w.Name + "' from " +
+					"'" + Name + "', not found");
+
+				return;
+			}
+
+			layout_.Remove(w);
+			w.parent_ = null;
 		}
 
 		public void DoLayout()
@@ -64,6 +113,7 @@ namespace Synergy.UI
 		public void Create()
 		{
 			object_ = CreateGameObject();
+			object_.SetActive(Visible);
 
 			SetupGameObject();
 			DoCreate();
@@ -122,8 +172,8 @@ namespace Synergy.UI
 			var rect = object_.GetComponent<RectTransform>();
 			rect.offsetMin = new Vector2(Bounds.Left, Bounds.Top);
 			rect.offsetMax = new Vector2(Bounds.Right, Bounds.Bottom);
-			rect.anchorMin = new Vector2(0, 0);
-			rect.anchorMax = new Vector2(0, 0);
+			rect.anchorMin = new Vector2(0, 1);
+			rect.anchorMax = new Vector2(0, 1);
 			rect.anchoredPosition = new Vector2(Bounds.Center.X, -Bounds.Center.Y);
 
 			var layoutElement = object_.GetComponent<LayoutElement>();
@@ -140,6 +190,19 @@ namespace Synergy.UI
 		{
 			get { return bounds_; }
 			set { bounds_ = value; }
+		}
+
+		public Rectangle RelativeBounds
+		{
+			get
+			{
+				var r = new Rectangle(bounds_);
+
+				if (parent_ != null)
+					r.Translate(-parent_.Bounds.Left, -parent_.Bounds.Top);
+
+				return r;
+			}
 		}
 
 		public void Dump(int indent = 0)
@@ -171,8 +234,9 @@ namespace Synergy.UI
 
 				list.Add(TypeName);
 				list.Add(name_);
-				list.Add(Bounds.ToString());
-				list.Add(PreferredSize.ToString());
+				list.Add("b=" + Bounds.ToString());
+				list.Add("rb=" + RelativeBounds.ToString());
+				list.Add("ps=" + PreferredSize.ToString());
 
 				return string.Join(" ", list.ToArray());
 			}
@@ -184,6 +248,15 @@ namespace Synergy.UI
 			{
 				return "widget";
 			}
+		}
+
+		private void UpdateVisibility()
+		{
+			if (object_ != null)
+				object_.SetActive(Visible);
+
+			foreach (var w in children_)
+				w.UpdateVisibility();
 		}
 	}
 }

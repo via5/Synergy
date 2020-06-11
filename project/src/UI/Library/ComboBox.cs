@@ -211,8 +211,8 @@ namespace Synergy.UI
 			var rt = popup_.popup.labelText.transform.parent.gameObject.GetComponent<RectTransform>();
 			rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y + 40);
 			rt.offsetMax = new Vector2(rt.offsetMax.x, rt.offsetMax.y + 44);
-			rt.anchorMin = new Vector2(0, 0);
-			rt.anchorMax = new Vector2(0, 0);
+			rt.anchorMin = new Vector2(0, 1);
+			rt.anchorMax = new Vector2(0, 1);
 			rt.anchoredPosition = new Vector2(
 				rt.offsetMin.x + (rt.offsetMax.x - rt.offsetMin.x) / 2,
 				rt.offsetMin.y + (rt.offsetMax.y - rt.offsetMin.y) / 2);

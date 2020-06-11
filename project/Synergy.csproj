@@ -73,6 +73,7 @@
     <Compile Include="src\UI\Library\Label.cs" />
     <Compile Include="src\UI\Library\Layout.cs" />
     <Compile Include="src\UI\Library\Root.cs" />
+    <Compile Include="src\UI\Library\Tabs.cs" />
     <Compile Include="src\UI\Library\Utilities.cs" />
     <Compile Include="src\UI\Library\Widget.cs" />
     <Compile Include="src\UI\MainUI\DelayUI.cs" />

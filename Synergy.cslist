@@ -23,6 +23,7 @@ project\src\UI\Library\ComboBox.cs
 project\src\UI\Library\Label.cs
 project\src\UI\Library\Layout.cs
 project\src\UI\Library\Root.cs
+project\src\UI\Library\Tabs.cs
 project\src\UI\Library\Utilities.cs
 project\src\UI\Library\Widget.cs
 project\src\UI\MainUI\DelayUI.cs

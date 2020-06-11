@@ -147,6 +147,15 @@ namespace Synergy.UI
 			get { return new Size(Width, Height); }
 		}
 
+		public void Translate(float dx, float dy)
+		{
+			Left += dx;
+			Right += dx;
+
+			Top += dy;
+			Bottom += dy;
+		}
+
 		public override string ToString()
 		{
 			return

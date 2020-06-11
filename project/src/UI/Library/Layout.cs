@@ -40,6 +40,19 @@ namespace Synergy.UI
 			AddImpl(w, data);
 		}
 
+		public void Remove(Widget w)
+		{
+			if (!children_.Remove(w))
+			{
+				Synergy.LogError(
+					"can't remove '" + w.Name + "' from layout, not found");
+
+				return;
+			}
+
+			RemoveImpl(w);
+		}
+
 		public void DoLayout()
 		{
 			LayoutImpl();
@@ -51,6 +64,11 @@ namespace Synergy.UI
 		}
 
 		protected virtual void AddImpl(Widget w, LayoutData data = null)
+		{
+			// no-op
+		}
+
+		protected virtual void RemoveImpl(Widget w)
 		{
 			// no-op
 		}

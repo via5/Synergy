@@ -62,7 +62,6 @@ namespace Synergy
 				ui_ = new MainUI();
 				ui_.Create();
 
-				LogVerbose("OK");
 				enabled_ = true;
 			});
 		}

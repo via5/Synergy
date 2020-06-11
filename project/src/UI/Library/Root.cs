@@ -92,6 +92,21 @@ namespace Synergy.UI
 
 			root_.Add(top, BorderLayout.Top);
 
+			var tabs = new Tabs();
+
+			var steptab = new Widget();
+			steptab.Layout = new BorderLayout();
+			steptab.Add(new Label("step tab"), BorderLayout.Top);
+
+			var modifierstab = new Widget();
+			modifierstab.Layout = new BorderLayout();
+			modifierstab.Add(new Label("modifiers tab"), BorderLayout.Top);
+
+			tabs.AddTab("Step", steptab);
+			tabs.AddTab("Modifiers", modifierstab);
+
+			root_.Add(tabs, BorderLayout.Center);
+
 			//root_.Layout = new BorderLayout();
 			//root_.Add(new Label("left"), BorderLayout.Left);
 			//root_.Add(new Label("top"), BorderLayout.Top);
@@ -117,7 +132,6 @@ namespace Synergy.UI
 
 			steps_.SetItems(items, sel);
 		}
-		}
 	}
 
 
@@ -133,7 +147,7 @@ namespace Synergy.UI
 
 		public Root()
 		{
-			Bounds = Rectangle.FromPoints(2, -27, 1077, 1198);
+			Bounds = Rectangle.FromPoints(2, 2, 1077, 1198);
 
 			{
 				var b = Synergy.Instance.CreateButton("b");
