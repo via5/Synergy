@@ -145,6 +145,19 @@ namespace Synergy.UI
 		static private TextGenerator tg_ = null;
 		static private TextGenerationSettings ts_;
 
+		static public UIPopup OpenedPopup = null;
+
+		static public void SetFocus(Widget w)
+		{
+			if (OpenedPopup != null)
+			{
+				if (OpenedPopup.visible)
+					OpenedPopup.Toggle();
+
+				OpenedPopup = null;
+			}
+		}
+
 		public Root()
 		{
 			Bounds = Rectangle.FromPoints(2, 2, 1077, 1198);

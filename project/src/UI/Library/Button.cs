@@ -47,6 +47,7 @@ namespace Synergy.UI
 
 		private void OnClicked()
 		{
+			Root.SetFocus(this);
 			clicked_();
 		}
 	}

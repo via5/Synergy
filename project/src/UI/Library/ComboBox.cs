@@ -38,6 +38,8 @@ namespace Synergy.UI
 		private JSONStorableStringChooser storable_ =
 			new JSONStorableStringChooser("", new List<string>(), "", "");
 
+
+
 		public TypedComboBox(List<ItemType> items = null)
 		{
 			if (items != null)
@@ -179,6 +181,8 @@ namespace Synergy.UI
 			popup_.popupPanelHeight = 1000;
 			popup_.popup.showSlider = false;
 
+			popup_.popup.onOpenPopupHandlers += OnOpen;
+
 			//popup_.popup.popupButtonPrefab= TextAnchor.MiddleLeft;
 
 			popup_.popup.selectColor = new Color(0.55f, 0.55f, 0.55f);
@@ -277,6 +281,11 @@ namespace Synergy.UI
 
 			Synergy.LogError("combobox: selected item '" + s + "' not found");
 			Select(-1);
+		}
+
+		private void OnOpen()
+		{
+			Root.OpenedPopup = popup_.popup;
 		}
 	}
 
