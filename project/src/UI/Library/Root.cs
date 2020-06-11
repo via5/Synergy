@@ -6,6 +6,7 @@ namespace Synergy.UI
 	class Test
 	{
 		private Root root_ = new Root();
+		private TypedComboBox<Step> steps_;
 
 		public Test()
 		{
@@ -13,27 +14,83 @@ namespace Synergy.UI
 
 			var top = new Widget();
 			top.Layout = new HorizontalFlow(20);
-			top.Add(new Button("button"));
-			top.Add(new ComboBox(new List<string>{ "a", "b" }));
-			top.Add(new Label("label"));
-
-			var bottom = new Widget();
-			bottom.Layout = new HorizontalFlow(20);
-			bottom.Add(new Button("button"));
-			bottom.Add(new ComboBox(new List<string> { "a", "b" }));
-			bottom.Add(new Label("label"));
-
-			root_.Add(top, BorderLayout.Top);
+			//top.Add(new Button("button"));
+			//top.Add(new ComboBox(new List<string>{ "a", "b" }));
+			//top.Add(new Label("label"));
+			//
+			//var bottom = new Widget();
+			//bottom.Layout = new HorizontalFlow(20);
+			//bottom.Add(new Button("button"));
+			//bottom.Add(new ComboBox(new List<string> { "a", "b" }));
+			//bottom.Add(new Label("label"));
+			//
+			//root_.Add(top, BorderLayout.Top);
 			//root_.Add(bottom, BorderLayout.Bottom);
 
-			//
-			//var cb = new ComboBox();
+
+			steps_ = new TypedComboBox<Step>();
 			//cb.AddItem("Step 1");
 			//cb.AddItem("Step 2");
 			//cb.AddItem("Step 3");
-			//
-			//root_.Add(new Label("Step:"));
-			//root_.Add(cb);
+
+			top.Add(new Label("Step:"));
+			top.Add(steps_);
+
+			var b = new Button("+");
+			b.MinimumSize = new Size(50, Widget.DontCare);
+			top.Add(b);
+			b.Clicked += () =>
+			{
+				var s = Synergy.Instance.Manager.AddStep();
+				steps_.AddItem(s, true);
+			};
+
+
+			b = new Button("Clone");
+			b.MinimumSize = new Size(50, Widget.DontCare);
+			top.Add(b);
+			b.Clicked += () =>
+			{
+				var s = steps_.Selected;
+				if (s != null)
+				{
+					var ns = Synergy.Instance.Manager.AddStep(s.Clone());
+					steps_.AddItem(s, true);
+				}
+			};
+
+			b = new Button("Clone 0");
+			b.MinimumSize = new Size(50, Widget.DontCare);
+			top.Add(b);
+			b.Clicked += () =>
+			{
+				var s = steps_.Selected;
+				if (s != null)
+				{
+					var ns = Synergy.Instance.Manager.AddStep(
+						s.Clone(global::Synergy.Utilities.CloneZero));
+
+					steps_.AddItem(s, true);
+				}
+			};
+
+			b = new Button("\x2013");
+			b.MinimumSize = new Size(50, Widget.DontCare);
+			top.Add(b);
+			b.Clicked += () =>
+			{
+				var s = steps_.Selected;
+				if (s != null)
+				{
+					Synergy.Instance.Manager.DeleteStep(s);
+					steps_.RemoveItem(s);
+				}
+			};
+
+			top.Add(new Button("\x25b2"));
+			top.Add(new Button("\x25bc"));
+
+			root_.Add(top, BorderLayout.Top);
 
 			//root_.Layout = new BorderLayout();
 			//root_.Add(new Label("left"), BorderLayout.Left);
@@ -46,6 +103,20 @@ namespace Synergy.UI
 			root_.Create();
 
 			root_.Dump();
+		}
+
+		public void UpdateSteps(Step sel = null)
+		{
+			if (sel == null)
+				sel = steps_.Selected;
+
+			var items = new List<Step>();
+
+			foreach (var s in Synergy.Instance.Manager.Steps)
+				items.Add(s);
+
+			steps_.SetItems(items, sel);
+		}
 		}
 	}
 

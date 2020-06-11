@@ -145,6 +145,11 @@ namespace Synergy
 			}
 		}
 
+		public override string ToString()
+		{
+			return Name;
+		}
+
 		public List<ModifierContainer> Modifiers
 		{
 			get { return modifiers_; }

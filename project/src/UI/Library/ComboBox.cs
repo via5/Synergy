@@ -5,27 +5,30 @@ using UnityEngine.UI;
 
 namespace Synergy.UI
 {
-	class ComboBox : Widget
+	class TypedComboBox<ItemType> : Widget
+		where ItemType : class
 	{
 		public class Item
 		{
-			private string text_;
+			private ItemType object_;
 
-			public Item(string text)
+			public Item(ItemType o)
 			{
-				text_ = text;
+				object_ = o;
+			}
+
+			public ItemType Object
+			{
+				get { return object_; }
 			}
 
 			public string Text
 			{
-				get { return text_; }
-				set { text_ = value; }
+				get { return object_.ToString(); }
 			}
 		}
 
 
-		//private readonly Label label_ = new Label();
-		//private readonly Button button_ = new Button("\x25bc");
 		private readonly List<Item> items_ = new List<Item>();
 		private int selection_ = -1;
 
@@ -35,34 +38,94 @@ namespace Synergy.UI
 		private JSONStorableStringChooser storable_ =
 			new JSONStorableStringChooser("", new List<string>(), "", "");
 
-		public ComboBox(List<string> strings = null)
+		public TypedComboBox(List<ItemType> items = null)
 		{
-			if (strings != null)
+			if (items != null)
 			{
-				foreach (var s in strings)
-					AddItem(s);
+				foreach (var i in items)
+					AddItemNoUpdate(new Item(i));
+			}
+		}
+
+		public void AddItem(ItemType i, bool select = false)
+		{
+			AddItemNoUpdate(new Item(i));
+			UpdateChoices();
+
+			if (select)
+				Select(items_.Count - 1);
+		}
+
+		public void RemoveItem(ItemType item)
+		{
+			int itemIndex = -1;
+
+			for (int i = 0; i < items_.Count; ++i)
+			{
+				if (items_[i].Object == item)
+				{
+					itemIndex = i;
+					break;
+				}
 			}
 
-			//label_.MinimumSize = new Size(200, 0);
-			//
-			//Layout = new HorizontalFlow();
-			//Add(label_);
-			//Add(button_);
+			if (itemIndex == -1)
+			{
+				Synergy.LogError(
+					"combobox: can't remove item '" + item.ToString() + "', " +
+					"not found");
+
+				return;
+			}
+
+			items_.RemoveAt(itemIndex);
+			UpdateChoices();
+
+			if (items_.Count == 0)
+				Select(-1);
+			else if (selection_ >= items_.Count)
+				Select(items_.Count - 1);
+			else if (selection_ > itemIndex)
+				Select(selection_ - 1);
 		}
 
-		public void AddItem(Item i)
+		public List<ItemType> Items
 		{
-			items_.Add(i);
+			get
+			{
+				var list = new List<ItemType>();
 
-			if (selection_ == -1)
-				Select(0);
+				foreach (var i in items_)
+					list.Add(i.Object);
+
+				return list;
+			}
+
+			set
+			{
+				SetItems(value, null);
+			}
 		}
 
-		public Item AddItem(string s)
+		public void SetItems(List<ItemType> items, ItemType sel = null)
 		{
-			var i = new Item(s);
-			AddItem(i);
-			return i;
+			items_.Clear();
+
+			int selIndex = -1;
+
+			for (int i = 0; i < items.Count; ++i)
+			{
+				if (items[i] == sel)
+					selIndex = i;
+
+				AddItemNoUpdate(new Item(items[i]));
+			}
+
+			if (selIndex == -1 && items_.Count > 0)
+				selIndex = 0;
+
+			UpdateChoices();
+			Select(selIndex);
 		}
 
 		public void Select(int i)
@@ -72,6 +135,17 @@ namespace Synergy.UI
 
 			selection_ = i;
 			UpdateLabel();
+		}
+
+		public ItemType Selected
+		{
+			get
+			{
+				if (selection_ < 0 || selection_ >= items_.Count)
+					return null;
+				else
+					return items_[selection_].Object;
+			}
 		}
 
 		protected override Size GetPreferredSize()
@@ -105,6 +179,8 @@ namespace Synergy.UI
 			popup_.popupPanelHeight = 1000;
 			popup_.popup.showSlider = false;
 
+			//popup_.popup.popupButtonPrefab= TextAnchor.MiddleLeft;
+
 			popup_.popup.selectColor = new Color(0.55f, 0.55f, 0.55f);
 
 
@@ -126,19 +202,15 @@ namespace Synergy.UI
 
 		protected override void DoCreate()
 		{
-			var strings = new List<string>();
-
-			foreach (var i in items_)
-				strings.Add(i.Text);
-
-			storable_.choices = strings;
 			storable_.popup = popup_.popup;
+			storable_.setCallbackFunction = OnSelectionChanged;
 
+			UpdateChoices();
 			UpdateLabel();
 
 			var rt = popup_.popup.labelText.transform.parent.gameObject.GetComponent<RectTransform>();
 			rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y + 40);
-			rt.offsetMax = new Vector2(rt.offsetMax.x , rt.offsetMax.y + 44);
+			rt.offsetMax = new Vector2(rt.offsetMax.x, rt.offsetMax.y + 44);
 			rt.anchorMin = new Vector2(0, 0);
 			rt.anchorMax = new Vector2(0, 0);
 			rt.anchoredPosition = new Vector2(
@@ -150,7 +222,7 @@ namespace Synergy.UI
 			rect.offsetMax = new Vector2(Bounds.Width - 10, Bounds.Height);
 			rect.anchorMin = new Vector2(0, 0);
 			rect.anchorMax = new Vector2(0, 0);
-			rect.anchoredPosition = new Vector2(Bounds.Width/2, Bounds.Height/2);
+			rect.anchoredPosition = new Vector2(Bounds.Width / 2, Bounds.Height / 2);
 
 			rt = popup_.popup.topButton.gameObject.GetComponent<RectTransform>();
 			rt.offsetMin = new Vector2(rt.offsetMin.x - 9, rt.offsetMin.y - 3);
@@ -169,15 +241,51 @@ namespace Synergy.UI
 			rt.offsetMax = new Vector2(rt.offsetMax.x + 5, rt.offsetMax.y - 15);
 		}
 
+		private void AddItemNoUpdate(Item i)
+		{
+			items_.Add(i);
+		}
+
 		private void UpdateLabel()
 		{
-			//if (popup_ != null)
+			if (selection_ == -1)
+				storable_.valNoCallback = "";
+			else
+				storable_.valNoCallback = items_[selection_].Text;
+		}
+
+		private void UpdateChoices()
+		{
+			var strings = new List<string>();
+
+			foreach (var i in items_)
+				strings.Add(i.Text);
+
+			storable_.choices = strings;
+		}
+
+		private void OnSelectionChanged(string s)
+		{
+			for (int i = 0; i < items_.Count; ++i)
 			{
-				if (selection_ == -1)
-					storable_.valNoCallback = "";
-				else
-					storable_.valNoCallback = items_[selection_].Text;
+				if (items_[i].Text == s)
+				{
+					Select(i);
+					return;
+				}
 			}
+
+			Synergy.LogError("combobox: selected item '" + s + "' not found");
+			Select(-1);
+		}
+	}
+
+
+	class ComboBox : TypedComboBox<string>
+	{
+		public ComboBox(List<string> items = null)
+			: base(items)
+		{
 		}
 	}
 }

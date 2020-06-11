@@ -299,7 +299,7 @@ namespace Synergy
 		static public void LogVerbose(string s)
 		{
 		   // if (instance_ == null || instance_.options_.VerboseLog)
-		   //     SuperController.LogError(s);
+		        SuperController.LogError(s);
 		}
 	}
 }

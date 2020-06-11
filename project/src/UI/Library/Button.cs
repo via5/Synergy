@@ -5,12 +5,23 @@ namespace Synergy.UI
 {
 	class Button : Widget
 	{
+		public override string TypeName { get { return "button"; } }
+
+		public delegate void ClickHandler();
+
 		private string text_ = "";
 		private UIDynamicButton button_ = null;
+		private event ClickHandler clicked_;
 
 		public Button(string t = "")
 		{
 			text_ = t;
+		}
+
+		public ClickHandler Clicked
+		{
+			get { return clicked_; }
+			set { clicked_ = value; }
 		}
 
 		protected override GameObject CreateGameObject()
@@ -19,6 +30,7 @@ namespace Synergy.UI
 				Synergy.Instance.manager.configurableButtonPrefab);
 
 			button_ = t.GetComponent<UIDynamicButton>();
+			button_.button.onClick.AddListener(OnClicked);
 
 			return button_.gameObject;
 		}
@@ -33,12 +45,9 @@ namespace Synergy.UI
 			return new Size(Root.TextLength(text_) + 20, 40);
 		}
 
-		public override string TypeName
+		private void OnClicked()
 		{
-			get
-			{
-				return "button";
-			}
+			clicked_();
 		}
 	}
 }

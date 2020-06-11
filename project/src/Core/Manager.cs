@@ -56,12 +56,12 @@ namespace Synergy
 			}
 		}
 
-		public void AddStep(Step s = null)
+		public Step AddStep(Step s = null)
 		{
-			InsertStep(steps_.Count, s);
+			return InsertStep(steps_.Count, s);
 		}
 
-		public void InsertStep(int at, Step s = null)
+		public Step InsertStep(int at, Step s = null)
 		{
 			if (s == null)
 				s = new Step();
@@ -69,6 +69,10 @@ namespace Synergy
 			steps_.Insert(at, s);
 			StepProgression?.StepInserted(at, s);
 			s.Added();
+
+			Synergy.LogVerbose("step inserted at " + at.ToString());
+
+			return s;
 		}
 
 		public void DeleteStep(Step s)

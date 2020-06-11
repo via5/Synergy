@@ -11,6 +11,20 @@ namespace Synergy.UI
 			foreach (var c in o.GetComponents(typeof(Component)))
 				Synergy.LogError(c.ToString());
 		}
+
+		public static void DumpComponentsAndUp(GameObject o)
+		{
+			Synergy.LogError(o.name);
+
+			foreach (var c in o.GetComponents(typeof(Component)))
+				Synergy.LogError(c.ToString());
+
+			Synergy.LogError("---");
+
+			var parent = o.transform.parent.gameObject;
+			if (parent != null)
+				DumpComponentsAndUp(parent);
+		}
 	}
 
 	class Point
