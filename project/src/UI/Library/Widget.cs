@@ -6,6 +6,66 @@ using UnityEngine.UI;
 
 namespace Synergy.UI
 {
+	class WidgetGraphics : Graphic
+	{
+		private Widget widget_ = null;
+
+		public WidgetGraphics()
+		{
+		}
+
+		public Widget Widget
+		{
+			get { return widget_; }
+			set { widget_ = value; }
+		}
+
+		protected override void OnPopulateMesh(VertexHelper vh)
+		{
+			vh.Clear();
+
+			var rt = rectTransform;
+
+			// left
+			Line(vh,
+				new Point(rt.rect.left, -rt.rect.top),
+				new Point(rt.rect.left+widget_.Borders.Left, -rt.rect.bottom),
+				widget_.BorderColor);
+
+			// top
+			Line(vh,
+				new Point(rt.rect.left, -rt.rect.top),
+				new Point(rt.rect.right, -rt.rect.top - widget_.Borders.Top),
+				widget_.BorderColor);
+
+			// right
+			Line(vh,
+				new Point(rt.rect.right - widget_.Borders.Right, -rt.rect.top),
+				new Point(rt.rect.right, -rt.rect.bottom),
+				widget_.BorderColor);
+
+			// bottom
+			Line(vh,
+				new Point(rt.rect.left, -rt.rect.bottom + widget_.Borders.Bottom),
+				new Point(rt.rect.right, -rt.rect.bottom),
+				widget_.BorderColor);
+		}
+
+		private void Line(VertexHelper vh, Point a, Point b, Color c)
+		{
+			Color32 c32 = c;
+			var i = vh.currentVertCount;
+
+			vh.AddVert(new Vector3(a.X, a.Y), c32, new Vector2(0f, 0f));
+			vh.AddVert(new Vector3(a.X, b.Y), c32, new Vector2(0f, 1f));
+			vh.AddVert(new Vector3(b.X, b.Y), c32, new Vector2(1f, 1f));
+			vh.AddVert(new Vector3(b.X, a.Y), c32, new Vector2(1f, 0f));
+
+			vh.AddTriangle(i+0, i+1, i+2);
+			vh.AddTriangle(i+2, i+3, i+0);
+		}
+	}
+
 	class Widget
 	{
 		static public float DontCare = -1;
@@ -17,7 +77,12 @@ namespace Synergy.UI
 		private Rectangle bounds_ = new Rectangle();
 		private Size minSize_ = new Size(0, 0);
 		private GameObject object_ = null;
+		private WidgetGraphics graphic_ = null;
 		private bool visible_ = true;
+		private Insets margins_ = new Insets();
+		private Insets borders_ = new Insets();
+		private Insets padding_ = new Insets();
+		private Color borderColor_ = Root.DefaultTextColor;
 
 		public Widget(string name = "")
 		{
@@ -73,8 +138,71 @@ namespace Synergy.UI
 			{
 				visible_ = value;
 				UpdateVisibility();
+			}
+		}
 
-				Synergy.LogVerbose(Name + " visible=" + visible_.ToString());
+		public Insets Margins
+		{
+			get { return margins_; }
+			set { margins_ = value; }
+		}
+
+		public Insets Borders
+		{
+			get { return borders_; }
+			set { borders_ = value; }
+		}
+
+		public Insets Padding
+		{
+			get { return padding_; }
+			set { padding_ = value; }
+		}
+
+		public Color BorderColor
+		{
+			get { return borderColor_; }
+			set { borderColor_ = value; }
+		}
+
+		public Rectangle Bounds
+		{
+			get { return bounds_; }
+			set { bounds_ = value; }
+		}
+
+		public Rectangle ContentBounds
+		{
+			get
+			{
+				return Rectangle.FromPoints(
+					Bounds.Left + Margins.Left + Borders.Left + Padding.Left,
+					Bounds.Top + Margins.Top + Borders.Top + Padding.Top,
+					Bounds.Right - (Margins.Right + Borders.Right + Padding.Right),
+					Bounds.Bottom - (Margins.Bottom + Borders.Bottom + Padding.Bottom));
+			}
+		}
+
+		public Rectangle ClientBounds
+		{
+			get
+			{
+				var r = new Rectangle(ContentBounds);
+				r.Translate(-Bounds.Left, -Bounds.Top);
+				return r;
+			}
+		}
+
+		public Rectangle RelativeBounds
+		{
+			get
+			{
+				var r = new Rectangle(bounds_);
+
+				if (parent_ != null)
+					r.Translate(-parent_.Bounds.Left, -parent_.Bounds.Top);
+
+				return r;
 			}
 		}
 
@@ -117,6 +245,26 @@ namespace Synergy.UI
 
 			SetupGameObject();
 			DoCreate();
+
+			var g = new GameObject();
+			g.transform.SetParent(object_.transform, false);
+
+			var br = Rectangle.FromPoints(
+				-(Borders.Left + Padding.Left),
+				-(Borders.Top + Padding.Top),
+				ContentBounds.Width + (Borders.Right + Padding.Right),
+				ContentBounds.Height + (Borders.Bottom + Padding.Bottom));
+
+			graphic_ = g.AddComponent<WidgetGraphics>();
+			graphic_.Widget = this;
+			graphic_.raycastTarget = false;
+
+			var rt = graphic_.rectTransform;
+			rt.offsetMin = new Vector2(br.Left, br.Top);
+			rt.offsetMax = new Vector2(br.Right, br.Bottom);
+			rt.anchorMin = new Vector2(0, 1);
+			rt.anchorMax = new Vector2(0, 1);
+			rt.anchoredPosition = new Vector2(br.Center.X, -br.Center.Y);
 
 			foreach (var w in children_)
 				w.Create();
@@ -169,40 +317,25 @@ namespace Synergy.UI
 		{
 			object_.transform.SetParent(Root.PluginParent, false);
 
+			var wr = ContentBounds;
+
 			var rect = object_.GetComponent<RectTransform>();
-			rect.offsetMin = new Vector2(Bounds.Left, Bounds.Top);
-			rect.offsetMax = new Vector2(Bounds.Right, Bounds.Bottom);
+			rect.offsetMin = new Vector2(wr.Left, wr.Top);
+			rect.offsetMax = new Vector2(wr.Right, wr.Bottom);
 			rect.anchorMin = new Vector2(0, 1);
 			rect.anchorMax = new Vector2(0, 1);
-			rect.anchoredPosition = new Vector2(Bounds.Center.X, -Bounds.Center.Y);
+			rect.anchoredPosition = new Vector2(wr.Center.X, -wr.Center.Y);
+
+			Synergy.LogError(wr.ToString());
 
 			var layoutElement = object_.GetComponent<LayoutElement>();
-			layoutElement.minWidth = Bounds.Width;
-			layoutElement.preferredWidth = Bounds.Width;
-			layoutElement.flexibleWidth = Bounds.Width;
-			layoutElement.minHeight = Bounds.Height;
-			layoutElement.preferredHeight = Bounds.Height;
-			layoutElement.flexibleHeight = Bounds.Height;
+			layoutElement.minWidth = wr.Width;
+			layoutElement.preferredWidth = wr.Width;
+			layoutElement.flexibleWidth = wr.Width;
+			layoutElement.minHeight = wr.Height;
+			layoutElement.preferredHeight = wr.Height;
+			layoutElement.flexibleHeight = wr.Height;
 			layoutElement.ignoreLayout = true;
-		}
-
-		public Rectangle Bounds
-		{
-			get { return bounds_; }
-			set { bounds_ = value; }
-		}
-
-		public Rectangle RelativeBounds
-		{
-			get
-			{
-				var r = new Rectangle(bounds_);
-
-				if (parent_ != null)
-					r.Translate(-parent_.Bounds.Left, -parent_.Bounds.Top);
-
-				return r;
-			}
 		}
 
 		public void Dump(int indent = 0)

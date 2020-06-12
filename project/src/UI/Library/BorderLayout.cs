@@ -80,7 +80,7 @@ namespace Synergy.UI
 
 		protected override void LayoutImpl()
 		{
-			Rectangle av = new Rectangle(Parent.Bounds);
+			Rectangle av = new Rectangle(Parent.ContentBounds);
 			Rectangle center = new Rectangle(av);
 
 			center.Top += DoTop(av);
@@ -119,6 +119,9 @@ namespace Synergy.UI
 				w.Bounds = r;
 			}
 
+			if (tallest > 0)
+				tallest += Spacing;
+
 			return tallest;
 		}
 
@@ -149,6 +152,9 @@ namespace Synergy.UI
 
 				w.Bounds = r;
 			}
+
+			if (tallest > 0)
+				tallest += Spacing;
 
 			return tallest;
 		}
@@ -182,6 +188,9 @@ namespace Synergy.UI
 				w.Bounds = r;
 			}
 
+			if (widest > 0)
+				widest += Spacing;
+
 			return widest;
 		}
 
@@ -213,6 +222,9 @@ namespace Synergy.UI
 
 				w.Bounds = r;
 			}
+
+			if (widest > 0)
+				widest += Spacing;
 
 			return widest;
 		}

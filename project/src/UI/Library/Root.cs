@@ -11,6 +11,7 @@ namespace Synergy.UI
 		public Test()
 		{
 			root_.Layout = new BorderLayout();
+			root_.Layout.Spacing = 30;
 
 			var top = new Widget();
 			top.Layout = new HorizontalFlow(20);
@@ -96,13 +97,25 @@ namespace Synergy.UI
 
 			var steptab = new Widget();
 			steptab.Layout = new BorderLayout();
+			steptab.Layout.Spacing = 30;
 
 			var stepcontrols = new Widget();
 			stepcontrols.Layout = new HorizontalFlow();
 			stepcontrols.Add(new CheckBox("Step enabled"));
 			stepcontrols.Add(new CheckBox("Half move"));
 
+			var steptabs = new Tabs();
+
+			var stepduration = new Widget();
+			var steprepeat = new Widget();
+			var stepdelay = new Widget();
+
+			steptabs.AddTab("Duration", stepduration);
+			steptabs.AddTab("Repeat", stepduration);
+			steptabs.AddTab("Delay", stepduration);
+
 			steptab.Add(stepcontrols, BorderLayout.Top);
+			steptab.Add(steptabs, BorderLayout.Center);
 
 			var modifierstab = new Widget();
 			modifierstab.Layout = new BorderLayout();
@@ -120,10 +133,16 @@ namespace Synergy.UI
 			//root_.Add(new Label("bottom"), BorderLayout.Bottom);
 			//root_.Add(new Label("center"), BorderLayout.Center);
 
+			/*
+			var w = new Widget();
+			w.Bounds = Rectangle.FromPoints(200, 200, 300, 400);
+			w.Borders = new Insets(20);
+			root_.Add(w);*/
+
 			root_.DoLayout();
 			root_.Create();
-
-			root_.Dump();
+			/*
+			root_.Dump();*/
 		}
 
 		public void UpdateSteps(Step sel = null)
@@ -167,7 +186,9 @@ namespace Synergy.UI
 
 		public Root()
 		{
-			Bounds = Rectangle.FromPoints(2, 2, 1077, 1198);
+			Bounds = Rectangle.FromPoints(2, 1, 1078, 1228);
+			Margins = new Insets(5);
+			//Borders = new Insets(20);
 
 			{
 				var b = Synergy.Instance.CreateButton("b");

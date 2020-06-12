@@ -71,6 +71,7 @@ namespace Synergy.UI
 		}
 	}
 
+
 	class Rectangle
 	{
 		public float Left, Top, Right, Bottom;
@@ -161,6 +162,37 @@ namespace Synergy.UI
 			return
 				"(" + Left.ToString() + "," + Top.ToString() + ")-" +
 				"(" + Right.ToString() + "," + Bottom.ToString() + ")";
+		}
+	}
+
+
+	class Insets
+	{
+		public float Left, Top, Right, Bottom;
+
+		public Insets()
+			: this(0, 0, 0, 0)
+		{
+		}
+
+		public Insets(float all)
+			: this(all, all, all, all)
+		{
+		}
+
+		public Insets(float left, float top, float right, float bottom)
+		{
+			Left = left;
+			Top = top;
+			Right = right;
+			Bottom = bottom;
+		}
+
+		public override string ToString()
+		{
+			return
+				Left.ToString() + "," + Top.ToString() + "," +
+				Right.ToString() + "," + Bottom.ToString();
 		}
 	}
 }

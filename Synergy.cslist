@@ -19,6 +19,7 @@ project\src\Modifiers\Specific\MorphProgressions.cs
 project\src\Modifiers\Specific\RigidbodyModifier.cs
 project\src\UI\Library\BorderLayout.cs
 project\src\UI\Library\Button.cs
+project\src\UI\Library\CheckBox.cs
 project\src\UI\Library\ComboBox.cs
 project\src\UI\Library\Label.cs
 project\src\UI\Library\Layout.cs

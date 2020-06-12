@@ -80,11 +80,14 @@ namespace Synergy.UI
 		public Tabs()
 		{
 			Layout = new BorderLayout();
+
 			Add(top_, BorderLayout.Top);
 			Add(stack_, BorderLayout.Center);
 
 			top_.Layout = new HorizontalFlow();
 			stack_.Layout = new BorderLayout();
+			stack_.Borders = new Insets(2);
+			stack_.Padding = new Insets(20);
 		}
 
 		public void AddTab(string text, Widget w)

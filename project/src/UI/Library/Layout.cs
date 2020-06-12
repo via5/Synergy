@@ -11,6 +11,7 @@ namespace Synergy.UI
 	{
 		private Widget parent_ = null;
 		private readonly List<Widget> children_ = new List<Widget>();
+		private float spacing_ = 0;
 
 		public Widget Parent
 		{
@@ -26,6 +27,12 @@ namespace Synergy.UI
 		public Size PreferredSize
 		{
 			get { return GetPreferredSize(); }
+		}
+
+		public float Spacing
+		{
+			get { return spacing_; }
+			set { spacing_ = value; }
 		}
 
 		public void Add(Widget w, LayoutData data = null)
@@ -84,18 +91,9 @@ namespace Synergy.UI
 
 	class HorizontalFlow : Layout
 	{
-		private float spacing_ = 0;
-
-
 		public HorizontalFlow(int spacing = 0)
 		{
 			Spacing = spacing;
-		}
-
-		public float Spacing
-		{
-			get { return spacing_; }
-			set { spacing_ = value; }
 		}
 
 		protected override void LayoutImpl()
@@ -106,7 +104,7 @@ namespace Synergy.UI
 			{
 				var wr = new Rectangle(r.TopLeft, w.PreferredSize);
 				w.Bounds = wr;
-				r.Left += wr.Width + spacing_;
+				r.Left += wr.Width + Spacing;
 			}
 		}
 
@@ -118,7 +116,7 @@ namespace Synergy.UI
 			for (int i=0; i<Children.Count; ++i)
 			{
 				if (i > 0)
-					totalWidth += spacing_;
+					totalWidth += Spacing;
 
 				var ps = Children[i].PreferredSize;
 
