@@ -33,8 +33,9 @@ namespace Synergy.UI
 			popup_.popup.topButton.gameObject.SetActive(false);
 			popup_.popup.labelText.gameObject.SetActive(false);
 			popup_.popup.backgroundImage.gameObject.SetActive(false);
-			popup_.popup.selectColor = new Color(0.55f, 0.55f, 0.55f);
 			popup_.popup.onValueChangeHandlers += (string s) => { Root.SetFocus(this); };
+
+			ComboBox.SetColors(popup_.popup);
 
 			var rt = popup_.popup.popupPanel;
 			rt.offsetMin = new Vector2(ClientBounds.Left, ClientBounds.Top);

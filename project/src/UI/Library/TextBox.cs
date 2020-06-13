@@ -51,8 +51,8 @@ namespace Synergy.UI
 			field_.UItext.alignment = TextAnchor.MiddleLeft;
 			field_.UItext.color = Color.black;
 			field_.UItext.raycastTarget = false;
-			field_.UItext.fontSize = Root.DefaultFontSize;
-			field_.UItext.font = Root.DefaultFont;
+			field_.UItext.fontSize = Style.FontSize;
+			field_.UItext.font = Style.Font;
 
 			var tr = field_.UItext.GetComponent<RectTransform>();
 			tr.offsetMax = new Vector2(tr.offsetMax.x, tr.offsetMax.y - 5);

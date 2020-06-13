@@ -8,16 +8,16 @@ namespace Synergy.UI
 		public override string TypeName { get { return "root"; } }
 
 		static public Transform PluginParent = null;
-		static public Font DefaultFont =
-			(Font)Resources.GetBuiltinResource(typeof(Font), "Arial.ttf");
-		static public int DefaultFontSize = 28;
-		static public Color DefaultTextColor = new Color(0.84f, 0.84f, 0.84f);
-
 		static private TextGenerator tg_ = null;
 		static private TextGenerationSettings ts_;
 
-		static public UIPopup OpenedPopup = null;
+		static public UIPopup openedPopup_ = null;
 		static private Widget focused_ = null;
+
+		static public void SetOpenedPopup(UIPopup p)
+		{
+			openedPopup_ = p;
+		}
 
 		static public void SetFocus(Widget w)
 		{
@@ -26,12 +26,12 @@ namespace Synergy.UI
 
 			focused_ = w;
 
-			if (OpenedPopup != null)
+			if (openedPopup_ != null)
 			{
-				if (OpenedPopup.visible)
-					OpenedPopup.Toggle();
+				if (openedPopup_.visible)
+					openedPopup_.Toggle();
 
-				OpenedPopup = null;
+				openedPopup_ = null;
 			}
 		}
 
@@ -54,7 +54,7 @@ namespace Synergy.UI
 			var scriptui = scrollview.parent;
 
 			var a = scrollview.GetComponent<UnityEngine.UI.Image>();
-			a.color = new Color(0.15f, 0.15f, 0.15f);
+			a.color = Style.BackgroundColor;
 		}
 
 		public static float TextLength(string s)

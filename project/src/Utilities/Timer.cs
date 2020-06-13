@@ -60,7 +60,11 @@ namespace Synergy
 
 		public void Fire()
 		{
-			callback_?.Invoke();
+			Utilities.Handler(() =>
+			{
+				callback_?.Invoke();
+			});
+
 			Destroy();
 		}
 

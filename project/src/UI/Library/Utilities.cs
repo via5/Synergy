@@ -25,6 +25,14 @@ namespace Synergy.UI
 			if (parent != null)
 				DumpComponentsAndUp(parent);
 		}
+
+		public static void DumpChildren(GameObject o, int indent = 0)
+		{
+			Synergy.LogError(new string(' ', indent * 2) + o.name);
+
+			foreach (Transform c in o.transform)
+				DumpChildren(c.gameObject, indent + 1);
+		}
 	}
 
 	class Point

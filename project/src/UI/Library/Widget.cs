@@ -82,7 +82,7 @@ namespace Synergy.UI
 		private Insets margins_ = new Insets();
 		private Insets borders_ = new Insets();
 		private Insets padding_ = new Insets();
-		private Color borderColor_ = Root.DefaultTextColor;
+		private Color borderColor_ = Style.TextColor;
 
 		public Widget(string name = "")
 		{

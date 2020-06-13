@@ -171,6 +171,54 @@ namespace Synergy.UI
 				Synergy.Instance.manager.configurablePopupPrefab).gameObject;
 		}
 
+		public static void SetColors(UIPopup popup)
+		{
+			// popup selection background color
+			popup.selectColor = Style.SelectionBackgroundColor;
+
+			// popup button text color
+			popup.normalColor = Style.ButtonBackgroundColor;
+
+			// popup button background color
+			popup.normalBackgroundColor = Style.ButtonBackgroundColor;
+
+			// button text color
+			var st = popup.topButton.GetComponentInChildren<UIStyleText>();
+			if (st != null)
+			{
+				st.color = Style.TextColor;
+				st.UpdateStyle();
+			}
+
+			// button background color
+			var i = popup.topButton.GetComponent<Image>();
+			i.color = Style.ButtonBackgroundColor;
+
+			// popup background color
+			var si = popup.popupPanel.GetComponent<UIStyleImage>();
+			si.color = Style.ButtonBackgroundColor;
+			si.UpdateStyle();
+
+
+			var sst = popup.popupButtonPrefab.GetComponentsInChildren<UIStyleText>();
+			foreach (var st2 in sst)
+			{
+				st2.color = Style.TextColor;
+				st2.UpdateStyle();
+			}
+
+			// popup button highlight background color
+			var sb = popup.popupButtonPrefab.GetComponent<UIStyleButton>();
+			sb.highlightedColor = Style.HighlightBackgroundColor;
+			sb.UpdateStyle();
+
+			sb = popup.topButton.GetComponent<UIStyleButton>();
+			sb.normalColor = Style.ButtonBackgroundColor;
+			sb.highlightedColor = Style.HighlightBackgroundColor;
+			sb.colorMultiplier = 3.89f;
+			sb.UpdateStyle();
+		}
+
 		protected override void DoCreate()
 		{
 			popup_ = Object.GetComponent<UIDynamicPopup>();
@@ -179,7 +227,9 @@ namespace Synergy.UI
 			popup_.popupPanelHeight = 1000;
 			popup_.popup.showSlider = false;
 			popup_.popup.onOpenPopupHandlers += OnOpen;
-			popup_.popup.selectColor = new Color(0.55f, 0.55f, 0.55f);
+
+			SetColors(popup_.popup);
+
 
 			var arrowObject = new GameObject();
 			arrowObject.transform.SetParent(Object.transform, false);
@@ -188,11 +238,11 @@ namespace Synergy.UI
 
 			arrow_ = arrowObject.AddComponent<Text>();
 			arrow_.alignment = TextAnchor.MiddleRight;
-			arrow_.color = new Color(0.15f, 0.15f, 0.15f);
+			arrow_.color = Style.TextColor;
 			arrow_.raycastTarget = false;
 			arrow_.text = "\x25bc";
-			arrow_.fontSize = Root.DefaultFontSize;
-			arrow_.font = Root.DefaultFont;
+			arrow_.fontSize = Style.FontSize;
+			arrow_.font = Style.Font;
 
 			storable_.popup = popup_.popup;
 			storable_.setCallbackFunction = OnSelectionChanged;
@@ -274,7 +324,7 @@ namespace Synergy.UI
 		private void OnOpen()
 		{
 			Root.SetFocus(this);
-			Root.OpenedPopup = popup_.popup;
+			Root.SetOpenedPopup(popup_.popup);
 		}
 	}
 

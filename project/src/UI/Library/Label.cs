@@ -35,11 +35,11 @@ namespace Synergy.UI
 		{
 			textObject_ = Object.AddComponent<Text>();
 			textObject_.alignment = TextAnchor.MiddleLeft;
-			textObject_.color = Root.DefaultTextColor;
+			textObject_.color = Style.TextColor;
 			textObject_.raycastTarget = false;
 			textObject_.text = text_;
-			textObject_.fontSize = Root.DefaultFontSize;
-			textObject_.font = Root.DefaultFont;
+			textObject_.fontSize = Style.FontSize;
+			textObject_.font = Style.Font;
 		}
 
 		protected override Size GetPreferredSize()

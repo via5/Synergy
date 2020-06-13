@@ -30,9 +30,6 @@ namespace Synergy
 
 
 			steps_ = new UI.TypedComboBox<Step>();
-			//cb.AddItem("Step 1");
-			//cb.AddItem("Step 2");
-			//cb.AddItem("Step 3");
 
 			top.Add(new UI.Label("Step:"));
 			top.Add(steps_);

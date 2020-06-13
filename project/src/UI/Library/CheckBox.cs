@@ -36,7 +36,7 @@ namespace Synergy.UI
 			toggle_.toggle.onValueChanged.AddListener(OnClicked);
 
 			toggle_.backgroundImage.color = new Color(0, 0, 0, 0);
-			toggle_.textColor = Root.DefaultTextColor;
+			toggle_.textColor = Style.TextColor;
 			toggle_.labelText.text = text_;
 
 			toggle_.toggle.graphic.rectTransform.localScale = new Vector3(
