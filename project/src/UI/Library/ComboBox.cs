@@ -8,6 +8,9 @@ namespace Synergy.UI
 	class TypedComboBox<ItemType> : Widget
 		where ItemType : class
 	{
+		public override string TypeName { get { return "combobox"; } }
+
+
 		public class Item
 		{
 			private ItemType object_;
@@ -162,14 +165,6 @@ namespace Synergy.UI
 			return new Size(300, 40);
 		}
 
-		public override string TypeName
-		{
-			get
-			{
-				return "combobox";
-			}
-		}
-
 		protected override GameObject CreateGameObject()
 		{
 			return UnityEngine.Object.Instantiate(
@@ -183,13 +178,8 @@ namespace Synergy.UI
 			popup_.labelSpacingRight = 0;
 			popup_.popupPanelHeight = 1000;
 			popup_.popup.showSlider = false;
-
 			popup_.popup.onOpenPopupHandlers += OnOpen;
-
-			//popup_.popup.popupButtonPrefab= TextAnchor.MiddleLeft;
-
 			popup_.popup.selectColor = new Color(0.55f, 0.55f, 0.55f);
-
 
 			var arrowObject = new GameObject();
 			arrowObject.transform.SetParent(Object.transform, false);

@@ -9,11 +9,11 @@ namespace Synergy.UI
 
 	abstract class Layout
 	{
+		public abstract string TypeName { get; }
+
 		private Widget parent_ = null;
 		private readonly List<Widget> children_ = new List<Widget>();
 		private float spacing_ = 0;
-
-		public abstract string TypeName { get; }
 
 		public Widget Parent
 		{

@@ -5,8 +5,9 @@ namespace Synergy.UI
 {
 	class Label : Widget
 	{
-		private string text_ = "";
+		public override string TypeName { get { return "label"; } }
 
+		private string text_ = "";
 		private Text textObject_ = null;
 
 		public Label(string t = "")
@@ -44,14 +45,6 @@ namespace Synergy.UI
 		protected override Size GetPreferredSize()
 		{
 			return new Size(Root.TextLength(text_), 40);
-		}
-
-		public override string TypeName
-		{
-			get
-			{
-				return "label";
-			}
 		}
 
 		public override string DebugLine

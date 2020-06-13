@@ -6,6 +6,8 @@ namespace Synergy.UI
 {
 	class Stack : Widget
 	{
+		public override string TypeName { get { return "stack"; } }
+
 		private readonly List<Widget> widgets_ = new List<Widget>();
 		private int selection_ = -1;
 
@@ -40,6 +42,8 @@ namespace Synergy.UI
 
 	class Tabs : Widget
 	{
+		public override string TypeName { get { return "tabs"; } }
+
 		class Tab
 		{
 			private readonly Tabs tabs_;
@@ -70,8 +74,6 @@ namespace Synergy.UI
 				get { return panel_; }
 			}
 		}
-
-		public override string TypeName { get { return "tabs"; } }
 
 		private readonly Panel top_ = new Panel();
 		private readonly Stack stack_ = new Stack();

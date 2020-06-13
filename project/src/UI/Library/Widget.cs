@@ -66,6 +66,8 @@ namespace Synergy.UI
 
 	abstract class Widget
 	{
+		public virtual string TypeName { get { return "widget"; } }
+
 		public const float DontCare = -1;
 
 		private Widget parent_ = null;
@@ -199,6 +201,59 @@ namespace Synergy.UI
 			}
 		}
 
+		public Size PreferredSize
+		{
+			get
+			{
+				var s = new Size();
+
+				if (layout_ != null)
+					s = layout_.PreferredSize;
+
+				s = Size.Max(s, GetPreferredSize());
+				s = Size.Max(s, MinimumSize);
+
+				return s;
+			}
+		}
+
+		public Size MinimumSize
+		{
+			get { return minSize_; }
+			set { minSize_ = value; }
+		}
+
+		public string Name
+		{
+			get
+			{
+				return name_;
+			}
+
+			set
+			{
+				name_ = value;
+			}
+		}
+
+		public virtual string DebugLine
+		{
+			get
+			{
+				var list = new List<string>();
+
+				list.Add(TypeName);
+				list.Add(name_);
+				list.Add("b=" + Bounds.ToString());
+				list.Add("rb=" + RelativeBounds.ToString());
+				list.Add("ps=" + PreferredSize.ToString());
+				list.Add("ly=" + (Layout?.TypeName ?? "none"));
+
+				return string.Join(" ", list.ToArray());
+			}
+		}
+
+
 		public T Add<T>(T w, LayoutData d = null)
 			where T : Widget
 		{
@@ -235,7 +290,27 @@ namespace Synergy.UI
 		{
 			object_ = CreateGameObject();
 			object_.SetActive(Visible);
-			SetupGameObject();
+
+			object_.transform.SetParent(Root.PluginParent, false);
+
+			var wr = ContentBounds;
+
+			var rect = object_.GetComponent<RectTransform>();
+			rect.offsetMin = new Vector2(wr.Left, wr.Top);
+			rect.offsetMax = new Vector2(wr.Right, wr.Bottom);
+			rect.anchorMin = new Vector2(0, 1);
+			rect.anchorMax = new Vector2(0, 1);
+			rect.anchoredPosition = new Vector2(wr.Center.X, -wr.Center.Y);
+
+			var layoutElement = object_.GetComponent<LayoutElement>();
+			layoutElement.minWidth = wr.Width;
+			layoutElement.preferredWidth = wr.Width;
+			layoutElement.flexibleWidth = wr.Width;
+			layoutElement.minHeight = wr.Height;
+			layoutElement.preferredHeight = wr.Height;
+			layoutElement.flexibleHeight = wr.Height;
+			layoutElement.ignoreLayout = true;
+
 			DoCreate();
 
 			var g = new GameObject();
@@ -262,38 +337,14 @@ namespace Synergy.UI
 				w.Create();
 		}
 
-		public Size PreferredSize
+		public void Dump(int indent = 0)
 		{
-			get
-			{
-				var s = new Size();
+			Synergy.LogError(new string(' ', indent * 2) + DebugLine);
 
-				if (layout_ != null)
-					s = layout_.PreferredSize;
-
-				s = Size.Max(s, GetPreferredSize());
-				s = Size.Max(s, MinimumSize);
-
-				return s;
-			}
+			foreach (var w in children_)
+				w.Dump(indent + 1);
 		}
 
-		public Size MinimumSize
-		{
-			get { return minSize_; }
-			set { minSize_ = value; }
-		}
-
-
-		protected virtual void DoCreate()
-		{
-			// no-op
-		}
-
-		protected virtual Size GetPreferredSize()
-		{
-			return new Size(DontCare, DontCare);
-		}
 
 		protected virtual GameObject CreateGameObject()
 		{
@@ -303,73 +354,14 @@ namespace Synergy.UI
 			return o;
 		}
 
-		protected virtual void SetupGameObject()
+		protected virtual void DoCreate()
 		{
-			object_.transform.SetParent(Root.PluginParent, false);
-
-			var wr = ContentBounds;
-
-			var rect = object_.GetComponent<RectTransform>();
-			rect.offsetMin = new Vector2(wr.Left, wr.Top);
-			rect.offsetMax = new Vector2(wr.Right, wr.Bottom);
-			rect.anchorMin = new Vector2(0, 1);
-			rect.anchorMax = new Vector2(0, 1);
-			rect.anchoredPosition = new Vector2(wr.Center.X, -wr.Center.Y);
-
-			var layoutElement = object_.GetComponent<LayoutElement>();
-			layoutElement.minWidth = wr.Width;
-			layoutElement.preferredWidth = wr.Width;
-			layoutElement.flexibleWidth = wr.Width;
-			layoutElement.minHeight = wr.Height;
-			layoutElement.preferredHeight = wr.Height;
-			layoutElement.flexibleHeight = wr.Height;
-			layoutElement.ignoreLayout = true;
+			// no-op
 		}
 
-		public void Dump(int indent = 0)
+		protected virtual Size GetPreferredSize()
 		{
-			Synergy.LogError(new string(' ', indent * 2) + DebugLine);
-
-			foreach (var w in children_)
-				w.Dump(indent + 1);
-		}
-
-		public string Name
-		{
-			get
-			{
-				return name_;
-			}
-
-			set
-			{
-				name_ = value;
-			}
-		}
-
-		public virtual string DebugLine
-		{
-			get
-			{
-				var list = new List<string>();
-
-				list.Add(TypeName);
-				list.Add(name_);
-				list.Add("b=" + Bounds.ToString());
-				list.Add("rb=" + RelativeBounds.ToString());
-				list.Add("ps=" + PreferredSize.ToString());
-				list.Add("ly=" + (Layout?.TypeName ?? "none"));
-
-				return string.Join(" ", list.ToArray());
-			}
-		}
-
-		public virtual string TypeName
-		{
-			get
-			{
-				return "widget";
-			}
+			return new Size(DontCare, DontCare);
 		}
 
 		protected virtual void UpdateVisibility(bool b)
