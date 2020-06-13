@@ -17,9 +17,15 @@ namespace Synergy.UI
 		static private TextGenerationSettings ts_;
 
 		static public UIPopup OpenedPopup = null;
+		static private Widget focused_ = null;
 
 		static public void SetFocus(Widget w)
 		{
+			if (focused_ == w)
+				return;
+
+			focused_ = w;
+
 			if (OpenedPopup != null)
 			{
 				if (OpenedPopup.visible)

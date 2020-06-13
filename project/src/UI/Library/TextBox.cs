@@ -1,8 +1,22 @@
 ﻿using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Synergy.UI
 {
+	class CustomInputField : InputField
+	{
+		public delegate void ClickedCallback();
+
+		public ClickedCallback clicked;
+
+		public override void OnPointerDown(PointerEventData eventData)
+		{
+			base.OnPointerDown(eventData);
+			clicked?.Invoke();
+		}
+	}
+
 	class TextBox : Widget
 	{
 		public override string TypeName { get { return "textbox"; } }
@@ -27,7 +41,8 @@ namespace Synergy.UI
 		protected override void DoCreate()
 		{
 			field_ = Object.GetComponent<UIDynamicTextField>();
-			var input = Object.gameObject.AddComponent<InputField>();
+			var input = Object.gameObject.AddComponent<CustomInputField>();
+			input.clicked = OnClicked;
 			input.textComponent = field_.UItext;
 			ss_.inputField = input;
 			field_.backgroundColor = Color.white;

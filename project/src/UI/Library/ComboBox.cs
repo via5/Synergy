@@ -273,6 +273,7 @@ namespace Synergy.UI
 
 		private void OnOpen()
 		{
+			Root.SetFocus(this);
 			Root.OpenedPopup = popup_.popup;
 		}
 	}
