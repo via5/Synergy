@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 namespace Synergy.UI
 {
-	class WidgetGraphics : Graphic
+	class WidgetGraphics : MaskableGraphic
 	{
 		private Widget widget_ = null;
 
@@ -137,7 +137,7 @@ namespace Synergy.UI
 			set
 			{
 				visible_ = value;
-				UpdateVisibility();
+				UpdateVisibility(Visible);
 			}
 		}
 
@@ -382,13 +382,13 @@ namespace Synergy.UI
 			}
 		}
 
-		private void UpdateVisibility()
+		protected virtual void UpdateVisibility(bool b)
 		{
 			if (object_ != null)
-				object_.SetActive(Visible);
+				object_.SetActive(b);
 
 			foreach (var w in children_)
-				w.UpdateVisibility();
+				w.UpdateVisibility(w.Visible);
 		}
 	}
 }

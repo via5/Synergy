@@ -24,6 +24,7 @@ project\src\UI\Library\ComboBox.cs
 project\src\UI\Library\GridLayout.cs
 project\src\UI\Library\Label.cs
 project\src\UI\Library\Layout.cs
+project\src\UI\Library\ListView.cs
 project\src\UI\Library\Root.cs
 project\src\UI\Library\Tabs.cs
 project\src\UI\Library\TextBox.cs

@@ -1,7 +1,5 @@
-﻿using Microsoft.Win32.SafeHandles;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Synergy.UI
 {
@@ -158,7 +156,12 @@ namespace Synergy.UI
 
 			var modifierstab = new Widget();
 			modifierstab.Layout = new BorderLayout();
-			modifierstab.Add(new Label("modifiers tab"), BorderLayout.Top);
+
+			var list = new ListView();
+			var modifier = new Widget();
+			modifierstab.Add(list, BorderLayout.Left);
+			modifierstab.Add(modifier, BorderLayout.Center);
+
 
 			tabs.AddTab("Step", steptab);
 			tabs.AddTab("Modifiers", modifierstab);
