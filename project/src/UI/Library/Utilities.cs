@@ -148,6 +148,23 @@ namespace Synergy.UI
 			get { return new Size(Width, Height); }
 		}
 
+		public Rectangle TranslateCopy(Point p)
+		{
+			var r = new Rectangle(this);
+
+			if (p != null)
+				r.Translate(p.X, p.Y);
+
+			return r;
+		}
+
+		public Rectangle TranslateCopy(float dx, float dy)
+		{
+			var r = new Rectangle(this);
+			r.Translate(dx, dy);
+			return r;
+		}
+
 		public void Translate(float dx, float dy)
 		{
 			Left += dx;
@@ -155,6 +172,14 @@ namespace Synergy.UI
 
 			Top += dy;
 			Bottom += dy;
+		}
+
+		public void Deflate(Insets i)
+		{
+			Left += i.Left;
+			Top += i.Top;
+			Right -= i.Right;
+			Bottom -= i.Bottom;
 		}
 
 		public override string ToString()

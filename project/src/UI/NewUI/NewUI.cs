@@ -13,7 +13,7 @@ namespace Synergy
 			root_.Layout = new UI.BorderLayout();
 			root_.Layout.Spacing = 30;
 
-			var top = new UI.Widget();
+			var top = new UI.Panel();
 			top.Layout = new UI.HorizontalFlow(20);
 			//top.Add(new Button("button"));
 			//top.Add(new ComboBox(new List<string>{ "a", "b" }));
@@ -38,7 +38,7 @@ namespace Synergy
 			top.Add(steps_);
 
 			var b = new UI.Button("+");
-			b.MinimumSize = new Size(50, UI.Widget.DontCare);
+			b.MinimumSize = new Size(50, UI.Panel.DontCare);
 			top.Add(b);
 			b.Clicked += () =>
 			{
@@ -48,7 +48,7 @@ namespace Synergy
 
 
 			b = new UI.Button("Clone");
-			b.MinimumSize = new Size(50, UI.Widget.DontCare);
+			b.MinimumSize = new Size(50, UI.Panel.DontCare);
 			top.Add(b);
 			b.Clicked += () =>
 			{
@@ -61,7 +61,7 @@ namespace Synergy
 			};
 
 			b = new UI.Button("Clone 0");
-			b.MinimumSize = new Size(50, UI.Widget.DontCare);
+			b.MinimumSize = new Size(50, UI.Panel.DontCare);
 			top.Add(b);
 			b.Clicked += () =>
 			{
@@ -76,7 +76,7 @@ namespace Synergy
 			};
 
 			b = new UI.Button("\x2013");
-			b.MinimumSize = new Size(50, UI.Widget.DontCare);
+			b.MinimumSize = new Size(50, UI.Panel.DontCare);
 			top.Add(b);
 			b.Clicked += () =>
 			{
@@ -95,18 +95,18 @@ namespace Synergy
 
 			var tabs = new UI.Tabs();
 
-			var steptab = new UI.Widget();
+			var steptab = new UI.Panel();
 			steptab.Layout = new UI.BorderLayout();
 			steptab.Layout.Spacing = 30;
 
-			var stepcontrols = new UI.Widget();
+			var stepcontrols = new UI.Panel();
 			stepcontrols.Layout = new UI.HorizontalFlow();
 			stepcontrols.Add(new UI.CheckBox("Step enabled"));
 			stepcontrols.Add(new UI.CheckBox("Half move"));
 
 			var steptabs = new Tabs();
 
-			var stepduration = new UI.Widget();
+			var stepduration = new UI.Panel();
 			var gl = new UI.GridLayout(2);
 			stepduration.Layout = gl;
 			gl.HorizontalSpacing = 10;
@@ -118,7 +118,7 @@ namespace Synergy
 			steptabs.AddTab("Duration", stepduration);
 
 
-			var steprepeat = new UI.Widget();
+			var steprepeat = new UI.Panel();
 			gl = new UI.GridLayout(2);
 			steprepeat.Layout = gl;
 			gl.HorizontalSpacing = 10;
@@ -128,14 +128,14 @@ namespace Synergy
 			steptabs.AddTab("Repeat", steprepeat);
 
 
-			var stepdelay = new UI.Widget();
+			var stepdelay = new UI.Panel();
 
-			var controls = new UI.Widget();
+			var controls = new UI.Panel();
 			controls.Layout = new UI.HorizontalFlow();
 			controls.Add(new UI.CheckBox("Halfway"));
 			controls.Add(new UI.CheckBox("End"));
 
-			var duration = new UI.Widget();
+			var duration = new UI.Panel();
 			gl = new UI.GridLayout(2);
 			gl.HorizontalSpacing = 10;
 			gl.VerticalSpacing = 20;
@@ -154,11 +154,11 @@ namespace Synergy
 			steptab.Add(stepcontrols, UI.BorderLayout.Top);
 			steptab.Add(steptabs, UI.BorderLayout.Center);
 
-			var modifierstab = new UI.Widget();
+			var modifierstab = new UI.Panel();
 			modifierstab.Layout = new UI.BorderLayout();
 
 			var list = new UI.ListView();
-			var modifier = new UI.Widget();
+			var modifier = new UI.Panel();
 			modifierstab.Add(list, UI.BorderLayout.Left);
 			modifierstab.Add(modifier, UI.BorderLayout.Center);
 
@@ -187,7 +187,7 @@ namespace Synergy
 			root_.Dump();
 		}
 
-		private void AddRandomDuration(UI.Widget parent)
+		private void AddRandomDuration(UI.Panel parent)
 		{
 			parent.Add(new UI.Label("Time"));
 			parent.Add(CreateTimeWidgets());
@@ -202,7 +202,7 @@ namespace Synergy
 			parent.Add(new UI.ComboBox());
 		}
 
-		private void AddRampDuration(UI.Widget parent)
+		private void AddRampDuration(UI.Panel parent)
 		{
 			parent.Add(new UI.Label("Time"));
 			parent.Add(CreateTimeWidgets());
@@ -219,18 +219,18 @@ namespace Synergy
 			parent.Add(new UI.Label("Easing"));
 			parent.Add(new UI.ComboBox());
 
-			var ramps = new UI.Widget();
+			var ramps = new UI.Panel();
 			ramps.Layout = new UI.HorizontalFlow();
 			ramps.Add(new UI.CheckBox("Ramp up"));
 			ramps.Add(new UI.CheckBox("Ramp down"));
 
-			parent.Add(new UI.Widget());
+			parent.Add(new UI.Panel());
 			parent.Add(ramps);
 		}
 
-		private UI.Widget CreateTimeWidgets()
+		private UI.Panel CreateTimeWidgets()
 		{
-			var w = new UI.Widget();
+			var w = new UI.Panel();
 			w.Layout = new UI.HorizontalFlow(5);
 
 			w.Add(new UI.TextBox("1"));

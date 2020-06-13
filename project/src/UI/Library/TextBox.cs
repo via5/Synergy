@@ -19,11 +19,15 @@ namespace Synergy.UI
 
 		protected override GameObject CreateGameObject()
 		{
-			var t = UnityEngine.Object.Instantiate(
-				Synergy.Instance.manager.configurableTextFieldPrefab);
+			return UnityEngine.Object.Instantiate(
+				Synergy.Instance.manager.configurableTextFieldPrefab)
+					.gameObject;
+		}
 
-			field_ = t.GetComponent<UIDynamicTextField>();
-			var input = t.gameObject.AddComponent<InputField>();
+		protected override void DoCreate()
+		{
+			field_ = Object.GetComponent<UIDynamicTextField>();
+			var input = Object.gameObject.AddComponent<InputField>();
 			input.textComponent = field_.UItext;
 			ss_.inputField = input;
 			field_.backgroundColor = Color.white;
@@ -38,11 +42,6 @@ namespace Synergy.UI
 			var tr = field_.UItext.GetComponent<RectTransform>();
 			tr.offsetMax = new Vector2(tr.offsetMax.x, tr.offsetMax.y - 5);
 
-			return t.gameObject;
-		}
-
-		protected override void DoCreate()
-		{
 			ss_.dynamicText = field_;
 			field_.text = text_;
 		}

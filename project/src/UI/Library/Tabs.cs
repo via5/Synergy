@@ -44,14 +44,14 @@ namespace Synergy.UI
 		{
 			private readonly Tabs tabs_;
 			private readonly Button button_;
-			private readonly Widget panel_;
+			private readonly Panel panel_;
 			private readonly Widget widget_;
 
 			public Tab(Tabs tabs, string text, Widget w)
 			{
 				tabs_ = tabs;
 				button_ = new Button(text);
-				panel_ = new Widget();
+				panel_ = new Panel();
 				widget_ = w;
 
 				panel_.Layout = new BorderLayout();
@@ -73,7 +73,7 @@ namespace Synergy.UI
 
 		public override string TypeName { get { return "tabs"; } }
 
-		private readonly Widget top_ = new Widget();
+		private readonly Panel top_ = new Panel();
 		private readonly Stack stack_ = new Stack();
 		private readonly List<Tab> tabs_ = new List<Tab>();
 
@@ -115,12 +115,8 @@ namespace Synergy.UI
 
 		protected override GameObject CreateGameObject()
 		{
-			var o = new GameObject();
-
+			var o = base.CreateGameObject();
 			o.AddComponent<UITabSelector>();
-			o.AddComponent<RectTransform>();
-			o.AddComponent<LayoutElement>();
-
 			return o;
 		}
 	}

@@ -17,13 +17,17 @@ namespace Synergy.UI
 
 		protected override GameObject CreateGameObject()
 		{
+			return UnityEngine.Object.Instantiate(
+				Synergy.Instance.manager.configurableScrollablePopupPrefab)
+					.gameObject;
+		}
+
+		protected override void DoCreate()
+		{
 			var storable = new JSONStorableStringChooser(
 				"", new List<string>(), "", "");
 
-			var t = UnityEngine.Object.Instantiate(
-				Synergy.Instance.manager.configurableScrollablePopupPrefab);
-
-			popup_ = t.GetComponent<UIDynamicPopup>();
+			popup_ = Object.GetComponent<UIDynamicPopup>();
 			popup_.popup.alwaysOpen = true;
 			popup_.popup.showSlider = false;
 			popup_.popup.topButton.gameObject.SetActive(false);
@@ -40,12 +44,6 @@ namespace Synergy.UI
 
 			storable.popup = popup_.popup;
 			storable.choices = new List<string>() { "RT X head Person", "b", "c", "d" };
-
-			return t.gameObject;
-		}
-
-		protected override void DoCreate()
-		{
 		}
 
 		protected override Size GetPreferredSize()

@@ -172,10 +172,13 @@ namespace Synergy.UI
 
 		protected override GameObject CreateGameObject()
 		{
-			var t = UnityEngine.Object.Instantiate(
-				Synergy.Instance.manager.configurablePopupPrefab);
+			return UnityEngine.Object.Instantiate(
+				Synergy.Instance.manager.configurablePopupPrefab).gameObject;
+		}
 
-			popup_ = t.GetComponent<UIDynamicPopup>();
+		protected override void DoCreate()
+		{
+			popup_ = Object.GetComponent<UIDynamicPopup>();
 			popup_.labelWidth = 0;
 			popup_.labelSpacingRight = 0;
 			popup_.popupPanelHeight = 1000;
@@ -189,7 +192,7 @@ namespace Synergy.UI
 
 
 			var arrowObject = new GameObject();
-			arrowObject.transform.SetParent(t, false);
+			arrowObject.transform.SetParent(Object.transform, false);
 			arrowObject.AddComponent<RectTransform>();
 			arrowObject.AddComponent<LayoutElement>();
 
@@ -201,11 +204,6 @@ namespace Synergy.UI
 			arrow_.fontSize = Root.DefaultFontSize;
 			arrow_.font = Root.DefaultFont;
 
-			return popup_.gameObject;
-		}
-
-		protected override void DoCreate()
-		{
 			storable_.popup = popup_.popup;
 			storable_.setCallbackFunction = OnSelectionChanged;
 

@@ -26,14 +26,18 @@ namespace Synergy.UI
 
 		protected override GameObject CreateGameObject()
 		{
-			var t = UnityEngine.Object.Instantiate(
-				Synergy.Instance.manager.configurableTogglePrefab);
+			return UnityEngine.Object.Instantiate(
+				Synergy.Instance.manager.configurableTogglePrefab).gameObject;
+		}
 
-			toggle_ = t.GetComponent<UIDynamicToggle>();
+		protected override void DoCreate()
+		{
+			toggle_ = Object.GetComponent<UIDynamicToggle>();
 			toggle_.toggle.onValueChanged.AddListener(OnClicked);
 
 			toggle_.backgroundImage.color = new Color(0, 0, 0, 0);
 			toggle_.textColor = Root.DefaultTextColor;
+			toggle_.labelText.text = text_;
 
 			toggle_.toggle.graphic.rectTransform.localScale = new Vector3(
 				0.75f, 0.75f, 0.75f);
@@ -54,13 +58,6 @@ namespace Synergy.UI
 			rt.anchoredPosition = new Vector2(
 				rt.offsetMin.x + (rt.offsetMax.x - rt.offsetMin.x) / 2,
 				rt.offsetMin.y + (rt.offsetMax.y - rt.offsetMin.y) / 2);
-
-			return t.gameObject;
-		}
-
-		protected override void DoCreate()
-		{
-			toggle_.labelText.text = text_;
 		}
 
 		protected override Size GetPreferredSize()

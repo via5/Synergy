@@ -26,17 +26,14 @@ namespace Synergy.UI
 
 		protected override GameObject CreateGameObject()
 		{
-			var t = UnityEngine.Object.Instantiate(
-				Synergy.Instance.manager.configurableButtonPrefab);
-
-			button_ = t.GetComponent<UIDynamicButton>();
-			button_.button.onClick.AddListener(OnClicked);
-
-			return t.gameObject;
+			return UnityEngine.Object.Instantiate(
+				Synergy.Instance.manager.configurableButtonPrefab).gameObject;
 		}
 
 		protected override void DoCreate()
 		{
+			button_ = Object.GetComponent<UIDynamicButton>();
+			button_.button.onClick.AddListener(OnClicked);
 			button_.buttonText.text = text_;
 		}
 

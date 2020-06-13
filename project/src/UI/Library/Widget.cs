@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -28,26 +26,26 @@ namespace Synergy.UI
 
 			// left
 			Line(vh,
-				new Point(rt.rect.left, -rt.rect.top),
-				new Point(rt.rect.left+widget_.Borders.Left, -rt.rect.bottom),
+				new Point(rt.rect.xMin, -rt.rect.yMin),
+				new Point(rt.rect.xMin + widget_.Borders.Left, -rt.rect.yMax),
 				widget_.BorderColor);
 
 			// top
 			Line(vh,
-				new Point(rt.rect.left, -rt.rect.top),
-				new Point(rt.rect.right, -rt.rect.top - widget_.Borders.Top),
+				new Point(rt.rect.xMin, -rt.rect.yMin),
+				new Point(rt.rect.xMax, -rt.rect.yMin - widget_.Borders.Top),
 				widget_.BorderColor);
 
 			// right
 			Line(vh,
-				new Point(rt.rect.right - widget_.Borders.Right, -rt.rect.top),
-				new Point(rt.rect.right, -rt.rect.bottom),
+				new Point(rt.rect.xMax - widget_.Borders.Right, -rt.rect.yMin),
+				new Point(rt.rect.xMax, -rt.rect.yMax),
 				widget_.BorderColor);
 
 			// bottom
 			Line(vh,
-				new Point(rt.rect.left, -rt.rect.bottom + widget_.Borders.Bottom),
-				new Point(rt.rect.right, -rt.rect.bottom),
+				new Point(rt.rect.xMin, -rt.rect.yMax + widget_.Borders.Bottom),
+				new Point(rt.rect.xMax, -rt.rect.yMax),
 				widget_.BorderColor);
 		}
 
@@ -66,7 +64,7 @@ namespace Synergy.UI
 		}
 	}
 
-	class Widget
+	abstract class Widget
 	{
 		public const float DontCare = -1;
 
@@ -175,11 +173,13 @@ namespace Synergy.UI
 		{
 			get
 			{
-				return Rectangle.FromPoints(
-					Bounds.Left + Margins.Left + Borders.Left + Padding.Left,
-					Bounds.Top + Margins.Top + Borders.Top + Padding.Top,
-					Bounds.Right - (Margins.Right + Borders.Right + Padding.Right),
-					Bounds.Bottom - (Margins.Bottom + Borders.Bottom + Padding.Bottom));
+				var r = new Rectangle(Bounds);
+
+				r.Deflate(Margins);
+				r.Deflate(Borders);
+				r.Deflate(Padding);
+
+				return r;
 			}
 		}
 
@@ -187,9 +187,7 @@ namespace Synergy.UI
 		{
 			get
 			{
-				var r = new Rectangle(ContentBounds);
-				r.Translate(-Bounds.Left, -Bounds.Top);
-				return r;
+				return ContentBounds.TranslateCopy(-Bounds.Left, -Bounds.Top);
 			}
 		}
 
@@ -197,12 +195,7 @@ namespace Synergy.UI
 		{
 			get
 			{
-				var r = new Rectangle(bounds_);
-
-				if (parent_ != null)
-					r.Translate(-parent_.Bounds.Left, -parent_.Bounds.Top);
-
-				return r;
+				return bounds_.TranslateCopy(parent_?.Bounds.TopLeft);
 			}
 		}
 
@@ -242,7 +235,6 @@ namespace Synergy.UI
 		{
 			object_ = CreateGameObject();
 			object_.SetActive(Visible);
-
 			SetupGameObject();
 			DoCreate();
 
@@ -306,10 +298,8 @@ namespace Synergy.UI
 		protected virtual GameObject CreateGameObject()
 		{
 			var o = new GameObject();
-
 			o.AddComponent<RectTransform>();
 			o.AddComponent<LayoutElement>();
-
 			return o;
 		}
 
@@ -389,6 +379,15 @@ namespace Synergy.UI
 
 			foreach (var w in children_)
 				w.UpdateVisibility(w.Visible);
+		}
+	}
+
+
+	class Panel : Widget
+	{
+		public Panel(string name = "")
+			: base(name)
+		{
 		}
 	}
 }
