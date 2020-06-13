@@ -71,6 +71,7 @@
     <Compile Include="src\UI\Library\Button.cs" />
     <Compile Include="src\UI\Library\Checkbox.cs" />
     <Compile Include="src\UI\Library\ComboBox.cs" />
+    <Compile Include="src\UI\Library\GridLayout.cs" />
     <Compile Include="src\UI\Library\Label.cs" />
     <Compile Include="src\UI\Library\Layout.cs" />
     <Compile Include="src\UI\Library\Root.cs" />
@@ -168,4 +169,8 @@
     </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>cd "$(ProjectDir)"
+$(ProjectDir)list.bat</PostBuildEvent>
+  </PropertyGroup>
 </Project>

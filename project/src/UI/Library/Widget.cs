@@ -68,7 +68,7 @@ namespace Synergy.UI
 
 	class Widget
 	{
-		static public float DontCare = -1;
+		public const float DontCare = -1;
 
 		private Widget parent_ = null;
 		private string name_ = "";
@@ -326,8 +326,6 @@ namespace Synergy.UI
 			rect.anchorMax = new Vector2(0, 1);
 			rect.anchoredPosition = new Vector2(wr.Center.X, -wr.Center.Y);
 
-			Synergy.LogError(wr.ToString());
-
 			var layoutElement = object_.GetComponent<LayoutElement>();
 			layoutElement.minWidth = wr.Width;
 			layoutElement.preferredWidth = wr.Width;
@@ -370,6 +368,7 @@ namespace Synergy.UI
 				list.Add("b=" + Bounds.ToString());
 				list.Add("rb=" + RelativeBounds.ToString());
 				list.Add("ps=" + PreferredSize.ToString());
+				list.Add("ly=" + (Layout?.TypeName ?? "none"));
 
 				return string.Join(" ", list.ToArray());
 			}

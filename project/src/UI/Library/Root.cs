@@ -111,7 +111,7 @@ namespace Synergy.UI
 			var steprepeat = new Widget();
 			var stepdelay = new Widget();
 
-			stepduration.Layout = new VerticalFlow(20);
+			stepduration.Layout = new GridLayout(2);
 
 			var w = new Widget();
 			w.Layout = new HorizontalFlow();
@@ -239,7 +239,7 @@ namespace Synergy.UI
 				var b = Synergy.Instance.CreateButton("b");
 				tg_ = b.buttonText.cachedTextGenerator;
 				ts_ = b.buttonText.GetGenerationSettings(new Vector2());
-				Utilities.DumpComponentsAndUp(b.gameObject);
+				//Utilities.DumpComponentsAndUp(b.gameObject);
 				PluginParent = b.transform.parent;
 				Synergy.Instance.RemoveButton(b);
 			}
@@ -263,22 +263,6 @@ namespace Synergy.UI
 
 			var a = scrollview.GetComponent<UnityEngine.UI.Image>();
 			a.color = new Color(0.15f, 0.15f, 0.15f);
-
-			//scriptui.GetComponent<Image>().canvas.pixelPerfect = false;
-			//scriptui.GetComponent<Image>().canvas.renderMode = RenderMode.WorldSpace;
-
-			while (p != null)
-			{
-				var c = p.GetComponent<Canvas>();
-				if (c != null)
-				{
-					//c.pixelPerfect = true;
-					//c.renderMode = RenderMode.WorldSpace;
-					break;
-				}
-
-				p = p.parent;
-			}
 		}
 
 		public static float TextLength(string s)

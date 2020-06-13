@@ -13,6 +13,8 @@ namespace Synergy.UI
 		private readonly List<Widget> children_ = new List<Widget>();
 		private float spacing_ = 0;
 
+		public abstract string TypeName { get; }
+
 		public Widget Parent
 		{
 			get { return parent_; }
@@ -29,7 +31,7 @@ namespace Synergy.UI
 			get { return GetPreferredSize(); }
 		}
 
-		public float Spacing
+		public virtual float Spacing
 		{
 			get { return spacing_; }
 			set { spacing_ = value; }
@@ -70,7 +72,7 @@ namespace Synergy.UI
 			return children_.Contains(w);
 		}
 
-		protected virtual void AddImpl(Widget w, LayoutData data = null)
+		protected virtual void AddImpl(Widget w, LayoutData data)
 		{
 			// no-op
 		}
@@ -91,6 +93,8 @@ namespace Synergy.UI
 
 	class HorizontalFlow : Layout
 	{
+		public override string TypeName { get { return "horflow"; } }
+
 		public HorizontalFlow(int spacing = 0)
 		{
 			Spacing = spacing;
@@ -120,8 +124,8 @@ namespace Synergy.UI
 
 				var ps = Children[i].PreferredSize;
 
-				totalWidth += ps.width;
-				tallest = Math.Max(tallest, ps.height);
+				totalWidth += ps.Width;
+				tallest = Math.Max(tallest, ps.Height);
 			}
 
 			return new Size(totalWidth, tallest);
@@ -131,6 +135,8 @@ namespace Synergy.UI
 
 	class VerticalFlow : Layout
 	{
+		public override string TypeName { get { return "verflow"; } }
+
 		public VerticalFlow(int spacing = 0)
 		{
 			Spacing = spacing;
@@ -160,8 +166,8 @@ namespace Synergy.UI
 
 				var ps = Children[i].PreferredSize;
 
-				totalHeight += ps.height;
-				widest = Math.Max(widest, ps.width);
+				totalHeight += ps.Height;
+				widest = Math.Max(widest, ps.Width);
 			}
 
 			return new Size(widest, totalHeight);

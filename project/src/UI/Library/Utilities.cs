@@ -45,7 +45,7 @@ namespace Synergy.UI
 
 	class Size
 	{
-		public float width, height;
+		public float Width, Height;
 
 		public Size()
 			: this(0, 0)
@@ -54,20 +54,20 @@ namespace Synergy.UI
 
 		public Size(float w, float h)
 		{
-			width = w;
-			height = h;
+			Width = w;
+			Height = h;
 		}
 
 		public static Size Max(Size a, Size b)
 		{
 			return new Size(
-				Math.Max(a.width, b.width),
-				Math.Max(a.height, b.height));
+				Math.Max(a.Width, b.Width),
+				Math.Max(a.Height, b.Height));
 		}
 
 		public override string ToString()
 		{
-			return width.ToString() + "*" + height.ToString();
+			return Width.ToString() + "*" + Height.ToString();
 		}
 	}
 
@@ -94,8 +94,8 @@ namespace Synergy.UI
 		{
 			Left = x;
 			Top = y;
-			Right = Left + s.width;
-			Bottom = Top + s.height;
+			Right = Left + s.Width;
+			Bottom = Top + s.Height;
 		}
 
 		static public Rectangle FromSize(float x, float y, float w, float h)

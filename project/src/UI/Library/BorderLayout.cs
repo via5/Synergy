@@ -5,6 +5,9 @@ namespace Synergy.UI
 {
 	class BorderLayout : Layout
 	{
+		public override string TypeName { get { return "bl"; } }
+
+
 		public class Data : LayoutData
 		{
 			public int side;
@@ -97,7 +100,7 @@ namespace Synergy.UI
 
 			foreach (var w in sides_[TopSide])
 			{
-				float wh = w.PreferredSize.height;
+				float wh = w.PreferredSize.Height;
 				tallest = Math.Max(tallest, wh);
 
 				Rectangle r = new Rectangle();
@@ -131,7 +134,7 @@ namespace Synergy.UI
 
 			foreach (var w in sides_[BottomSide])
 			{
-				float wh = w.PreferredSize.height;
+				float wh = w.PreferredSize.Height;
 				tallest = Math.Max(tallest, wh);
 
 				Rectangle r = new Rectangle();
@@ -165,7 +168,7 @@ namespace Synergy.UI
 
 			foreach (var w in sides_[LeftSide])
 			{
-				float ww = w.PreferredSize.width;
+				float ww = w.PreferredSize.Width;
 				widest = Math.Max(widest, ww);
 
 				Rectangle r = new Rectangle();
@@ -200,7 +203,7 @@ namespace Synergy.UI
 
 			foreach (var w in sides_[RightSide])
 			{
-				float ww = w.PreferredSize.width;
+				float ww = w.PreferredSize.Width;
 				widest = Math.Max(widest, ww);
 
 				Rectangle r = new Rectangle();
@@ -241,7 +244,7 @@ namespace Synergy.UI
 
 			foreach (var w in sides_[side])
 			{
-				float ww = w.PreferredSize.width;
+				float ww = w.PreferredSize.Width;
 				widest = Math.Max(widest, ww);
 			}
 
@@ -254,7 +257,7 @@ namespace Synergy.UI
 
 			foreach (var w in sides_[side])
 			{
-				float wh = w.PreferredSize.height;
+				float wh = w.PreferredSize.Height;
 				tallest = Math.Max(tallest, wh);
 			}
 
