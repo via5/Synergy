@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net.NetworkInformation;
 
 namespace Synergy.UI
 {
@@ -96,6 +95,8 @@ namespace Synergy.UI
 
 			public void Extend(int cols, int rows)
 			{
+				cols = Math.Max(cols, ColumnCount);
+
 				while (data_.Count < rows)
 					data_.Add(new RowData<T>());
 
@@ -167,11 +168,7 @@ namespace Synergy.UI
 				{
 					nextCol_ = 0;
 					++nextRow_;
-
-					widgets_.Extend(widgets_.ColumnCount, nextRow_);
 				}
-
-				return;
 			}
 
 			if (d.row < 0)
@@ -186,7 +183,9 @@ namespace Synergy.UI
 				return;
 			}
 
-			widgets_.Extend(d.col, d.row);
+			Synergy.LogError(d.col.ToString() + " " + d.row.ToString());
+
+			widgets_.Extend(d.col + 1, d.row + 1);
 			widgets_.Cell(d.col, d.row).Add(w);
 		}
 
@@ -195,8 +194,8 @@ namespace Synergy.UI
 			var r = new Rectangle(Parent.Bounds);
 			var d = GetCellPreferredSizes();
 
-			float xfactor = r.Width / d.ps.Width;
-			float yfactor = r.Height / d.ps.Height;
+			float xfactor = 1;//.Width / d.ps.Width;
+			float yfactor = 1;//r.Height / d.ps.Height;
 
 			float x = r.Left;
 			float y = r.Top;
@@ -209,14 +208,18 @@ namespace Synergy.UI
 				{
 					var ws = widgets_.Cell(colIndex, rowIndex);
 					var ps = d.sizes.Cell(colIndex, rowIndex);
+					var uniformWidth = d.widths[colIndex];
+
+					var ww = Math.Min(ps.Width, uniformWidth);
+					var wh = ps.Height;
 
 					var wr = Rectangle.FromSize(
-						x, y, (ps.Width * xfactor), (ps.Height * yfactor));
+						x, y, (ww * xfactor), (wh * yfactor));
 
 					foreach (var w in ws)
 						w.Bounds = wr;
 
-					x += wr.Width + HorizontalSpacing;
+					x += uniformWidth + HorizontalSpacing;
 					tallestInRow = Math.Max(tallestInRow, wr.Height);
 				}
 
@@ -233,12 +236,16 @@ namespace Synergy.UI
 		struct PreferredSizesData
 		{
 			public Size ps;
+			public List<float> widths;
 			public CellData<Size> sizes;
 			public float tallest;
 
 			public PreferredSizesData(int cols, int rows)
 			{
 				ps = new Size();
+				widths = new List<float>();
+				for (int i = 0; i < cols; ++i)
+					widths.Add(0);
 				sizes = new CellData<Size>(cols, rows);
 				tallest = 0;
 			}
@@ -269,6 +276,7 @@ namespace Synergy.UI
 					}
 
 					d.sizes.Set(colIndex, rowIndex, cellPs);
+					d.widths[colIndex] = Math.Max(d.widths[colIndex], cellPs.Width);
 
 					if (colIndex > 0)
 						width += HorizontalSpacing;

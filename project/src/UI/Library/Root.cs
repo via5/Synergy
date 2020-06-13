@@ -111,49 +111,46 @@ namespace Synergy.UI
 			var steprepeat = new Widget();
 			var stepdelay = new Widget();
 
-			stepduration.Layout = new GridLayout(2);
+			var gl = new GridLayout(2);
+			stepduration.Layout = gl;
+			gl.HorizontalSpacing = 10;
+			gl.VerticalSpacing = 20;
+
+			stepduration.Add(new Label("Type"));
+			stepduration.Add(new ComboBox());
 
 			var w = new Widget();
-			w.Layout = new HorizontalFlow();
-			w.Add(new Label("Type"));
-			w.Add(new ComboBox());
-			stepduration.Add(w);
-
-			w = new Widget();
 			w.Layout = new HorizontalFlow(5);
-			w.Add(new Label("Time"));
 			w.Add(new TextBox("1"));
 			w.Add(new Button("-1"));
 			w.Add(new Button("0"));
 			w.Add(new Button("R"));
 			w.Add(new Button("+1"));
+			stepduration.Add(new Label("Time"));
 			stepduration.Add(w);
 
 			w = new Widget();
 			w.Layout = new HorizontalFlow(5);
-			w.Add(new Label("Random range"));
 			w.Add(new TextBox("1"));
 			w.Add(new Button("-1"));
 			w.Add(new Button("0"));
 			w.Add(new Button("R"));
 			w.Add(new Button("+1"));
+			stepduration.Add(new Label("Random range"));
 			stepduration.Add(w);
 
 			w = new Widget();
 			w.Layout = new HorizontalFlow(5);
-			w.Add(new Label("Random interval"));
 			w.Add(new TextBox("1"));
 			w.Add(new Button("-1"));
 			w.Add(new Button("0"));
 			w.Add(new Button("R"));
 			w.Add(new Button("+1"));
+			stepduration.Add(new Label("Random interval"));
 			stepduration.Add(w);
 
-			w = new Widget();
-			w.Layout = new HorizontalFlow();
-			w.Add(new Label("Cut-off"));
-			w.Add(new ComboBox());
-			stepduration.Add(w);
+			stepduration.Add(new Label("Cut-off"));
+			stepduration.Add(new ComboBox());
 
 			steptabs.AddTab("Duration", stepduration);
 			steptabs.AddTab("Repeat", steprepeat);
@@ -237,6 +234,7 @@ namespace Synergy.UI
 
 			{
 				var b = Synergy.Instance.CreateButton("b");
+				if (b == null) Synergy.LogError("8");
 				tg_ = b.buttonText.cachedTextGenerator;
 				ts_ = b.buttonText.GetGenerationSettings(new Vector2());
 				//Utilities.DumpComponentsAndUp(b.gameObject);
@@ -262,6 +260,7 @@ namespace Synergy.UI
 			if (PluginParent == pp) Synergy.LogError("6");
 
 			var a = scrollview.GetComponent<UnityEngine.UI.Image>();
+			if (a == null) Synergy.LogError("7");
 			a.color = new Color(0.15f, 0.15f, 0.15f);
 		}
 

@@ -59,9 +59,6 @@ namespace Synergy
 				if (GetAtomById("synergytestatom") != null)
 					CreateTestStuff(GetAtomById("synergytestatom"));
 
-				ui_ = new MainUI();
-				ui_.Create();
-
 				enabled_ = true;
 			});
 		}
@@ -226,6 +223,12 @@ namespace Synergy
 
 			Utilities.Handler(() =>
 			{
+				if (ui_ == null)
+				{
+					ui_ = new MainUI();
+					ui_.Create();
+				}
+
 				timers_.CheckTimers();
 				ui_.Update();
 			});
