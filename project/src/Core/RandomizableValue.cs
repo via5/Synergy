@@ -448,7 +448,14 @@ namespace Synergy
 			else
 			{
 				if (current_ <= maxTime)
+				{
 					elapsed_ = 0;
+				}
+				else
+				{
+					elapsed_ = 0;
+					current_ = 0;
+				}
 			}
 		}
 

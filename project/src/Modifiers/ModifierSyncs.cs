@@ -184,6 +184,7 @@ namespace Synergy
 			new ExplicitHolder<Delay>();
 
 		private bool inFirstHalf_ = true;
+		private bool wasFinished_ = false;
 
 
 		public UnsyncedModifier()
@@ -221,7 +222,7 @@ namespace Synergy
 
 				var t = Duration.TimeRemaining;
 
-				if ((inFirstHalf_ && Delay.Halfway) || Delay.Active)
+				if ((!Finished && inFirstHalf_ && Delay.Halfway) || Delay.Active)
 					t += Delay.Duration.TimeRemaining;
 
 				return t;
@@ -259,6 +260,7 @@ namespace Synergy
 			{
 				duration_.HeldValue?.Removed();
 				duration_.Set(value);
+				wasFinished_ = false;
 			}
 		}
 
@@ -302,6 +304,15 @@ namespace Synergy
 		{
 			if (Duration.Finished)
 			{
+				if (wasFinished_)
+				{
+					// the duration was finished before and hasn't restarted
+					// since, don't keep delaying, just do it the one time
+					return;
+				}
+
+				wasFinished_ = true;
+
 				if (Delay.EndForwards)
 				{
 					if (MustStopWhenFinished)
@@ -317,15 +328,22 @@ namespace Synergy
 				else
 				{
 					if (MustStopWhenFinished)
+					{
 						Duration.Reset(StopGracePeriod);
+						ConfirmDurationForStop();
+					}
 					else
+					{
 						Reset();
+					}
 
 					return;
 				}
 			}
 			else
 			{
+				wasFinished_ = false;
+
 				var firstHalf = Duration.InFirstHalf;
 
 				if ((inFirstHalf_ && !firstHalf) && Delay.Halfway)
@@ -356,6 +374,7 @@ namespace Synergy
 		public override void Reset()
 		{
 			Duration.Reset();
+			wasFinished_ = false;
 		}
 
 		public override J.Node ToJSON()
@@ -408,15 +427,35 @@ namespace Synergy
 					Delay.ResetDurationAfter = false;
 
 					if (MustStopWhenFinished)
+					{
 						Duration.Reset(StopGracePeriod);
+						ConfirmDurationForStop();
+					}
 					else
+					{
 						Reset();
+					}
 				}
 
 				return false;
 			}
 
 			return true;
+		}
+
+		private void ConfirmDurationForStop()
+		{
+			if (!Delay.Halfway)
+				return;
+
+			var graceForDelay = StopGracePeriod - Duration.Current;
+
+			if (graceForDelay < Delay.Duration.Current)
+			{
+				// duration + delay would be longer than grace period,
+				// cancel
+				Duration.Reset(-1);
+			}
 		}
 	}
 

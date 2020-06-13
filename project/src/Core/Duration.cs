@@ -489,8 +489,8 @@ namespace Synergy
 				d.hold_.Value = hold_.Value;
 			}
 
-			rampUp_.Value = d.rampUp_.Value;
-			rampDown_.Value = d.rampDown_.Value;
+				rampUp_.Value = d.rampUp_.Value;
+				rampDown_.Value = d.rampDown_.Value;
 		}
 
 		public override void Tick(float delta)
@@ -574,7 +574,12 @@ namespace Synergy
 		public override void Reset(float maxTime)
 		{
 			if ((Over * 2 + Hold) > maxTime)
-				return ;
+			{
+				finished_ = true;
+				elapsed_ = 0;
+				current_ = 0;
+				return;
+			}
 
 			Reset();
 		}
