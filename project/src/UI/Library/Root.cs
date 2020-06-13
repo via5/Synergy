@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.Win32.SafeHandles;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -108,52 +109,48 @@ namespace Synergy.UI
 			var steptabs = new Tabs();
 
 			var stepduration = new Widget();
+				var gl = new GridLayout(2);
+				stepduration.Layout = gl;
+				gl.HorizontalSpacing = 10;
+				gl.VerticalSpacing = 20;
+
+				stepduration.Add(new Label("Type"));
+				stepduration.Add(new ComboBox());
+				AddRandomDuration(stepduration);
+			steptabs.AddTab("Duration", stepduration);
+
+
 			var steprepeat = new Widget();
+				gl = new GridLayout(2);
+				steprepeat.Layout = gl;
+				gl.HorizontalSpacing = 10;
+				gl.VerticalSpacing = 20;
+
+				AddRandomDuration(steprepeat);
+			steptabs.AddTab("Repeat", steprepeat);
+
+
 			var stepdelay = new Widget();
 
-			var gl = new GridLayout(2);
-			stepduration.Layout = gl;
+			var controls = new Widget();
+			controls.Layout = new HorizontalFlow();
+			controls.Add(new CheckBox("Halfway"));
+			controls.Add(new CheckBox("End"));
+
+			var duration = new Widget();
+			gl = new GridLayout(2);
 			gl.HorizontalSpacing = 10;
 			gl.VerticalSpacing = 20;
+			duration.Layout = gl;
 
-			stepduration.Add(new Label("Type"));
-			stepduration.Add(new ComboBox());
+			duration.Add(new Label("Type"));
+			duration.Add(new ComboBox());
+			AddRampDuration(duration);
 
-			var w = new Widget();
-			w.Layout = new HorizontalFlow(5);
-			w.Add(new TextBox("1"));
-			w.Add(new Button("-1"));
-			w.Add(new Button("0"));
-			w.Add(new Button("R"));
-			w.Add(new Button("+1"));
-			stepduration.Add(new Label("Time"));
-			stepduration.Add(w);
+			stepdelay.Layout = new VerticalFlow(30);
+			stepdelay.Add(controls);
+			stepdelay.Add(duration);
 
-			w = new Widget();
-			w.Layout = new HorizontalFlow(5);
-			w.Add(new TextBox("1"));
-			w.Add(new Button("-1"));
-			w.Add(new Button("0"));
-			w.Add(new Button("R"));
-			w.Add(new Button("+1"));
-			stepduration.Add(new Label("Random range"));
-			stepduration.Add(w);
-
-			w = new Widget();
-			w.Layout = new HorizontalFlow(5);
-			w.Add(new TextBox("1"));
-			w.Add(new Button("-1"));
-			w.Add(new Button("0"));
-			w.Add(new Button("R"));
-			w.Add(new Button("+1"));
-			stepduration.Add(new Label("Random interval"));
-			stepduration.Add(w);
-
-			stepduration.Add(new Label("Cut-off"));
-			stepduration.Add(new ComboBox());
-
-			steptabs.AddTab("Duration", stepduration);
-			steptabs.AddTab("Repeat", steprepeat);
 			steptabs.AddTab("Delay", stepdelay);
 
 			steptab.Add(stepcontrols, BorderLayout.Top);
@@ -185,6 +182,61 @@ namespace Synergy.UI
 			root_.Create();
 
 			root_.Dump();
+		}
+
+		private void AddRandomDuration(Widget parent)
+		{
+			parent.Add(new Label("Time"));
+			parent.Add(CreateTimeWidgets());
+
+			parent.Add(new Label("Random range"));
+			parent.Add(CreateTimeWidgets());
+
+			parent.Add(new Label("Random interval"));
+			parent.Add(CreateTimeWidgets());
+
+			parent.Add(new Label("Cut-off"));
+			parent.Add(new ComboBox());
+		}
+
+		private void AddRampDuration(Widget parent)
+		{
+			parent.Add(new Label("Time"));
+			parent.Add(CreateTimeWidgets());
+
+			parent.Add(new Label("Minimum duration"));
+			parent.Add(CreateTimeWidgets());
+
+			parent.Add(new Label("Maximum duration"));
+			parent.Add(CreateTimeWidgets());
+
+			parent.Add(new Label("Hold maximum"));
+			parent.Add(CreateTimeWidgets());
+
+			parent.Add(new Label("Easing"));
+			parent.Add(new ComboBox());
+
+			var ramps = new Widget();
+			ramps.Layout = new HorizontalFlow();
+			ramps.Add(new CheckBox("Ramp up"));
+			ramps.Add(new CheckBox("Ramp down"));
+
+			parent.Add(new Widget());
+			parent.Add(ramps);
+		}
+
+		private Widget CreateTimeWidgets()
+		{
+			var w = new Widget();
+			w.Layout = new HorizontalFlow(5);
+
+			w.Add(new TextBox("1"));
+			w.Add(new Button("-1"));
+			w.Add(new Button("0"));
+			w.Add(new Button("Reset"));
+			w.Add(new Button("+1"));
+
+			return w;
 		}
 
 		public void UpdateSteps(Step sel = null)
