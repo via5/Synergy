@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Synergy.UI
 {
@@ -110,9 +111,53 @@ namespace Synergy.UI
 			var steprepeat = new Widget();
 			var stepdelay = new Widget();
 
+			stepduration.Layout = new VerticalFlow(20);
+
+			var w = new Widget();
+			w.Layout = new HorizontalFlow();
+			w.Add(new Label("Type"));
+			w.Add(new ComboBox());
+			stepduration.Add(w);
+
+			w = new Widget();
+			w.Layout = new HorizontalFlow(5);
+			w.Add(new Label("Time"));
+			w.Add(new TextBox("1"));
+			w.Add(new Button("-1"));
+			w.Add(new Button("0"));
+			w.Add(new Button("R"));
+			w.Add(new Button("+1"));
+			stepduration.Add(w);
+
+			w = new Widget();
+			w.Layout = new HorizontalFlow(5);
+			w.Add(new Label("Random range"));
+			w.Add(new TextBox("1"));
+			w.Add(new Button("-1"));
+			w.Add(new Button("0"));
+			w.Add(new Button("R"));
+			w.Add(new Button("+1"));
+			stepduration.Add(w);
+
+			w = new Widget();
+			w.Layout = new HorizontalFlow(5);
+			w.Add(new Label("Random interval"));
+			w.Add(new TextBox("1"));
+			w.Add(new Button("-1"));
+			w.Add(new Button("0"));
+			w.Add(new Button("R"));
+			w.Add(new Button("+1"));
+			stepduration.Add(w);
+
+			w = new Widget();
+			w.Layout = new HorizontalFlow();
+			w.Add(new Label("Cut-off"));
+			w.Add(new ComboBox());
+			stepduration.Add(w);
+
 			steptabs.AddTab("Duration", stepduration);
-			steptabs.AddTab("Repeat", stepduration);
-			steptabs.AddTab("Delay", stepduration);
+			steptabs.AddTab("Repeat", steprepeat);
+			steptabs.AddTab("Delay", stepdelay);
 
 			steptab.Add(stepcontrols, BorderLayout.Top);
 			steptab.Add(steptabs, BorderLayout.Center);
@@ -141,8 +186,8 @@ namespace Synergy.UI
 
 			root_.DoLayout();
 			root_.Create();
-			/*
-			root_.Dump();*/
+
+			root_.Dump();
 		}
 
 		public void UpdateSteps(Step sel = null)
@@ -166,7 +211,7 @@ namespace Synergy.UI
 		static public Font DefaultFont =
 			(Font)Resources.GetBuiltinResource(typeof(Font), "Arial.ttf");
 		static public int DefaultFontSize = 28;
-		static public Color DefaultTextColor = new Color(0.85f, 0.85f, 0.85f);
+		static public Color DefaultTextColor = new Color(0.84f, 0.84f, 0.84f);
 
 		static private TextGenerator tg_ = null;
 		static private TextGenerationSettings ts_;
@@ -194,6 +239,7 @@ namespace Synergy.UI
 				var b = Synergy.Instance.CreateButton("b");
 				tg_ = b.buttonText.cachedTextGenerator;
 				ts_ = b.buttonText.GetGenerationSettings(new Vector2());
+				Utilities.DumpComponentsAndUp(b.gameObject);
 				PluginParent = b.transform.parent;
 				Synergy.Instance.RemoveButton(b);
 			}
@@ -217,6 +263,22 @@ namespace Synergy.UI
 
 			var a = scrollview.GetComponent<UnityEngine.UI.Image>();
 			a.color = new Color(0.15f, 0.15f, 0.15f);
+
+			//scriptui.GetComponent<Image>().canvas.pixelPerfect = false;
+			//scriptui.GetComponent<Image>().canvas.renderMode = RenderMode.WorldSpace;
+
+			while (p != null)
+			{
+				var c = p.GetComponent<Canvas>();
+				if (c != null)
+				{
+					//c.pixelPerfect = true;
+					//c.renderMode = RenderMode.WorldSpace;
+					break;
+				}
+
+				p = p.parent;
+			}
 		}
 
 		public static float TextLength(string s)

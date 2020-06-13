@@ -21,7 +21,7 @@ namespace Synergy.UI
 
 			Synergy.LogError("---");
 
-			var parent = o.transform.parent.gameObject;
+			var parent = o?.transform?.parent?.gameObject;
 			if (parent != null)
 				DumpComponentsAndUp(parent);
 		}

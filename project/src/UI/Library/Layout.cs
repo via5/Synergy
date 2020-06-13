@@ -127,4 +127,44 @@ namespace Synergy.UI
 			return new Size(totalWidth, tallest);
 		}
 	}
+
+
+	class VerticalFlow : Layout
+	{
+		public VerticalFlow(int spacing = 0)
+		{
+			Spacing = spacing;
+		}
+
+		protected override void LayoutImpl()
+		{
+			var r = new Rectangle(Parent.Bounds);
+
+			foreach (var w in Children)
+			{
+				var wr = new Rectangle(r.TopLeft, w.PreferredSize);
+				w.Bounds = wr;
+				r.Top += wr.Height + Spacing;
+			}
+		}
+
+		protected override Size GetPreferredSize()
+		{
+			float totalHeight = 0;
+			float widest = 0;
+
+			for (int i = 0; i < Children.Count; ++i)
+			{
+				if (i > 0)
+					totalHeight += Spacing;
+
+				var ps = Children[i].PreferredSize;
+
+				totalHeight += ps.height;
+				widest = Math.Max(widest, ps.width);
+			}
+
+			return new Size(widest, totalHeight);
+		}
+	}
 }

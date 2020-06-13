@@ -32,7 +32,7 @@ namespace Synergy.UI
 			button_ = t.GetComponent<UIDynamicButton>();
 			button_.button.onClick.AddListener(OnClicked);
 
-			return button_.gameObject;
+			return t.gameObject;
 		}
 
 		protected override void DoCreate()
