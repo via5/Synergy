@@ -144,7 +144,7 @@ namespace Synergy
 		{
 			if (Synergy.Instance.DefaultAtom.name == "synergyuitest")
 			{
-				new UI.Test();
+				new NewUI();
 				return;
 			}
 
