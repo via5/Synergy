@@ -7,21 +7,28 @@ namespace Synergy.UI
 	{
 		public override string TypeName { get { return "checkbox"; } }
 
-		public delegate void ClickHandler();
+		public delegate void ClickHandler(bool b);
+		public event ClickHandler Clicked;
 
 		private string text_ = "";
 		private UIDynamicToggle toggle_ = null;
-		private event ClickHandler clicked_;
 
 		public CheckBox(string t = "")
 		{
 			text_ = t;
 		}
 
-		public ClickHandler Clicked
+		public bool Checked
 		{
-			get { return clicked_; }
-			set { clicked_ = value; }
+			get
+			{
+				return toggle_.toggle.isOn;
+			}
+
+			set
+			{
+				toggle_.toggle.isOn = value;
+			}
 		}
 
 		protected override GameObject CreateGameObject()
@@ -68,7 +75,7 @@ namespace Synergy.UI
 		private void OnClicked(bool b)
 		{
 			Root.SetFocus(this);
-			clicked_();
+			Clicked(b);
 		}
 	}
 }

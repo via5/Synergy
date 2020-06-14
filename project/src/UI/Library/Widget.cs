@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Battlehub.Utils;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -65,7 +66,7 @@ namespace Synergy.UI
 		}
 	}
 
-	abstract class Widget
+	abstract class Widget : IDisposable
 	{
 		public virtual string TypeName { get { return "widget"; } }
 
@@ -90,6 +91,23 @@ namespace Synergy.UI
 			name_ = name;
 		}
 
+		public void Dispose()
+		{
+			Destroy();
+		}
+
+		protected virtual void Destroy()
+		{
+			foreach (var c in children_)
+				c.Destroy();
+
+			if (object_ != null)
+			{
+				UnityEngine.Object.Destroy(object_);
+				object_ = null;
+			}
+		}
+
 		public static string S(string s)
 		{
 			return NewUI.Strings.Get(s);
@@ -108,6 +126,8 @@ namespace Synergy.UI
 
 				if (layout_ != null)
 					layout_.Parent = this;
+
+				NeedsLayout();
 			}
 		}
 
@@ -266,6 +286,7 @@ namespace Synergy.UI
 			w.parent_ = this;
 			children_.Add(w);
 			layout_?.Add(w, d);
+			NeedsLayout();
 			return w;
 		}
 
@@ -282,6 +303,20 @@ namespace Synergy.UI
 
 			layout_.Remove(w);
 			w.parent_ = null;
+			w.Destroy();
+
+			NeedsLayout();
+		}
+
+		public void Remove()
+		{
+			if (parent_ == null)
+			{
+				Synergy.LogError("can't remove '" + Name + ", no parent");
+				return;
+			}
+
+			parent_.Remove(this);
 		}
 
 		public void DoLayout()
@@ -294,53 +329,62 @@ namespace Synergy.UI
 
 		public void Create()
 		{
-			object_ = CreateGameObject();
-			object_.SetActive(Visible);
+			if (object_ == null)
+			{
+				object_ = CreateGameObject();
+				object_.SetActive(Visible);
 
-			object_.transform.SetParent(Root.PluginParent, false);
+				object_.transform.SetParent(Root.PluginParent, false);
 
-			var wr = ContentBounds;
+				var wr = ContentBounds;
 
-			var rect = object_.GetComponent<RectTransform>();
-			rect.offsetMin = new Vector2(wr.Left, wr.Top);
-			rect.offsetMax = new Vector2(wr.Right, wr.Bottom);
-			rect.anchorMin = new Vector2(0, 1);
-			rect.anchorMax = new Vector2(0, 1);
-			rect.anchoredPosition = new Vector2(wr.Center.X, -wr.Center.Y);
+				var rect = object_.GetComponent<RectTransform>();
+				rect.offsetMin = new Vector2(wr.Left, wr.Top);
+				rect.offsetMax = new Vector2(wr.Right, wr.Bottom);
+				rect.anchorMin = new Vector2(0, 1);
+				rect.anchorMax = new Vector2(0, 1);
+				rect.anchoredPosition = new Vector2(wr.Center.X, -wr.Center.Y);
 
-			var layoutElement = object_.GetComponent<LayoutElement>();
-			layoutElement.minWidth = wr.Width;
-			layoutElement.preferredWidth = wr.Width;
-			layoutElement.flexibleWidth = wr.Width;
-			layoutElement.minHeight = wr.Height;
-			layoutElement.preferredHeight = wr.Height;
-			layoutElement.flexibleHeight = wr.Height;
-			layoutElement.ignoreLayout = true;
+				var layoutElement = object_.GetComponent<LayoutElement>();
+				layoutElement.minWidth = wr.Width;
+				layoutElement.preferredWidth = wr.Width;
+				layoutElement.flexibleWidth = wr.Width;
+				layoutElement.minHeight = wr.Height;
+				layoutElement.preferredHeight = wr.Height;
+				layoutElement.flexibleHeight = wr.Height;
+				layoutElement.ignoreLayout = true;
 
-			DoCreate();
+				DoCreate();
 
-			var g = new GameObject();
-			g.transform.SetParent(object_.transform, false);
+				var g = new GameObject();
+				g.transform.SetParent(object_.transform, false);
 
-			var br = Rectangle.FromPoints(
-				-(Borders.Left + Padding.Left),
-				-(Borders.Top + Padding.Top),
-				ContentBounds.Width + (Borders.Right + Padding.Right),
-				ContentBounds.Height + (Borders.Bottom + Padding.Bottom));
+				var br = Rectangle.FromPoints(
+					-(Borders.Left + Padding.Left),
+					-(Borders.Top + Padding.Top),
+					ContentBounds.Width + (Borders.Right + Padding.Right),
+					ContentBounds.Height + (Borders.Bottom + Padding.Bottom));
 
-			graphic_ = g.AddComponent<WidgetGraphics>();
-			graphic_.Widget = this;
-			graphic_.raycastTarget = false;
+				graphic_ = g.AddComponent<WidgetGraphics>();
+				graphic_.Widget = this;
+				graphic_.raycastTarget = false;
 
-			var rt = graphic_.rectTransform;
-			rt.offsetMin = new Vector2(br.Left, br.Top);
-			rt.offsetMax = new Vector2(br.Right, br.Bottom);
-			rt.anchorMin = new Vector2(0, 1);
-			rt.anchorMax = new Vector2(0, 1);
-			rt.anchoredPosition = new Vector2(br.Center.X, -br.Center.Y);
+				var rt = graphic_.rectTransform;
+				rt.offsetMin = new Vector2(br.Left, br.Top);
+				rt.offsetMax = new Vector2(br.Right, br.Bottom);
+				rt.anchorMin = new Vector2(0, 1);
+				rt.anchorMax = new Vector2(0, 1);
+				rt.anchoredPosition = new Vector2(br.Center.X, -br.Center.Y);
+			}
 
 			foreach (var w in children_)
 				w.Create();
+		}
+
+		public virtual void NeedsLayout()
+		{
+			if (parent_ != null)
+				parent_.NeedsLayout();
 		}
 
 		public void Dump(int indent = 0)

@@ -31,6 +31,8 @@ namespace Synergy.UI
 			}
 		}
 
+		public delegate void ItemCallback(ItemType item);
+		public event ItemCallback SelectionChanged;
 
 		private readonly List<Item> items_ = new List<Item>();
 		private int selection_ = -1;
@@ -140,6 +142,8 @@ namespace Synergy.UI
 
 			selection_ = i;
 			UpdateLabel();
+
+			SelectionChanged(Selected);
 		}
 
 		public ItemType Selected
@@ -341,14 +345,15 @@ namespace Synergy.UI
 		{
 			Root.SetFocus(this);
 			Root.SetOpenedPopup(popup_.popup);
+			popup_.popup.popupPanel.transform.SetAsLastSibling();
 		}
 	}
 
 
 	class ComboBox : TypedComboBox<string>
 	{
-		public ComboBox(List<string> items = null)
-			: base(items)
+		public ComboBox(List<string> strings = null)
+			: base(strings)
 		{
 		}
 	}

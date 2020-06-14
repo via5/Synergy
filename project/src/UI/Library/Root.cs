@@ -35,6 +35,9 @@ namespace Synergy.UI
 			}
 		}
 
+
+		private bool dirty_ = true;
+
 		public Root()
 		{
 			Bounds = Rectangle.FromPoints(2, 1, 1078, 1228);
@@ -55,6 +58,21 @@ namespace Synergy.UI
 
 			var a = scrollview.GetComponent<UnityEngine.UI.Image>();
 			a.color = Style.BackgroundColor;
+		}
+
+		public void DoLayoutIfNeeded()
+		{
+			if (dirty_)
+			{
+				DoLayout();
+				Create();
+				dirty_ = false;
+			}
+		}
+
+		public override void NeedsLayout()
+		{
+			dirty_ = true;
 		}
 
 		public static float TextLength(string s)

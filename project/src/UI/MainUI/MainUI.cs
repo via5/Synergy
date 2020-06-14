@@ -39,6 +39,8 @@ namespace Synergy
 
 		private bool needsReset_ = false;
 
+		NewUI.NewUI nui_ = null;
+
 		public MainUI()
 		{
 		}
@@ -90,6 +92,9 @@ namespace Synergy
 
 			//if (inOptions_)
 			//	options_.Update();
+
+			if (nui_ != null)
+				nui_.Tick();
 		}
 
 		public void NeedsReset(string why)
@@ -144,7 +149,8 @@ namespace Synergy
 		{
 			if (Synergy.Instance.DefaultAtom.name == "synergyuitest")
 			{
-				new NewUI.NewUI();
+				if (nui_ == null)
+					nui_ = new NewUI.NewUI();
 				return;
 			}
 

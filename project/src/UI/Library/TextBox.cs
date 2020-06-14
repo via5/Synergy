@@ -31,6 +31,20 @@ namespace Synergy.UI
 			MinimumSize = new Size(100, DontCare);
 		}
 
+		public string Text
+		{
+			get
+			{
+				return text_;
+			}
+
+			set
+			{
+				text_ = value;
+				ss_.valNoCallback = value;
+			}
+		}
+
 		protected override GameObject CreateGameObject()
 		{
 			return UnityEngine.Object.Instantiate(

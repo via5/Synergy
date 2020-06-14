@@ -1,4 +1,7 @@
-﻿namespace Synergy.NewUI
+﻿using System;
+using UnityEngine;
+
+namespace Synergy.NewUI
 {
 	public class Strings
 	{
@@ -18,8 +21,60 @@
 		}
 	}
 
+
+	class FactoryComboBoxItem<ObjectType>
+		where ObjectType : IFactoryObject
+	{
+		private readonly IFactoryObjectCreator creator_;
+
+		public FactoryComboBoxItem(IFactoryObjectCreator creator)
+		{
+			creator_ = creator;
+		}
+
+		public ObjectType CreateFactoryObject()
+		{
+			return (ObjectType)creator_.Create();
+		}
+
+		public override string ToString()
+		{
+			return creator_.DisplayName;
+		}
+	}
+
+
+	class FactoryComboBox<FactoryType, ObjectType>
+		: UI.TypedComboBox<FactoryComboBoxItem<ObjectType>>
+			where FactoryType : IGenericFactory
+			where ObjectType : class, IFactoryObject
+	{
+		public delegate void FactoryTypeCallback(ObjectType o);
+		public event FactoryTypeCallback FactoryTypeChanged;
+
+		public FactoryComboBox(FactoryType f)
+		{
+			foreach (var creator in f.GetAllCreators())
+				AddItem(new FactoryComboBoxItem<ObjectType>(creator));
+
+			SelectionChanged += OnSelectionChanged;
+		}
+
+		private void OnSelectionChanged(FactoryComboBoxItem<ObjectType> item)
+		{
+			if (item == null)
+				FactoryTypeChanged(null);
+			else
+				FactoryTypeChanged(item.CreateFactoryObject());
+		}
+	}
+
+
 	class StepControls : UI.Panel
 	{
+		public delegate void StepCallback(Step s);
+		public event StepCallback SelectionChanged;
+
 		private readonly UI.TypedComboBox<Step> steps_;
 		private readonly UI.Button add_, clone_, clone0_, remove_, up_, down_;
 
@@ -44,6 +99,7 @@
 			Add(up_);
 			Add(down_);
 
+			steps_.SelectionChanged += OnSelectionChanged;
 			add_.Clicked += AddStep;
 			clone_.Clicked += CloneStep;
 			clone0_.Clicked += CloneStepZero;
@@ -105,26 +161,10 @@
 		public void MoveStepDown()
 		{
 		}
-	}
 
-
-	class StepInfo : UI.Panel
-	{
-		private UI.TextBox name_;
-		private UI.CheckBox enabled_, halfMove_;
-
-		public StepInfo()
+		private void OnSelectionChanged(Step s)
 		{
-			Layout = new UI.HorizontalFlow(10);
-
-			name_ = new UI.TextBox("Step 1");
-			enabled_ = new UI.CheckBox(S("Step enabled"));
-			halfMove_ = new UI.CheckBox(S("Half move"));
-
-			Add(new UI.Label(S("Name")));
-			Add(name_);
-			Add(enabled_);
-			Add(halfMove_);
+			SelectionChanged(s);
 		}
 	}
 
@@ -144,9 +184,25 @@
 	}
 
 
-	class RandomDurationWidgets : UI.Panel
+	abstract class DurationWidgets : UI.Panel
 	{
-		public RandomDurationWidgets()
+		public abstract bool Set(IDuration d);
+
+		public static DurationWidgets Create(IDuration d)
+		{
+			if (d is RandomDuration)
+				return new RandomDurationWidgets(d as RandomDuration);
+			else if (d is RampDuration)
+				return new RampDurationWidgets(d as RampDuration);
+			else
+				return null;
+		}
+	}
+
+
+	class RandomDurationWidgets : DurationWidgets
+	{
+		public RandomDurationWidgets(RandomDuration d = null)
 		{
 			var gl = new UI.GridLayout(2);
 			gl.HorizontalSpacing = 10;
@@ -166,12 +222,21 @@
 			Add(new UI.Label(S("Cut-off")));
 			Add(new UI.ComboBox());
 		}
+
+		public override bool Set(IDuration d)
+		{
+			var rd = (d as RandomDuration);
+			if (rd == null)
+				return false;
+
+			return true;
+		}
 	}
 
 
-	class RampDurationWidgets : UI.Panel
+	class RampDurationWidgets : DurationWidgets
 	{
-		public RampDurationWidgets()
+		public RampDurationWidgets(RampDuration d = null)
 		{
 			var gl = new UI.GridLayout(2);
 			gl.HorizontalSpacing = 10;
@@ -202,23 +267,61 @@
 			Add(new UI.Panel());
 			Add(ramps);
 		}
+
+		public override bool Set(IDuration d)
+		{
+			var rd = (d as RampDuration);
+			if (rd == null)
+				return false;
+
+			return true;
+		}
 	}
 
 
-	class DurationWidgets : UI.Panel
+	class DurationPanel : UI.Panel
 	{
-		private UI.Panel widgets_ = new RandomDurationWidgets();
+		private readonly FactoryComboBox<DurationFactory, IDuration> type_;
+		private DurationWidgets widgets_ = null;
+		private IDuration duration_ = null;
 
-		public DurationWidgets()
+		public DurationPanel()
 		{
 			Layout = new UI.VerticalFlow(50);
 
+			type_ = new FactoryComboBox<DurationFactory, IDuration>(new DurationFactory());
+
 			var p = new UI.Panel(new UI.HorizontalFlow(20));
 			p.Add(new UI.Label(S("Duration type")));
-			p.Add(new UI.ComboBox());
+			p.Add(type_);
+
+			type_.FactoryTypeChanged += OnTypeChanged;
 
 			Add(p);
-			Add(widgets_);
+		}
+
+		public void Set(IDuration d)
+		{
+			duration_ = d;
+
+			if (widgets_ == null || !widgets_.Set(d))
+				SetWidgets(DurationWidgets.Create(d));
+		}
+
+		private void SetWidgets(DurationWidgets p)
+		{
+			if (widgets_ != null)
+				widgets_.Remove();
+
+			widgets_ = p;
+
+			if (widgets_ != null)
+				Add(widgets_);
+		}
+
+		private void OnTypeChanged(IDuration d)
+		{
+			Set(d);
 		}
 	}
 
@@ -238,7 +341,7 @@
 	class DelayWidgets : UI.Panel
 	{
 		private readonly UI.CheckBox halfWay_, end_;
-		private readonly DurationWidgets duration_ = new DurationWidgets();
+		private readonly DurationPanel duration_ = new DurationPanel();
 
 		public DelayWidgets()
 		{
@@ -257,23 +360,80 @@
 	}
 
 
+
+	class StepInfo : UI.Panel
+	{
+		private readonly UI.TextBox name_;
+		private readonly UI.CheckBox enabled_, halfMove_;
+		private Step step_ = null;
+
+		public StepInfo()
+		{
+			Layout = new UI.HorizontalFlow(10);
+
+			name_ = new UI.TextBox("Step 1");
+			enabled_ = new UI.CheckBox(S("Step enabled"));
+			halfMove_ = new UI.CheckBox(S("Half move"));
+
+			Add(new UI.Label(S("Name")));
+			Add(name_);
+			Add(enabled_);
+			Add(halfMove_);
+
+			enabled_.Clicked += OnEnabled;
+			halfMove_.Clicked += OnHalfMove;
+		}
+
+		public void SetStep(Step s)
+		{
+			step_ = s;
+			name_.Text = s.Name;
+			enabled_.Checked = s.Enabled;
+			halfMove_.Checked = s.HalfMove;
+		}
+
+		private void OnEnabled(bool b)
+		{
+			if (step_ != null)
+				step_.Enabled = b;
+		}
+
+		private void OnHalfMove(bool b)
+		{
+			if (step_ != null)
+				step_.HalfMove = b;
+		}
+	}
+
+
 	class StepTab : UI.Panel
 	{
 		private readonly StepInfo info_ = new StepInfo();
 		private readonly UI.Tabs tabs_ = new UI.Tabs();
+		private readonly DurationPanel duration_ = new DurationPanel();
+		private readonly RepeatWidgets repeat_ = new RepeatWidgets();
+		private readonly DelayWidgets delay_ = new DelayWidgets();
 
 		public StepTab()
 		{
 			Layout = new UI.BorderLayout(20);
 			Layout.Spacing = 30;
 
-			tabs_.AddTab(S("Duration"), new DurationWidgets());
-			tabs_.AddTab(S("Repeat"), new RepeatWidgets());
-			tabs_.AddTab(S("Delay"), new DelayWidgets());
+			tabs_.AddTab(S("Duration"), duration_);
+			tabs_.AddTab(S("Repeat"), repeat_);
+			tabs_.AddTab(S("Delay"), delay_);
 
+			Add(info_, UI.BorderLayout.Top);
 			Add(tabs_, UI.BorderLayout.Center);
 		}
+
+		public void SetStep(Step s)
+		{
+			info_.SetStep(s);
+			duration_.Set(s.Duration);
+		}
 	}
+
 
 	class ModifierInfo : UI.Panel
 	{
@@ -348,6 +508,10 @@
 			Add(list_, UI.BorderLayout.Left);
 			Add(modifier_, UI.BorderLayout.Center);
 		}
+
+		public void SetStep(Step s)
+		{
+		}
 	}
 
 
@@ -373,8 +537,20 @@
 			root_.Add(steps_, UI.BorderLayout.Top);
 			root_.Add(tabs, UI.BorderLayout.Center);
 
-			root_.DoLayout();
-			root_.Create();
+			steps_.SelectionChanged += OnStepSelected;
+
+			root_.DoLayoutIfNeeded();
+		}
+
+		public void Tick()
+		{
+			root_.DoLayoutIfNeeded();
+		}
+
+		private void OnStepSelected(Step s)
+		{
+			stepTab_.SetStep(s);
+			modifiersTab_.SetStep(s);
 		}
 	}
 }
