@@ -6,6 +6,24 @@ namespace Synergy.UI
 {
 	class Utilities
 	{
+		public static GameObject FindChildRecursive(GameObject o, string name)
+		{
+			if (o == null)
+				return null;
+
+			if (o.name == name)
+				return o;
+
+			foreach (Transform c in o.transform)
+			{
+				var r = FindChildRecursive(c.gameObject, name);
+				if (r != null)
+					return r;
+			}
+
+			return null;
+		}
+
 		public static void DumpComponents(GameObject o, int indent = 0)
 		{
 			foreach (var c in o.GetComponents(typeof(Component)))
@@ -40,6 +58,36 @@ namespace Synergy.UI
 
 			foreach (Transform c in o.transform)
 				DumpComponentsAndDown(c.gameObject, indent + 1);
+		}
+
+		public static void DumpRectsAndDown(Component c)
+		{
+			DumpRectsAndDown(c.gameObject);
+		}
+
+		public static void DumpRectsAndDown(GameObject o, int indent = 0)
+		{
+			if (o == null)
+				return;
+
+			var rt = o.GetComponent<RectTransform>();
+
+			if (rt == null)
+			{
+				Synergy.LogError(new string(' ', indent * 2) + o.name);
+			}
+			else
+			{
+				Synergy.LogError(new string(' ', indent * 2) + o.name + " " +
+					"omin=" + rt.offsetMin.ToString() + " " +
+					"omax=" + rt.offsetMax.ToString() + " " +
+					"amin=" + rt.anchorMin.ToString() + " " +
+					"amxn=" + rt.anchorMax.ToString() + " " +
+					"ap=" + rt.anchoredPosition.ToString());
+			}
+
+			foreach (Transform c in o.transform)
+				DumpRectsAndDown(c.gameObject, indent + 1);
 		}
 
 		public static void DumpChildren(GameObject o, int indent = 0)

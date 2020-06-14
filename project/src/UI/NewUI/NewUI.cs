@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Synergy.NewUI
@@ -37,6 +38,11 @@ namespace Synergy.NewUI
 			return (ObjectType)creator_.Create();
 		}
 
+		public string FactoryTypeName
+		{
+			get { return creator_.FactoryTypeName; }
+		}
+
 		public override string ToString()
 		{
 			return creator_.DisplayName;
@@ -66,6 +72,27 @@ namespace Synergy.NewUI
 				FactoryTypeChanged(null);
 			else
 				FactoryTypeChanged(item.CreateFactoryObject());
+		}
+
+		public void Select(ObjectType d)
+		{
+			Select(IndexOf(d));
+		}
+
+		public int IndexOf(ObjectType d)
+		{
+			if (d == null)
+				return -1;
+
+			var items = Items;
+
+			for (int i = 0; i < items.Count; ++i)
+			{
+				if (items[i].FactoryTypeName == d.GetFactoryTypeName())
+					return i;
+			}
+
+			return -1;
 		}
 	}
 
@@ -306,6 +333,8 @@ namespace Synergy.NewUI
 
 			if (widgets_ == null || !widgets_.Set(d))
 				SetWidgets(DurationWidgets.Create(d));
+
+			type_.Select(d);
 		}
 
 		private void SetWidgets(DurationWidgets p)
@@ -507,6 +536,11 @@ namespace Synergy.NewUI
 
 			Add(list_, UI.BorderLayout.Left);
 			Add(modifier_, UI.BorderLayout.Center);
+
+			var list = new List<string>();
+			for (int i = 0; i < 30; ++i)
+				list.Add("item " + i.ToString());
+			list_.Items = list;
 		}
 
 		public void SetStep(Step s)

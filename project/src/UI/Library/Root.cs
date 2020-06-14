@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Synergy.UI
 {
@@ -58,6 +59,12 @@ namespace Synergy.UI
 
 			var a = scrollview.GetComponent<UnityEngine.UI.Image>();
 			a.color = Style.BackgroundColor;
+
+			var sr = scrollview.GetComponent<ScrollRect>();
+			sr.elasticity = 0;
+			sr.inertia = false;
+			sr.movementType = ScrollRect.MovementType.Clamped;
+
 		}
 
 		public void DoLayoutIfNeeded()

@@ -137,13 +137,16 @@ namespace Synergy.UI
 
 		public void Select(int i)
 		{
+			var prev = selection_;
+
 			if (i < 0 || i >= items_.Count)
 				i = -1;
 
 			selection_ = i;
 			UpdateLabel();
 
-			SelectionChanged(Selected);
+			if (selection_ != prev)
+				SelectionChanged(Selected);
 		}
 
 		public ItemType Selected
@@ -239,7 +242,6 @@ namespace Synergy.UI
 			popup_ = Object.GetComponent<UIDynamicPopup>();
 			popup_.labelWidth = 0;
 			popup_.labelSpacingRight = 0;
-			popup_.popupPanelHeight = 1000;
 			popup_.popup.showSlider = false;
 			popup_.popup.onOpenPopupHandlers += OnOpen;
 
@@ -262,8 +264,16 @@ namespace Synergy.UI
 			storable_.popup = popup_.popup;
 			storable_.setCallbackFunction = OnSelectionChanged;
 
+
+
+
+			// trying to fix combobox panel height
+
+
+
 			UpdateChoices();
 			UpdateLabel();
+				Utilities.DumpComponentsAndDown(popup_.popup);
 
 			var rt = popup_.popup.labelText.transform.parent.gameObject.GetComponent<RectTransform>();
 			rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y + 40);
