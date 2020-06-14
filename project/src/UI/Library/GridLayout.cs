@@ -183,8 +183,6 @@ namespace Synergy.UI
 				return;
 			}
 
-			Synergy.LogError(d.col.ToString() + " " + d.row.ToString());
-
 			widgets_.Extend(d.col + 1, d.row + 1);
 			widgets_.Cell(d.col, d.row).Add(w);
 		}

@@ -181,7 +181,7 @@ namespace Synergy
 			root_.DoLayout();
 			root_.Create();
 
-			root_.Dump();
+			//root_.Dump();
 		}
 
 		private void AddRandomDuration(UI.Panel parent)

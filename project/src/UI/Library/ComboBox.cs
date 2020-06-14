@@ -176,11 +176,8 @@ namespace Synergy.UI
 			// popup selection background color
 			popup.selectColor = Style.SelectionBackgroundColor;
 
-			// popup button text color
-			popup.normalColor = Style.ButtonBackgroundColor;
-
 			// popup button background color
-			popup.normalBackgroundColor = Style.ButtonBackgroundColor;
+			popup.normalColor = Style.ButtonBackgroundColor;
 
 			// button text color
 			var st = popup.topButton.GetComponentInChildren<UIStyleText>();
@@ -194,12 +191,26 @@ namespace Synergy.UI
 			var i = popup.topButton.GetComponent<Image>();
 			i.color = Style.ButtonBackgroundColor;
 
-			// popup background color
-			var si = popup.popupPanel.GetComponent<UIStyleImage>();
-			si.color = Style.ButtonBackgroundColor;
-			si.UpdateStyle();
+			// popup background color for combobox
+			i = popup.popupPanel.GetComponent<Image>();
+			i.color = Style.ButtonBackgroundColor;
+
+			// popup background color for lists
+			Transform sv = null;
+			foreach (Transform c in popup.popupPanel.transform)
+			{
+				if (c.name == "Scroll View")
+				{
+					sv = c;
+					break;
+				}
+			}
+
+			if (sv != null)
+				sv.GetComponent<Image>().color = Style.BackgroundColor;
 
 
+			// popup button text color
 			var sst = popup.popupButtonPrefab.GetComponentsInChildren<UIStyleText>();
 			foreach (var st2 in sst)
 			{

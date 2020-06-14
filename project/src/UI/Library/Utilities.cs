@@ -6,24 +6,40 @@ namespace Synergy.UI
 {
 	class Utilities
 	{
-		public static void DumpComponents(GameObject o)
+		public static void DumpComponents(GameObject o, int indent = 0)
 		{
 			foreach (var c in o.GetComponents(typeof(Component)))
-				Synergy.LogError(c.ToString());
+				Synergy.LogError(new string(' ', indent * 2) + c.ToString());
+		}
+
+		public static void DumpComponentsAndUp(Component c)
+		{
+			DumpComponentsAndUp(c.gameObject);
 		}
 
 		public static void DumpComponentsAndUp(GameObject o)
 		{
 			Synergy.LogError(o.name);
-
-			foreach (var c in o.GetComponents(typeof(Component)))
-				Synergy.LogError(c.ToString());
-
+			DumpComponents(o);
 			Synergy.LogError("---");
 
 			var parent = o?.transform?.parent?.gameObject;
 			if (parent != null)
 				DumpComponentsAndUp(parent);
+		}
+
+		public static void DumpComponentsAndDown(Component c)
+		{
+			DumpComponentsAndDown(c.gameObject);
+		}
+
+		public static void DumpComponentsAndDown(GameObject o, int indent = 0)
+		{
+			Synergy.LogError(new string(' ', indent * 2) + o.name);
+			DumpComponents(o, indent);
+
+			foreach (Transform c in o.transform)
+				DumpComponentsAndDown(c.gameObject, indent + 1);
 		}
 
 		public static void DumpChildren(GameObject o, int indent = 0)
