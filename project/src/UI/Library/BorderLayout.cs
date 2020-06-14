@@ -40,8 +40,10 @@ namespace Synergy.UI
 		private readonly List<Widget>[] sides_ = new List<Widget>[5];
 		private readonly int[] corners_ = new int[4];
 
-		public BorderLayout()
+		public BorderLayout(float spacing = 0)
 		{
+			Spacing = spacing;
+
 			for (int i = 0; i < 5; ++i)
 				sides_[i] = new List<Widget>();
 

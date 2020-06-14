@@ -304,24 +304,29 @@ namespace Synergy.UI
 			if (selection_ == -1)
 				storable_.valNoCallback = "";
 			else
-				storable_.valNoCallback = items_[selection_].Text;
+				storable_.valNoCallback = items_[selection_].GetHashCode().ToString();
 		}
 
 		private void UpdateChoices()
 		{
-			var strings = new List<string>();
+			var display = new List<string>();
+			var hashes = new List<string>();
 
 			foreach (var i in items_)
-				strings.Add(i.Text);
+			{
+				display.Add(i.Text);
+				hashes.Add(i.GetHashCode().ToString());
+			}
 
-			storable_.choices = strings;
+			storable_.displayChoices = display;
+			storable_.choices = hashes;
 		}
 
 		private void OnSelectionChanged(string s)
 		{
 			for (int i = 0; i < items_.Count; ++i)
 			{
-				if (items_[i].Text == s)
+				if (items_[i].GetHashCode().ToString() == s)
 				{
 					Select(i);
 					return;

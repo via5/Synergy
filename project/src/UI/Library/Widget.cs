@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -87,6 +88,11 @@ namespace Synergy.UI
 		public Widget(string name = "")
 		{
 			name_ = name;
+		}
+
+		public static string S(string s)
+		{
+			return Strings.Get(s);
 		}
 
 		public Layout Layout
@@ -380,6 +386,11 @@ namespace Synergy.UI
 		public Panel(string name = "")
 			: base(name)
 		{
+		}
+
+		public Panel(Layout ly)
+		{
+			Layout = ly;
 		}
 	}
 }
