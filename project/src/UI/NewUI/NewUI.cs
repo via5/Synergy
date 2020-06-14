@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace Synergy
+﻿namespace Synergy.NewUI
 {
 	public class Strings
 	{
@@ -110,10 +108,255 @@ namespace Synergy
 	}
 
 
+	class StepInfo : UI.Panel
+	{
+		private UI.TextBox name_;
+		private UI.CheckBox enabled_, halfMove_;
+
+		public StepInfo()
+		{
+			Layout = new UI.HorizontalFlow(10);
+
+			name_ = new UI.TextBox("Step 1");
+			enabled_ = new UI.CheckBox(S("Step enabled"));
+			halfMove_ = new UI.CheckBox(S("Half move"));
+
+			Add(new UI.Label(S("Name")));
+			Add(name_);
+			Add(enabled_);
+			Add(halfMove_);
+		}
+	}
+
+
+	class TimeWidgets : UI.Panel
+	{
+		public TimeWidgets()
+		{
+			Layout = new UI.HorizontalFlow(5);
+
+			Add(new UI.TextBox("1"));
+			Add(new UI.Button("-1"));
+			Add(new UI.Button("0"));
+			Add(new UI.Button(S("Reset")));
+			Add(new UI.Button("+1"));
+		}
+	}
+
+
+	class RandomDurationWidgets : UI.Panel
+	{
+		public RandomDurationWidgets()
+		{
+			var gl = new UI.GridLayout(2);
+			gl.HorizontalSpacing = 10;
+			gl.VerticalSpacing = 20;
+
+			Layout = gl;
+
+			Add(new UI.Label(S("Time")));
+			Add(new TimeWidgets());
+
+			Add(new UI.Label(S("Random range")));
+			Add(new TimeWidgets());
+
+			Add(new UI.Label(S("Random interval")));
+			Add(new TimeWidgets());
+
+			Add(new UI.Label(S("Cut-off")));
+			Add(new UI.ComboBox());
+		}
+	}
+
+
+	class RampDurationWidgets : UI.Panel
+	{
+		public RampDurationWidgets()
+		{
+			var gl = new UI.GridLayout(2);
+			gl.HorizontalSpacing = 10;
+			gl.VerticalSpacing = 20;
+
+			Layout = gl;
+
+			Add(new UI.Label(S("Time")));
+			Add(new TimeWidgets());
+
+			Add(new UI.Label(S("Minimum duration")));
+			Add(new TimeWidgets());
+
+			Add(new UI.Label(S("Maximum duration")));
+			Add(new TimeWidgets());
+
+			Add(new UI.Label(S("Hold maximum")));
+			Add(new TimeWidgets());
+
+			Add(new UI.Label(S("Easing")));
+			Add(new UI.ComboBox());
+
+			var ramps = new UI.Panel();
+			ramps.Layout = new UI.HorizontalFlow();
+			ramps.Add(new UI.CheckBox(S("Ramp up")));
+			ramps.Add(new UI.CheckBox(S("Ramp down")));
+
+			Add(new UI.Panel());
+			Add(ramps);
+		}
+	}
+
+
+	class DurationWidgets : UI.Panel
+	{
+		private UI.Panel widgets_ = new RandomDurationWidgets();
+
+		public DurationWidgets()
+		{
+			Layout = new UI.VerticalFlow(50);
+
+			var p = new UI.Panel(new UI.HorizontalFlow(20));
+			p.Add(new UI.Label(S("Duration type")));
+			p.Add(new UI.ComboBox());
+
+			Add(p);
+			Add(widgets_);
+		}
+	}
+
+
+	class RepeatWidgets : UI.Panel
+	{
+		private UI.Panel widgets_ = new RandomDurationWidgets();
+
+		public RepeatWidgets()
+		{
+			Layout = new UI.VerticalFlow();
+			Add(widgets_);
+		}
+	}
+
+
+	class DelayWidgets : UI.Panel
+	{
+		private readonly UI.CheckBox halfWay_, end_;
+		private readonly DurationWidgets duration_ = new DurationWidgets();
+
+		public DelayWidgets()
+		{
+			Layout = new UI.VerticalFlow(30);
+
+			halfWay_ = new UI.CheckBox(S("Halfway"));
+			end_ = new UI.CheckBox(S("End"));
+
+			var p = new UI.Panel(new UI.HorizontalFlow());
+			p.Add(halfWay_);
+			p.Add(end_);
+
+			Add(p);
+			Add(duration_);
+		}
+	}
+
+
+	class StepTab : UI.Panel
+	{
+		private readonly StepInfo info_ = new StepInfo();
+		private readonly UI.Tabs tabs_ = new UI.Tabs();
+
+		public StepTab()
+		{
+			Layout = new UI.BorderLayout(20);
+			Layout.Spacing = 30;
+
+			tabs_.AddTab(S("Duration"), new DurationWidgets());
+			tabs_.AddTab(S("Repeat"), new RepeatWidgets());
+			tabs_.AddTab(S("Delay"), new DelayWidgets());
+
+			Add(tabs_, UI.BorderLayout.Center);
+		}
+	}
+
+	class ModifierInfo : UI.Panel
+	{
+		public ModifierInfo()
+		{
+			Layout = new UI.VerticalFlow(20);
+
+			var p = new UI.Panel(new UI.HorizontalFlow(10));
+			p.Add(new UI.Label(S("Name")));
+			p.Add(new UI.TextBox("RT X head Person"));
+			p.Add(new UI.CheckBox(S("Modifier enabled")));
+			Add(p);
+
+			p = new UI.Panel(new UI.HorizontalFlow(10));
+			p.Add(new UI.Label(S("Modifier type")));
+			p.Add(new UI.ComboBox());
+			Add(p);
+		}
+	}
+
+
+	class ModifierSyncPanel : UI.Panel
+	{
+		public ModifierSyncPanel()
+		{
+		}
+	}
+
+
+	class RigidbodyPanel : UI.Panel
+	{
+	}
+
+
+	class MorphPanel : UI.Panel
+	{
+	}
+
+
+	class ModifierPanel : UI.Panel
+	{
+		private readonly ModifierInfo info_ = new ModifierInfo();
+		private readonly UI.Tabs tabs_ = new UI.Tabs();
+
+		public ModifierPanel()
+		{
+			Layout = new UI.BorderLayout(30);
+
+			var sync = new UI.Panel();
+			var rigidbody = new UI.Panel();
+			var morph = new UI.Panel();
+
+			tabs_.AddTab(S("Sync"), new ModifierSyncPanel());
+			tabs_.AddTab(S("Rigidbody"), new RigidbodyPanel());
+			tabs_.AddTab(S("Morph"), new MorphPanel());
+
+			Add(info_, UI.BorderLayout.Top);
+			Add(tabs_, UI.BorderLayout.Center);
+		}
+	}
+
+
+	class ModifiersTab : UI.Panel
+	{
+		private readonly UI.ListView list_ = new UI.ListView();
+		private readonly ModifierPanel modifier_ = new ModifierPanel();
+
+		public ModifiersTab()
+		{
+			Layout = new UI.BorderLayout(20);
+
+			Add(list_, UI.BorderLayout.Left);
+			Add(modifier_, UI.BorderLayout.Center);
+		}
+	}
+
+
 	class NewUI
 	{
 		private UI.Root root_ = new UI.Root();
 		private StepControls steps_ = new StepControls();
+		private StepTab stepTab_ = new StepTab();
+		private ModifiersTab modifiersTab_ = new ModifiersTab();
 
 		public static string S(string s)
 		{
@@ -122,194 +365,16 @@ namespace Synergy
 
 		public NewUI()
 		{
-			root_.Layout = new UI.BorderLayout();
-			root_.Layout.Spacing = 30;
-
-			root_.Add(steps_, UI.BorderLayout.Top);
-
 			var tabs = new UI.Tabs();
+			tabs.AddTab(S("Step"), stepTab_);
+			tabs.AddTab(S("Modifiers"), modifiersTab_);
 
-			var steptab = new UI.Panel();
-			steptab.Layout = new UI.BorderLayout(20);
-			steptab.Layout.Spacing = 30;
-
-			var stepcontrols = new UI.Panel();
-			stepcontrols.Layout = new UI.HorizontalFlow(10);
-			stepcontrols.Add(new UI.Label(S("Name")));
-			stepcontrols.Add(new UI.TextBox("Step 1"));
-			stepcontrols.Add(new UI.CheckBox(S("Step enabled")));
-			stepcontrols.Add(new UI.CheckBox(S("Half move")));
-
-
-			var steptabs = new UI.Tabs();
-
-			var stepduration = new UI.Panel();
-			var gl = new UI.GridLayout(2);
-			stepduration.Layout = gl;
-			gl.HorizontalSpacing = 10;
-			gl.VerticalSpacing = 20;
-
-			stepduration.Add(new UI.Label(S("Duration type")));
-			stepduration.Add(new UI.ComboBox());
-			AddRandomDuration(stepduration);
-			steptabs.AddTab(S("Duration"), stepduration);
-
-
-			var steprepeat = new UI.Panel();
-			gl = new UI.GridLayout(2);
-			steprepeat.Layout = gl;
-			gl.HorizontalSpacing = 10;
-			gl.VerticalSpacing = 20;
-
-			AddRandomDuration(steprepeat);
-			steptabs.AddTab(S("Repeat"), steprepeat);
-
-
-			var stepdelay = new UI.Panel();
-
-			var controls = new UI.Panel();
-			controls.Layout = new UI.HorizontalFlow();
-			controls.Add(new UI.CheckBox(S("Halfway")));
-			controls.Add(new UI.CheckBox(S("End")));
-
-			var duration = new UI.Panel();
-			gl = new UI.GridLayout(2);
-			gl.HorizontalSpacing = 10;
-			gl.VerticalSpacing = 20;
-			duration.Layout = gl;
-
-			duration.Add(new UI.Label(S("Duration type")));
-			duration.Add(new UI.ComboBox());
-			AddRampDuration(duration);
-
-			stepdelay.Layout = new UI.VerticalFlow(30);
-			stepdelay.Add(controls);
-			stepdelay.Add(duration);
-
-			steptabs.AddTab(S("Delay"), stepdelay);
-
-			steptab.Add(stepcontrols, UI.BorderLayout.Top);
-			steptab.Add(steptabs, UI.BorderLayout.Center);
-
-			var modifierstab = new UI.Panel();
-			modifierstab.Layout = new UI.BorderLayout();
-
-			var list = new UI.ListView();
-			var modifier = new UI.Panel();
-			modifier.Margins = new UI.Insets(20, 0, 0, 0);
-			modifierstab.Add(list, UI.BorderLayout.Left);
-			modifierstab.Add(modifier, UI.BorderLayout.Center);
-
-
-			modifier.Layout = new UI.BorderLayout();
-
-			var modifiercontrols = new UI.Panel();
-			modifiercontrols.Layout = new UI.VerticalFlow(10);
-
-			var modifiercontrols1 = new UI.Panel();
-			modifiercontrols1.Layout = new UI.HorizontalFlow(10);
-			modifiercontrols1.Add(new UI.Label(S("Name")));
-			modifiercontrols1.Add(new UI.TextBox("RT X head Person"));
-			modifiercontrols1.Add(new UI.CheckBox(S("Modifier enabled")));
-
-			var modifiercontrols2 = new UI.Panel();
-			modifiercontrols2.Layout = new UI.HorizontalFlow(10);
-			modifiercontrols2.Add(new UI.Label(S("Modifier type")));
-			modifiercontrols2.Add(new UI.ComboBox());
-
-			modifiercontrols.Add(modifiercontrols1);
-			modifiercontrols.Add(modifiercontrols2);
-
-			modifier.Add(modifiercontrols, UI.BorderLayout.Top);
-
-			var modifiertabs = new UI.Tabs();
-
-			var sync = new UI.Panel();
-			var rigidbody = new UI.Panel();
-			var morph = new UI.Panel();
-
-			modifiertabs.AddTab(S("Sync"), sync);
-			modifiertabs.AddTab(S("Rigidbody"), rigidbody);
-			modifiertabs.AddTab(S("Morph"), morph);
-
-			modifier.Add(modifiertabs, UI.BorderLayout.Center);
-
-
-			tabs.AddTab(S("Step"), steptab);
-			tabs.AddTab(S("Modifiers"), modifierstab);
-
+			root_.Layout = new UI.BorderLayout(30);
+			root_.Add(steps_, UI.BorderLayout.Top);
 			root_.Add(tabs, UI.BorderLayout.Center);
 
 			root_.DoLayout();
 			root_.Create();
-		}
-
-		private void AddRandomDuration(UI.Panel parent)
-		{
-			parent.Add(new UI.Label(S("Time")));
-			parent.Add(CreateTimeWidgets());
-
-			parent.Add(new UI.Label(S("Random range")));
-			parent.Add(CreateTimeWidgets());
-
-			parent.Add(new UI.Label(S("Random interval")));
-			parent.Add(CreateTimeWidgets());
-
-			parent.Add(new UI.Label(S("Cut-off")));
-			parent.Add(new UI.ComboBox());
-		}
-
-		private void AddRampDuration(UI.Panel parent)
-		{
-			parent.Add(new UI.Label(S("Time")));
-			parent.Add(CreateTimeWidgets());
-
-			parent.Add(new UI.Label(S("Minimum duration")));
-			parent.Add(CreateTimeWidgets());
-
-			parent.Add(new UI.Label(S("Maximum duration")));
-			parent.Add(CreateTimeWidgets());
-
-			parent.Add(new UI.Label(S("Hold maximum")));
-			parent.Add(CreateTimeWidgets());
-
-			parent.Add(new UI.Label(S("Easing")));
-			parent.Add(new UI.ComboBox());
-
-			var ramps = new UI.Panel();
-			ramps.Layout = new UI.HorizontalFlow();
-			ramps.Add(new UI.CheckBox(S("Ramp up")));
-			ramps.Add(new UI.CheckBox(S("Ramp down")));
-
-			parent.Add(new UI.Panel());
-			parent.Add(ramps);
-		}
-
-		private UI.Panel CreateTimeWidgets()
-		{
-			var w = new UI.Panel();
-			w.Layout = new UI.HorizontalFlow(5);
-
-			w.Add(new UI.TextBox("1"));
-			w.Add(new UI.Button("-1"));
-			w.Add(new UI.Button("0"));
-			w.Add(new UI.Button(S("Reset")));
-			w.Add(new UI.Button("+1"));
-
-			return w;
-		}
-
-		public void UpdateSteps(Step sel = null)
-		{
-			if (sel == null)
-				sel = steps_.Selected;
-
-			var items = new List<Step>();
-
-			foreach (var s in Synergy.Instance.Manager.Steps)
-				items.Add(s);
-
-			//steps_.SetItems(items, sel);
 		}
 	}
 }
