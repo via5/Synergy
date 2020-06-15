@@ -184,7 +184,7 @@ namespace Synergy.UI
 			popup.selectColor = Style.SelectionBackgroundColor;
 
 			// popup button background color
-			popup.normalColor = Style.ButtonBackgroundColor;
+			popup.normalColor = new Color(0, 0, 0, 0);
 
 			// button text color
 			var st = popup.topButton.GetComponentInChildren<UIStyleText>();
@@ -200,7 +200,7 @@ namespace Synergy.UI
 
 			// popup background color for combobox
 			i = popup.popupPanel.GetComponent<Image>();
-			i.color = Style.ButtonBackgroundColor;
+			i.color = Style.BackgroundColor;
 
 			// popup background color for lists
 			GameObject sv = null;
@@ -227,15 +227,16 @@ namespace Synergy.UI
 
 			// popup button highlight background color
 			var sb = popup.popupButtonPrefab.GetComponent<UIStyleButton>();
+			sb.normalColor = Style.ButtonBackgroundColor;
+			sb.pressedColor = Style.HighlightBackgroundColor;
 			sb.highlightedColor = Style.HighlightBackgroundColor;
 			sb.UpdateStyle();
 
 			sb = popup.topButton.GetComponent<UIStyleButton>();
-			sb.normalColor = Style.ButtonBackgroundColor;
-			sb.highlightedColor = Style.HighlightBackgroundColor;
-			sb.colorMultiplier = 3.89f;
+			sb.normalColor = Color.white;
+			sb.highlightedColor = new Color(0, 0, 0, 0);
+			sb.pressedColor = new Color(0, 0, 0, 0);
 			sb.UpdateStyle();
-
 
 			// clamped scroll
 			sv = Utilities.FindChildRecursive(
@@ -268,7 +269,7 @@ namespace Synergy.UI
 			popup_ = Object.GetComponent<UIDynamicPopup>();
 			popup_.labelWidth = 0;
 			popup_.labelSpacingRight = 0;
-			popup_.popup.topBottomBuffer = 0;
+			popup_.popup.topBottomBuffer = 3;
 			popup_.popup.showSlider = false;
 			popup_.popup.onOpenPopupHandlers += OnOpen;
 
@@ -327,16 +328,22 @@ namespace Synergy.UI
 			rt.offsetMax = new Vector2(rt.offsetMax.x + 5, rt.offsetMax.y - 15);
 
 			var text = popup_.popup.popupButtonPrefab.GetComponentInChildren<Text>();
-			text.alignment = TextAnchor.MiddleLeft;
-			text.rectTransform.offsetMin = new Vector2(
-				text.rectTransform.offsetMin.x + 10,
-				text.rectTransform.offsetMin.y);
+			if (text != null)
+			{
+				text.alignment = TextAnchor.MiddleLeft;
+				text.rectTransform.offsetMin = new Vector2(
+					text.rectTransform.offsetMin.x + 10,
+					text.rectTransform.offsetMin.y);
+			}
 
 			text = popup_.popup.topButton.GetComponentInChildren<Text>();
-			text.alignment = TextAnchor.MiddleLeft;
-			text.rectTransform.offsetMin = new Vector2(
-				text.rectTransform.offsetMin.x + 10,
-				text.rectTransform.offsetMin.y);
+			if (text != null)
+			{
+				text.alignment = TextAnchor.MiddleLeft;
+				text.rectTransform.offsetMin = new Vector2(
+					text.rectTransform.offsetMin.x + 10,
+					text.rectTransform.offsetMin.y);
+			}
 		}
 
 		private void AddItemNoUpdate(Item i)

@@ -41,7 +41,7 @@ namespace Synergy.UI
 			popup_.popup.labelText.gameObject.SetActive(false);
 			popup_.popup.backgroundImage.gameObject.SetActive(false);
 			popup_.popup.onValueChangeHandlers += (string s) => { Root.SetFocus(this); };
-			popup_.popup.topBottomBuffer = 0;
+			popup_.popup.topBottomBuffer = 3;
 
 			ComboBox.SetScrollablePopupStyle(popup_.popup);
 
