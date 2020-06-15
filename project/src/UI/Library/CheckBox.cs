@@ -41,16 +41,13 @@ namespace Synergy.UI
 		{
 			toggle_ = Object.GetComponent<UIDynamicToggle>();
 			toggle_.toggle.onValueChanged.AddListener(OnClicked);
-
-			toggle_.backgroundImage.color = new Color(0, 0, 0, 0);
-			toggle_.textColor = Style.TextColor;
 			toggle_.labelText.text = text_;
 
-			toggle_.toggle.graphic.rectTransform.localScale = new Vector3(
-				0.75f, 0.75f, 0.75f);
+			Utilities.DumpComponentsAndDown(toggle_);
 
+			Style.Polish(toggle_);
 
-			var rt = toggle_.toggle.image.rectTransform;// GetComponent<RectTransform>();
+			var rt = toggle_.toggle.image.rectTransform;
 			rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y - 10);
 			rt.offsetMax = new Vector2(rt.offsetMax.x - 20, rt.offsetMax.y - 30);
 			rt.anchorMin = new Vector2(0, 1);
@@ -65,6 +62,9 @@ namespace Synergy.UI
 			rt.anchoredPosition = new Vector2(
 				rt.offsetMin.x + (rt.offsetMax.x - rt.offsetMin.x) / 2,
 				rt.offsetMin.y + (rt.offsetMax.y - rt.offsetMin.y) / 2);
+
+			toggle_.toggle.graphic.rectTransform.localScale = new Vector3(
+				0.75f, 0.75f, 0.75f);
 		}
 
 		protected override Size GetPreferredSize()

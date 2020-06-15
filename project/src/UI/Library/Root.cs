@@ -57,11 +57,7 @@ namespace Synergy.UI
 			var scrollview = viewport.parent;
 			var scriptui = scrollview.parent;
 
-			var a = scrollview.GetComponent<UnityEngine.UI.Image>();
-			a.color = Style.BackgroundColor;
-
-			var sr = scrollview.GetComponent<ScrollRect>();
-			sr.movementType = ScrollRect.MovementType.Clamped;
+			Style.PolishRoot(scriptui);
 		}
 
 		public void DoLayoutIfNeeded()

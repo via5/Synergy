@@ -26,9 +26,14 @@ namespace Synergy.UI
 			get { return new Color(0.84f, 0.84f, 0.84f); }
 		}
 
-		public static Color InverseTextColor
+		public static Color EditableTextColor
 		{
-			get { return new Color(0.15f, 0.15f, 0.15f); }
+			get { return Color.black; }
+		}
+
+		public static Color EditableBackgroundColor
+		{
+			get { return Color.white; }
 		}
 
 		public static Color BackgroundColor
@@ -82,6 +87,30 @@ namespace Synergy.UI
 			sr.movementType = ScrollRect.MovementType.Clamped;
 		}
 
+		public static void PolishRoot(Component scriptUI)
+		{
+			var scrollView = Utilities.FindChildRecursive(
+				scriptUI, "Scroll View");
+
+			// clamp the whole script ui
+			ClampScrollView(scrollView);
+
+			// main background color
+			scrollView.GetComponent<Image>().color = BackgroundColor;
+		}
+
+		public static void Polish(UIDynamicToggle e)
+		{
+			// background color of the whole widget
+			e.backgroundImage.color = new Color(0, 0, 0, 0);
+
+			// color of the text on the toggle
+			e.textColor = TextColor;
+
+			// there doesn't seem to be any way to change the checkmark color,
+			// so the box will have to stay white for now
+		}
+
 		public static void Polish(UIDynamicButton e)
 		{
 			PolishButton(e);
@@ -89,11 +118,29 @@ namespace Synergy.UI
 
 		public static void Polish(UIDynamicPopup e)
 		{
+			// popups normally have a label on the left side and this controls
+			// the offset of the popup button; since the label is removed, this
+			// must be 0 so the popup button is left aligned
 			e.labelWidth = 0;
-			e.labelSpacingRight = 0;
+
+			// the top and bottom padding in the list, this looks roughly
+			// equivalent to what's on the left and right
 			e.popup.topBottomBuffer = 3;
 
 			Polish(e.popup);
+		}
+
+		public static void Polish(UIDynamicTextField e)
+		{
+			// textbox background
+			e.backgroundImage.color = EditableBackgroundColor;
+
+			// textbox text
+			e.UItext.alignment = TextAnchor.MiddleLeft;
+			e.UItext.color = EditableTextColor;
+			e.UItext.raycastTarget = false;
+			e.UItext.fontSize = Style.FontSize;
+			e.UItext.font = Style.Font;
 		}
 
 		public static void Polish(UIPopup e)
