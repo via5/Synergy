@@ -7,21 +7,18 @@ namespace Synergy.UI
 	{
 		public override string TypeName { get { return "button"; } }
 
-		public delegate void ClickHandler();
+		public delegate void Callback();
+		public event Callback Clicked;
 
 		private string text_ = "";
 		private UIDynamicButton button_ = null;
-		private event ClickHandler clicked_;
 
-		public Button(string t = "")
+		public Button(string t = "", Callback clicked = null)
 		{
 			text_ = t;
-		}
 
-		public ClickHandler Clicked
-		{
-			get { return clicked_; }
-			set { clicked_ = value; }
+			if (clicked != null)
+				Clicked += clicked;
 		}
 
 		protected override GameObject CreateGameObject()
@@ -47,7 +44,7 @@ namespace Synergy.UI
 		private void OnClicked()
 		{
 			Root.SetFocus(this);
-			clicked_?.Invoke();
+			Clicked?.Invoke();
 		}
 	}
 }

@@ -48,10 +48,13 @@ namespace Synergy.UI
 		public TypedComboBox(List<ItemType> items = null)
 		{
 			if (items != null)
-			{
-				foreach (var i in items)
-					AddItemNoUpdate(new Item(i));
-			}
+				SetItems(items);
+		}
+
+		public TypedComboBox(ItemCallback selectionChanged)
+		{
+			if (selectionChanged != null)
+				SelectionChanged += selectionChanged;
 		}
 
 		public void AddItem(ItemType i, bool select = false)
@@ -135,18 +138,29 @@ namespace Synergy.UI
 			Select(selIndex);
 		}
 
+		public virtual int IndexOf(ItemType item)
+		{
+			for (int i = 0; i < items_.Count; ++i)
+			{
+				if (items_[i].Object == item)
+					return i;
+			}
+
+			return -1;
+		}
+
+		public void Select(ItemType item)
+		{
+			Select(IndexOf(item));
+		}
+
 		public void Select(int i)
 		{
-			var prev = selection_;
-
 			if (i < 0 || i >= items_.Count)
 				i = -1;
 
 			selection_ = i;
 			UpdateLabel();
-
-			if (selection_ != prev)
-				SelectionChanged?.Invoke(Selected);
 		}
 
 		public ItemType Selected
@@ -286,17 +300,22 @@ namespace Synergy.UI
 
 		private void OnSelectionChanged(string s)
 		{
+			int sel = -1;
+
 			for (int i = 0; i < items_.Count; ++i)
 			{
 				if (items_[i].GetHashCode().ToString() == s)
 				{
-					Select(i);
-					return;
+					sel = i;
+					break;
 				}
 			}
 
-			Synergy.LogError("combobox: selected item '" + s + "' not found");
-			Select(-1);
+			if (sel == -1)
+				Synergy.LogError("combobox: selected item '" + s + "' not found");
+
+			Select(sel);
+			SelectionChanged?.Invoke(Selected);
 		}
 
 		private void OnOpen()

@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Leap.Unity;
+using Synergy.UI;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -15,8 +17,8 @@ namespace Synergy.NewUI
 
 	class ToolButton : UI.Button
 	{
-		public ToolButton(string text = "")
-			: base(text)
+		public ToolButton(string text = "", UI.Button.Callback clicked = null)
+			: base(text, clicked)
 		{
 			MinimumSize = new UI.Size(50, DontCare);
 		}
@@ -109,13 +111,13 @@ namespace Synergy.NewUI
 		{
 			Layout = new UI.HorizontalFlow(20);
 
-			steps_ = new UI.TypedComboBox<Step>();
-			add_ = new ToolButton("+");
-			clone_ = new ToolButton(S("Clone"));
-			clone0_ = new ToolButton(S("Clone 0"));
-			remove_ = new ToolButton("\x2013");  // en dash
-			up_ = new ToolButton("\x25b2");      // up arrow
-			down_ = new ToolButton("\x25bc");    // down arrow
+			steps_ = new UI.TypedComboBox<Step>(OnSelectionChanged);
+			add_ = new ToolButton("+", AddStep);
+			clone_ = new ToolButton(S("Clone"), CloneStep);
+			clone0_ = new ToolButton(S("Clone 0"), CloneStepZero);
+			remove_ = new ToolButton("\x2013", RemoveStep);  // en dash
+			up_ = new ToolButton("\x25b2", MoveStepUp);      // up arrow
+			down_ = new ToolButton("\x25bc", MoveStepDown);  // down arrow
 
 			Add(new UI.Label(S("Step:")));
 			Add(steps_);
@@ -125,14 +127,6 @@ namespace Synergy.NewUI
 			Add(remove_);
 			Add(up_);
 			Add(down_);
-
-			steps_.SelectionChanged += OnSelectionChanged;
-			add_.Clicked += AddStep;
-			clone_.Clicked += CloneStep;
-			clone0_.Clicked += CloneStepZero;
-			remove_.Clicked += RemoveStep;
-			up_.Clicked += MoveStepUp;
-			down_.Clicked += MoveStepDown;
 
 			Synergy.Instance.Manager.StepsChanged += UpdateSteps;
 			UpdateSteps();
@@ -208,15 +202,69 @@ namespace Synergy.NewUI
 
 	class TimeWidgets : UI.Panel
 	{
+		public delegate void ValueCallback(float f);
+		public event ValueCallback Changed;
+
+		private readonly UI.TextBox text_;
+		private float reset_ = 0;
+		private float current_ = 0;
+
 		public TimeWidgets()
 		{
+			text_ = new TextBox();
+
+			text_.Validate += OnValidate;
+			text_.Changed += OnChanged;
+
 			Layout = new UI.HorizontalFlow(5);
 
-			Add(new UI.TextBox("1"));
-			Add(new UI.Button("-1"));
-			Add(new UI.Button("0"));
-			Add(new UI.Button(S("Reset")));
-			Add(new UI.Button("+1"));
+			Add(text_);
+			Add(new UI.Button("-1", () => AddValue(-1)));
+			Add(new UI.Button("-.1", () => AddValue(-0.1f)));
+			Add(new UI.Button("-.01", () => AddValue(-0.01f)));
+			Add(new UI.Button("0", () => SetValue(0)));
+			Add(new UI.Button("+.01", () => AddValue(+0.01f)));
+			Add(new UI.Button("+.1", () => AddValue(+0.1f)));
+			Add(new UI.Button("+1", () => AddValue(+1)));
+			Add(new UI.Button(S("Reset"), () => Reset()));
+		}
+
+		public void Set(float f)
+		{
+			reset_ = f;
+			current_ = f;
+
+			text_.Text = f.ToString();
+		}
+
+		public void AddValue(float d)
+		{
+			SetValue(current_ + d);
+		}
+
+		public void Reset()
+		{
+			SetValue(reset_);
+		}
+
+		private void OnValidate(UI.TextBox.Validation v)
+		{
+			float r;
+			v.valid = float.TryParse(v.text, out r);
+		}
+
+		private void OnChanged(string s)
+		{
+			float r;
+			if (float.TryParse(s, out r))
+				SetValue(r);
+		}
+
+		private void SetValue(float v)
+		{
+			current_ = v;
+			text_.Text = v.ToString();
+			Changed?.Invoke(v);
 		}
 	}
 
@@ -239,8 +287,17 @@ namespace Synergy.NewUI
 
 	class RandomDurationWidgets : DurationWidgets
 	{
+		private readonly TimeWidgets time_, range_, interval_;
+		private readonly ComboBox cutoff_;
+		private RandomDuration duration_ = null;
+
 		public RandomDurationWidgets(RandomDuration d = null)
 		{
+			time_ = new TimeWidgets();
+			range_ = new TimeWidgets();
+			interval_ = new TimeWidgets();
+			cutoff_ = new ComboBox(RandomizableTime.GetCutoffNames());
+
 			var gl = new UI.GridLayout(2);
 			gl.HorizontalSpacing = 10;
 			gl.VerticalSpacing = 20;
@@ -248,25 +305,64 @@ namespace Synergy.NewUI
 			Layout = gl;
 
 			Add(new UI.Label(S("Time")));
-			Add(new TimeWidgets());
+			Add(time_);
 
 			Add(new UI.Label(S("Random range")));
-			Add(new TimeWidgets());
+			Add(range_);
 
 			Add(new UI.Label(S("Random interval")));
-			Add(new TimeWidgets());
+			Add(interval_);
 
 			Add(new UI.Label(S("Cut-off")));
-			Add(new UI.ComboBox());
+			Add(cutoff_);
+
+			time_.Changed += OnInitialChanged;
+			range_.Changed += OnRangeChanged;
+			interval_.Changed += OnIntervalChanged;
+			cutoff_.SelectionChanged += OnCutoffChanged;
+
+			Set(d);
 		}
 
 		public override bool Set(IDuration d)
 		{
-			var rd = (d as RandomDuration);
-			if (rd == null)
+			duration_ = d as RandomDuration;
+			if (duration_ == null)
 				return false;
 
+			time_.Set(duration_.Time.Initial);
+			range_.Set(duration_.Time.Range);
+			interval_.Set(duration_.Time.Interval);
+			cutoff_.Select(RandomizableTime.CutoffToString(duration_.Time.Cutoff));
+
 			return true;
+		}
+
+		private void OnInitialChanged(float f)
+		{
+			duration_.Time.Initial = f;
+		}
+
+		private void OnRangeChanged(float f)
+		{
+			duration_.Time.Range = f;
+		}
+
+		private void OnIntervalChanged(float f)
+		{
+			duration_.Time.Interval = f;
+		}
+
+		private void OnCutoffChanged(string s)
+		{
+			var c = RandomizableTime.CutoffFromString(s);
+			if (c == -1)
+			{
+				Synergy.LogError("bad cutoff '" + s + "'");
+				return;
+			}
+
+			duration_.Time.Cutoff = c;
 		}
 	}
 
@@ -303,6 +399,8 @@ namespace Synergy.NewUI
 
 			Add(new UI.Panel());
 			Add(ramps);
+
+			Set(d);
 		}
 
 		public override bool Set(IDuration d)
@@ -318,6 +416,9 @@ namespace Synergy.NewUI
 
 	class DurationPanel : UI.Panel
 	{
+		public delegate void Callback(IDuration d);
+		public event Callback Changed;
+
 		private readonly FactoryComboBox<DurationFactory, IDuration> type_;
 		private DurationWidgets widgets_ = null;
 		private IDuration duration_ = null;
@@ -360,7 +461,7 @@ namespace Synergy.NewUI
 
 		private void OnTypeChanged(IDuration d)
 		{
-			Set(d);
+			Changed?.Invoke(d);
 		}
 	}
 
@@ -410,7 +511,7 @@ namespace Synergy.NewUI
 		{
 			Layout = new UI.HorizontalFlow(10);
 
-			name_ = new UI.TextBox("Step 1");
+			name_ = new UI.TextBox();
 			enabled_ = new UI.CheckBox(S("Step enabled"));
 			halfMove_ = new UI.CheckBox(S("Half move"));
 
@@ -419,8 +520,8 @@ namespace Synergy.NewUI
 			Add(enabled_);
 			Add(halfMove_);
 
-			enabled_.Clicked += OnEnabled;
-			halfMove_.Clicked += OnHalfMove;
+			enabled_.Changed += OnEnabled;
+			halfMove_.Changed += OnHalfMove;
 		}
 
 		public void SetStep(Step s)
@@ -453,6 +554,8 @@ namespace Synergy.NewUI
 		private readonly RepeatWidgets repeat_ = new RepeatWidgets();
 		private readonly DelayWidgets delay_ = new DelayWidgets();
 
+		private Step step_ = null;
+
 		public StepTab()
 		{
 			Layout = new UI.BorderLayout(20);
@@ -464,12 +567,21 @@ namespace Synergy.NewUI
 
 			Add(info_, UI.BorderLayout.Top);
 			Add(tabs_, UI.BorderLayout.Center);
+
+			duration_.Changed += OnDurationTypeChanged;
 		}
 
 		public void SetStep(Step s)
 		{
+			step_ = s;
 			info_.SetStep(s);
 			duration_.Set(s.Duration);
+		}
+
+		private void OnDurationTypeChanged(IDuration d)
+		{
+			step_.Duration = d;
+			duration_.Set(d);
 		}
 	}
 
@@ -482,7 +594,7 @@ namespace Synergy.NewUI
 
 			var p = new UI.Panel(new UI.HorizontalFlow(10));
 			p.Add(new UI.Label(S("Name")));
-			p.Add(new UI.TextBox("RT X head Person"));
+			p.Add(new UI.TextBox());
 			p.Add(new UI.CheckBox(S("Modifier enabled")));
 			Add(p);
 
@@ -573,8 +685,8 @@ namespace Synergy.NewUI
 
 		public NewUI()
 		{
-			//for (int i = 0; i < 40; ++i)
-			//	Synergy.Instance.Manager.AddStep();
+			//Synergy.Instance.Manager.AddStep();
+			//Synergy.Instance.Manager.AddStep();
 
 			var tabs = new UI.Tabs();
 			tabs.AddTab(S("Step"), stepTab_);
@@ -586,7 +698,16 @@ namespace Synergy.NewUI
 
 			steps_.SelectionChanged += OnStepSelected;
 
+			if (Synergy.Instance.Manager.Steps.Count > 0)
+				SelectStep(Synergy.Instance.Manager.Steps[0]);
+
 			root_.DoLayoutIfNeeded();
+		}
+
+		public void SelectStep(Step s)
+		{
+			stepTab_.SetStep(s);
+			modifiersTab_.SetStep(s);
 		}
 
 		public void Tick()
@@ -596,8 +717,7 @@ namespace Synergy.NewUI
 
 		private void OnStepSelected(Step s)
 		{
-			stepTab_.SetStep(s);
-			modifiersTab_.SetStep(s);
+			SelectStep(s);
 		}
 	}
 }

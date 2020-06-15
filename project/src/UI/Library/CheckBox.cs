@@ -7,10 +7,11 @@ namespace Synergy.UI
 	{
 		public override string TypeName { get { return "checkbox"; } }
 
-		public delegate void ClickHandler(bool b);
-		public event ClickHandler Clicked;
+		public delegate void ChangedCallback(bool b);
+		public event ChangedCallback Changed;
 
 		private string text_ = "";
+		private bool checked_ = false;
 		private UIDynamicToggle toggle_ = null;
 
 		public CheckBox(string t = "")
@@ -22,12 +23,15 @@ namespace Synergy.UI
 		{
 			get
 			{
-				return toggle_.toggle.isOn;
+				return checked_;
 			}
 
 			set
 			{
-				toggle_.toggle.isOn = value;
+				checked_ = value;
+
+				if (toggle_ != null)
+					toggle_.toggle.isOn = value;
 			}
 		}
 
@@ -42,8 +46,7 @@ namespace Synergy.UI
 			toggle_ = Object.GetComponent<UIDynamicToggle>();
 			toggle_.toggle.onValueChanged.AddListener(OnClicked);
 			toggle_.labelText.text = text_;
-
-			Utilities.DumpComponentsAndDown(toggle_);
+			toggle_.toggle.isOn = checked_;
 
 			Style.Polish(toggle_);
 
@@ -75,7 +78,8 @@ namespace Synergy.UI
 		private void OnClicked(bool b)
 		{
 			Root.SetFocus(this);
-			Clicked?.Invoke(b);
+			checked_ = b;
+			Changed?.Invoke(b);
 		}
 	}
 }

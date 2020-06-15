@@ -21,9 +21,23 @@ namespace Synergy.UI
 	{
 		public override string TypeName { get { return "textbox"; } }
 
+		public class Validation
+		{
+			public string text;
+			public bool valid;
+		}
+
+		public delegate void ValidateCallback(Validation v);
+		public delegate void StringCallback(string s);
+
+		public event ValidateCallback Validate;
+		public event StringCallback Changed;
+
+
 		private string text_ = "";
 		private UIDynamicTextField field_ = null;
 		private CustomInputField input_ = null;
+		private bool ignore_ = false;
 
 		public TextBox(string t = "")
 		{
@@ -41,7 +55,19 @@ namespace Synergy.UI
 			set
 			{
 				text_ = value;
-				input_.text = value;
+
+				if (input_ != null)
+				{
+					try
+					{
+						ignore_ = true;
+						input_.text = value;
+					}
+					finally
+					{
+						ignore_ = false;
+					}
+				}
 			}
 		}
 
@@ -60,6 +86,7 @@ namespace Synergy.UI
 			input_.clicked = OnClicked;
 			input_.textComponent = field_.UItext;
 			input_.text = text_;
+			input_.onEndEdit.AddListener(OnEdited);
 
 			var tr = field_.UItext.GetComponent<RectTransform>();
 			tr.offsetMax = new Vector2(tr.offsetMax.x, tr.offsetMax.y - 5);
@@ -75,6 +102,42 @@ namespace Synergy.UI
 		private void OnClicked()
 		{
 			Root.SetFocus(this);
+		}
+
+		private void OnEdited(string s)
+		{
+			if (ignore_)
+				return;
+
+			Synergy.LogError("edited: " + s);
+
+			if (Validate != null)
+			{
+				Synergy.LogError("validating");
+
+				var v = new Validation();
+				v.text = s;
+				v.valid = true;
+
+				Validate(v);
+
+				if (!v.valid)
+				{
+					Synergy.LogError("failed");
+					input_.text = text_;
+
+					return;
+				}
+
+				text_ = v.text;
+				input_.text = text_;
+			}
+			else
+			{
+				text_ = s;
+			}
+
+			Changed?.Invoke(text_);
 		}
 	}
 }
