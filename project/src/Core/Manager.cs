@@ -4,6 +4,9 @@ namespace Synergy
 {
 	sealed class Manager : IJsonable
 	{
+		public delegate void Callback();
+		public event Callback StepsChanged;
+
 		private List<Step> steps_ = new List<Step>();
 
 		private readonly ExplicitHolder<IStepProgression> progression_ =
@@ -43,8 +46,9 @@ namespace Synergy
 		public void Clear()
 		{
 			while (steps_.Count != 0)
-				DeleteStep(steps_[0]);
+				DeleteStepNoCallback(steps_[0]);
 
+			StepsChanged?.Invoke();
 			StepProgression = new SequentialStepProgression();
 		}
 
@@ -70,17 +74,23 @@ namespace Synergy
 			StepProgression?.StepInserted(at, s);
 			s.Added();
 
-			Synergy.LogVerbose("step inserted at " + at.ToString());
+			StepsChanged?.Invoke();
 
 			return s;
 		}
 
 		public void DeleteStep(Step s)
 		{
+			DeleteStepNoCallback(s);
+			StepsChanged?.Invoke();
+		}
+
+		private void DeleteStepNoCallback(Step s)
+		{
 			var i = steps_.IndexOf(s);
+
 			steps_.Remove(s);
 			StepProgression?.StepDeleted(i);
-
 			s.Removed();
 		}
 

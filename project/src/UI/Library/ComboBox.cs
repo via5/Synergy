@@ -146,7 +146,7 @@ namespace Synergy.UI
 			UpdateLabel();
 
 			if (selection_ != prev)
-				SelectionChanged(Selected);
+				SelectionChanged?.Invoke(Selected);
 		}
 
 		public ItemType Selected
@@ -175,10 +175,10 @@ namespace Synergy.UI
 		protected override GameObject CreateGameObject()
 		{
 			return UnityEngine.Object.Instantiate(
-				Synergy.Instance.manager.configurablePopupPrefab).gameObject;
+				Synergy.Instance.manager.configurableScrollablePopupPrefab).gameObject;
 		}
 
-		public static void SetColors(UIPopup popup)
+		public static void SetScrollablePopupStyle(UIPopup popup)
 		{
 			// popup selection background color
 			popup.selectColor = Style.SelectionBackgroundColor;
@@ -203,12 +203,12 @@ namespace Synergy.UI
 			i.color = Style.ButtonBackgroundColor;
 
 			// popup background color for lists
-			Transform sv = null;
+			GameObject sv = null;
 			foreach (Transform c in popup.popupPanel.transform)
 			{
 				if (c.name == "Scroll View")
 				{
-					sv = c;
+					sv = c.gameObject;
 					break;
 				}
 			}
@@ -235,6 +235,32 @@ namespace Synergy.UI
 			sb.highlightedColor = Style.HighlightBackgroundColor;
 			sb.colorMultiplier = 3.89f;
 			sb.UpdateStyle();
+
+
+			// clamped scroll
+			sv = Utilities.FindChildRecursive(
+				popup.gameObject, "Scroll View");
+
+			var sr = sv.GetComponent<ScrollRect>();
+			sr.movementType = ScrollRect.MovementType.Clamped;
+
+			// empty space at the bottom
+			var viewport = Utilities.FindChildRecursive(
+				popup.gameObject, "Viewport");
+			var rt = viewport.GetComponent<RectTransform>();
+			rt.offsetMin = new Vector2(rt.offsetMin.x, 0);
+
+			var scrollbar = Utilities.FindChildRecursive(
+				popup.gameObject, "Scrollbar Vertical");
+			rt = scrollbar.GetComponent<RectTransform>();
+			rt.offsetMin = new Vector2(rt.offsetMin.x, 0);
+
+			// scrollbar background color
+			scrollbar.GetComponent<Image>().color = Style.BackgroundColor;
+
+			// scrollbar handle color
+			var handle = Utilities.FindChildRecursive(scrollbar, "Handle");
+			handle.GetComponent<Image>().color = Style.ButtonBackgroundColor;
 		}
 
 		protected override void DoCreate()
@@ -242,10 +268,11 @@ namespace Synergy.UI
 			popup_ = Object.GetComponent<UIDynamicPopup>();
 			popup_.labelWidth = 0;
 			popup_.labelSpacingRight = 0;
+			popup_.popup.topBottomBuffer = 0;
 			popup_.popup.showSlider = false;
 			popup_.popup.onOpenPopupHandlers += OnOpen;
 
-			SetColors(popup_.popup);
+			SetScrollablePopupStyle(popup_.popup);
 
 
 			var arrowObject = new GameObject();
@@ -264,20 +291,12 @@ namespace Synergy.UI
 			storable_.popup = popup_.popup;
 			storable_.setCallbackFunction = OnSelectionChanged;
 
-
-
-
-			// trying to fix combobox panel height
-
-
-
 			UpdateChoices();
 			UpdateLabel();
-				Utilities.DumpComponentsAndDown(popup_.popup);
 
 			var rt = popup_.popup.labelText.transform.parent.gameObject.GetComponent<RectTransform>();
-			rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y + 40);
-			rt.offsetMax = new Vector2(rt.offsetMax.x, rt.offsetMax.y + 44);
+			rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y);
+			rt.offsetMax = new Vector2(rt.offsetMax.x, rt.offsetMax.y);
 			rt.anchorMin = new Vector2(0, 1);
 			rt.anchorMax = new Vector2(0, 1);
 			rt.anchoredPosition = new Vector2(
@@ -292,20 +311,32 @@ namespace Synergy.UI
 			rect.anchoredPosition = new Vector2(Bounds.Width / 2, Bounds.Height / 2);
 
 			rt = popup_.popup.topButton.gameObject.GetComponent<RectTransform>();
-			rt.offsetMin = new Vector2(rt.offsetMin.x - 9, rt.offsetMin.y - 3);
-			rt.offsetMax = new Vector2(rt.offsetMax.x + 3, rt.offsetMax.y + 3);
+			rt.offsetMin = new Vector2(rt.offsetMin.x - 9, rt.offsetMin.y - 5);
+			rt.offsetMax = new Vector2(rt.offsetMax.x + 5, rt.offsetMax.y + 5);
 			rt.anchoredPosition = new Vector2(
 				rt.offsetMin.x + (rt.offsetMax.x - rt.offsetMin.x) / 2,
 				rt.offsetMin.y + (rt.offsetMax.y - rt.offsetMin.y) / 2);
 
 
 			rt = popup_.popup.popupPanel;
-			rt.offsetMin = new Vector2(rt.offsetMin.x - 3, rt.offsetMin.y);
+			rt.offsetMin = new Vector2(rt.offsetMin.x - 10, rt.offsetMin.y);
 			rt.offsetMax = new Vector2(rt.offsetMax.x + 5, rt.offsetMax.y - 5);
 
 			rt = popup_.popup.popupButtonPrefab;
 			rt.offsetMin = new Vector2(rt.offsetMin.x - 3, rt.offsetMin.y);
 			rt.offsetMax = new Vector2(rt.offsetMax.x + 5, rt.offsetMax.y - 15);
+
+			var text = popup_.popup.popupButtonPrefab.GetComponentInChildren<Text>();
+			text.alignment = TextAnchor.MiddleLeft;
+			text.rectTransform.offsetMin = new Vector2(
+				text.rectTransform.offsetMin.x + 10,
+				text.rectTransform.offsetMin.y);
+
+			text = popup_.popup.topButton.GetComponentInChildren<Text>();
+			text.alignment = TextAnchor.MiddleLeft;
+			text.rectTransform.offsetMin = new Vector2(
+				text.rectTransform.offsetMin.x + 10,
+				text.rectTransform.offsetMin.y);
 		}
 
 		private void AddItemNoUpdate(Item i)

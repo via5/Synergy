@@ -69,9 +69,9 @@ namespace Synergy.NewUI
 		private void OnSelectionChanged(FactoryComboBoxItem<ObjectType> item)
 		{
 			if (item == null)
-				FactoryTypeChanged(null);
+				FactoryTypeChanged?.Invoke(null);
 			else
-				FactoryTypeChanged(item.CreateFactoryObject());
+				FactoryTypeChanged?.Invoke(item.CreateFactoryObject());
 		}
 
 		public void Select(ObjectType d)
@@ -133,6 +133,9 @@ namespace Synergy.NewUI
 			remove_.Clicked += RemoveStep;
 			up_.Clicked += MoveStepUp;
 			down_.Clicked += MoveStepDown;
+
+			Synergy.Instance.Manager.StepsChanged += UpdateSteps;
+			UpdateSteps();
 		}
 
 		public Step Selected
@@ -191,7 +194,14 @@ namespace Synergy.NewUI
 
 		private void OnSelectionChanged(Step s)
 		{
-			SelectionChanged(s);
+			SelectionChanged?.Invoke(s);
+		}
+
+		private void UpdateSteps()
+		{
+			steps_.SetItems(
+				new List<Step>(Synergy.Instance.Manager.Steps),
+				steps_.Selected);
 		}
 	}
 
@@ -563,6 +573,9 @@ namespace Synergy.NewUI
 
 		public NewUI()
 		{
+			//for (int i = 0; i < 40; ++i)
+			//	Synergy.Instance.Manager.AddStep();
+
 			var tabs = new UI.Tabs();
 			tabs.AddTab(S("Step"), stepTab_);
 			tabs.AddTab(S("Modifiers"), modifiersTab_);

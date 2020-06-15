@@ -75,7 +75,7 @@ namespace Synergy.UI
 		private void OnClicked(bool b)
 		{
 			Root.SetFocus(this);
-			Clicked(b);
+			Clicked?.Invoke(b);
 		}
 	}
 }
