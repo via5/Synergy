@@ -43,7 +43,7 @@ namespace Synergy.UI
 			popup_.popup.onValueChangeHandlers += (string s) => { Root.SetFocus(this); };
 			popup_.popup.topBottomBuffer = 3;
 
-			ComboBox.SetScrollablePopupStyle(popup_.popup);
+			Style.Polish(popup_);
 
 			var rt = popup_.popup.popupPanel;
 			rt.offsetMin = new Vector2(ClientBounds.Left, ClientBounds.Top);

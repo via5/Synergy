@@ -6,6 +6,11 @@ namespace Synergy.UI
 {
 	class Utilities
 	{
+		public static GameObject FindChildRecursive(Component c, string name)
+		{
+			return FindChildRecursive(c.gameObject, name);
+		}
+
 		public static GameObject FindChildRecursive(GameObject o, string name)
 		{
 			if (o == null)

@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 
 namespace Synergy.UI
 {
@@ -53,6 +54,96 @@ namespace Synergy.UI
 		public static int FontSize
 		{
 			get { return 28; }
+		}
+
+
+		private static void PolishButton(Component e)
+		{
+			var i = e.GetComponent<Image>();
+			i.color = Color.white;
+
+			var st = e.GetComponentInChildren<UIStyleText>();
+			if (st != null)
+			{
+				st.color = TextColor;
+				st.UpdateStyle();
+			}
+
+			var sb = e.GetComponent<UIStyleButton>();
+			sb.normalColor = ButtonBackgroundColor;
+			sb.highlightedColor = HighlightBackgroundColor;
+			sb.pressedColor = HighlightBackgroundColor;
+			sb.UpdateStyle();
+		}
+
+		public static void ClampScrollView(GameObject scrollView)
+		{
+			var sr = scrollView.GetComponent<ScrollRect>();
+			sr.movementType = ScrollRect.MovementType.Clamped;
+		}
+
+		public static void Polish(UIDynamicButton e)
+		{
+			PolishButton(e);
+		}
+
+		public static void Polish(UIDynamicPopup e)
+		{
+			e.labelWidth = 0;
+			e.labelSpacingRight = 0;
+			e.popup.topBottomBuffer = 3;
+
+			Polish(e.popup);
+		}
+
+		public static void Polish(UIPopup e)
+		{
+			var scrollView = Utilities.FindChildRecursive(e, "Scroll View");
+			var viewport = Utilities.FindChildRecursive(e, "Viewport");
+			var scrollbar = Utilities.FindChildRecursive(e, "Scrollbar Vertical");
+			var scrollbarHandle = Utilities.FindChildRecursive(scrollbar, "Handle");
+
+			ClampScrollView(scrollView);
+
+			// background color for items in the popup; to have items be the
+			// same color as the background of the popup, this must be
+			// transparent instead of BackgroundColor because darker borders
+			// would be added automatically and they can't be configured
+			e.normalColor = new Color(0, 0, 0, 0);
+
+			// background color for a selected item inside the popup
+			e.selectColor = SelectionBackgroundColor;
+
+			// background color of the popup, behind the items
+			e.popupPanel.GetComponent<Image>().color = BackgroundColor;
+
+			// background color of the scroll view inside the popup; this must
+			// be transparent for the background color set above to appear
+			// correctly
+			scrollView.GetComponent<Image>().color = new Color(0, 0, 0, 0);
+
+			// topButton is the actual combobox the user clicks to open the
+			// popup
+			PolishButton(e.topButton);
+
+			// popupButtonPrefab is the prefab used to create items in the
+			// popup
+			PolishButton(e.popupButtonPrefab);
+
+			// there's some empty space at the bottom of the list, remove it
+			// by changing the bottom offset of both the viewport and vertical
+			// scrollbar
+			var rt = viewport.GetComponent<RectTransform>();
+			rt.offsetMin = new Vector2(rt.offsetMin.x, 0);
+
+			rt = scrollbar.GetComponent<RectTransform>();
+			rt.offsetMin = new Vector2(rt.offsetMin.x, 0);
+
+			// scrollbar background color
+			scrollbar.GetComponent<Image>().color = BackgroundColor;
+
+			// scrollbar handle color
+			scrollbarHandle.GetComponent<Image>().color = ButtonBackgroundColor;
 		}
 	}
 }

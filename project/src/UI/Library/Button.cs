@@ -33,16 +33,10 @@ namespace Synergy.UI
 		protected override void DoCreate()
 		{
 			button_ = Object.GetComponent<UIDynamicButton>();
-			button_.buttonColor = Style.ButtonBackgroundColor;
-			button_.buttonText.color = Style.TextColor;
 			button_.button.onClick.AddListener(OnClicked);
 			button_.buttonText.text = text_;
 
-			var sb = button_.GetComponent<UIStyleButton>();
-			sb.normalColor = Style.ButtonBackgroundColor;
-			sb.highlightedColor = Style.HighlightBackgroundColor;
-			sb.colorMultiplier = 3.89f;
-			sb.UpdateStyle();
+			Style.Polish(button_);
 		}
 
 		protected override Size GetPreferredSize()

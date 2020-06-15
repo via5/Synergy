@@ -178,103 +178,13 @@ namespace Synergy.UI
 				Synergy.Instance.manager.configurableScrollablePopupPrefab).gameObject;
 		}
 
-		public static void SetScrollablePopupStyle(UIPopup popup)
-		{
-			// popup selection background color
-			popup.selectColor = Style.SelectionBackgroundColor;
-
-			// popup button background color
-			popup.normalColor = new Color(0, 0, 0, 0);
-
-			// button text color
-			var st = popup.topButton.GetComponentInChildren<UIStyleText>();
-			if (st != null)
-			{
-				st.color = Style.TextColor;
-				st.UpdateStyle();
-			}
-
-			// button background color
-			var i = popup.topButton.GetComponent<Image>();
-			i.color = Style.ButtonBackgroundColor;
-
-			// popup background color for combobox
-			i = popup.popupPanel.GetComponent<Image>();
-			i.color = Style.BackgroundColor;
-
-			// popup background color for lists
-			GameObject sv = null;
-			foreach (Transform c in popup.popupPanel.transform)
-			{
-				if (c.name == "Scroll View")
-				{
-					sv = c.gameObject;
-					break;
-				}
-			}
-
-			if (sv != null)
-				sv.GetComponent<Image>().color = Style.BackgroundColor;
-
-
-			// popup button text color
-			var sst = popup.popupButtonPrefab.GetComponentsInChildren<UIStyleText>();
-			foreach (var st2 in sst)
-			{
-				st2.color = Style.TextColor;
-				st2.UpdateStyle();
-			}
-
-			// popup button highlight background color
-			var sb = popup.popupButtonPrefab.GetComponent<UIStyleButton>();
-			sb.normalColor = Style.ButtonBackgroundColor;
-			sb.pressedColor = Style.HighlightBackgroundColor;
-			sb.highlightedColor = Style.HighlightBackgroundColor;
-			sb.UpdateStyle();
-
-			sb = popup.topButton.GetComponent<UIStyleButton>();
-			sb.normalColor = Color.white;
-			sb.highlightedColor = new Color(0, 0, 0, 0);
-			sb.pressedColor = new Color(0, 0, 0, 0);
-			sb.UpdateStyle();
-
-			// clamped scroll
-			sv = Utilities.FindChildRecursive(
-				popup.gameObject, "Scroll View");
-
-			var sr = sv.GetComponent<ScrollRect>();
-			sr.movementType = ScrollRect.MovementType.Clamped;
-
-			// empty space at the bottom
-			var viewport = Utilities.FindChildRecursive(
-				popup.gameObject, "Viewport");
-			var rt = viewport.GetComponent<RectTransform>();
-			rt.offsetMin = new Vector2(rt.offsetMin.x, 0);
-
-			var scrollbar = Utilities.FindChildRecursive(
-				popup.gameObject, "Scrollbar Vertical");
-			rt = scrollbar.GetComponent<RectTransform>();
-			rt.offsetMin = new Vector2(rt.offsetMin.x, 0);
-
-			// scrollbar background color
-			scrollbar.GetComponent<Image>().color = Style.BackgroundColor;
-
-			// scrollbar handle color
-			var handle = Utilities.FindChildRecursive(scrollbar, "Handle");
-			handle.GetComponent<Image>().color = Style.ButtonBackgroundColor;
-		}
-
 		protected override void DoCreate()
 		{
 			popup_ = Object.GetComponent<UIDynamicPopup>();
-			popup_.labelWidth = 0;
-			popup_.labelSpacingRight = 0;
-			popup_.popup.topBottomBuffer = 3;
 			popup_.popup.showSlider = false;
 			popup_.popup.onOpenPopupHandlers += OnOpen;
 
-			SetScrollablePopupStyle(popup_.popup);
-
+			Style.Polish(popup_);
 
 			var arrowObject = new GameObject();
 			arrowObject.transform.SetParent(Object.transform, false);
