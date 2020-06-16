@@ -109,12 +109,8 @@ namespace Synergy.UI
 			if (ignore_)
 				return;
 
-			Synergy.LogError("edited: " + s);
-
 			if (Validate != null)
 			{
-				Synergy.LogError("validating");
-
 				var v = new Validation();
 				v.text = s;
 				v.valid = true;
@@ -123,9 +119,7 @@ namespace Synergy.UI
 
 				if (!v.valid)
 				{
-					Synergy.LogError("failed");
 					input_.text = text_;
-
 					return;
 				}
 

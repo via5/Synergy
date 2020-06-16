@@ -14,9 +14,12 @@ namespace Synergy.UI
 		private bool checked_ = false;
 		private UIDynamicToggle toggle_ = null;
 
-		public CheckBox(string t = "")
+		public CheckBox(string t = "", ChangedCallback changed = null)
 		{
 			text_ = t;
+
+			if (changed != null)
+				Changed += changed;
 		}
 
 		public bool Checked

@@ -54,18 +54,23 @@ namespace Synergy.NewUI
 
 	class FactoryComboBox<FactoryType, ObjectType>
 		: UI.TypedComboBox<FactoryComboBoxItem<ObjectType>>
-			where FactoryType : IGenericFactory
+			where FactoryType : IGenericFactory, new()
 			where ObjectType : class, IFactoryObject
 	{
 		public delegate void FactoryTypeCallback(ObjectType o);
 		public event FactoryTypeCallback FactoryTypeChanged;
 
-		public FactoryComboBox(FactoryType f)
+		public FactoryComboBox(FactoryTypeCallback factoryTypeChanged = null)
 		{
+			var f = new FactoryType();
+
 			foreach (var creator in f.GetAllCreators())
 				AddItem(new FactoryComboBoxItem<ObjectType>(creator));
 
 			SelectionChanged += OnSelectionChanged;
+
+			if (factoryTypeChanged != null)
+				FactoryTypeChanged += factoryTypeChanged;
 		}
 
 		private void OnSelectionChanged(FactoryComboBoxItem<ObjectType> item)
@@ -209,10 +214,9 @@ namespace Synergy.NewUI
 		private float reset_ = 0;
 		private float current_ = 0;
 
-		public TimeWidgets()
+		public TimeWidgets(ValueCallback changed = null)
 		{
 			text_ = new TextBox();
-
 			text_.Validate += OnValidate;
 			text_.Changed += OnChanged;
 
@@ -227,6 +231,9 @@ namespace Synergy.NewUI
 			Add(new UI.Button("+.1", () => AddValue(+0.1f)));
 			Add(new UI.Button("+1", () => AddValue(+1)));
 			Add(new UI.Button(S("Reset"), () => Reset()));
+
+			if (changed != null)
+				Changed += changed;
 		}
 
 		public void Set(float f)
@@ -293,10 +300,11 @@ namespace Synergy.NewUI
 
 		public RandomDurationWidgets(RandomDuration d = null)
 		{
-			time_ = new TimeWidgets();
-			range_ = new TimeWidgets();
-			interval_ = new TimeWidgets();
-			cutoff_ = new ComboBox(RandomizableTime.GetCutoffNames());
+			time_ = new TimeWidgets(OnInitialChanged);
+			range_ = new TimeWidgets(OnRangeChanged);
+			interval_ = new TimeWidgets(OnIntervalChanged);
+			cutoff_ = new ComboBox(
+				RandomizableTime.GetCutoffNames(), OnCutoffChanged);
 
 			var gl = new UI.GridLayout(2);
 			gl.HorizontalSpacing = 10;
@@ -315,12 +323,6 @@ namespace Synergy.NewUI
 
 			Add(new UI.Label(S("Cut-off")));
 			Add(cutoff_);
-
-			time_.Changed += OnInitialChanged;
-			range_.Changed += OnRangeChanged;
-			interval_.Changed += OnIntervalChanged;
-			cutoff_.SelectionChanged += OnCutoffChanged;
-
 			Set(d);
 		}
 
@@ -369,33 +371,47 @@ namespace Synergy.NewUI
 
 	class RampDurationWidgets : DurationWidgets
 	{
+		private readonly TimeWidgets over_, min_, max_, hold_;
+		private readonly FactoryComboBox<EasingFactory, IEasing> easing_;
+		private readonly UI.CheckBox rampUp_, rampDown_;
+
+		private RampDuration duration_ = null;
+
 		public RampDurationWidgets(RampDuration d = null)
 		{
+			over_ = new TimeWidgets(OnOverChanged);
+			min_ = new TimeWidgets(OnMinimumChanged);
+			max_ = new TimeWidgets(OnMaximumChanged);
+			hold_ = new TimeWidgets(OnHoldChanged);
+			easing_ = new FactoryComboBox<EasingFactory, IEasing>(
+				OnEasingChanged);
+			rampUp_ = new UI.CheckBox(S("Ramp up"), OnRampUpChanged);
+			rampDown_ = new UI.CheckBox(S("Ramp down"), OnRampDownChanged);
+
 			var gl = new UI.GridLayout(2);
 			gl.HorizontalSpacing = 10;
 			gl.VerticalSpacing = 20;
-
 			Layout = gl;
 
 			Add(new UI.Label(S("Time")));
-			Add(new TimeWidgets());
+			Add(over_);
 
 			Add(new UI.Label(S("Minimum duration")));
-			Add(new TimeWidgets());
+			Add(min_);
 
 			Add(new UI.Label(S("Maximum duration")));
-			Add(new TimeWidgets());
+			Add(max_);
 
 			Add(new UI.Label(S("Hold maximum")));
-			Add(new TimeWidgets());
+			Add(hold_);
 
 			Add(new UI.Label(S("Easing")));
-			Add(new UI.ComboBox());
+			Add(easing_);
 
 			var ramps = new UI.Panel();
 			ramps.Layout = new UI.HorizontalFlow();
-			ramps.Add(new UI.CheckBox(S("Ramp up")));
-			ramps.Add(new UI.CheckBox(S("Ramp down")));
+			ramps.Add(rampUp_);
+			ramps.Add(rampDown_);
 
 			Add(new UI.Panel());
 			Add(ramps);
@@ -405,11 +421,54 @@ namespace Synergy.NewUI
 
 		public override bool Set(IDuration d)
 		{
-			var rd = (d as RampDuration);
-			if (rd == null)
+			duration_ = (d as RampDuration);
+			if (duration_ == null)
 				return false;
 
+			over_.Set(duration_.Over);
+			min_.Set(duration_.Minimum);
+			max_.Set(duration_.Maximum);
+			hold_.Set(duration_.Hold);
+			easing_.Select(duration_.Easing);
+			rampUp_.Checked = duration_.RampUp;
+			rampDown_.Checked = duration_.RampDown;
+
 			return true;
+		}
+
+		private void OnOverChanged(float f)
+		{
+			duration_.Over = f;
+		}
+
+		private void OnMinimumChanged(float f)
+		{
+			duration_.Minimum = f;
+		}
+
+		private void OnMaximumChanged(float f)
+		{
+			duration_.Maximum = f;
+		}
+
+		private void OnHoldChanged(float f)
+		{
+			duration_.Hold = f;
+		}
+
+		private void OnEasingChanged(IEasing e)
+		{
+			duration_.Easing = e;
+		}
+
+		private void OnRampUpChanged(bool b)
+		{
+			duration_.RampUp = b;
+		}
+
+		private void OnRampDownChanged(bool b)
+		{
+			duration_.RampDown = b;
 		}
 	}
 
@@ -425,15 +484,14 @@ namespace Synergy.NewUI
 
 		public DurationPanel()
 		{
-			Layout = new UI.VerticalFlow(50);
+			type_ = new FactoryComboBox<DurationFactory, IDuration>(
+				OnTypeChanged);
 
-			type_ = new FactoryComboBox<DurationFactory, IDuration>(new DurationFactory());
+			Layout = new UI.VerticalFlow(50);
 
 			var p = new UI.Panel(new UI.HorizontalFlow(20));
 			p.Add(new UI.Label(S("Duration type")));
 			p.Add(type_);
-
-			type_.FactoryTypeChanged += OnTypeChanged;
 
 			Add(p);
 		}
@@ -685,8 +743,9 @@ namespace Synergy.NewUI
 
 		public NewUI()
 		{
-			//Synergy.Instance.Manager.AddStep();
-			//Synergy.Instance.Manager.AddStep();
+			var s = Synergy.Instance.Manager.AddStep();
+			s.Duration = new RampDuration();
+			Synergy.Instance.Manager.AddStep();
 
 			var tabs = new UI.Tabs();
 			tabs.AddTab(S("Step"), stepTab_);

@@ -46,13 +46,20 @@ namespace Synergy.UI
 
 
 		public TypedComboBox(List<ItemType> items = null)
+			: this(items, null)
 		{
-			if (items != null)
-				SetItems(items);
 		}
 
 		public TypedComboBox(ItemCallback selectionChanged)
+			: this(null, selectionChanged)
 		{
+		}
+
+		public TypedComboBox(List<ItemType> items, ItemCallback selectionChanged)
+		{
+			if (items != null)
+				SetItems(items);
+
 			if (selectionChanged != null)
 				SelectionChanged += selectionChanged;
 		}
@@ -267,6 +274,11 @@ namespace Synergy.UI
 				text.rectTransform.offsetMin = new Vector2(
 					text.rectTransform.offsetMin.x + 10,
 					text.rectTransform.offsetMin.y);
+
+				// avoid overlap with arrow
+				text.rectTransform.offsetMax = new Vector2(
+					text.rectTransform.offsetMax.x - 25,
+					text.rectTransform.offsetMax.y);
 			}
 		}
 
@@ -329,8 +341,18 @@ namespace Synergy.UI
 
 	class ComboBox : TypedComboBox<string>
 	{
-		public ComboBox(List<string> strings = null)
-			: base(strings)
+		public ComboBox(List<string> items = null)
+			: base(items, null)
+		{
+		}
+
+		public ComboBox(ItemCallback selectionChanged)
+			: base(null, selectionChanged)
+		{
+		}
+
+		public ComboBox(List<string> items, ItemCallback selectionChanged)
+			: base(items, selectionChanged)
 		{
 		}
 	}
