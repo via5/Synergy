@@ -51,13 +51,17 @@ namespace Synergy.NewUI
 
 	class ModifierInfo : UI.Panel
 	{
+		private readonly UI.TextBox name_;
+
 		public ModifierInfo()
 		{
+			name_ = new UI.TextBox();
+
 			Layout = new UI.VerticalFlow(20);
 
 			var p = new UI.Panel(new UI.HorizontalFlow(10));
 			p.Add(new UI.Label(S("Name")));
-			p.Add(new UI.TextBox());
+			p.Add(name_);
 			p.Add(new UI.CheckBox(S("Modifier enabled")));
 			Add(p);
 
@@ -65,6 +69,8 @@ namespace Synergy.NewUI
 			p.Add(new UI.Label(S("Modifier type")));
 			p.Add(new UI.ComboBox());
 			Add(p);
+
+			name_.MinimumSize = new UI.Size(300, DontCare);
 		}
 	}
 

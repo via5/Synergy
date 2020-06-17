@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.PlayerLoop;
 using UnityEngine.UI;
 
 namespace Synergy.UI
@@ -70,7 +71,7 @@ namespace Synergy.UI
 			UpdateChoices();
 
 			if (select)
-				Select(items_.Count - 1);
+				Select(items_.Count - 1, true);
 		}
 
 		public void RemoveItem(ItemType item)
@@ -142,7 +143,13 @@ namespace Synergy.UI
 				selIndex = 0;
 
 			UpdateChoices();
-			Select(selIndex);
+			Select(selIndex, true);
+		}
+
+		public void UpdateItemsText()
+		{
+			UpdateChoices();
+			UpdateLabel();
 		}
 
 		public virtual int IndexOf(ItemType item)
@@ -156,18 +163,21 @@ namespace Synergy.UI
 			return -1;
 		}
 
-		public void Select(ItemType item)
+		public void Select(ItemType item, bool fireCallback = false)
 		{
-			Select(IndexOf(item));
+			Select(IndexOf(item), fireCallback);
 		}
 
-		public void Select(int i)
+		public void Select(int i, bool fireCallback = false)
 		{
 			if (i < 0 || i >= items_.Count)
 				i = -1;
 
 			selection_ = i;
 			UpdateLabel();
+
+			if (fireCallback)
+				SelectionChanged?.Invoke(Selected);
 		}
 
 		public ItemType Selected
@@ -289,9 +299,8 @@ namespace Synergy.UI
 
 		private void UpdateLabel()
 		{
-			if (selection_ == -1)
-				storable_.valNoCallback = "";
-			else
+			storable_.valNoCallback = "";
+			if (selection_ != -1)
 				storable_.valNoCallback = items_[selection_].GetHashCode().ToString();
 		}
 

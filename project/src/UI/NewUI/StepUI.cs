@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Synergy.NewUI
 {
@@ -7,7 +8,7 @@ namespace Synergy.NewUI
 		private readonly StepInfo info_ = new StepInfo();
 		private readonly UI.Tabs tabs_ = new UI.Tabs();
 		private readonly DurationPanel duration_ = new DurationPanel();
-		private readonly RepeatWidgets repeat_ = new RepeatWidgets();
+		private readonly RandomizableTimePanel repeat_ = new RandomizableTimePanel();
 		private readonly DelayWidgets delay_ = new DelayWidgets();
 
 		private Step step_ = null;
@@ -30,8 +31,11 @@ namespace Synergy.NewUI
 		public void SetStep(Step s)
 		{
 			step_ = s;
-			info_.SetStep(s);
-			duration_.Set(s.Duration);
+
+			info_.Set(s);
+			duration_.Set(s?.Duration);
+			repeat_.Set(s?.Repeat);
+			delay_.Set(s?.Delay);
 		}
 
 		private void OnDurationTypeChanged(IDuration d)
@@ -61,16 +65,26 @@ namespace Synergy.NewUI
 			Add(enabled_);
 			Add(halfMove_);
 
+			name_.MinimumSize = new UI.Size(300, DontCare);
+			name_.Changed += OnNameChanged;
+
 			enabled_.Changed += OnEnabled;
 			halfMove_.Changed += OnHalfMove;
 		}
 
-		public void SetStep(Step s)
+		public void Set(Step s)
 		{
 			step_ = s;
+
 			name_.Text = s.Name;
 			enabled_.Checked = s.Enabled;
 			halfMove_.Checked = s.HalfMove;
+		}
+
+		private void OnNameChanged(string s)
+		{
+			if (step_ != null)
+				step_.UserDefinedName = s;
 		}
 
 		private void OnEnabled(bool b)
@@ -94,6 +108,7 @@ namespace Synergy.NewUI
 
 		private readonly UI.TypedComboBox<Step> steps_;
 		private readonly UI.Button add_, clone_, clone0_, remove_, up_, down_;
+		private bool ignore_ = false;
 
 		public StepControls()
 		{
@@ -116,8 +131,16 @@ namespace Synergy.NewUI
 			Add(up_);
 			Add(down_);
 
-			Synergy.Instance.Manager.StepsChanged += UpdateSteps;
+			Synergy.Instance.Manager.StepsChanged += OnStepsChanged;
+			Synergy.Instance.Manager.StepNameChanged += OnStepNameChanged;
 			UpdateSteps();
+		}
+
+		public override void Dispose()
+		{
+			base.Dispose();
+			Synergy.Instance.Manager.StepsChanged -= OnStepsChanged;
+			Synergy.Instance.Manager.StepNameChanged -= OnStepNameChanged;
 		}
 
 		public Step Selected
@@ -130,39 +153,51 @@ namespace Synergy.NewUI
 
 		public void AddStep()
 		{
-			var s = Synergy.Instance.Manager.AddStep();
-			steps_.AddItem(s, true);
+			using (var sf = new ScopedFlag(b => ignore_ = b))
+			{
+				var s = Synergy.Instance.Manager.AddStep();
+				steps_.AddItem(s, true);
+			}
 		}
 
 		public void CloneStep()
 		{
-			var s = steps_.Selected;
-			if (s != null)
+			using (var sf = new ScopedFlag(b => ignore_ = b))
 			{
-				var ns = Synergy.Instance.Manager.AddStep(s.Clone());
-				steps_.AddItem(s, true);
+				var s = steps_.Selected;
+				if (s != null)
+				{
+					var ns = Synergy.Instance.Manager.AddStep(s.Clone());
+					steps_.AddItem(s, true);
+				}
 			}
 		}
 
 		public void CloneStepZero()
 		{
-			var s = steps_.Selected;
-			if (s != null)
+			using (var sf = new ScopedFlag(b => ignore_ = b))
 			{
-				var ns = Synergy.Instance.Manager.AddStep(
-					s.Clone(global::Synergy.Utilities.CloneZero));
+				var s = steps_.Selected;
+				if (s != null)
+				{
+					var ns = Synergy.Instance.Manager.AddStep(
+						s.Clone(global::Synergy.Utilities.CloneZero));
 
-				steps_.AddItem(s, true);
+					steps_.AddItem(s, true);
+				}
 			}
 		}
 
 		public void RemoveStep()
 		{
-			var s = steps_.Selected;
-			if (s != null)
+			using (var sf = new ScopedFlag(b => ignore_ = b))
 			{
-				Synergy.Instance.Manager.DeleteStep(s);
-				steps_.RemoveItem(s);
+				var s = steps_.Selected;
+				if (s != null)
+				{
+					Synergy.Instance.Manager.DeleteStep(s);
+					steps_.RemoveItem(s);
+				}
 			}
 		}
 
@@ -179,6 +214,19 @@ namespace Synergy.NewUI
 			SelectionChanged?.Invoke(s);
 		}
 
+		private void OnStepsChanged()
+		{
+			if (ignore_)
+				return;
+
+			UpdateSteps();
+		}
+
+		private void OnStepNameChanged(Step s)
+		{
+			steps_.UpdateItemsText();
+		}
+
 		private void UpdateSteps()
 		{
 			steps_.SetItems(
@@ -186,17 +234,4 @@ namespace Synergy.NewUI
 				steps_.Selected);
 		}
 	}
-
-
-	class RepeatWidgets : UI.Panel
-	{
-		private UI.Panel widgets_ = new RandomDurationWidgets();
-
-		public RepeatWidgets()
-		{
-			Layout = new UI.VerticalFlow();
-			Add(widgets_);
-		}
-	}
-
 }

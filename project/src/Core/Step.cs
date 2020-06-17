@@ -7,6 +7,9 @@ namespace Synergy
 {
 	sealed class Step : IJsonable
 	{
+		public delegate void StepNameChangedHandler(Step s);
+		public event StepNameChangedHandler StepNameChanged;
+
 		private readonly BoolParameter enabled_ =
 			new BoolParameter("Enabled", true);
 
@@ -56,7 +59,7 @@ namespace Synergy
 			name_ = null;
 			Duration = new RandomDuration();
 			Repeat = new RandomizableTime(0);
-			Delay = new Delay();
+			Delay = new Delay(new RandomDuration(), false, false);
 			halfMove_.Value = false;
 			inFirstHalf_ = true;
 			modifiers_ = new List<ModifierContainer>();
@@ -125,8 +128,16 @@ namespace Synergy
 
 		public string UserDefinedName
 		{
-			get { return name_; }
-			set { name_ = value; }
+			get
+			{
+				return name_;
+			}
+
+			set
+			{
+				name_ = value;
+				StepNameChanged?.Invoke(this);
+			}
 		}
 
 		public string Name

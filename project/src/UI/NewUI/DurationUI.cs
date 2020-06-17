@@ -36,7 +36,7 @@
 			reset_ = f;
 			current_ = f;
 
-			text_.Text = f.ToString();
+			text_.Text = f.ToString("0.00");
 		}
 
 		public void AddValue(float d)
@@ -67,6 +67,83 @@
 			current_ = v;
 			text_.Text = v.ToString();
 			Changed?.Invoke(v);
+		}
+	}
+
+
+	class RandomizableTimePanel : UI.Panel
+	{
+		private readonly TimeWidgets time_, range_, interval_;
+		private readonly UI.ComboBox cutoff_;
+		private RandomizableTime rt_ = null;
+
+		public RandomizableTimePanel(RandomizableTime rt = null)
+		{
+			time_ = new TimeWidgets(OnInitialChanged);
+			range_ = new TimeWidgets(OnRangeChanged);
+			interval_ = new TimeWidgets(OnIntervalChanged);
+			cutoff_ = new UI.ComboBox(
+				RandomizableTime.GetCutoffNames(), OnCutoffChanged);
+
+			var gl = new UI.GridLayout(2);
+			gl.HorizontalSpacing = 10;
+			gl.VerticalSpacing = 20;
+
+			Layout = gl;
+
+			Add(new UI.Label(S("Time")));
+			Add(time_);
+
+			Add(new UI.Label(S("Random range")));
+			Add(range_);
+
+			Add(new UI.Label(S("Random interval")));
+			Add(interval_);
+
+			Add(new UI.Label(S("Cut-off")));
+			Add(cutoff_);
+
+			Set(rt);
+		}
+
+		public void Set(RandomizableTime rt)
+		{
+			rt_ = rt;
+
+			if (rt_ != null)
+			{
+				time_.Set(rt_.Initial);
+				range_.Set(rt_.Range);
+				interval_.Set(rt_.Interval);
+				cutoff_.Select(RandomizableTime.CutoffToString(rt_.Cutoff));
+			}
+		}
+
+		private void OnInitialChanged(float f)
+		{
+			rt_.Initial = f;
+		}
+
+		private void OnRangeChanged(float f)
+		{
+			rt_.Range = f;
+		}
+
+		private void OnIntervalChanged(float f)
+		{
+			rt_.Interval = f;
+		}
+
+		private void OnCutoffChanged(string s)
+		{
+			var c = RandomizableTime.CutoffFromString(s);
+			if (c == -1)
+			{
+				Synergy.LogError("bad cutoff '" + s + "'");
+				return;
+			}
+
+			rt_.Cutoff = c;
 		}
 	}
 
@@ -140,36 +217,15 @@
 
 	class RandomDurationWidgets : DurationWidgets
 	{
-		private readonly TimeWidgets time_, range_, interval_;
-		private readonly UI.ComboBox cutoff_;
+		private readonly RandomizableTimePanel rt_;
 		private RandomDuration duration_ = null;
 
 		public RandomDurationWidgets(RandomDuration d = null)
 		{
-			time_ = new TimeWidgets(OnInitialChanged);
-			range_ = new TimeWidgets(OnRangeChanged);
-			interval_ = new TimeWidgets(OnIntervalChanged);
-			cutoff_ = new UI.ComboBox(
-				RandomizableTime.GetCutoffNames(), OnCutoffChanged);
+			rt_ = new RandomizableTimePanel(d?.Time);
 
-			var gl = new UI.GridLayout(2);
-			gl.HorizontalSpacing = 10;
-			gl.VerticalSpacing = 20;
-
-			Layout = gl;
-
-			Add(new UI.Label(S("Time")));
-			Add(time_);
-
-			Add(new UI.Label(S("Random range")));
-			Add(range_);
-
-			Add(new UI.Label(S("Random interval")));
-			Add(interval_);
-
-			Add(new UI.Label(S("Cut-off")));
-			Add(cutoff_);
-			Set(d);
+			Layout = new UI.BorderLayout();
+			Add(rt_, UI.BorderLayout.Center);
 		}
 
 		public override bool Set(IDuration d)
@@ -178,39 +234,9 @@
 			if (duration_ == null)
 				return false;
 
-			time_.Set(duration_.Time.Initial);
-			range_.Set(duration_.Time.Range);
-			interval_.Set(duration_.Time.Interval);
-			cutoff_.Select(RandomizableTime.CutoffToString(duration_.Time.Cutoff));
+			rt_.Set(duration_.Time);
 
 			return true;
-		}
-
-		private void OnInitialChanged(float f)
-		{
-			duration_.Time.Initial = f;
-		}
-
-		private void OnRangeChanged(float f)
-		{
-			duration_.Time.Range = f;
-		}
-
-		private void OnIntervalChanged(float f)
-		{
-			duration_.Time.Interval = f;
-		}
-
-		private void OnCutoffChanged(string s)
-		{
-			var c = RandomizableTime.CutoffFromString(s);
-			if (c == -1)
-			{
-				Synergy.LogError("bad cutoff '" + s + "'");
-				return;
-			}
-
-			duration_.Time.Cutoff = c;
 		}
 	}
 

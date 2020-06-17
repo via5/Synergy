@@ -91,7 +91,7 @@ namespace Synergy.UI
 			name_ = name;
 		}
 
-		public void Dispose()
+		public virtual void Dispose()
 		{
 			Destroy();
 		}
@@ -164,6 +164,7 @@ namespace Synergy.UI
 			{
 				visible_ = value;
 				UpdateVisibility(Visible);
+				NeedsLayout();
 			}
 		}
 

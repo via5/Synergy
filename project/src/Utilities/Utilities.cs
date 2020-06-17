@@ -1,10 +1,30 @@
-﻿using System;
+﻿using Leap.Unity;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
-using Leap.Unity;
 
 namespace Synergy
 {
+	public class ScopedFlag : IDisposable
+	{
+		private readonly Action<bool> a_;
+		private readonly bool start_;
+
+		public ScopedFlag(Action<bool> a, bool start = true)
+		{
+			a_ = a;
+			start_ = start;
+
+			a_(start_);
+		}
+
+		public void Dispose()
+		{
+			a_(!start_);
+		}
+	}
+
+
 	public class Strings
 	{
 		public static string Get(string s)

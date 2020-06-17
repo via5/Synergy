@@ -5,7 +5,10 @@ namespace Synergy
 	sealed class Manager : IJsonable
 	{
 		public delegate void Callback();
+		public delegate void StepCallback(Step s);
+
 		public event Callback StepsChanged;
+		public event StepCallback StepNameChanged;
 
 		private List<Step> steps_ = new List<Step>();
 
@@ -74,6 +77,7 @@ namespace Synergy
 			StepProgression?.StepInserted(at, s);
 			s.Added();
 
+			s.StepNameChanged += OnStepNameChanged;
 			StepsChanged?.Invoke();
 
 			return s;
@@ -92,6 +96,8 @@ namespace Synergy
 			steps_.Remove(s);
 			StepProgression?.StepDeleted(i);
 			s.Removed();
+
+			s.StepNameChanged -= OnStepNameChanged;
 		}
 
 		public Step GetStep(int i)
@@ -311,6 +317,11 @@ namespace Synergy
 			StepProgression = sp;
 
 			return true;
+		}
+
+		private void OnStepNameChanged(Step s)
+		{
+			StepNameChanged?.Invoke(s);
 		}
 	}
 }

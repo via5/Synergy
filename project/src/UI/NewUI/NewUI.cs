@@ -3,6 +3,7 @@
 	class NewUI
 	{
 		private UI.Root root_ = new UI.Root();
+		private UI.Tabs tabs_ = new UI.Tabs();
 		private StepControls steps_ = new StepControls();
 		private StepTab stepTab_ = new StepTab();
 		private ModifiersTab modifiersTab_ = new ModifiersTab();
@@ -14,30 +15,39 @@
 
 		public NewUI()
 		{
-			var s = Synergy.Instance.Manager.AddStep();
-			s.Duration = new RampDuration();
-			Synergy.Instance.Manager.AddStep();
+			//s.Duration = new RampDuration();
+			//Synergy.Instance.Manager.AddStep();
 
-			var tabs = new UI.Tabs();
-			tabs.AddTab(S("Step"), stepTab_);
-			tabs.AddTab(S("Modifiers"), modifiersTab_);
+			tabs_.AddTab(S("Step"), stepTab_);
+			tabs_.AddTab(S("Modifiers"), modifiersTab_);
 
 			root_.Layout = new UI.BorderLayout(30);
 			root_.Add(steps_, UI.BorderLayout.Top);
-			root_.Add(tabs, UI.BorderLayout.Center);
-
-			steps_.SelectionChanged += OnStepSelected;
+			root_.Add(tabs_, UI.BorderLayout.Center);
 
 			if (Synergy.Instance.Manager.Steps.Count > 0)
 				SelectStep(Synergy.Instance.Manager.Steps[0]);
+			else
+				SelectStep(null);
 
+			steps_.SelectionChanged += OnStepSelected;
 			root_.DoLayoutIfNeeded();
+
+			Synergy.Instance.Manager.AddStep();
 		}
 
 		public void SelectStep(Step s)
 		{
-			stepTab_.SetStep(s);
-			modifiersTab_.SetStep(s);
+			if (s == null)
+			{
+				tabs_.Visible = false;
+			}
+			else
+			{
+				tabs_.Visible = true;
+				stepTab_.SetStep(s);
+				modifiersTab_.SetStep(s);
+			}
 		}
 
 		public void Tick()
@@ -55,7 +65,7 @@
 	class DelayWidgets : UI.Panel
 	{
 		private readonly UI.CheckBox halfWay_, end_;
-		private readonly DurationPanel duration_ = new DurationPanel();
+		private readonly RandomDurationWidgets duration_ = new RandomDurationWidgets();
 
 		public DelayWidgets()
 		{
@@ -70,6 +80,11 @@
 
 			Add(p);
 			Add(duration_);
+		}
+
+		public void Set(Delay d)
+		{
+			duration_.Set(d.Duration);
 		}
 	}
 
