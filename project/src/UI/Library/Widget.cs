@@ -110,7 +110,7 @@ namespace Synergy.UI
 
 		public static string S(string s)
 		{
-			return NewUI.Strings.Get(s);
+			return Strings.Get(s);
 		}
 
 		public Layout Layout

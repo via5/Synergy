@@ -5,6 +5,15 @@ using Leap.Unity;
 
 namespace Synergy
 {
+	public class Strings
+	{
+		public static string Get(string s)
+		{
+			return s;
+		}
+	}
+
+
 	class Bits
 	{
 		public static bool IsSet(int flag, int bits)
@@ -12,6 +21,7 @@ namespace Synergy
 			return ((flag & bits) == bits);
 		}
 	}
+
 
 	sealed class ExplicitHolder<T>
 		where T : class
@@ -28,6 +38,7 @@ namespace Synergy
 			value_ = t;
 		}
 	}
+
 
 	class Utilities
 	{

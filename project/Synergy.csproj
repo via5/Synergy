@@ -102,7 +102,11 @@
     <Compile Include="src\UI\MonitorUI\Modifiers\RigidbodyModifierMonitorUI.cs" />
     <Compile Include="src\UI\MonitorUI\MonitorUI.cs" />
     <Compile Include="src\UI\MonitorUI\MovementMonitorUI.cs" />
+    <Compile Include="src\UI\NewUI\DurationUI.cs" />
+    <Compile Include="src\UI\NewUI\ModifierUI.cs" />
+    <Compile Include="src\UI\NewUI\MovementUI.cs" />
     <Compile Include="src\UI\NewUI\NewUI.cs" />
+    <Compile Include="src\UI\NewUI\StepUI.cs" />
     <Compile Include="src\UI\Widgets\AtomList.cs" />
     <Compile Include="src\UI\Widgets\AudioClipsCheckboxes.cs" />
     <Compile Include="src\UI\Widgets\Collapsible.cs" />
