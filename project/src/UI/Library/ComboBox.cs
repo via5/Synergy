@@ -190,7 +190,7 @@ namespace Synergy.UI
 
 			widest = Math.Max(widest, 60);
 
-			return new Size(300, 40);
+			return new Size(175, 40);
 		}
 
 		protected override GameObject CreateGameObject()

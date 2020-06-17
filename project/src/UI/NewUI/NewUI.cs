@@ -1,4 +1,5 @@
-﻿using Leap.Unity;
+﻿using Battlehub.RTHandles;
+using Leap.Unity;
 using Synergy.UI;
 using System;
 using System.Collections.Generic;
@@ -672,8 +673,82 @@ namespace Synergy.NewUI
 	}
 
 
+	class MovementWidgets : UI.Panel
+	{
+		public MovementWidgets()
+		{
+			Layout = new HorizontalFlow(5);
+
+			Add(new UI.TextBox());
+			Add(new UI.Button("-10"));
+			Add(new UI.Button("-1"));
+			Add(new UI.Button("0"));
+			Add(new UI.Button("+1"));
+			Add(new UI.Button("+10"));
+			Add(new UI.Button(S("Reset")));
+		}
+	}
+
+
 	class RigidbodyPanel : UI.Panel
 	{
+		public RigidbodyPanel()
+		{
+			Layout = new VerticalFlow(30);
+
+			var w = new UI.Panel();
+			var gl = new GridLayout(4);
+			gl.HorizontalSpacing = 20;
+			gl.VerticalSpacing = 20;
+			w.Layout = gl;
+
+			w.Add(new UI.Label(S("Atom")));
+			w.Add(new UI.ComboBox());
+			w.Add(new UI.Label(S("Receiver")));
+			w.Add(new UI.ComboBox());
+			w.Add(new UI.Label(S("Move type")));
+			w.Add(new UI.ComboBox());
+			w.Add(new UI.Label(S("Easing")));
+			w.Add(new UI.ComboBox());
+			w.Add(new UI.Label(S("Direction")));
+			w.Add(new UI.ComboBox());
+			w.Add(new UI.Panel());
+			w.Add(new UI.Panel());
+			Add(w);
+
+			Add(new UI.Label("Minimum"));
+
+			w = new UI.Panel();
+			gl = new GridLayout(2);
+			gl.HorizontalSpacing = 20;
+			gl.VerticalSpacing = 20;
+			w.Layout = gl;
+
+			w.Add(new UI.Label(S("Value")));
+			w.Add(new MovementWidgets());
+			w.Add(new UI.Label(S("Range")));
+			w.Add(new MovementWidgets());
+			w.Add(new UI.Label(S("Interval")));
+			w.Add(new MovementWidgets());
+			Add(w);
+
+
+			Add(new UI.Label("Maximum"));
+
+			w = new UI.Panel();
+			gl = new GridLayout(2);
+			gl.HorizontalSpacing = 20;
+			gl.VerticalSpacing = 20;
+			w.Layout = gl;
+
+			w.Add(new UI.Label(S("Value")));
+			w.Add(new MovementWidgets());
+			w.Add(new UI.Label(S("Range")));
+			w.Add(new MovementWidgets());
+			w.Add(new UI.Label(S("Interval")));
+			w.Add(new MovementWidgets());
+			Add(w);
+		}
 	}
 
 
