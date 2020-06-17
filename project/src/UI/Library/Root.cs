@@ -66,6 +66,8 @@ namespace Synergy.UI
 			{
 				DoLayout();
 				Create();
+				UpdateBounds();
+
 				dirty_ = false;
 			}
 		}

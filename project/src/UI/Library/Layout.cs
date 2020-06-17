@@ -95,9 +95,16 @@ namespace Synergy.UI
 	{
 		public override string TypeName { get { return "horflow"; } }
 
-		public HorizontalFlow(int spacing = 0)
+		public const int AlignTop = 1;
+		public const int AlignMiddle = 2;
+		public const int AlignBottom = 3;
+
+		private int align_;
+
+		public HorizontalFlow(int spacing = 0, int align = AlignTop)
 		{
 			Spacing = spacing;
+			align_ = align;
 		}
 
 		protected override void LayoutImpl()
@@ -107,6 +114,31 @@ namespace Synergy.UI
 			foreach (var w in Children)
 			{
 				var wr = new Rectangle(r.TopLeft, w.PreferredSize);
+
+				if (wr.Height < r.Height)
+				{
+					switch (align_)
+					{
+						case AlignTop:
+						{
+							// no-op
+							break;
+						}
+
+						case AlignMiddle:
+						{
+							wr.MoveTo(wr.Left, r.Top + (r.Height / 2) - (wr.Height / 2));
+							break;
+						}
+
+						case AlignBottom:
+						{
+							wr.MoveTo(wr.Left, r.Bottom - wr.Height);
+							break;
+						}
+					}
+				}
+
 				w.Bounds = wr;
 				r.Left += wr.Width + Spacing;
 			}

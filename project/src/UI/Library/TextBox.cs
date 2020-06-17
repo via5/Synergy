@@ -81,7 +81,6 @@ namespace Synergy.UI
 		protected override void DoCreate()
 		{
 			field_ = Object.GetComponent<UIDynamicTextField>();
-
 			input_ = Object.gameObject.AddComponent<CustomInputField>();
 			input_.clicked = OnClicked;
 			input_.textComponent = field_.UItext;

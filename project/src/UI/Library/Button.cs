@@ -12,6 +12,7 @@ namespace Synergy.UI
 
 		private string text_ = "";
 		private UIDynamicButton button_ = null;
+		private int align_ = Label.AlignCenter | Label.AlignVCenter;
 
 		public Button(string t = "", Callback clicked = null)
 		{
@@ -19,6 +20,20 @@ namespace Synergy.UI
 
 			if (clicked != null)
 				Clicked += clicked;
+		}
+
+		public int Alignment
+		{
+			get
+			{
+				return align_;
+			}
+
+			set
+			{
+				align_ = value;
+				NeedsLayout();
+			}
 		}
 
 		protected override GameObject CreateGameObject()
@@ -34,6 +49,12 @@ namespace Synergy.UI
 			button_.buttonText.text = text_;
 
 			Style.Polish(button_);
+		}
+
+		protected override void UpdateBounds()
+		{
+			base.UpdateBounds();
+			button_.buttonText.alignment = Label.ToTextAnchor(align_);
 		}
 
 		protected override Size GetPreferredSize()

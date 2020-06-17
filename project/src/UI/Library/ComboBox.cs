@@ -196,11 +196,9 @@ namespace Synergy.UI
 			float widest = 0;
 
 			foreach (var i in items_)
-				widest = Math.Max(widest, Root.TextLength(i.Text));
+				widest = Math.Max(widest, Root.TextLength(i.Text) + 50);
 
-			widest = Math.Max(widest, 60);
-
-			return new Size(175, 40);
+			return new Size(Math.Max(175, widest), 40);
 		}
 
 		protected override GameObject CreateGameObject()
@@ -245,13 +243,6 @@ namespace Synergy.UI
 				rt.offsetMin.x + (rt.offsetMax.x - rt.offsetMin.x) / 2,
 				rt.offsetMin.y + (rt.offsetMax.y - rt.offsetMin.y) / 2);
 
-			var rect = arrow_.GetComponent<RectTransform>();
-			rect.offsetMin = new Vector2(0, 0);
-			rect.offsetMax = new Vector2(Bounds.Width - 10, Bounds.Height);
-			rect.anchorMin = new Vector2(0, 0);
-			rect.anchorMax = new Vector2(0, 0);
-			rect.anchoredPosition = new Vector2(Bounds.Width / 2, Bounds.Height / 2);
-
 			rt = popup_.popup.topButton.gameObject.GetComponent<RectTransform>();
 			rt.offsetMin = new Vector2(rt.offsetMin.x - 9, rt.offsetMin.y - 5);
 			rt.offsetMax = new Vector2(rt.offsetMax.x + 5, rt.offsetMax.y + 5);
@@ -290,6 +281,18 @@ namespace Synergy.UI
 					text.rectTransform.offsetMax.x - 25,
 					text.rectTransform.offsetMax.y);
 			}
+		}
+
+		protected override void UpdateBounds()
+		{
+			base.UpdateBounds();
+
+			var rect = arrow_.GetComponent<RectTransform>();
+			rect.offsetMin = new Vector2(0, 0);
+			rect.offsetMax = new Vector2(Bounds.Width - 10, Bounds.Height);
+			rect.anchorMin = new Vector2(0, 0);
+			rect.anchorMax = new Vector2(0, 0);
+			rect.anchoredPosition = new Vector2(Bounds.Width / 2, Bounds.Height / 2);
 		}
 
 		private void AddItemNoUpdate(Item i)

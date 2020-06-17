@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Net.Security;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace Synergy.UI
@@ -7,12 +8,21 @@ namespace Synergy.UI
 	{
 		public override string TypeName { get { return "label"; } }
 
-		private string text_ = "";
+		public const int AlignLeft = 0x01;
+		public const int AlignCenter = 0x02;
+		public const int AlignRight = 0x04;
+		public const int AlignTop = 0x08;
+		public const int AlignVCenter = 0x10;
+		public const int AlignBottom = 0x20;
+
+		private string text_;
+		private int align_;
 		private Text textObject_ = null;
 
-		public Label(string t = "")
+		public Label(string t = "", int align = AlignLeft|AlignVCenter)
 		{
 			text_ = t;
+			align_ = align;
 		}
 
 		public string Text
@@ -31,10 +41,24 @@ namespace Synergy.UI
 			}
 		}
 
+		public int Alignment
+		{
+			get
+			{
+				return align_;
+			}
+
+			set
+			{
+				align_ = value;
+				NeedsLayout();
+			}
+		}
+
+
 		protected override void DoCreate()
 		{
 			textObject_ = Object.AddComponent<Text>();
-			textObject_.alignment = TextAnchor.MiddleLeft;
 			textObject_.color = Style.TextColor;
 			textObject_.raycastTarget = false;
 			textObject_.text = text_;
@@ -42,9 +66,39 @@ namespace Synergy.UI
 			textObject_.font = Style.Font;
 		}
 
+		protected override void UpdateBounds()
+		{
+			base.UpdateBounds();
+			textObject_.alignment = ToTextAnchor(align_);
+		}
+
 		protected override Size GetPreferredSize()
 		{
 			return new Size(Root.TextLength(text_), 40);
+		}
+
+		public static TextAnchor ToTextAnchor(int a)
+		{
+			if (a == (AlignLeft | AlignTop))
+				return TextAnchor.UpperLeft;
+			else if (a == (AlignLeft | AlignVCenter))
+				return TextAnchor.MiddleLeft;
+			else if (a == (AlignLeft | AlignBottom))
+				return TextAnchor.LowerLeft;
+			else if (a == (AlignCenter | AlignTop))
+				return TextAnchor.UpperCenter;
+			else if (a == (AlignCenter | AlignVCenter))
+				return TextAnchor.MiddleCenter;
+			else if (a == (AlignCenter | AlignBottom))
+				return TextAnchor.LowerCenter;
+			else if (a == (AlignRight | AlignTop))
+				return TextAnchor.UpperRight;
+			else if (a == (AlignRight | AlignVCenter))
+				return TextAnchor.MiddleRight;
+			else if (a == (AlignRight | AlignBottom))
+				return TextAnchor.LowerRight;
+			else
+				return TextAnchor.MiddleLeft;
 		}
 
 		public override string DebugLine

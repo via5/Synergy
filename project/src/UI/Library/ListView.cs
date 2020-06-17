@@ -43,16 +43,9 @@ namespace Synergy.UI
 			popup_.popup.onValueChangeHandlers += (string s) => { Root.SetFocus(this); };
 			popup_.popup.topBottomBuffer = 3;
 
-			Style.Polish(popup_);
+			storable_.popup = popup_.popup;
 
-			var rt = popup_.popup.popupPanel;
-			rt.offsetMin = new Vector2(ClientBounds.Left, ClientBounds.Top);
-			rt.offsetMax = new Vector2(ClientBounds.Right, ClientBounds.Bottom);
-			rt.anchorMin = new Vector2(0, 1);
-			rt.anchorMax = new Vector2(0, 1);
-			rt.anchoredPosition = new Vector2(ClientBounds.Center.X, 0);
-
-			rt = popup_.popup.popupButtonPrefab;
+			var rt = popup_.popup.popupButtonPrefab;
 			rt.offsetMin = new Vector2(rt.offsetMin.x - 3, rt.offsetMin.y);
 			rt.offsetMax = new Vector2(rt.offsetMax.x + 5, rt.offsetMax.y - 15);
 
@@ -62,7 +55,19 @@ namespace Synergy.UI
 				text.rectTransform.offsetMin.x + 10,
 				text.rectTransform.offsetMin.y);
 
-			storable_.popup = popup_.popup;
+			Style.Polish(popup_);
+		}
+
+		protected override void UpdateBounds()
+		{
+			base.UpdateBounds();
+
+			var rt = popup_.popup.popupPanel;
+			rt.offsetMin = new Vector2(ClientBounds.Left, ClientBounds.Top);
+			rt.offsetMax = new Vector2(ClientBounds.Right, ClientBounds.Bottom);
+			rt.anchorMin = new Vector2(0, 1);
+			rt.anchorMax = new Vector2(0, 1);
+			rt.anchoredPosition = new Vector2(ClientBounds.Center.X, 0);
 		}
 
 		protected override Size GetPreferredSize()

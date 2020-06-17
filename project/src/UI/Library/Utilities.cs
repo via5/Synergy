@@ -251,6 +251,11 @@ namespace Synergy.UI
 			Bottom += dy;
 		}
 
+		public void MoveTo(float x, float y)
+		{
+			Translate(x - Left, y - Top);
+		}
+
 		public void Deflate(Insets i)
 		{
 			Left += i.Left;

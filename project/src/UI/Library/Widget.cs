@@ -85,6 +85,7 @@ namespace Synergy.UI
 		private Insets borders_ = new Insets();
 		private Insets padding_ = new Insets();
 		private Color borderColor_ = Style.TextColor;
+		private bool needsVisibilityUpdate_ = false;
 
 		public Widget(string name = "")
 		{
@@ -163,7 +164,7 @@ namespace Synergy.UI
 			set
 			{
 				visible_ = value;
-				UpdateVisibility(Visible);
+				needsVisibilityUpdate_ = true;
 				NeedsLayout();
 			}
 		}
@@ -246,8 +247,16 @@ namespace Synergy.UI
 
 		public Size MinimumSize
 		{
-			get { return minSize_; }
-			set { minSize_ = value; }
+			get
+			{
+				return minSize_;
+			}
+
+			set
+			{
+				minSize_ = value;
+				NeedsLayout();
+			}
 		}
 
 		public string Name
@@ -334,52 +343,63 @@ namespace Synergy.UI
 			{
 				object_ = CreateGameObject();
 				object_.SetActive(Visible);
-
 				object_.transform.SetParent(Root.PluginParent, false);
-
-				var wr = ContentBounds;
-
-				var rect = object_.GetComponent<RectTransform>();
-				rect.offsetMin = new Vector2(wr.Left, wr.Top);
-				rect.offsetMax = new Vector2(wr.Right, wr.Bottom);
-				rect.anchorMin = new Vector2(0, 1);
-				rect.anchorMax = new Vector2(0, 1);
-				rect.anchoredPosition = new Vector2(wr.Center.X, -wr.Center.Y);
-
-				var layoutElement = object_.GetComponent<LayoutElement>();
-				layoutElement.minWidth = wr.Width;
-				layoutElement.preferredWidth = wr.Width;
-				layoutElement.flexibleWidth = wr.Width;
-				layoutElement.minHeight = wr.Height;
-				layoutElement.preferredHeight = wr.Height;
-				layoutElement.flexibleHeight = wr.Height;
-				layoutElement.ignoreLayout = true;
-
 				DoCreate();
 
 				var g = new GameObject();
 				g.transform.SetParent(object_.transform, false);
-
-				var br = Rectangle.FromPoints(
-					-(Borders.Left + Padding.Left),
-					-(Borders.Top + Padding.Top),
-					ContentBounds.Width + (Borders.Right + Padding.Right),
-					ContentBounds.Height + (Borders.Bottom + Padding.Bottom));
-
 				graphic_ = g.AddComponent<WidgetGraphics>();
 				graphic_.Widget = this;
 				graphic_.raycastTarget = false;
-
-				var rt = graphic_.rectTransform;
-				rt.offsetMin = new Vector2(br.Left, br.Top);
-				rt.offsetMax = new Vector2(br.Right, br.Bottom);
-				rt.anchorMin = new Vector2(0, 1);
-				rt.anchorMax = new Vector2(0, 1);
-				rt.anchoredPosition = new Vector2(br.Center.X, -br.Center.Y);
 			}
 
 			foreach (var w in children_)
 				w.Create();
+		}
+
+		protected virtual void UpdateBounds()
+		{
+			var wr = ContentBounds;
+
+			var rect = object_.GetComponent<RectTransform>();
+			rect.offsetMin = new Vector2(wr.Left, wr.Top);
+			rect.offsetMax = new Vector2(wr.Right, wr.Bottom);
+			rect.anchorMin = new Vector2(0, 1);
+			rect.anchorMax = new Vector2(0, 1);
+			rect.anchoredPosition = new Vector2(wr.Center.X, -wr.Center.Y);
+
+			var layoutElement = object_.GetComponent<LayoutElement>();
+			layoutElement.minWidth = wr.Width;
+			layoutElement.preferredWidth = wr.Width;
+			layoutElement.flexibleWidth = wr.Width;
+			layoutElement.minHeight = wr.Height;
+			layoutElement.preferredHeight = wr.Height;
+			layoutElement.flexibleHeight = wr.Height;
+			layoutElement.ignoreLayout = true;
+
+
+			var br = Rectangle.FromPoints(
+				-(Borders.Left + Padding.Left),
+				-(Borders.Top + Padding.Top),
+				ContentBounds.Width + (Borders.Right + Padding.Right),
+				ContentBounds.Height + (Borders.Bottom + Padding.Bottom));
+
+			var rt = graphic_.rectTransform;
+			rt.offsetMin = new Vector2(br.Left, br.Top);
+			rt.offsetMax = new Vector2(br.Right, br.Bottom);
+			rt.anchorMin = new Vector2(0, 1);
+			rt.anchorMax = new Vector2(0, 1);
+			rt.anchoredPosition = new Vector2(br.Center.X, -br.Center.Y);
+
+
+			foreach (var w in children_)
+				w.UpdateBounds();
+
+			if (needsVisibilityUpdate_)
+			{
+				needsVisibilityUpdate_ = false;
+				UpdateVisibility(Visible);
+			}
 		}
 
 		public virtual void NeedsLayout()

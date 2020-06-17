@@ -18,13 +18,9 @@ namespace Synergy.UI
 
 		public void AddToStack(Widget w)
 		{
+			w.Visible = false;
 			widgets_.Add(w);
 			Add(w, BorderLayout.Center);
-
-			if (selection_ == -1)
-				Select(0);
-			else
-				w.Visible = false;
 		}
 
 		public void Select(int sel)
@@ -61,6 +57,8 @@ namespace Synergy.UI
 				panel_.Layout = new BorderLayout();
 				panel_.Add(widget_, BorderLayout.Center);
 
+				button_.Alignment = Label.AlignCenter | Label.AlignBottom;
+				//button_.Padding = new Insets(5);
 				button_.Clicked += () => { tabs_.Select(this); };
 			}
 
@@ -72,6 +70,11 @@ namespace Synergy.UI
 			public Widget Panel
 			{
 				get { return panel_; }
+			}
+
+			public void SetSelected(bool b)
+			{
+				button_.MinimumSize = new Size(DontCare, b ? 50 : 40);
 			}
 		}
 
@@ -86,7 +89,7 @@ namespace Synergy.UI
 			Add(top_, BorderLayout.Top);
 			Add(stack_, BorderLayout.Center);
 
-			top_.Layout = new HorizontalFlow();
+			top_.Layout = new HorizontalFlow(0, HorizontalFlow.AlignBottom);
 			stack_.Layout = new BorderLayout();
 			stack_.Borders = new Insets(2);
 			stack_.Padding = new Insets(20);
@@ -99,6 +102,8 @@ namespace Synergy.UI
 
 			top_.Add(t.Button);
 			stack_.AddToStack(t.Panel);
+
+			Select(tabs_[0]);
 		}
 
 		void Select(Tab t)
@@ -108,11 +113,13 @@ namespace Synergy.UI
 				if (tabs_[i] == t)
 				{
 					stack_.Select(i);
-					return;
+					tabs_[i].SetSelected(true);
+				}
+				else
+				{
+					tabs_[i].SetSelected(false);
 				}
 			}
-
-			Synergy.LogError("tabs: can't select tab, not in list");
 		}
 
 		protected override GameObject CreateGameObject()

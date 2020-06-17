@@ -51,7 +51,8 @@ namespace Synergy.UI
 			toggle_.labelText.text = text_;
 			toggle_.toggle.isOn = checked_;
 
-			Style.Polish(toggle_);
+			toggle_.toggle.graphic.rectTransform.localScale = new Vector3(
+				0.75f, 0.75f, 0.75f);
 
 			var rt = toggle_.toggle.image.rectTransform;
 			rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y - 10);
@@ -69,8 +70,7 @@ namespace Synergy.UI
 				rt.offsetMin.x + (rt.offsetMax.x - rt.offsetMin.x) / 2,
 				rt.offsetMin.y + (rt.offsetMax.y - rt.offsetMin.y) / 2);
 
-			toggle_.toggle.graphic.rectTransform.localScale = new Vector3(
-				0.75f, 0.75f, 0.75f);
+			Style.Polish(toggle_);
 		}
 
 		protected override Size GetPreferredSize()
