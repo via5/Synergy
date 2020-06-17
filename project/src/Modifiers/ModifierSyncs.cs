@@ -596,7 +596,13 @@ namespace Synergy
 
 		public override bool Finished
 		{
-			get { return true; }
+			get
+			{
+				if (modifier_ == null)
+					return true;
+				else
+					return modifier_.Finished;
+			}
 		}
 
 		public override float TimeRemaining

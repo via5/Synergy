@@ -70,7 +70,8 @@ namespace Synergy
 
 		public virtual void TickPaused(float deltaTime)
 		{
-			// no-op
+			foreach (var sm in morphs_)
+				sm.TickPaused(deltaTime);
 		}
 
 		public virtual void Resume()
@@ -519,6 +520,9 @@ namespace Synergy
 				mi.target = null;
 				mi.ResetDuration(Duration, Delay);
 			}
+
+			foreach (var sm in morphs_)
+				sm.Reset();
 		}
 
 		private void CopyTo(NaturalMorphProgression m, int cloneFlags)

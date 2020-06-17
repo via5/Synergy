@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
+using GPUTools.Common.Scripts.Utils;
 using Leap;
 using Leap.Unity;
 using SimpleJSON;
@@ -20,6 +22,7 @@ namespace Synergy
 			new ExplicitHolder<Movement>();
 
 		private float magnitude_ = NoMagnitude;
+		private bool moveToStart_ = false;
 
 
 		public SelectedMorph()
@@ -141,13 +144,49 @@ namespace Synergy
 			magnitude_ = NoMagnitude;
 
 			if (morph_ != null && Enabled)
-				morph_.morphValue = morph_.startValue;
+			{
+				var d = morph_.morphValue - morph_.startValue;
+
+				if (Math.Abs(d) < 0.05f)
+					morph_.morphValue = morph_.startValue;
+				else
+					moveToStart_ = true;
+			}
 		}
 
 		public void Tick(float deltaTime, float progress, bool firstHalf)
 		{
+			moveToStart_ = false;
 			Movement.Tick(deltaTime, progress, firstHalf);
 			magnitude_ = Movement.Magnitude;
+		}
+
+		public void TickPaused(float deltaTime)
+		{
+			if (morph_ == null)
+				return;
+
+			if (moveToStart_)
+			{
+				if (morph_.morphValue < morph_.startValue)
+				{
+					morph_.morphValue += deltaTime;
+					if (morph_.morphValue >= (morph_.startValue - 0.01f))
+					{
+						morph_.morphValue = morph_.startValue;
+						moveToStart_ = false;
+					}
+				}
+				else
+				{
+					morph_.morphValue -= deltaTime;
+					if (morph_.morphValue <= (morph_.startValue + 0.01f))
+					{
+						morph_.morphValue = morph_.startValue;
+						moveToStart_ = false;
+					}
+				}
+			}
 		}
 
 		public void Set()
@@ -407,6 +446,28 @@ namespace Synergy
 				morphs_.Add(SelectedMorph.Create(Atom, m));
 
 			Progression.MorphsChanged();
+		}
+
+		protected override void AtomChanged()
+		{
+			base.AtomChanged();
+
+			var fixedList = new List<SelectedMorph>();
+
+			foreach (var sm in morphs_)
+			{
+				var newMorph = Utilities.FindMorphInNewAtom(Atom, sm.Morph);
+				if (newMorph == null)
+					continue;
+
+				sm.Atom = Atom;
+				sm.Morph = newMorph;
+
+				fixedList.Add(sm);
+			}
+
+			morphs_.Clear();
+			morphs_.AddRange(fixedList);
 		}
 
 		protected override void DoResume()

@@ -30,6 +30,7 @@ namespace Synergy
 
 		private IModifier waitingFor_ = null;
 		private float gracePeriod_ = -1;
+		private bool useGracePeriod_ = true;
 
 
 		public Step()
@@ -604,35 +605,42 @@ namespace Synergy
 
 		private bool HasUnfinishedModifiers()
 		{
-			float longestRemaining = -1;
-
-			foreach (var m in enabledModifiers_)
+			if (useGracePeriod_)
 			{
-				if (m.Modifier == null)
-					continue;
+				float longestRemaining = -1;
 
-				if (!m.Modifier.Finished)
+				foreach (var m in enabledModifiers_)
 				{
-					if (m.Modifier.TimeRemaining > longestRemaining)
+					if (m.Modifier == null)
+						continue;
+
+					if (!m.Modifier.Finished)
 					{
-						waitingFor_ = m.Modifier;
-						longestRemaining = m.Modifier.TimeRemaining;
+						if (m.Modifier.TimeRemaining > longestRemaining)
+						{
+							waitingFor_ = m.Modifier;
+							longestRemaining = m.Modifier.TimeRemaining;
+						}
 					}
 				}
-			}
 
-			if (longestRemaining <= 0)
+				if (longestRemaining <= 0)
+				{
+					waitingFor_ = null;
+					return false;
+				}
+
+				gracePeriod_ = longestRemaining;
+
+				foreach (var sm in enabledModifiers_)
+					sm.Modifier?.Stop(longestRemaining);
+
+				return true;
+			}
+			else
 			{
-				waitingFor_ = null;
 				return false;
 			}
-
-			gracePeriod_ = longestRemaining;
-
-			foreach (var sm in enabledModifiers_)
-				sm.Modifier?.Stop(longestRemaining);
-
-			return true;
 		}
 
 		public void Set(bool paused)

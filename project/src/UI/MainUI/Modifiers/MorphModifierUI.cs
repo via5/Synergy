@@ -202,10 +202,6 @@ namespace Synergy
 			base.AtomChanged(atom);
 
 			morphCheckboxes_.ChangeAtomKeepMorphs(atom);
-
-			if (modifier_ != null)
-				modifier_.SetMorphs(morphCheckboxes_.Morphs);
-
 			ui_.NeedsReset("atom changed on morph modifier");
 		}
 

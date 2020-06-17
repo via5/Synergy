@@ -183,6 +183,16 @@ namespace Synergy
 			return (mui.GetMorphs().Count > 0);
 		}
 
+		public static DAZMorph FindMorphInNewAtom(
+			Atom newAtom, DAZMorph oldMorph)
+		{
+			var mui = GetMUI(newAtom);
+			if (mui == null)
+				return null;
+
+			return mui.GetMorphByUid(oldMorph.uid);
+		}
+
 		public static List<DAZMorph> FindMorphsInNewAtom(
 			Atom newAtom, List<DAZMorph> oldMorphs)
 		{
