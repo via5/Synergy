@@ -106,7 +106,15 @@ namespace Synergy.UI
 			Select(tabs_[0]);
 		}
 
-		void Select(Tab t)
+		public void Select(int i)
+		{
+			if (i < 0 || i >= tabs_.Count)
+				return;
+
+			Select(tabs_[i]);
+		}
+
+		private void Select(Tab t)
 		{
 			for (int i = 0; i < tabs_.Count; ++i)
 			{

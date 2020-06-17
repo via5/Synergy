@@ -96,6 +96,35 @@ namespace Synergy.UI
 			DoCenter(center);
 		}
 
+		protected override Size GetPreferredSize()
+		{
+			var left = SideWidth(LeftSide);
+			var right = SideWidth(RightSide);
+			var top = SideHeight(TopSide);
+			var bottom = SideHeight(BottomSide);
+
+			var center = new Size();
+			foreach (var w in sides_[CenterSide])
+				center = Size.Max(center, w.PreferredSize);
+
+			int hn =
+				(left > 0 ? 1 : 0) +
+				(center.Width > 0 ? 1 : 0) +
+				(right > 0 ? 1 : 0);
+
+			int vn =
+				(top > 0 ? 1 : 0) +
+				(center.Height > 0 ? 1 : 0) +
+				(bottom > 0 ? 1 : 0);
+
+			float width = left + center.Width + right;
+			float height = top + center.Height + bottom;
+
+			return new Size(
+				width + (Math.Max(hn - 1, 0) * Spacing),
+				height + (Math.Max(vn - 1, 0) * Spacing));
+		}
+
 		private float DoTop(Rectangle av)
 		{
 			float tallest = 0;

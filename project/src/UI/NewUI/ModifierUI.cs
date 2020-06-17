@@ -1,27 +1,111 @@
-﻿using System.Collections.Generic;
+﻿using Synergy.UI;
+using System;
+using System.Collections.Generic;
 
 namespace Synergy.NewUI
 {
 	class ModifiersTab : UI.Panel
 	{
-		private readonly UI.ListView list_ = new UI.ListView();
+		private readonly ModifierControls controls_ = new ModifierControls();
 		private readonly ModifierPanel modifier_ = new ModifierPanel();
 
 		public ModifiersTab()
 		{
 			Layout = new UI.BorderLayout(20);
 
-			Add(list_, UI.BorderLayout.Left);
+			Add(controls_, UI.BorderLayout.Left);
 			Add(modifier_, UI.BorderLayout.Center);
-
-			var list = new List<string>();
-			for (int i = 0; i < 30; ++i)
-				list.Add("item " + i.ToString());
-			list_.Items = list;
 		}
 
 		public void SetStep(Step s)
 		{
+			controls_.Set(s);
+		}
+	}
+
+
+	class ModifierControls : UI.Panel
+	{
+		private readonly ItemControls controls_ = new ItemControls();
+		private readonly UI.TypedListView<ModifierContainer> list_;
+
+		private Step step_ = null;
+		private bool ignore_ = false;
+
+		public ModifierControls()
+		{
+			list_ = new TypedListView<ModifierContainer>();
+
+			Layout = new UI.BorderLayout(5);
+
+			Add(controls_, UI.BorderLayout.Top);
+			Add(list_, UI.BorderLayout.Center);
+
+			controls_.Added += OnAdd;
+			controls_.Cloned += OnClone;
+			controls_.Removed += OnRemove;
+		}
+
+		public override void Dispose()
+		{
+			Set(null);
+		}
+
+		public ModifierContainer Selected
+		{
+			get
+			{
+				return null;
+			}
+		}
+
+		public void Set(Step s)
+		{
+			if (step_ != null)
+				step_.ModifiersChanged -= OnModifiersChanged;
+
+			step_ = s;
+
+			if (step_ != null)
+				step_.ModifiersChanged += OnModifiersChanged;
+
+			UpdateModifiers();
+		}
+
+		private void UpdateModifiers()
+		{
+			if (step_ == null)
+				list_.Clear();
+			else
+				list_.Items = step_.Modifiers;
+		}
+
+		private void OnAdd()
+		{
+			using (var sf = new ScopedFlag(b => ignore_ = b))
+			{
+				if (step_ != null)
+				{
+					var m = step_.AddEmptyModifier();
+					list_.AddItem(m, true);
+				}
+			}
+		}
+
+		private void OnClone(int flags)
+		{
+		}
+
+		private void OnRemove()
+		{
+		}
+
+		private void OnModifiersChanged()
+		{
+			if (ignore_)
+				return;
+
+			UpdateModifiers();
 		}
 	}
 

@@ -112,6 +112,11 @@
 			}
 		}
 
+		public override string ToString()
+		{
+			return Name;
+		}
+
 		public void Added()
 		{
 			enabled_.BaseName = Name;

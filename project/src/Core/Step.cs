@@ -7,8 +7,12 @@ namespace Synergy
 {
 	sealed class Step : IJsonable
 	{
-		public delegate void StepNameChangedHandler(Step s);
-		public event StepNameChangedHandler StepNameChanged;
+		public delegate void StepNameChangedCallback(Step s);
+		public event StepNameChangedCallback StepNameChanged;
+
+		public delegate void Callback();
+		public event Callback ModifiersChanged;
+
 
 		private readonly BoolParameter enabled_ =
 			new BoolParameter("Enabled", true);
@@ -322,11 +326,14 @@ namespace Synergy
 			m.Step = this;
 			modifiers_.Add(m);
 			m.Added();
+			ModifiersChanged?.Invoke();
 		}
 
-		public void AddEmptyModifier()
+		public ModifierContainer AddEmptyModifier()
 		{
-			AddModifier(new ModifierContainer());
+			var m = new ModifierContainer();
+			AddModifier(m);
+			return m;
 		}
 
 		public void DeleteModifier(ModifierContainer m)
@@ -345,6 +352,7 @@ namespace Synergy
 			}
 
 			modifiers_.Remove(m);
+			ModifiersChanged?.Invoke();
 		}
 
 		public int IndexOfModifier(IModifier m)

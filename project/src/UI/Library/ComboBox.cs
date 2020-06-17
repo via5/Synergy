@@ -6,13 +6,10 @@ using UnityEngine.UI;
 
 namespace Synergy.UI
 {
-	class TypedComboBox<ItemType> : Widget
+	class TypedListImpl<ItemType> : Widget
 		where ItemType : class
 	{
-		public override string TypeName { get { return "combobox"; } }
-
-
-		public class Item
+		protected class Item
 		{
 			private ItemType object_;
 
@@ -39,31 +36,9 @@ namespace Synergy.UI
 		private int selection_ = -1;
 
 		private UIDynamicPopup popup_ = null;
-		private Text arrow_ = null;
-
 		private JSONStorableStringChooser storable_ =
 			new JSONStorableStringChooser("", new List<string>(), "", "");
 
-
-
-		public TypedComboBox(List<ItemType> items = null)
-			: this(items, null)
-		{
-		}
-
-		public TypedComboBox(ItemCallback selectionChanged)
-			: this(null, selectionChanged)
-		{
-		}
-
-		public TypedComboBox(List<ItemType> items, ItemCallback selectionChanged)
-		{
-			if (items != null)
-				SetItems(items);
-
-			if (selectionChanged != null)
-				SelectionChanged += selectionChanged;
-		}
 
 		public void AddItem(ItemType i, bool select = false)
 		{
@@ -123,6 +98,11 @@ namespace Synergy.UI
 			{
 				SetItems(value, null);
 			}
+		}
+
+		public void Clear()
+		{
+			SetItems(new List<ItemType>());
 		}
 
 		public void SetItems(List<ItemType> items, ItemType sel = null)
@@ -191,11 +171,124 @@ namespace Synergy.UI
 			}
 		}
 
+		protected override void DoCreate()
+		{
+			popup_ = Object.GetComponent<UIDynamicPopup>();
+			popup_.popup.showSlider = false;
+
+			storable_.popup = popup_.popup;
+			storable_.setCallbackFunction = OnSelectionChanged;
+
+			var text = popup_.popup.popupButtonPrefab.GetComponentInChildren<Text>();
+			if (text != null)
+			{
+				text.alignment = TextAnchor.MiddleLeft;
+				text.rectTransform.offsetMin = new Vector2(
+					text.rectTransform.offsetMin.x + 10,
+					text.rectTransform.offsetMin.y);
+			}
+
+			var rt = popup_.popup.popupButtonPrefab;
+			rt.offsetMin = new Vector2(rt.offsetMin.x - 3, rt.offsetMin.y);
+			rt.offsetMax = new Vector2(rt.offsetMax.x + 5, rt.offsetMax.y - 15);
+
+			UpdateChoices();
+			UpdateLabel();
+
+			Style.Polish(popup_);
+		}
+
+		protected List<Item> InternalItems
+		{
+			get { return items_; }
+		}
+
+		protected UIDynamicPopup Popup
+		{
+			get { return popup_; }
+		}
+
+		private void UpdateChoices()
+		{
+			var display = new List<string>();
+			var hashes = new List<string>();
+
+			foreach (var i in items_)
+			{
+				display.Add(i.Text);
+				hashes.Add(i.GetHashCode().ToString());
+			}
+
+			storable_.displayChoices = display;
+			storable_.choices = hashes;
+		}
+
+		private void UpdateLabel()
+		{
+			storable_.valNoCallback = "";
+			if (selection_ != -1)
+				storable_.valNoCallback = items_[selection_].GetHashCode().ToString();
+		}
+
+		private void AddItemNoUpdate(Item i)
+		{
+			items_.Add(i);
+		}
+
+		private void OnSelectionChanged(string s)
+		{
+			int sel = -1;
+
+			for (int i = 0; i < items_.Count; ++i)
+			{
+				if (items_[i].GetHashCode().ToString() == s)
+				{
+					sel = i;
+					break;
+				}
+			}
+
+			if (sel == -1)
+				Synergy.LogError("combobox: selected item '" + s + "' not found");
+
+			Select(sel);
+			SelectionChanged?.Invoke(Selected);
+		}
+	}
+
+
+	class TypedComboBox<ItemType> : TypedListImpl<ItemType>
+		where ItemType : class
+	{
+		public override string TypeName { get { return "combobox"; } }
+
+		private Text arrow_ = null;
+
+
+		public TypedComboBox(List<ItemType> items = null)
+			: this(items, null)
+		{
+		}
+
+		public TypedComboBox(ItemCallback selectionChanged)
+			: this(null, selectionChanged)
+		{
+		}
+
+		public TypedComboBox(List<ItemType> items, ItemCallback selectionChanged)
+		{
+			if (items != null)
+				SetItems(items);
+
+			if (selectionChanged != null)
+				SelectionChanged += selectionChanged;
+		}
+
 		protected override Size GetPreferredSize()
 		{
 			float widest = 0;
 
-			foreach (var i in items_)
+			foreach (var i in InternalItems)
 				widest = Math.Max(widest, Root.TextLength(i.Text) + 50);
 
 			return new Size(Math.Max(175, widest), 40);
@@ -209,11 +302,9 @@ namespace Synergy.UI
 
 		protected override void DoCreate()
 		{
-			popup_ = Object.GetComponent<UIDynamicPopup>();
-			popup_.popup.showSlider = false;
-			popup_.popup.onOpenPopupHandlers += OnOpen;
+			base.DoCreate();
 
-			Style.Polish(popup_);
+			Popup.popup.onOpenPopupHandlers += OnOpen;
 
 			var arrowObject = new GameObject();
 			arrowObject.transform.SetParent(Object.transform, false);
@@ -228,13 +319,7 @@ namespace Synergy.UI
 			arrow_.fontSize = Style.FontSize;
 			arrow_.font = Style.Font;
 
-			storable_.popup = popup_.popup;
-			storable_.setCallbackFunction = OnSelectionChanged;
-
-			UpdateChoices();
-			UpdateLabel();
-
-			var rt = popup_.popup.labelText.transform.parent.gameObject.GetComponent<RectTransform>();
+			var rt = Popup.popup.labelText.transform.parent.gameObject.GetComponent<RectTransform>();
 			rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y);
 			rt.offsetMax = new Vector2(rt.offsetMax.x, rt.offsetMax.y);
 			rt.anchorMin = new Vector2(0, 1);
@@ -243,7 +328,7 @@ namespace Synergy.UI
 				rt.offsetMin.x + (rt.offsetMax.x - rt.offsetMin.x) / 2,
 				rt.offsetMin.y + (rt.offsetMax.y - rt.offsetMin.y) / 2);
 
-			rt = popup_.popup.topButton.gameObject.GetComponent<RectTransform>();
+			rt = Popup.popup.topButton.gameObject.GetComponent<RectTransform>();
 			rt.offsetMin = new Vector2(rt.offsetMin.x - 9, rt.offsetMin.y - 5);
 			rt.offsetMax = new Vector2(rt.offsetMax.x + 5, rt.offsetMax.y + 5);
 			rt.anchoredPosition = new Vector2(
@@ -251,24 +336,11 @@ namespace Synergy.UI
 				rt.offsetMin.y + (rt.offsetMax.y - rt.offsetMin.y) / 2);
 
 
-			rt = popup_.popup.popupPanel;
+			rt = Popup.popup.popupPanel;
 			rt.offsetMin = new Vector2(rt.offsetMin.x - 10, rt.offsetMin.y);
 			rt.offsetMax = new Vector2(rt.offsetMax.x + 5, rt.offsetMax.y - 5);
 
-			rt = popup_.popup.popupButtonPrefab;
-			rt.offsetMin = new Vector2(rt.offsetMin.x - 3, rt.offsetMin.y);
-			rt.offsetMax = new Vector2(rt.offsetMax.x + 5, rt.offsetMax.y - 15);
-
-			var text = popup_.popup.popupButtonPrefab.GetComponentInChildren<Text>();
-			if (text != null)
-			{
-				text.alignment = TextAnchor.MiddleLeft;
-				text.rectTransform.offsetMin = new Vector2(
-					text.rectTransform.offsetMin.x + 10,
-					text.rectTransform.offsetMin.y);
-			}
-
-			text = popup_.popup.topButton.GetComponentInChildren<Text>();
+			var text = Popup.popup.topButton.GetComponentInChildren<Text>();
 			if (text != null)
 			{
 				text.alignment = TextAnchor.MiddleLeft;
@@ -295,58 +367,11 @@ namespace Synergy.UI
 			rect.anchoredPosition = new Vector2(Bounds.Width / 2, Bounds.Height / 2);
 		}
 
-		private void AddItemNoUpdate(Item i)
-		{
-			items_.Add(i);
-		}
-
-		private void UpdateLabel()
-		{
-			storable_.valNoCallback = "";
-			if (selection_ != -1)
-				storable_.valNoCallback = items_[selection_].GetHashCode().ToString();
-		}
-
-		private void UpdateChoices()
-		{
-			var display = new List<string>();
-			var hashes = new List<string>();
-
-			foreach (var i in items_)
-			{
-				display.Add(i.Text);
-				hashes.Add(i.GetHashCode().ToString());
-			}
-
-			storable_.displayChoices = display;
-			storable_.choices = hashes;
-		}
-
-		private void OnSelectionChanged(string s)
-		{
-			int sel = -1;
-
-			for (int i = 0; i < items_.Count; ++i)
-			{
-				if (items_[i].GetHashCode().ToString() == s)
-				{
-					sel = i;
-					break;
-				}
-			}
-
-			if (sel == -1)
-				Synergy.LogError("combobox: selected item '" + s + "' not found");
-
-			Select(sel);
-			SelectionChanged?.Invoke(Selected);
-		}
-
 		private void OnOpen()
 		{
 			Root.SetFocus(this);
-			Root.SetOpenedPopup(popup_.popup);
-			popup_.popup.popupPanel.transform.SetAsLastSibling();
+			Root.SetOpenedPopup(Popup.popup);
+			Popup.popup.popupPanel.transform.SetAsLastSibling();
 		}
 	}
 

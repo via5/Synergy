@@ -30,10 +30,13 @@
 			else
 				SelectStep(null);
 
+			tabs_.Select(1);
+
 			steps_.SelectionChanged += OnStepSelected;
 			root_.DoLayoutIfNeeded();
 
-			Synergy.Instance.Manager.AddStep();
+			var s = Synergy.Instance.Manager.AddStep();
+			s.AddEmptyModifier();
 		}
 
 		public void SelectStep(Step s)

@@ -4,25 +4,14 @@ using UnityEngine.UI;
 
 namespace Synergy.UI
 {
-	class ListView : Widget
+	class TypedListView<ItemType> : TypedListImpl<ItemType>
+		where ItemType : class
 	{
 		public override string TypeName { get { return "list"; } }
 
-		private UIDynamicPopup popup_ = null;
-		private JSONStorableStringChooser storable_ =
-			new JSONStorableStringChooser("", new List<string>(), "", "");
-
-		public ListView()
+		public TypedListView()
 		{
 			Borders = new Insets(1);
-		}
-
-		public List<string> Items
-		{
-			set
-			{
-				storable_.choices = value;
-			}
 		}
 
 		protected override GameObject CreateGameObject()
@@ -34,35 +23,21 @@ namespace Synergy.UI
 
 		protected override void DoCreate()
 		{
-			popup_ = Object.GetComponent<UIDynamicPopup>();
-			popup_.popup.alwaysOpen = true;
-			popup_.popup.showSlider = false;
-			popup_.popup.topButton.gameObject.SetActive(false);
-			popup_.popup.labelText.gameObject.SetActive(false);
-			popup_.popup.backgroundImage.gameObject.SetActive(false);
-			popup_.popup.onValueChangeHandlers += (string s) => { Root.SetFocus(this); };
-			popup_.popup.topBottomBuffer = 3;
+			base.DoCreate();
 
-			storable_.popup = popup_.popup;
-
-			var rt = popup_.popup.popupButtonPrefab;
-			rt.offsetMin = new Vector2(rt.offsetMin.x - 3, rt.offsetMin.y);
-			rt.offsetMax = new Vector2(rt.offsetMax.x + 5, rt.offsetMax.y - 15);
-
-			var text = popup_.popup.popupButtonPrefab.GetComponentInChildren<Text>();
-			text.alignment = TextAnchor.MiddleLeft;
-			text.rectTransform.offsetMin = new Vector2(
-				text.rectTransform.offsetMin.x + 10,
-				text.rectTransform.offsetMin.y);
-
-			Style.Polish(popup_);
+			Popup.popup.alwaysOpen = true;
+			Popup.popup.topButton.gameObject.SetActive(false);
+			Popup.popup.labelText.gameObject.SetActive(false);
+			Popup.popup.backgroundImage.gameObject.SetActive(false);
+			Popup.popup.onValueChangeHandlers += (string s) => { Root.SetFocus(this); };
+			Popup.popup.topBottomBuffer = 3;
 		}
 
 		protected override void UpdateBounds()
 		{
 			base.UpdateBounds();
 
-			var rt = popup_.popup.popupPanel;
+			var rt = Popup.popup.popupPanel;
 			rt.offsetMin = new Vector2(ClientBounds.Left, ClientBounds.Top);
 			rt.offsetMax = new Vector2(ClientBounds.Right, ClientBounds.Bottom);
 			rt.anchorMin = new Vector2(0, 1);
@@ -79,8 +54,13 @@ namespace Synergy.UI
 		{
 			base.UpdateVisibility(b);
 
-			if (popup_ != null)
-				popup_.popup.popupPanel.gameObject.SetActive(b);
+			if (Popup != null)
+				Popup.popup.popupPanel.gameObject.SetActive(b);
 		}
+	}
+
+
+	class ListView : TypedListView<string>
+	{
 	}
 }
