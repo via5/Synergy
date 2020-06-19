@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace Synergy.UI
@@ -17,6 +18,7 @@ namespace Synergy.UI
 		public Button(string t = "", Callback clicked = null)
 		{
 			text_ = t;
+			MinimumSize = new Size(150, 40);
 
 			if (clicked != null)
 				Clicked += clicked;

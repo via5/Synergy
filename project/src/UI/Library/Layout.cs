@@ -95,13 +95,17 @@ namespace Synergy.UI
 	{
 		public override string TypeName { get { return "horflow"; } }
 
-		public const int AlignTop = 1;
-		public const int AlignMiddle = 2;
-		public const int AlignBottom = 3;
+		public const int AlignTop = 0x01;
+		public const int AlignVCenter = 0x02;
+		public const int AlignBottom = 0x04;
+
+		public const int AlignLeft = 0x08;
+		public const int AlignCenter = 0x10;
+		public const int AlignRight = 0x20;
 
 		private int align_;
 
-		public HorizontalFlow(int spacing = 0, int align = AlignTop)
+		public HorizontalFlow(int spacing = 0, int align = AlignLeft|AlignTop)
 		{
 			Spacing = spacing;
 			align_ = align;
@@ -111,37 +115,56 @@ namespace Synergy.UI
 		{
 			var r = new Rectangle(Parent.Bounds);
 
+			var bounds = new List<Rectangle>();
+			float totalWidth = 0;
+
 			foreach (var w in Children)
 			{
+				if (totalWidth > 0)
+					totalWidth += Spacing;
+
 				var wr = new Rectangle(r.TopLeft, w.PreferredSize);
 
 				if (wr.Height < r.Height)
 				{
-					switch (align_)
+					if (Bits.IsSet(align_, AlignVCenter))
 					{
-						case AlignTop:
-						{
-							// no-op
-							break;
-						}
-
-						case AlignMiddle:
-						{
-							wr.MoveTo(wr.Left, r.Top + (r.Height / 2) - (wr.Height / 2));
-							break;
-						}
-
-						case AlignBottom:
-						{
-							wr.MoveTo(wr.Left, r.Bottom - wr.Height);
-							break;
-						}
+						wr.MoveTo(wr.Left, r.Top + (r.Height / 2) - (wr.Height / 2));
+					}
+					else if (Bits.IsSet(align_, AlignBottom))
+					{
+						wr.MoveTo(wr.Left, r.Bottom - wr.Height);
+					}
+					else // AlignTop
+					{
+						// no-op
 					}
 				}
 
-				w.Bounds = wr;
+				bounds.Add(wr);
+				totalWidth += wr.Width;
 				r.Left += wr.Width + Spacing;
 			}
+
+			if (Bits.IsSet(align_, AlignCenter))
+			{
+				float offset = (Parent.Bounds.Width / 2) - (totalWidth / 2);
+				foreach (var wr in bounds)
+					wr.Translate(offset, 0);
+			}
+			else if (Bits.IsSet(align_, AlignRight))
+			{
+				float offset = Parent.Bounds.Width - totalWidth;
+				foreach (var wr in bounds)
+					wr.Translate(offset, 0);
+			}
+			else // left
+			{
+				// no-op
+			}
+
+			for (int i = 0; i < Children.Count; ++i)
+				Children[i].Bounds = bounds[i];
 		}
 
 		protected override Size GetPreferredSize()

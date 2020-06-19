@@ -143,6 +143,11 @@ namespace Synergy.UI
 			}
 		}
 
+		public GameObject MainObject
+		{
+			get { return mainObject_; }
+		}
+
 		public GameObject WidgetObject
 		{
 			get { return widgetObject_; }

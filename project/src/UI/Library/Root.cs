@@ -1,13 +1,26 @@
-﻿using System.Collections.Generic;
-using System.Security.Policy;
-using UnityEngine;
+﻿using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Synergy.UI
 {
+	class ClickEater : MonoBehaviour, IPointerClickHandler, IPointerUpHandler, IPointerDownHandler
+	{
+		public void OnPointerClick(PointerEventData data)
+		{
+		}
+
+		public void OnPointerDown(PointerEventData data)
+		{
+		}
+
+		public void OnPointerUp(PointerEventData data)
+		{
+		}
+	}
+
 	class Overlay : Widget
 	{
-		private GameObject go_ = null;
 		private Image graphics_ = null;
 
 		public Overlay(Rectangle b)
@@ -19,34 +32,44 @@ namespace Synergy.UI
 		{
 			base.DoCreate();
 
-			go_ = new GameObject();
-			go_.transform.parent = WidgetObject.transform;
-
-			graphics_ = go_.AddComponent<Image>();
+			graphics_ = MainObject.AddComponent<Image>();
 			graphics_.color = new Color(0, 0, 0, 0.9f);
+			graphics_.raycastTarget = true;
 
-			var rt = graphics_.rectTransform;
-			rt.offsetMin = new Vector2(Bounds.Left, Bounds.Top);
-			rt.offsetMax = new Vector2(Bounds.Right, Bounds.Bottom);
-			rt.anchorMin = new Vector2(0, 1);
-			rt.anchorMax = new Vector2(0, 1);
-			rt.anchoredPosition = new Vector2(
-				Bounds.Center.X, -Bounds.Center.Y);
+			MainObject.AddComponent<ClickEater>();
 		}
 	}
 
 
-	class Root : Widget
+	class RootPanel : Panel
 	{
-		public override string TypeName { get { return "root"; } }
+		private readonly Root root_;
 
+		public RootPanel(Root r)
+		{
+			root_ = r;
+		}
+
+		public override void NeedsLayout()
+		{
+			root_.SetDirty();
+		}
+
+		public override Root GetRoot()
+		{
+			return root_;
+		}
+	}
+
+
+	class Root
+	{
 		static public Transform PluginParent = null;
 		static private TextGenerator tg_ = null;
 		static private TextGenerationSettings ts_;
 
 		static public UIPopup openedPopup_ = null;
 		static private Widget focused_ = null;
-		static private Overlay overlay_ = null;
 
 		static public void SetOpenedPopup(UIPopup p)
 		{
@@ -70,12 +93,23 @@ namespace Synergy.UI
 		}
 
 
+		private Rectangle bounds_;
+		private Insets margins_;
+		private RootPanel content_;
+		private RootPanel floating_;
+		private Overlay overlay_ = null;
 		private bool dirty_ = true;
 
 		public Root()
 		{
-			Bounds = Rectangle.FromPoints(2, 1, 1078, 1228);
-			Margins = new Insets(5);
+			bounds_ = Rectangle.FromPoints(2, 1, 1078, 1228);
+			margins_ = new Insets(5);
+
+			content_ = new RootPanel(this);
+			content_.Bounds = new Rectangle(bounds_);
+
+			floating_ = new RootPanel(this);
+			floating_.Bounds = new Rectangle(bounds_);
 
 			{
 				var b = Synergy.Instance.CreateButton("b");
@@ -93,26 +127,35 @@ namespace Synergy.UI
 			Style.PolishRoot(scriptui);
 		}
 
+		public Panel ContentPanel
+		{
+			get { return content_; }
+		}
+
+		public Rectangle Bounds
+		{
+			get { return bounds_; }
+		}
+
 		public void DoLayoutIfNeeded()
 		{
 			if (dirty_)
 			{
-				DoLayout();
-				Create();
-				UpdateBounds();
+				content_.DoLayout();
+				content_.Create();
+				content_.UpdateBounds();
+
+				floating_.DoLayout();
+				floating_.Create();
+				floating_.UpdateBounds();
 
 				dirty_ = false;
 			}
 		}
 
-		public override void NeedsLayout()
+		public void SetDirty()
 		{
 			dirty_ = true;
-		}
-
-		public override Root GetRoot()
-		{
-			return this;
 		}
 
 		public bool OverlayVisible
@@ -130,14 +173,15 @@ namespace Synergy.UI
 		{
 			if (overlay_ == null)
 			{
-				overlay_ = new Overlay(Bounds);
+				overlay_ = new Overlay(bounds_);
+				floating_.Add(overlay_);
 				overlay_.Create();
 				overlay_.UpdateBounds();
 			}
 
 			overlay_.Visible = true;
 			overlay_.DoLayout();
-			overlay_.WidgetObject.transform.SetAsLastSibling();
+			overlay_.MainObject.transform.SetAsLastSibling();
 		}
 
 		private void HideOverlay()

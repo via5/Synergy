@@ -1,4 +1,6 @@
-﻿namespace Synergy.NewUI
+﻿using Synergy.UI;
+
+namespace Synergy.NewUI
 {
 	class NewUI
 	{
@@ -21,9 +23,9 @@
 			tabs_.AddTab(S("Step"), stepTab_);
 			tabs_.AddTab(S("Modifiers"), modifiersTab_);
 
-			root_.Layout = new UI.BorderLayout(30);
-			root_.Add(steps_, UI.BorderLayout.Top);
-			root_.Add(tabs_, UI.BorderLayout.Center);
+			root_.ContentPanel.Layout = new UI.BorderLayout(30);
+			root_.ContentPanel.Add(steps_, UI.BorderLayout.Top);
+			root_.ContentPanel.Add(tabs_, UI.BorderLayout.Center);
 
 			if (Synergy.Instance.Manager.Steps.Count > 0)
 				SelectStep(Synergy.Instance.Manager.Steps[0]);
@@ -37,6 +39,15 @@
 
 			var s = Synergy.Instance.Manager.AddStep();
 			s.AddEmptyModifier();
+
+
+			var d = new MessageDialog(
+				root_, "Deleting step", "Are you sure?");
+
+			d.RunDialog(() =>
+			{
+				Synergy.LogError(d.Button.ToString());
+			});
 		}
 
 		public void SelectStep(Step s)

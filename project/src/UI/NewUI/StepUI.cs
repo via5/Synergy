@@ -192,8 +192,8 @@ namespace Synergy.NewUI
 
 		public void RemoveStep()
 		{
-			var d = new UI.Dialog(GetRoot());
-			d.Run();
+			var d = new UI.Dialog(GetRoot(), "");
+			d.RunDialog();
 
 			using (var sf = new ScopedFlag(b => ignore_ = b))
 			{
