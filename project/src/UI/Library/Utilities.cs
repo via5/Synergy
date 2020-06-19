@@ -150,6 +150,12 @@ namespace Synergy.UI
 		{
 		}
 
+		public Point(Point p)
+		{
+			X = p.X;
+			Y = p.Y;
+		}
+
 		public Point(float x, float y)
 		{
 			X = x;
@@ -317,6 +323,28 @@ namespace Synergy.UI
 			Bottom -= i.Bottom;
 		}
 
+		public void Deflate(float f)
+		{
+			Left += f;
+			Top += f;
+			Right -= f;
+			Bottom -= f;
+		}
+
+		public Rectangle DeflateCopy(Insets i)
+		{
+			var r = new Rectangle(this);
+			r.Deflate(i);
+			return r;
+		}
+
+		public Rectangle DeflateCopy(float f)
+		{
+			var r = new Rectangle(this);
+			r.Deflate(f);
+			return r;
+		}
+
 		public override string ToString()
 		{
 			return
@@ -353,6 +381,14 @@ namespace Synergy.UI
 			get { return new Size(Left + Right, Top + Bottom); }
 		}
 
+		public static Insets operator +(Insets a, Insets b)
+		{
+			return new Insets(
+				a.Left + b.Left,
+				a.Top + b.Top,
+				a.Right + b.Right,
+				a.Bottom + b.Bottom);
+		}
 
 		public override string ToString()
 		{

@@ -1,4 +1,6 @@
-﻿using UnityEngine.UI;
+﻿using System;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Synergy.UI
 {
@@ -77,7 +79,7 @@ namespace Synergy.UI
 				Hide();
 				active_ = w;
 
-				timer_ = Synergy.Instance.CreateTimer(0.75f, () =>
+				timer_ = Synergy.Instance.CreateTimer(Metrics.TooltipDelay, () =>
 				{
 					timer_ = null;
 					Show();
@@ -95,10 +97,36 @@ namespace Synergy.UI
 		{
 			widget_.Text = active_.Tooltip.Text;
 
-			var p = root_.MousePosition;
-			var ps = widget_.PreferredSize;
+			// size of text
+			var size = Root.FitText(widget_.Text, Metrics.MaxTooltipWidth);
 
-			widget_.Bounds = new Rectangle(p.X, p.Y + 45, ps);
+			// widget is size of text plus its insets
+			size += widget_.Insets.Size;
+
+			// current mouse position
+			var mp = root_.MousePosition;
+
+			// preferred position is just below the cursor
+			var p = new Point(mp.X, mp.Y + Metrics.CursorHeight);
+
+			// available rectangle, offset from the edges
+			var av = root_.Bounds.DeflateCopy(Metrics.TooltipBorderOffset);
+
+
+			if (p.X + size.Width >= av.Width)
+			{
+				// tooltip would extend past the right edge
+				p.X = av.Width - size.Width;
+			}
+
+			if (p.Y + size.Height >= av.Height)
+			{
+				// tooltip would extend past the bottom edge; make sure it's
+				// above the mouse cursor
+				p.Y = mp.Y - size.Height;
+			}
+
+			widget_.Bounds = new Rectangle(p.X, p.Y, size);
 			widget_.Visible = true;
 		}
 
@@ -111,6 +139,7 @@ namespace Synergy.UI
 			}
 
 			widget_.Visible = false;
+			active_ = null;
 		}
 	}
 }

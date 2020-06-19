@@ -249,6 +249,11 @@ namespace Synergy.UI
 			}
 		}
 
+		public Insets Insets
+		{
+			get { return margins_ + borders_ + padding_; }
+		}
+
 		public Color BorderColor
 		{
 			get { return borderColor_; }

@@ -26,7 +26,7 @@ namespace Synergy.NewUI
 
 	class ModifierControls : UI.Panel
 	{
-		private readonly ItemControls controls_ = new ItemControls();
+		private readonly UI.Button add_, clone_, clone0_, remove_;
 		private readonly UI.TypedListView<ModifierContainer> list_;
 
 		private Step step_ = null;
@@ -35,15 +35,27 @@ namespace Synergy.NewUI
 		public ModifierControls()
 		{
 			list_ = new TypedListView<ModifierContainer>();
+			add_ = new UI.ToolButton("+", AddModifier);
+			clone_ = new UI.ToolButton(S("+*"), () => CloneModifier(0));
+			clone0_ = new UI.ToolButton(S("+*0"), () => CloneModifier(Utilities.CloneZero));
+			remove_ = new UI.ToolButton("\x2013", RemoveModifier);       // en dash
+
+			add_.Tooltip.Text = S("Add a new modifier");
+			clone_.Tooltip.Text = S("Clone this modifier");
+			clone0_.Tooltip.Text = S("Clone this modifier and zero all values");
+			remove_.Tooltip.Text = S("Remove this modifier");
+			list_.Tooltip.Text = "bleh bleh";
+
+			var p = new Panel(new UI.HorizontalFlow(20));
+			p.Add(add_);
+			p.Add(clone_);
+			p.Add(clone0_);
+			p.Add(remove_);
 
 			Layout = new UI.BorderLayout(5);
 
-			Add(controls_, UI.BorderLayout.Top);
+			Add(p, UI.BorderLayout.Top);
 			Add(list_, UI.BorderLayout.Center);
-
-			controls_.Added += OnAdd;
-			controls_.Cloned += OnClone;
-			controls_.Removed += OnRemove;
 		}
 
 		public override void Dispose()
@@ -72,15 +84,7 @@ namespace Synergy.NewUI
 			UpdateModifiers();
 		}
 
-		private void UpdateModifiers()
-		{
-			if (step_ == null)
-				list_.Clear();
-			else
-				list_.Items = step_.Modifiers;
-		}
-
-		private void OnAdd()
+		public void AddModifier()
 		{
 			using (var sf = new ScopedFlag(b => ignore_ = b))
 			{
@@ -92,12 +96,20 @@ namespace Synergy.NewUI
 			}
 		}
 
-		private void OnClone(int flags)
+		public void CloneModifier(int flags)
 		{
 		}
 
-		private void OnRemove()
+		public void RemoveModifier()
 		{
+		}
+
+		private void UpdateModifiers()
+		{
+			if (step_ == null)
+				list_.Clear();
+			else
+				list_.Items = step_.Modifiers;
 		}
 
 		private void OnModifiersChanged()

@@ -1,5 +1,6 @@
 ﻿using Leap.Unity;
 using LeapInternal;
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -225,8 +226,6 @@ namespace Synergy.UI
 				pp.x = bounds_.Left + bounds_.Width / 2 + pp.x;
 				pp.y = bounds_.Top + (bounds_.Height - pp.y + topOffset_);
 
-				Synergy.LogError(pp.x.ToString() + " " + pp.y.ToString());
-
 				return new Point(pp.x, pp.y);
 			}
 		}
@@ -255,6 +254,22 @@ namespace Synergy.UI
 		public static float TextLength(string s)
 		{
 			return tg_.GetPreferredWidth(s, ts_);
+		}
+
+		public static Size FitText(string s, float maxWidth)
+		{
+			var ts = ts_;
+
+			ts.generationExtents = new Vector2(maxWidth, 0);
+			ts.horizontalOverflow = HorizontalWrapMode.Wrap;
+			ts.verticalOverflow = VerticalWrapMode.Overflow;
+			ts.generateOutOfBounds = false;
+			ts.resizeTextForBestFit = false;
+
+			var w = tg_.GetPreferredWidth(s, ts);
+			var h = tg_.GetPreferredHeight(s, ts);
+
+			return new Size(Math.Min(w, maxWidth), h);
 		}
 	}
 }

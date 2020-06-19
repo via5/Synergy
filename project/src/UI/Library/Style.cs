@@ -3,6 +3,30 @@ using UnityEngine.UI;
 
 namespace Synergy.UI
 {
+	class Metrics
+	{
+		public static float CursorHeight
+		{
+			get { return 45; }
+		}
+
+		public static float TooltipDelay
+		{
+			get { return 0.5f; }
+		}
+
+		public static float MaxTooltipWidth
+		{
+			get { return 400; }
+		}
+
+		public static float TooltipBorderOffset
+		{
+			get { return 10; }
+		}
+	}
+
+
 	class Style
 	{
 		private static Font font_ = null;

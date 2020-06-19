@@ -1,4 +1,5 @@
 ﻿using JetBrains.Annotations;
+using Synergy.UI;
 using System;
 using System.Collections.Generic;
 
@@ -47,105 +48,44 @@ namespace Synergy.NewUI
 	}
 
 
-	class ItemControls : UI.Panel
-	{
-		public delegate void AddCallback();
-		public delegate void CloneCallback(int flags);
-		public delegate void RemoveCallback();
-		public delegate void MoveCallback(int d);
-
-		public event AddCallback Added;
-		public event CloneCallback Cloned;
-		public event RemoveCallback Removed;
-		public event MoveCallback Moved;
-
-		public const int NoFlags = 0x00;
-		public const int AllowMove = 0x01;
-
-		private readonly UI.Button add_, clone_, clone0_, remove_, up_, down_;
-
-		public ItemControls(int flags = NoFlags)
-		{
-			Layout = new UI.HorizontalFlow(20);
-
-			add_ = new UI.ToolButton("+", OnAdd);
-			clone_ = new UI.ToolButton(S("+*"), OnClone);
-			clone0_ = new UI.ToolButton(S("+*0"), OnCloneZero);
-			remove_ = new UI.ToolButton("\x2013", OnRemove);  // en dash
-
-			if (Bits.IsSet(flags, AllowMove))
-			{
-				up_ = new UI.ToolButton("\x25b2", OnMoveUp);      // up arrow
-				down_ = new UI.ToolButton("\x25bc", OnMoveDown);  // down arrow
-			}
-
-			Add(add_);
-			Add(clone_);
-			Add(clone0_);
-			Add(remove_);
-
-			if (up_ != null)
-				Add(up_);
-
-			if (down_ != null)
-				Add(down_);
-		}
-
-		private void OnAdd()
-		{
-			Added?.Invoke();
-		}
-
-		private void OnClone()
-		{
-			Cloned?.Invoke(0);
-		}
-
-		private void OnCloneZero()
-		{
-			Cloned?.Invoke(Utilities.CloneZero);
-		}
-
-		private void OnRemove()
-		{
-			Removed?.Invoke();
-		}
-
-		private void OnMoveUp()
-		{
-			Moved?.Invoke(+1);
-		}
-
-		private void OnMoveDown()
-		{
-			Moved?.Invoke(-1);
-		}
-	}
-
-
 	class StepControls : UI.Panel
 	{
 		public delegate void StepCallback(Step s);
 		public event StepCallback SelectionChanged;
 
 		private readonly UI.TypedComboBox<Step> steps_;
-		private readonly ItemControls controls_;
+		private readonly UI.Button add_, clone_, clone0_, remove_, up_, down_;
 		private bool ignore_ = false;
 
 		public StepControls()
 		{
 			steps_ = new UI.TypedComboBox<Step>(OnSelectionChanged);
-			controls_ = new ItemControls(ItemControls.AllowMove);
+			add_ = new UI.ToolButton("+", AddStep);
+			clone_ = new UI.ToolButton(S("+*"), () => CloneStep(0));
+			clone0_ = new UI.ToolButton(S("+*0"), () => CloneStep(Utilities.CloneZero));
+			remove_ = new UI.ToolButton("\x2013", RemoveStep);       // en dash
+			up_ = new UI.ToolButton("\x25b2", () => MoveStep(-1));   // up arrow
+			down_ = new UI.ToolButton("\x25bc", () => MoveStep(+1)); // down arrow
+
+			add_.Tooltip.Text = S("Add a new step");
+			clone_.Tooltip.Text = S("Clone this step");
+			clone0_.Tooltip.Text = S("Clone this step and zero all values");
+			remove_.Tooltip.Text = S("Remove this step");
+			up_.Tooltip.Text = S("Move this step earlier in the execution order");
+			down_.Tooltip.Text = S("Move this step later in the execution order");
+
+			var p = new Panel(new UI.HorizontalFlow(20));
+			p.Add(add_);
+			p.Add(clone_);
+			p.Add(clone0_);
+			p.Add(remove_);
+			p.Add(up_);
+			p.Add(down_);
 
 			Layout = new UI.HorizontalFlow(20);
 			Add(new UI.Label(S("Step:")));
 			Add(steps_);
-			Add(controls_);
-
-			controls_.Added += AddStep;
-			controls_.Cloned += CloneStep;
-			controls_.Removed += RemoveStep;
-			controls_.Moved += MoveStep;
+			Add(p);
 
 			Synergy.Instance.Manager.StepsChanged += OnStepsChanged;
 			Synergy.Instance.Manager.StepNameChanged += OnStepNameChanged;
@@ -250,6 +190,11 @@ namespace Synergy.NewUI
 			name_ = new UI.TextBox();
 			enabled_ = new UI.CheckBox(S("Step enabled"));
 			halfMove_ = new UI.CheckBox(S("Half move"));
+
+			enabled_.Tooltip.Text = S("Whether this step is executed");
+			halfMove_.Tooltip.Text = S(
+				"Whether this step should stop halfway before executing " +
+				"the next step");
 
 			Add(new UI.Label(S("Name")));
 			Add(name_);
