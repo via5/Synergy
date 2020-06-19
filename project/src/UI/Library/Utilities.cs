@@ -6,6 +6,19 @@ namespace Synergy.UI
 {
 	class Utilities
 	{
+		public static void Handler(Action a)
+		{
+			try
+			{
+				a();
+			}
+			catch (Exception e)
+			{
+				Synergy.LogError(e.ToString());
+			}
+		}
+
+
 		public static GameObject FindChildRecursive(Component c, string name)
 		{
 			return FindChildRecursive(c.gameObject, name);
@@ -117,6 +130,11 @@ namespace Synergy.UI
 		{
 			X = x;
 			Y = y;
+		}
+
+		public static Point operator -(Point p)
+		{
+			return new Point(-p.X, -p.Y);
 		}
 	}
 

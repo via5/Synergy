@@ -1,9 +1,41 @@
 ﻿using System.Collections.Generic;
+using System.Security.Policy;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Synergy.UI
 {
+	class Overlay : Widget
+	{
+		private GameObject go_ = null;
+		private Image graphics_ = null;
+
+		public Overlay(Rectangle b)
+		{
+			Bounds = b;
+		}
+
+		protected override void DoCreate()
+		{
+			base.DoCreate();
+
+			go_ = new GameObject();
+			go_.transform.parent = WidgetObject.transform;
+
+			graphics_ = go_.AddComponent<Image>();
+			graphics_.color = new Color(0, 0, 0, 0.9f);
+
+			var rt = graphics_.rectTransform;
+			rt.offsetMin = new Vector2(Bounds.Left, Bounds.Top);
+			rt.offsetMax = new Vector2(Bounds.Right, Bounds.Bottom);
+			rt.anchorMin = new Vector2(0, 1);
+			rt.anchorMax = new Vector2(0, 1);
+			rt.anchoredPosition = new Vector2(
+				Bounds.Center.X, -Bounds.Center.Y);
+		}
+	}
+
+
 	class Root : Widget
 	{
 		public override string TypeName { get { return "root"; } }
@@ -14,6 +46,7 @@ namespace Synergy.UI
 
 		static public UIPopup openedPopup_ = null;
 		static private Widget focused_ = null;
+		static private Overlay overlay_ = null;
 
 		static public void SetOpenedPopup(UIPopup p)
 		{
@@ -75,6 +108,42 @@ namespace Synergy.UI
 		public override void NeedsLayout()
 		{
 			dirty_ = true;
+		}
+
+		public override Root GetRoot()
+		{
+			return this;
+		}
+
+		public bool OverlayVisible
+		{
+			set
+			{
+				if (value)
+					ShowOverlay();
+				else
+					HideOverlay();
+			}
+		}
+
+		private void ShowOverlay()
+		{
+			if (overlay_ == null)
+			{
+				overlay_ = new Overlay(Bounds);
+				overlay_.Create();
+				overlay_.UpdateBounds();
+			}
+
+			overlay_.Visible = true;
+			overlay_.DoLayout();
+			overlay_.WidgetObject.transform.SetAsLastSibling();
+		}
+
+		private void HideOverlay()
+		{
+			if (overlay_ != null)
+				overlay_.Visible = false;
 		}
 
 		public static float TextLength(string s)

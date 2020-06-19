@@ -44,14 +44,14 @@ namespace Synergy.UI
 
 		protected override void DoCreate()
 		{
-			button_ = Object.GetComponent<UIDynamicButton>();
+			button_ = WidgetObject.GetComponent<UIDynamicButton>();
 			button_.button.onClick.AddListener(OnClicked);
 			button_.buttonText.text = text_;
 
 			Style.Polish(button_);
 		}
 
-		protected override void UpdateBounds()
+		public override void UpdateBounds()
 		{
 			base.UpdateBounds();
 			button_.buttonText.alignment = Label.ToTextAnchor(align_);
@@ -64,8 +64,11 @@ namespace Synergy.UI
 
 		private void OnClicked()
 		{
-			Root.SetFocus(this);
-			Clicked?.Invoke();
+			Utilities.Handler(() =>
+			{
+				Root.SetFocus(this);
+				Clicked?.Invoke();
+			});
 		}
 	}
 }

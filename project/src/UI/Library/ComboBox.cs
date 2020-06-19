@@ -173,7 +173,7 @@ namespace Synergy.UI
 
 		protected override void DoCreate()
 		{
-			popup_ = Object.GetComponent<UIDynamicPopup>();
+			popup_ = WidgetObject.GetComponent<UIDynamicPopup>();
 			popup_.popup.showSlider = false;
 
 			storable_.popup = popup_.popup;
@@ -237,22 +237,25 @@ namespace Synergy.UI
 
 		private void OnSelectionChanged(string s)
 		{
-			int sel = -1;
-
-			for (int i = 0; i < items_.Count; ++i)
+			Utilities.Handler(() =>
 			{
-				if (items_[i].GetHashCode().ToString() == s)
+				int sel = -1;
+
+				for (int i = 0; i < items_.Count; ++i)
 				{
-					sel = i;
-					break;
+					if (items_[i].GetHashCode().ToString() == s)
+					{
+						sel = i;
+						break;
+					}
 				}
-			}
 
-			if (sel == -1)
-				Synergy.LogError("combobox: selected item '" + s + "' not found");
+				if (sel == -1)
+					Synergy.LogError("combobox: selected item '" + s + "' not found");
 
-			Select(sel);
-			SelectionChanged?.Invoke(Selected);
+				Select(sel);
+				SelectionChanged?.Invoke(Selected);
+			});
 		}
 	}
 
@@ -307,7 +310,7 @@ namespace Synergy.UI
 			Popup.popup.onOpenPopupHandlers += OnOpen;
 
 			var arrowObject = new GameObject();
-			arrowObject.transform.SetParent(Object.transform, false);
+			arrowObject.transform.SetParent(WidgetObject.transform, false);
 			arrowObject.AddComponent<RectTransform>();
 			arrowObject.AddComponent<LayoutElement>();
 
@@ -355,7 +358,7 @@ namespace Synergy.UI
 			}
 		}
 
-		protected override void UpdateBounds()
+		public override void UpdateBounds()
 		{
 			base.UpdateBounds();
 
@@ -369,9 +372,19 @@ namespace Synergy.UI
 
 		private void OnOpen()
 		{
-			Root.SetFocus(this);
-			Root.SetOpenedPopup(Popup.popup);
-			Popup.popup.popupPanel.transform.SetAsLastSibling();
+			Utilities.Handler(() =>
+			{
+				Root.SetFocus(this);
+				Root.SetOpenedPopup(Popup.popup);
+
+				var p = Popup.popup.popupPanel.transform;
+
+				while (p != null)
+				{
+					p.SetAsLastSibling();
+					p = p.transform.parent;
+				}
+			});
 		}
 	}
 

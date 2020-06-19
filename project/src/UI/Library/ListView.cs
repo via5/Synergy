@@ -33,7 +33,7 @@ namespace Synergy.UI
 			Popup.popup.topBottomBuffer = 3;
 		}
 
-		protected override void UpdateBounds()
+		public override void UpdateBounds()
 		{
 			base.UpdateBounds();
 

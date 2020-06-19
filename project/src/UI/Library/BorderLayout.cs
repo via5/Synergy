@@ -85,7 +85,7 @@ namespace Synergy.UI
 
 		protected override void LayoutImpl()
 		{
-			Rectangle av = new Rectangle(Parent.ContentBounds);
+			Rectangle av = new Rectangle(Parent.AbsoluteClientBounds);
 			Rectangle center = new Rectangle(av);
 
 			center.Top += DoTop(av);

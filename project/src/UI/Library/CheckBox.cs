@@ -46,7 +46,7 @@ namespace Synergy.UI
 
 		protected override void DoCreate()
 		{
-			toggle_ = Object.GetComponent<UIDynamicToggle>();
+			toggle_ = WidgetObject.GetComponent<UIDynamicToggle>();
 			toggle_.toggle.onValueChanged.AddListener(OnClicked);
 			toggle_.labelText.text = text_;
 			toggle_.toggle.isOn = checked_;
@@ -80,9 +80,12 @@ namespace Synergy.UI
 
 		private void OnClicked(bool b)
 		{
-			Root.SetFocus(this);
-			checked_ = b;
-			Changed?.Invoke(b);
+			Utilities.Handler(() =>
+			{
+				Root.SetFocus(this);
+				checked_ = b;
+				Changed?.Invoke(b);
+			});
 		}
 	}
 }

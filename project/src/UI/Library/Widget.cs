@@ -6,11 +6,11 @@ using UnityEngine.UI;
 
 namespace Synergy.UI
 {
-	class WidgetGraphics : MaskableGraphic
+	class BorderGraphics : MaskableGraphic
 	{
 		private Widget widget_ = null;
 
-		public WidgetGraphics()
+		public BorderGraphics()
 		{
 		}
 
@@ -66,6 +66,7 @@ namespace Synergy.UI
 		}
 	}
 
+
 	abstract class Widget : IDisposable
 	{
 		public virtual string TypeName { get { return "widget"; } }
@@ -78,13 +79,19 @@ namespace Synergy.UI
 		private Layout layout_ = null;
 		private Rectangle bounds_ = new Rectangle();
 		private Size minSize_ = new Size(0, 0);
-		private GameObject object_ = null;
-		private WidgetGraphics graphic_ = null;
+
+		private GameObject mainObject_ = null;
+		private GameObject widgetObject_ = null;
+		private GameObject graphicsObject_ = null;
+		private GameObject bgObject_ = null;
+		private BorderGraphics borderGraphics_ = null;
+
 		private bool visible_ = true;
 		private Insets margins_ = new Insets();
 		private Insets borders_ = new Insets();
 		private Insets padding_ = new Insets();
 		private Color borderColor_ = Style.TextColor;
+		private Color bgColor_ = new Color(0, 0, 0, 0);
 		private bool needsVisibilityUpdate_ = false;
 
 		public Widget(string name = "")
@@ -102,10 +109,14 @@ namespace Synergy.UI
 			foreach (var c in children_)
 				c.Destroy();
 
-			if (object_ != null)
+			if (mainObject_ != null)
 			{
-				UnityEngine.Object.Destroy(object_);
-				object_ = null;
+				UnityEngine.Object.Destroy(mainObject_);
+				mainObject_ = null;
+				widgetObject_ = null;
+				graphicsObject_ = null;
+				bgObject_ = null;
+				borderGraphics_ = null;
 			}
 		}
 
@@ -132,9 +143,9 @@ namespace Synergy.UI
 			}
 		}
 
-		public GameObject Object
+		public GameObject WidgetObject
 		{
-			get { return object_; }
+			get { return widgetObject_; }
 		}
 
 		public bool StrictlyVisible
@@ -193,13 +204,27 @@ namespace Synergy.UI
 			set { borderColor_ = value; }
 		}
 
+		public Color BackgroundColor
+		{
+			get
+			{
+				return bgColor_;
+			}
+
+			set
+			{
+				bgColor_ = value;
+				SetBackground();
+			}
+		}
+
 		public Rectangle Bounds
 		{
-			get { return bounds_; }
+			get { return new Rectangle(bounds_); }
 			set { bounds_ = value; }
 		}
 
-		public Rectangle ContentBounds
+		public Rectangle AbsoluteClientBounds
 		{
 			get
 			{
@@ -217,7 +242,7 @@ namespace Synergy.UI
 		{
 			get
 			{
-				return ContentBounds.TranslateCopy(-Bounds.Left, -Bounds.Top);
+				return AbsoluteClientBounds.TranslateCopy(-Bounds.TopLeft);
 			}
 		}
 
@@ -270,6 +295,14 @@ namespace Synergy.UI
 			{
 				name_ = value;
 			}
+		}
+
+		public virtual Root GetRoot()
+		{
+			if (parent_ != null)
+				return parent_.GetRoot();
+
+			return null;
 		}
 
 		public virtual string DebugLine
@@ -339,58 +372,118 @@ namespace Synergy.UI
 
 		public void Create()
 		{
-			if (object_ == null)
+			if (mainObject_ == null)
 			{
-				object_ = CreateGameObject();
-				object_.SetActive(Visible);
-				object_.transform.SetParent(Root.PluginParent, false);
+				mainObject_ = new GameObject();
+				mainObject_.AddComponent<RectTransform>();
+				mainObject_.AddComponent<LayoutElement>();
+				mainObject_.SetActive(Visible);
+				mainObject_.transform.SetParent(Root.PluginParent, false);
+
+				widgetObject_ = CreateGameObject();
+				widgetObject_.transform.SetParent(mainObject_.transform, false);
 				DoCreate();
 
-				var g = new GameObject();
-				g.transform.SetParent(object_.transform, false);
-				graphic_ = g.AddComponent<WidgetGraphics>();
-				graphic_.Widget = this;
-				graphic_.raycastTarget = false;
+				graphicsObject_ = new GameObject();
+				graphicsObject_.transform.SetParent(mainObject_.transform, false);
+				borderGraphics_ = graphicsObject_.AddComponent<BorderGraphics>();
+				borderGraphics_.Widget = this;
+				borderGraphics_.raycastTarget = false;
+
+				SetBackground();
 			}
 
 			foreach (var w in children_)
 				w.Create();
 		}
 
-		protected virtual void UpdateBounds()
+		private void SetRectTransform(RectTransform rt, Rectangle r)
 		{
-			var wr = ContentBounds;
-
-			var rect = object_.GetComponent<RectTransform>();
-			rect.offsetMin = new Vector2(wr.Left, wr.Top);
-			rect.offsetMax = new Vector2(wr.Right, wr.Bottom);
-			rect.anchorMin = new Vector2(0, 1);
-			rect.anchorMax = new Vector2(0, 1);
-			rect.anchoredPosition = new Vector2(wr.Center.X, -wr.Center.Y);
-
-			var layoutElement = object_.GetComponent<LayoutElement>();
-			layoutElement.minWidth = wr.Width;
-			layoutElement.preferredWidth = wr.Width;
-			layoutElement.flexibleWidth = wr.Width;
-			layoutElement.minHeight = wr.Height;
-			layoutElement.preferredHeight = wr.Height;
-			layoutElement.flexibleHeight = wr.Height;
-			layoutElement.ignoreLayout = true;
-
-
-			var br = Rectangle.FromPoints(
-				-(Borders.Left + Padding.Left),
-				-(Borders.Top + Padding.Top),
-				ContentBounds.Width + (Borders.Right + Padding.Right),
-				ContentBounds.Height + (Borders.Bottom + Padding.Bottom));
-
-			var rt = graphic_.rectTransform;
-			rt.offsetMin = new Vector2(br.Left, br.Top);
-			rt.offsetMax = new Vector2(br.Right, br.Bottom);
+			rt.offsetMin = new Vector2(r.Left, r.Top);
+			rt.offsetMax = new Vector2(r.Right, r.Bottom);
 			rt.anchorMin = new Vector2(0, 1);
 			rt.anchorMax = new Vector2(0, 1);
-			rt.anchoredPosition = new Vector2(br.Center.X, -br.Center.Y);
+			rt.anchoredPosition = new Vector2(r.Center.X, -r.Center.Y);
+		}
 
+		private void SetRectTransform(Component c, Rectangle r)
+		{
+			SetRectTransform(c.GetComponent<RectTransform>(), r);
+		}
+
+		private void SetRectTransform(GameObject o, Rectangle r)
+		{
+			SetRectTransform(o.GetComponent<RectTransform>(), r);
+		}
+
+		private void SetBackground()
+		{
+			if (mainObject_ == null)
+				return;
+
+			if (bgObject_ == null && bgColor_.a > 0)
+			{
+				bgObject_ = new GameObject();
+				bgObject_.transform.SetParent(mainObject_.transform, false);
+				bgObject_.AddComponent<Image>();
+			}
+
+			SetBackgroundBounds();
+		}
+
+		private void SetMainObjectBounds()
+		{
+			var r = Bounds;
+			SetRectTransform(mainObject_, r);
+
+			var layoutElement = mainObject_.GetComponent<LayoutElement>();
+			layoutElement.minWidth = r.Width;
+			layoutElement.preferredWidth = r.Width;
+			layoutElement.flexibleWidth = r.Width;
+			layoutElement.minHeight = r.Height;
+			layoutElement.preferredHeight = r.Height;
+			layoutElement.flexibleHeight = r.Height;
+			layoutElement.ignoreLayout = true;
+		}
+
+		private void SetBackgroundBounds()
+		{
+			if (bgObject_ == null)
+				return;
+
+			bgObject_.transform.SetAsFirstSibling();
+
+			var image = bgObject_.GetComponent<Image>();
+			image.color = bgColor_;
+			image.raycastTarget = false;
+
+			var r = new Rectangle(0, 0, Bounds.Size);
+			r.Deflate(Margins);
+
+			SetRectTransform(bgObject_, r);
+		}
+
+		private void SetBorderBounds()
+		{
+			var r = new Rectangle(0, 0, Bounds.Size);
+			r.Deflate(Margins);
+
+			SetRectTransform(borderGraphics_, r);
+		}
+
+		private void SetWidgetObjectBounds()
+		{
+			SetRectTransform(widgetObject_, ClientBounds);
+		}
+
+		public virtual void UpdateBounds()
+		{
+			SetBackground();
+
+			SetMainObjectBounds();
+			SetBackgroundBounds();
+			SetBorderBounds();
+			SetWidgetObjectBounds();
 
 			foreach (var w in children_)
 				w.UpdateBounds();
@@ -437,8 +530,8 @@ namespace Synergy.UI
 
 		protected virtual void UpdateVisibility(bool b)
 		{
-			if (object_ != null)
-				object_.SetActive(b);
+			if (mainObject_ != null)
+				mainObject_.SetActive(b);
 
 			foreach (var w in children_)
 				w.UpdateVisibility(w.Visible);

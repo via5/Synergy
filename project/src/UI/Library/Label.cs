@@ -58,7 +58,7 @@ namespace Synergy.UI
 
 		protected override void DoCreate()
 		{
-			textObject_ = Object.AddComponent<Text>();
+			textObject_ = WidgetObject.AddComponent<Text>();
 			textObject_.color = Style.TextColor;
 			textObject_.raycastTarget = false;
 			textObject_.text = text_;
@@ -66,7 +66,7 @@ namespace Synergy.UI
 			textObject_.font = Style.Font;
 		}
 
-		protected override void UpdateBounds()
+		public override void UpdateBounds()
 		{
 			base.UpdateBounds();
 			textObject_.alignment = ToTextAnchor(align_);

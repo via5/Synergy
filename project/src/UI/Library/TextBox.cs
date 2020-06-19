@@ -80,8 +80,8 @@ namespace Synergy.UI
 
 		protected override void DoCreate()
 		{
-			field_ = Object.GetComponent<UIDynamicTextField>();
-			input_ = Object.gameObject.AddComponent<CustomInputField>();
+			field_ = WidgetObject.GetComponent<UIDynamicTextField>();
+			input_ = WidgetObject.gameObject.AddComponent<CustomInputField>();
 			input_.clicked = OnClicked;
 			input_.textComponent = field_.UItext;
 			input_.text = text_;
@@ -100,37 +100,43 @@ namespace Synergy.UI
 
 		private void OnClicked()
 		{
-			Root.SetFocus(this);
+			Utilities.Handler(() =>
+			{
+				Root.SetFocus(this);
+			});
 		}
 
 		private void OnEdited(string s)
 		{
-			if (ignore_)
-				return;
-
-			if (Validate != null)
+			Utilities.Handler(() =>
 			{
-				var v = new Validation();
-				v.text = s;
-				v.valid = true;
-
-				Validate(v);
-
-				if (!v.valid)
-				{
-					input_.text = text_;
+				if (ignore_)
 					return;
+
+				if (Validate != null)
+				{
+					var v = new Validation();
+					v.text = s;
+					v.valid = true;
+
+					Validate(v);
+
+					if (!v.valid)
+					{
+						input_.text = text_;
+						return;
+					}
+
+					text_ = v.text;
+					input_.text = text_;
+				}
+				else
+				{
+					text_ = s;
 				}
 
-				text_ = v.text;
-				input_.text = text_;
-			}
-			else
-			{
-				text_ = s;
-			}
-
-			Changed?.Invoke(text_);
+				Changed?.Invoke(text_);
+			});
 		}
 	}
 }
