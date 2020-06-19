@@ -49,14 +49,6 @@ namespace Synergy.UI
 		{
 			return new Size(300, 200);
 		}
-
-		protected override void UpdateVisibility(bool b)
-		{
-			base.UpdateVisibility(b);
-
-			if (Popup != null)
-				Popup.popup.popupPanel.gameObject.SetActive(b);
-		}
 	}
 
 

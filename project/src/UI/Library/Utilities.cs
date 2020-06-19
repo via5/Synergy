@@ -260,6 +260,12 @@ namespace Synergy.UI
 			return r;
 		}
 
+		public void Translate(Point p)
+		{
+			if (p != null)
+				Translate(p.X, p.Y);
+		}
+
 		public void Translate(float dx, float dy)
 		{
 			Left += dx;

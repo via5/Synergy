@@ -41,13 +41,13 @@ namespace Synergy.NewUI
 			s.AddEmptyModifier();
 
 
-			var d = new MessageDialog(
-				root_, "Deleting step", "Are you sure?");
-
-			d.RunDialog(() =>
-			{
-				Synergy.LogError(d.Button.ToString());
-			});
+			//var d = new MessageDialog(
+			//	root_, "Deleting step", "Are you sure?");
+			//
+			//d.RunDialog(() =>
+			//{
+			//	Synergy.LogError(d.Button.ToString());
+			//});
 		}
 
 		public void SelectStep(Step s)
@@ -99,16 +99,6 @@ namespace Synergy.NewUI
 		public void Set(Delay d)
 		{
 			duration_.Set(d.Duration);
-		}
-	}
-
-
-	class ToolButton : UI.Button
-	{
-		public ToolButton(string text = "", UI.Button.Callback clicked = null)
-			: base(text, clicked)
-		{
-			MinimumSize = new UI.Size(50, DontCare);
 		}
 	}
 

@@ -68,15 +68,15 @@ namespace Synergy.NewUI
 		{
 			Layout = new UI.HorizontalFlow(20);
 
-			add_ = new ToolButton("+", OnAdd);
-			clone_ = new ToolButton(S("+*"), OnClone);
-			clone0_ = new ToolButton(S("+*0"), OnCloneZero);
-			remove_ = new ToolButton("\x2013", OnRemove);  // en dash
+			add_ = new UI.ToolButton("+", OnAdd);
+			clone_ = new UI.ToolButton(S("+*"), OnClone);
+			clone0_ = new UI.ToolButton(S("+*0"), OnCloneZero);
+			remove_ = new UI.ToolButton("\x2013", OnRemove);  // en dash
 
 			if (Bits.IsSet(flags, AllowMove))
 			{
-				up_ = new ToolButton("\x25b2", OnMoveUp);      // up arrow
-				down_ = new ToolButton("\x25bc", OnMoveDown);  // down arrow
+				up_ = new UI.ToolButton("\x25b2", OnMoveUp);      // up arrow
+				down_ = new UI.ToolButton("\x25bc", OnMoveDown);  // down arrow
 			}
 
 			Add(add_);

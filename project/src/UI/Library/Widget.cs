@@ -92,7 +92,6 @@ namespace Synergy.UI
 		private Insets padding_ = new Insets();
 		private Color borderColor_ = Style.TextColor;
 		private Color bgColor_ = new Color(0, 0, 0, 0);
-		private bool needsVisibilityUpdate_ = false;
 
 		public Widget(string name = "")
 		{
@@ -153,36 +152,26 @@ namespace Synergy.UI
 			get { return widgetObject_; }
 		}
 
-		public bool StrictlyVisible
-		{
-			get { return visible_; }
-		}
-
 		public bool Visible
 		{
 			get
 			{
-				if (!visible_)
-					return false;
-
-				var p = parent_;
-				while (p != null)
-				{
-					if (!p.visible_)
-						return false;
-
-					p = p.parent_;
-				}
-
-				return true;
+				return visible_;
 			}
 
 			set
 			{
 				visible_ = value;
-				needsVisibilityUpdate_ = true;
 				NeedsLayout();
 			}
+		}
+
+		public bool IsVisibleOnScreen()
+		{
+			if (mainObject_ == null)
+				return visible_;
+			else
+				return mainObject_.activeInHierarchy;
 		}
 
 		public Insets Margins
@@ -247,7 +236,13 @@ namespace Synergy.UI
 		{
 			get
 			{
-				return AbsoluteClientBounds.TranslateCopy(-Bounds.TopLeft);
+				var r = new Rectangle(0, 0, Bounds.Size);
+
+				r.Deflate(Margins);
+				r.Deflate(Borders);
+				r.Deflate(Padding);
+
+				return r;
 			}
 		}
 
@@ -255,7 +250,12 @@ namespace Synergy.UI
 		{
 			get
 			{
-				return bounds_.TranslateCopy(parent_?.Bounds.TopLeft);
+				var r = new Rectangle(Bounds);
+
+				if (parent_ != null)
+					r.Translate(-parent_.Bounds.TopLeft);
+
+				return r;
 			}
 		}
 
@@ -382,8 +382,12 @@ namespace Synergy.UI
 				mainObject_ = new GameObject();
 				mainObject_.AddComponent<RectTransform>();
 				mainObject_.AddComponent<LayoutElement>();
-				mainObject_.SetActive(Visible);
-				mainObject_.transform.SetParent(Root.PluginParent, false);
+				mainObject_.SetActive(visible_);
+
+				if (parent_?.MainObject == null)
+					mainObject_.transform.SetParent(Root.PluginParent, false);
+				else
+					mainObject_.transform.SetParent(parent_.MainObject.transform, false);
 
 				widgetObject_ = CreateGameObject();
 				widgetObject_.transform.SetParent(mainObject_.transform, false);
@@ -438,7 +442,7 @@ namespace Synergy.UI
 
 		private void SetMainObjectBounds()
 		{
-			var r = Bounds;
+			var r = RelativeBounds;
 			SetRectTransform(mainObject_, r);
 
 			var layoutElement = mainObject_.GetComponent<LayoutElement>();
@@ -493,11 +497,7 @@ namespace Synergy.UI
 			foreach (var w in children_)
 				w.UpdateBounds();
 
-			if (needsVisibilityUpdate_)
-			{
-				needsVisibilityUpdate_ = false;
-				UpdateVisibility(Visible);
-			}
+			mainObject_.SetActive(visible_);
 		}
 
 		public virtual void NeedsLayout()
@@ -531,15 +531,6 @@ namespace Synergy.UI
 		protected virtual Size GetPreferredSize()
 		{
 			return new Size(DontCare, DontCare);
-		}
-
-		protected virtual void UpdateVisibility(bool b)
-		{
-			if (mainObject_ != null)
-				mainObject_.SetActive(b);
-
-			foreach (var w in children_)
-				w.UpdateVisibility(w.Visible);
 		}
 	}
 

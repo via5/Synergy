@@ -58,7 +58,6 @@ namespace Synergy.UI
 				panel_.Add(widget_, BorderLayout.Center);
 
 				button_.Alignment = Label.AlignCenter | Label.AlignBottom;
-				//button_.Padding = new Insets(5);
 				button_.Clicked += () => { tabs_.Select(this); };
 			}
 
@@ -128,13 +127,6 @@ namespace Synergy.UI
 					tabs_[i].SetSelected(false);
 				}
 			}
-		}
-
-		protected override GameObject CreateGameObject()
-		{
-			var o = base.CreateGameObject();
-			o.AddComponent<UITabSelector>();
-			return o;
 		}
 	}
 }

@@ -73,4 +73,14 @@ namespace Synergy.UI
 			});
 		}
 	}
+
+
+	class ToolButton : UI.Button
+	{
+		public ToolButton(string text = "", UI.Button.Callback clicked = null)
+			: base(text, clicked)
+		{
+			MinimumSize = new UI.Size(50, DontCare);
+		}
+	}
 }
