@@ -50,6 +50,7 @@ namespace Synergy.UI
 		public RootPanel(Root r)
 		{
 			root_ = r;
+			Margins = new Insets(5);
 		}
 
 		public override void NeedsLayout()
@@ -122,24 +123,23 @@ namespace Synergy.UI
 
 		public void AttachTo(MVRScriptUI scriptUI)
 		{
-			var rt = scriptUI.GetComponent<RectTransform>();
+			var scrollView = scriptUI.GetComponentInChildren<ScrollRect>();
+			if (scrollView == null)
+			{
+				Synergy.LogError("no scrollrect in attach");
+				return;
+			}
 
-			bounds_ = Rectangle.FromPoints(0, 0, rt.rect.width, rt.rect.height);
+			var scrollViewRT = scrollView.GetComponent<RectTransform>();
+			topOffset_ = scrollViewRT.offsetMin.y - scrollViewRT.offsetMax.y;
+
+			bounds_ = Rectangle.FromPoints(
+				1, 1, scrollViewRT.rect.width - 3, scrollViewRT.rect.height - 3);
 			content_.Bounds = new Rectangle(bounds_);
 			floating_.Bounds = new Rectangle(bounds_);
 
 			PluginParent = scriptUI.fullWidthUIContent;
 
-			var scrollView = scriptUI.GetComponentInChildren<ScrollRect>();
-			if (scrollView == null)
-			{
-				Synergy.LogError("no scrollrect in attach");
-			}
-			else
-			{
-				var scrollViewRT = scrollView.GetComponent<RectTransform>();
-				topOffset_ = scrollViewRT.offsetMin.y - scrollViewRT.offsetMax.y;
-			}
 
 			var image = scriptUI.GetComponentInChildren<Image>();
 			if (image == null)
