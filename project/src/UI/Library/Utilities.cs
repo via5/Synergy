@@ -18,6 +18,19 @@ namespace Synergy.UI
 			}
 		}
 
+		public static void BringToTop(GameObject o)
+		{
+			BringToTop(o.transform);
+		}
+
+		public static void BringToTop(Transform t)
+		{
+			while (t != null)
+			{
+				t.SetAsLastSibling();
+				t = t.transform.parent;
+			}
+		}
 
 		public static GameObject FindChildRecursive(Component c, string name)
 		{

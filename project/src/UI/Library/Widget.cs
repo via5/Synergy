@@ -446,6 +446,12 @@ namespace Synergy.UI
 			parent_.Remove(this);
 		}
 
+		public void BringToTop()
+		{
+			if (widgetObject_ != null)
+				Utilities.BringToTop(widgetObject_);
+		}
+
 		public void DoLayout()
 		{
 			layout_?.DoLayout();

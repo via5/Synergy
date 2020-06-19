@@ -49,7 +49,7 @@ namespace Synergy.UI
 			DoLayout();
 			Create();
 			UpdateBounds();
-			WidgetObject.transform.SetAsLastSibling();
+			BringToTop();
 
 			if (h != null)
 				Closed += h;

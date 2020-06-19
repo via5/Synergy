@@ -148,6 +148,9 @@ namespace Synergy.NewUI
 
 			d.RunDialog(() =>
 			{
+				if (d.Button != UI.MessageDialog.OK)
+					return;
+
 				using (var sf = new ScopedFlag(b => ignore_ = b))
 				{
 					step_.DeleteModifier(m);
@@ -210,22 +213,29 @@ namespace Synergy.NewUI
 	class ModifierInfo : UI.Panel
 	{
 		private readonly UI.TextBox name_;
+		private readonly UI.CheckBox enabled_;
+		private readonly FactoryComboBox<ModifierFactory, IModifier> type_;
+		private ModifierContainer mc_ = null;
+		private bool ignore_ = false;
 
 		public ModifierInfo()
 		{
 			name_ = new UI.TextBox();
+			enabled_ = new CheckBox(S("Modifier enabled"));
+			type_ = new FactoryComboBox<ModifierFactory, IModifier>(
+				OnTypeChanged);
 
 			Layout = new UI.VerticalFlow(20);
 
 			var p = new UI.Panel(new UI.HorizontalFlow(10));
 			p.Add(new UI.Label(S("Name")));
 			p.Add(name_);
-			p.Add(new UI.CheckBox(S("Modifier enabled")));
+			p.Add(enabled_);
 			Add(p);
 
 			p = new UI.Panel(new UI.HorizontalFlow(10));
 			p.Add(new UI.Label(S("Modifier type")));
-			p.Add(new UI.ComboBox());
+			p.Add(type_);
 			Add(p);
 
 			name_.MinimumSize = new UI.Size(300, DontCare);
@@ -233,14 +243,21 @@ namespace Synergy.NewUI
 
 		public void Set(ModifierContainer m)
 		{
-			if (m == null)
+			using (var sf = new ScopedFlag((b) => ignore_ = b))
 			{
-				name_.Text = "";
-			}
-			else
-			{
+				mc_ = m;
 				name_.Text = m.Name;
+				enabled_.Checked = m.Enabled;
+				type_.Select(m.Modifier);
 			}
+		}
+
+		private void OnTypeChanged(IModifier m)
+		{
+			if (ignore_)
+				return;
+
+			mc_.Modifier = m;
 		}
 	}
 

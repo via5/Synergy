@@ -129,7 +129,7 @@ namespace Synergy.UI
 
 			widget_.Bounds = new Rectangle(p.X, p.Y, size);
 			widget_.Visible = true;
-			widget_.MainObject.transform.SetAsLastSibling();
+			widget_.BringToTop();
 		}
 
 		public void Hide()

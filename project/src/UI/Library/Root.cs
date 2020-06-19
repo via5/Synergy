@@ -242,7 +242,7 @@ namespace Synergy.UI
 
 			overlay_.Visible = true;
 			overlay_.DoLayout();
-			overlay_.MainObject.transform.SetAsLastSibling();
+			overlay_.BringToTop();
 		}
 
 		private void HideOverlay()

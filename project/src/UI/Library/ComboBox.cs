@@ -377,14 +377,7 @@ namespace Synergy.UI
 			{
 				Root.SetFocus(this);
 				Root.SetOpenedPopup(Popup.popup);
-
-				var p = Popup.popup.popupPanel.transform;
-
-				while (p != null)
-				{
-					p.SetAsLastSibling();
-					p = p.transform.parent;
-				}
+				Utilities.BringToTop(Popup.popup.popupPanel);
 			});
 		}
 	}
