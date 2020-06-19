@@ -156,6 +156,7 @@
 		private readonly FactoryComboBox<DurationFactory, IDuration> type_;
 		private DurationWidgets widgets_ = null;
 		private IDuration duration_ = null;
+		private bool ignore_ = false;
 
 		public DurationPanel()
 		{
@@ -173,12 +174,15 @@
 
 		public void Set(IDuration d)
 		{
-			duration_ = d;
+			using (var sf = new ScopedFlag((b) => ignore_ = b))
+			{
+				duration_ = d;
 
-			if (widgets_ == null || !widgets_.Set(d))
-				SetWidgets(DurationWidgets.Create(d));
+				if (widgets_ == null || !widgets_.Set(d))
+					SetWidgets(DurationWidgets.Create(d));
 
-			type_.Select(d);
+				type_.Select(d);
+			}
 		}
 
 		private void SetWidgets(DurationWidgets p)
@@ -194,6 +198,9 @@
 
 		private void OnTypeChanged(IDuration d)
 		{
+			if (ignore_)
+				return;
+
 			Changed?.Invoke(d);
 		}
 	}

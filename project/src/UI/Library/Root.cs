@@ -36,7 +36,7 @@ namespace Synergy.UI
 			base.DoCreate();
 
 			graphics_ = MainObject.AddComponent<Image>();
-			graphics_.color = new Color(0, 0, 0, 0.9f);
+			graphics_.color = new Color(0, 0, 0, 0.7f);
 			graphics_.raycastTarget = true;
 
 			MainObject.AddComponent<ClickEater>();

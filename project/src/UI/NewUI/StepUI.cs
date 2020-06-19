@@ -113,7 +113,8 @@ namespace Synergy.NewUI
 			using (var sf = new ScopedFlag(b => ignore_ = b))
 			{
 				var s = Synergy.Instance.Manager.AddStep();
-				steps_.AddItem(s, true);
+				steps_.AddItem(s);
+				steps_.Select(s);
 			}
 		}
 
@@ -125,25 +126,33 @@ namespace Synergy.NewUI
 				if (s != null)
 				{
 					var ns = Synergy.Instance.Manager.AddStep(s.Clone(flags));
-					steps_.AddItem(s, true);
+					steps_.AddItem(s);
+					steps_.Select(s);
 				}
 			}
 		}
 
 		public void RemoveStep()
 		{
-			var d = new UI.Dialog(GetRoot(), "");
-			d.RunDialog();
+			var s = steps_.Selected;
+			if (s == null)
+				return;
 
-			using (var sf = new ScopedFlag(b => ignore_ = b))
+			var d = new UI.MessageDialog(
+				GetRoot(), S("Delete step"),
+				S("Are you sure you want to delete step {0}?", s.Name));
+
+			d.RunDialog(() =>
 			{
-				var s = steps_.Selected;
-				if (s != null)
+				if (d.Button != UI.MessageDialog.OK)
+					return;
+
+				using (var sf = new ScopedFlag(b => ignore_ = b))
 				{
 					Synergy.Instance.Manager.DeleteStep(s);
 					steps_.RemoveItem(s);
 				}
-			}
+			});
 		}
 
 		public void MoveStep(int d)

@@ -39,15 +39,6 @@ namespace Synergy.NewUI
 
 			var s = Synergy.Instance.Manager.AddStep();
 			s.AddEmptyModifier();
-
-
-			//var d = new MessageDialog(
-			//	root_, "Deleting step", "Are you sure?");
-			//
-			//d.RunDialog(() =>
-			//{
-			//	Synergy.LogError(d.Button.ToString());
-			//});
 		}
 
 		public void SelectStep(Step s)

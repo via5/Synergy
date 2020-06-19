@@ -15,17 +15,42 @@ namespace Synergy.NewUI
 
 			Add(controls_, UI.BorderLayout.Left);
 			Add(modifier_, UI.BorderLayout.Center);
+
+			controls_.SelectionChanged += OnModifierSelected;
+
+			SelectModifier(null);
 		}
 
 		public void SetStep(Step s)
 		{
 			controls_.Set(s);
 		}
+
+		public void SelectModifier(ModifierContainer m)
+		{
+			if (m == null)
+			{
+				modifier_.Visible = false;
+			}
+			else
+			{
+				modifier_.Visible = true;
+				modifier_.Set(m);
+			}
+		}
+
+		private void OnModifierSelected(ModifierContainer m)
+		{
+			SelectModifier(m);
+		}
 	}
 
 
 	class ModifierControls : UI.Panel
 	{
+		public delegate void ModifierCallback(ModifierContainer m);
+		public event ModifierCallback SelectionChanged;
+
 		private readonly UI.Button add_, clone_, clone0_, remove_;
 		private readonly UI.TypedListView<ModifierContainer> list_;
 
@@ -34,7 +59,7 @@ namespace Synergy.NewUI
 
 		public ModifierControls()
 		{
-			list_ = new TypedListView<ModifierContainer>();
+			list_ = new TypedListView<ModifierContainer>(OnSelectionChanged);
 			add_ = new UI.ToolButton("+", AddModifier);
 			clone_ = new UI.ToolButton(S("+*"), () => CloneModifier(0));
 			clone0_ = new UI.ToolButton(S("+*0"), () => CloneModifier(Utilities.CloneZero));
@@ -44,7 +69,6 @@ namespace Synergy.NewUI
 			clone_.Tooltip.Text = S("Clone this modifier");
 			clone0_.Tooltip.Text = S("Clone this modifier and zero all values");
 			remove_.Tooltip.Text = S("Remove this modifier");
-			list_.Tooltip.Text = "bleh bleh";
 
 			var p = new Panel(new UI.HorizontalFlow(20));
 			p.Add(add_);
@@ -67,7 +91,7 @@ namespace Synergy.NewUI
 		{
 			get
 			{
-				return null;
+				return list_.Selected;
 			}
 		}
 
@@ -91,17 +115,50 @@ namespace Synergy.NewUI
 				if (step_ != null)
 				{
 					var m = step_.AddEmptyModifier();
-					list_.AddItem(m, true);
+					list_.AddItem(m);
+					list_.Select(m);
 				}
 			}
 		}
 
 		public void CloneModifier(int flags)
 		{
+			using (var sf = new ScopedFlag(b => ignore_ = b))
+			{
+				var m = Selected;
+				if (step_ != null && m != null)
+				{
+					var m2 = m.Clone(flags);
+					step_.AddModifier(m2);
+					list_.AddItem(m2);
+					list_.Select(m2);
+				}
+			}
 		}
 
 		public void RemoveModifier()
 		{
+			var m = Selected;
+			if (m == null)
+				return;
+
+			var d = new UI.MessageDialog(
+				GetRoot(), S("Delete modifier"),
+				S("Are you sure you want to delete modifier {0}?", m.Name));
+
+			d.RunDialog(() =>
+			{
+				using (var sf = new ScopedFlag(b => ignore_ = b))
+				{
+					step_.DeleteModifier(m);
+					list_.RemoveItem(m);
+				}
+			});
+		}
+
+		private void OnSelectionChanged(ModifierContainer m)
+		{
+			SelectionChanged?.Invoke(m);
 		}
 
 		private void UpdateModifiers()
@@ -142,6 +199,11 @@ namespace Synergy.NewUI
 			Add(info_, UI.BorderLayout.Top);
 			Add(tabs_, UI.BorderLayout.Center);
 		}
+
+		public void Set(ModifierContainer m)
+		{
+			info_.Set(m);
+		}
 	}
 
 
@@ -167,6 +229,18 @@ namespace Synergy.NewUI
 			Add(p);
 
 			name_.MinimumSize = new UI.Size(300, DontCare);
+		}
+
+		public void Set(ModifierContainer m)
+		{
+			if (m == null)
+			{
+				name_.Text = "";
+			}
+			else
+			{
+				name_.Text = m.Name;
+			}
 		}
 	}
 

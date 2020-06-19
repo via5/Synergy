@@ -9,7 +9,18 @@ namespace Synergy.UI
 	{
 		public override string TypeName { get { return "list"; } }
 
-		public TypedListView()
+		public TypedListView(List<ItemType> items = null)
+			: this(items, null)
+		{
+		}
+
+		public TypedListView(ItemCallback selectionChanged)
+			: this(null, selectionChanged)
+		{
+		}
+
+		public TypedListView(List<ItemType> items, ItemCallback selectionChanged)
+			: base(items, selectionChanged)
 		{
 			Borders = new Insets(1);
 		}

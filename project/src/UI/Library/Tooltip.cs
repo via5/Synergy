@@ -82,7 +82,7 @@ namespace Synergy.UI
 				timer_ = Synergy.Instance.CreateTimer(Metrics.TooltipDelay, () =>
 				{
 					timer_ = null;
-					Show();
+					Show(active_);
 				});
 			}
 		}
@@ -93,9 +93,10 @@ namespace Synergy.UI
 				Hide();
 		}
 
-		private void Show()
+		public void Show(Widget w)
 		{
-			widget_.Text = active_.Tooltip.Text;
+			active_ = w;
+			widget_.Text = w.Tooltip.Text;
 
 			// size of text
 			var size = Root.FitText(widget_.Text, Metrics.MaxTooltipWidth);
@@ -128,9 +129,10 @@ namespace Synergy.UI
 
 			widget_.Bounds = new Rectangle(p.X, p.Y, size);
 			widget_.Visible = true;
+			widget_.MainObject.transform.SetAsLastSibling();
 		}
 
-		private void Hide()
+		public void Hide()
 		{
 			if (timer_ != null)
 			{

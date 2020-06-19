@@ -21,6 +21,7 @@ namespace Synergy.UI
 
 			BackgroundColor = Style.BackgroundColor;
 			Layout = new BorderLayout();
+			Borders = new Insets(1);
 			content_.Margins = new Insets(10, 20, 10, 10);
 
 			Add(title_, BorderLayout.Top);

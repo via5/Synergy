@@ -27,9 +27,12 @@ namespace Synergy
 
 	public class Strings
 	{
-		public static string Get(string s)
+		public static string Get(string s, params object[] ps)
 		{
-			return s;
+			if (ps.Length > 0)
+				return string.Format(s, ps);
+			else
+				return s;
 		}
 	}
 

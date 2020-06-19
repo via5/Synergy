@@ -67,7 +67,8 @@ namespace Synergy.UI
 	}
 
 
-	class HoverCallbacks : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+	class MouseCallbacks : MonoBehaviour,
+		IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
 	{
 		private Widget widget_ = null;
 
@@ -92,6 +93,15 @@ namespace Synergy.UI
 			{
 				if (widget_ != null)
 					widget_.OnPointerExit(d);
+			});
+		}
+
+		public void OnPointerDown(PointerEventData d)
+		{
+			Utilities.Handler(() =>
+			{
+				if (widget_ != null)
+					widget_.OnPointerDown(d);
 			});
 		}
 	}
@@ -152,9 +162,9 @@ namespace Synergy.UI
 			}
 		}
 
-		public static string S(string s)
+		public static string S(string s, params object[] ps)
 		{
-			return Strings.Get(s);
+			return Strings.Get(s, ps);
 		}
 
 		public Layout Layout
@@ -451,7 +461,7 @@ namespace Synergy.UI
 				mainObject_ = new GameObject();
 				mainObject_.AddComponent<RectTransform>();
 				mainObject_.AddComponent<LayoutElement>();
-				mainObject_.AddComponent<HoverCallbacks>().Widget = this;
+				mainObject_.AddComponent<MouseCallbacks>().Widget = this;
 				mainObject_.SetActive(visible_);
 
 				if (parent_?.MainObject == null)
@@ -460,6 +470,7 @@ namespace Synergy.UI
 					mainObject_.transform.SetParent(parent_.MainObject.transform, false);
 
 				widgetObject_ = CreateGameObject();
+				widgetObject_.AddComponent<MouseCallbacks>().Widget = this;
 				widgetObject_.transform.SetParent(mainObject_.transform, false);
 				DoCreate();
 
@@ -611,6 +622,11 @@ namespace Synergy.UI
 		public virtual void OnPointerExit(PointerEventData d)
 		{
 			GetRoot()?.Tooltips.WidgetExited(this);
+		}
+
+		public virtual void OnPointerDown(PointerEventData d)
+		{
+			GetRoot()?.Tooltips.Hide();
 		}
 	}
 

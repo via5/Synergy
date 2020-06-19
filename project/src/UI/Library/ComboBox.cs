@@ -40,13 +40,19 @@ namespace Synergy.UI
 			new JSONStorableStringChooser("", new List<string>(), "", "");
 
 
-		public void AddItem(ItemType i, bool select = false)
+		public TypedListImpl(List<ItemType> items, ItemCallback selectionChanged)
+		{
+			if (items != null)
+				SetItems(items);
+
+			if (selectionChanged != null)
+				SelectionChanged += selectionChanged;
+		}
+
+		public void AddItem(ItemType i)
 		{
 			AddItemNoUpdate(new Item(i));
 			UpdateChoices();
-
-			if (select)
-				Select(items_.Count - 1, true);
 		}
 
 		public void RemoveItem(ItemType item)
@@ -80,6 +86,8 @@ namespace Synergy.UI
 				Select(items_.Count - 1);
 			else if (selection_ > itemIndex)
 				Select(selection_ - 1);
+			else
+				Select(selection_);
 		}
 
 		public List<ItemType> Items
@@ -123,7 +131,7 @@ namespace Synergy.UI
 				selIndex = 0;
 
 			UpdateChoices();
-			Select(selIndex, true);
+			Select(selIndex);
 		}
 
 		public void UpdateItemsText()
@@ -143,21 +151,19 @@ namespace Synergy.UI
 			return -1;
 		}
 
-		public void Select(ItemType item, bool fireCallback = false)
+		public void Select(ItemType item)
 		{
-			Select(IndexOf(item), fireCallback);
+			Select(IndexOf(item));
 		}
 
-		public void Select(int i, bool fireCallback = false)
+		public void Select(int i)
 		{
 			if (i < 0 || i >= items_.Count)
 				i = -1;
 
 			selection_ = i;
 			UpdateLabel();
-
-			if (fireCallback)
-				SelectionChanged?.Invoke(Selected);
+			SelectionChanged?.Invoke(Selected);
 		}
 
 		public ItemType Selected
@@ -254,7 +260,6 @@ namespace Synergy.UI
 					Synergy.LogError("combobox: selected item '" + s + "' not found");
 
 				Select(sel);
-				SelectionChanged?.Invoke(Selected);
 			});
 		}
 	}
@@ -279,12 +284,8 @@ namespace Synergy.UI
 		}
 
 		public TypedComboBox(List<ItemType> items, ItemCallback selectionChanged)
+			: base(items, selectionChanged)
 		{
-			if (items != null)
-				SetItems(items);
-
-			if (selectionChanged != null)
-				SelectionChanged += selectionChanged;
 		}
 
 		protected override Size GetPreferredSize()
