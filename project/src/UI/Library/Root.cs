@@ -1,4 +1,6 @@
-﻿using UnityEngine;
+﻿using Leap.Unity;
+using LeapInternal;
+using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
@@ -65,8 +67,8 @@ namespace Synergy.UI
 	class Root
 	{
 		static public Transform PluginParent = null;
-		static private TextGenerator tg_ = null;
-		static private TextGenerationSettings ts_;
+		static private TextGenerator tg_ = new TextGenerator();
+		static private TextGenerationSettings ts_ = new TextGenerationSettings();
 
 		static public UIPopup openedPopup_ = null;
 		static private Widget focused_ = null;
@@ -94,48 +96,67 @@ namespace Synergy.UI
 
 
 		private Rectangle bounds_;
-		private Insets margins_;
+		private Insets margins_ = new Insets(5);
 		private RootPanel content_;
 		private RootPanel floating_;
 		private Overlay overlay_ = null;
 		private readonly TooltipManager tooltips_;
 		private float topOffset_ = 0;
 		private bool dirty_ = true;
-
-		private readonly Canvas canvas_;
+		private Canvas canvas_;
 
 		public Root()
 		{
-			bounds_ = Rectangle.FromPoints(2, 1, 1078, 1228);
-			margins_ = new Insets(5);
-
 			content_ = new RootPanel(this);
-			content_.Bounds = new Rectangle(bounds_);
-
 			floating_ = new RootPanel(this);
-			floating_.Bounds = new Rectangle(bounds_);
-
 			tooltips_ = new TooltipManager(this);
 
+			ts_.font = Style.Font;
+			ts_.fontSize = Style.FontSize;
+
+			var scriptUI = Synergy.Instance.UITransform.GetComponentInChildren<MVRScriptUI>();
+
+			AttachTo(scriptUI);
+			Style.PolishRoot(scriptUI);
+		}
+
+		public void AttachTo(MVRScriptUI scriptUI)
+		{
+			var rt = scriptUI.GetComponent<RectTransform>();
+
+			bounds_ = Rectangle.FromPoints(0, 0, rt.rect.width, rt.rect.height);
+			content_.Bounds = new Rectangle(bounds_);
+			floating_.Bounds = new Rectangle(bounds_);
+
+			PluginParent = scriptUI.fullWidthUIContent;
+
+			var scrollView = scriptUI.GetComponentInChildren<ScrollRect>();
+			if (scrollView == null)
 			{
-				var b = Synergy.Instance.CreateButton("b");
-				tg_ = b.buttonText.cachedTextGenerator;
-				ts_ = b.buttonText.GetGenerationSettings(new Vector2());
-				PluginParent = b.transform.parent;
-				Synergy.Instance.RemoveButton(b);
+				Synergy.LogError("no scrollrect in attach");
+			}
+			else
+			{
+				var scrollViewRT = scrollView.GetComponent<RectTransform>();
+				topOffset_ = scrollViewRT.offsetMin.y - scrollViewRT.offsetMax.y;
 			}
 
-			var content = PluginParent.parent;
-			var viewport = content.parent;
-			var scrollview = viewport.parent;
-			var scriptui = scrollview.parent;
+			var image = scriptUI.GetComponentInChildren<Image>();
+			if (image == null)
+				Synergy.LogError("no image in attach");
+			else
+				canvas_ = image.canvas;
 
-			var rt = scrollview.GetComponent<RectTransform>();
-			topOffset_ = rt.offsetMin.y - rt.offsetMax.y;
-
-			canvas_ = viewport.GetComponent<Image>().canvas;
-
-			Style.PolishRoot(scriptui);
+			var text = scriptUI.GetComponentInChildren<Text>();
+			if (text == null)
+			{
+				Synergy.LogError("no text in attach");
+			}
+			else
+			{
+				tg_ = text.cachedTextGenerator;
+				ts_ = text.GetGenerationSettings(new Vector2());
+			}
 		}
 
 		public Panel ContentPanel

@@ -92,11 +92,18 @@ namespace Synergy.UI
 			var scrollView = Utilities.FindChildRecursive(
 				scriptUI, "Scroll View");
 
-			// clamp the whole script ui
-			ClampScrollView(scrollView);
+			if (scrollView == null)
+			{
+				Synergy.LogError("PolishRoot: no scrollview");
+			}
+			else
+			{
+				// clamp the whole script ui
+				ClampScrollView(scrollView);
 
-			// main background color
-			scrollView.GetComponent<Image>().color = BackgroundColor;
+				// main background color
+				scrollView.GetComponent<Image>().color = BackgroundColor;
+			}
 		}
 
 		public static void Polish(UIDynamicToggle e)

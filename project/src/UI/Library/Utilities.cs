@@ -84,6 +84,18 @@ namespace Synergy.UI
 		public static void DumpComponentsAndDown(GameObject o, int indent = 0)
 		{
 			Synergy.LogError(new string(' ', indent * 2) + o.name);
+
+			var rt = o.GetComponent<RectTransform>();
+			if (rt != null)
+			{
+				Synergy.LogError(new string(' ', indent * 2) + "->rect: " + rt.rect.ToString());
+				Synergy.LogError(new string(' ', indent * 2) + "->offsetMin: " + rt.offsetMin.ToString());
+				Synergy.LogError(new string(' ', indent * 2) + "->offsetMax: " + rt.offsetMax.ToString());
+				Synergy.LogError(new string(' ', indent * 2) + "->anchorMin: " + rt.anchorMin.ToString());
+				Synergy.LogError(new string(' ', indent * 2) + "->anchorMax: " + rt.anchorMax.ToString());
+				Synergy.LogError(new string(' ', indent * 2) + "->anchorPos: " + rt.anchoredPosition.ToString());
+			}
+
 			DumpComponents(o, indent);
 
 			foreach (Transform c in o.transform)
