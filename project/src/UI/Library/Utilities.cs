@@ -56,6 +56,18 @@ namespace Synergy.UI
 		public static void DumpComponentsAndUp(GameObject o)
 		{
 			Synergy.LogError(o.name);
+
+			var rt = o.GetComponent<RectTransform>();
+			if (rt != null)
+			{
+				Synergy.LogError("  rect: " + rt.rect.ToString());
+				Synergy.LogError("  offsetMin: " + rt.offsetMin.ToString());
+				Synergy.LogError("  offsetMax: " + rt.offsetMax.ToString());
+				Synergy.LogError("  anchorMin: " + rt.anchorMin.ToString());
+				Synergy.LogError("  anchorMax: " + rt.anchorMax.ToString());
+				Synergy.LogError("  anchorPos: " + rt.anchoredPosition.ToString());
+			}
+
 			DumpComponents(o);
 			Synergy.LogError("---");
 
@@ -158,6 +170,11 @@ namespace Synergy.UI
 			return new Size(
 				Math.Max(a.Width, b.Width),
 				Math.Max(a.Height, b.Height));
+		}
+
+		public static Size operator +(Size a, Size b)
+		{
+			return new Size(a.Width + b.Width, a.Height + b.Height);
 		}
 
 		public override string ToString()
@@ -318,6 +335,12 @@ namespace Synergy.UI
 			Right = right;
 			Bottom = bottom;
 		}
+
+		public Size Size
+		{
+			get { return new Size(Left + Right, Top + Bottom); }
+		}
+
 
 		public override string ToString()
 		{

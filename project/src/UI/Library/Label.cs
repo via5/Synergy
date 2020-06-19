@@ -60,7 +60,6 @@ namespace Synergy.UI
 		{
 			textObject_ = WidgetObject.AddComponent<Text>();
 			textObject_.color = Style.TextColor;
-			textObject_.raycastTarget = false;
 			textObject_.text = text_;
 			textObject_.fontSize = Style.FontSize;
 			textObject_.font = Style.Font;

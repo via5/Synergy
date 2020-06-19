@@ -70,6 +70,7 @@
     <Compile Include="src\UI\Library\BorderLayout.cs" />
     <Compile Include="src\UI\Library\Button.cs" />
     <Compile Include="src\UI\Library\Checkbox.cs" />
+    <Compile Include="src\UI\Library\Tooltip.cs" />
     <Compile Include="src\UI\Library\ComboBox.cs" />
     <Compile Include="src\UI\Library\Dialog.cs" />
     <Compile Include="src\UI\Library\GridLayout.cs" />

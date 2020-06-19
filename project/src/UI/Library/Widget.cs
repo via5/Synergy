@@ -1,7 +1,7 @@
-﻿using Battlehub.Utils;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace Synergy.UI
@@ -67,6 +67,36 @@ namespace Synergy.UI
 	}
 
 
+	class HoverCallbacks : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+	{
+		private Widget widget_ = null;
+
+		public Widget Widget
+		{
+			get { return widget_; }
+			set { widget_ = value; }
+		}
+
+		public void OnPointerEnter(PointerEventData d)
+		{
+			Utilities.Handler(() =>
+			{
+				if (widget_ != null)
+					widget_.OnPointerEnter(d);
+			});
+		}
+
+		public void OnPointerExit(PointerEventData d)
+		{
+			Utilities.Handler(() =>
+			{
+				if (widget_ != null)
+					widget_.OnPointerExit(d);
+			});
+		}
+	}
+
+
 	abstract class Widget : IDisposable
 	{
 		public virtual string TypeName { get { return "widget"; } }
@@ -92,10 +122,13 @@ namespace Synergy.UI
 		private Insets padding_ = new Insets();
 		private Color borderColor_ = Style.TextColor;
 		private Color bgColor_ = new Color(0, 0, 0, 0);
+		private readonly Tooltip tooltip_;
+
 
 		public Widget(string name = "")
 		{
 			name_ = name;
+			tooltip_ = new Tooltip();
 		}
 
 		public virtual void Dispose()
@@ -176,20 +209,44 @@ namespace Synergy.UI
 
 		public Insets Margins
 		{
-			get { return margins_; }
-			set { margins_ = value; }
+			get
+			{
+				return margins_;
+			}
+
+			set
+			{
+				margins_ = value ?? new Insets(0);
+				NeedsLayout();
+			}
 		}
 
 		public Insets Borders
 		{
-			get { return borders_; }
-			set { borders_ = value; }
+			get
+			{
+				return borders_;
+			}
+
+			set
+			{
+				borders_ = value ?? new Insets(0);
+				NeedsLayout();
+			}
 		}
 
 		public Insets Padding
 		{
-			get { return padding_; }
-			set { padding_ = value; }
+			get
+			{
+				return padding_;
+			}
+
+			set
+			{
+				padding_ = value ?? new Insets(0);
+				NeedsLayout();
+			}
 		}
 
 		public Color BorderColor
@@ -210,6 +267,11 @@ namespace Synergy.UI
 				bgColor_ = value;
 				SetBackground();
 			}
+		}
+
+		public Tooltip Tooltip
+		{
+			get { return tooltip_; }
 		}
 
 		public Rectangle Bounds
@@ -270,6 +332,8 @@ namespace Synergy.UI
 
 				s = Size.Max(s, GetPreferredSize());
 				s = Size.Max(s, MinimumSize);
+
+				s += Margins.Size + Borders.Size + Padding.Size;
 
 				return s;
 			}
@@ -375,13 +439,14 @@ namespace Synergy.UI
 				w.DoLayout();
 		}
 
-		public void Create()
+		public virtual void Create()
 		{
 			if (mainObject_ == null)
 			{
 				mainObject_ = new GameObject();
 				mainObject_.AddComponent<RectTransform>();
 				mainObject_.AddComponent<LayoutElement>();
+				mainObject_.AddComponent<HoverCallbacks>().Widget = this;
 				mainObject_.SetActive(visible_);
 
 				if (parent_?.MainObject == null)
@@ -531,6 +596,16 @@ namespace Synergy.UI
 		protected virtual Size GetPreferredSize()
 		{
 			return new Size(DontCare, DontCare);
+		}
+
+		public virtual void OnPointerEnter(PointerEventData d)
+		{
+			GetRoot()?.Tooltips.WidgetEntered(this);
+		}
+
+		public virtual void OnPointerExit(PointerEventData d)
+		{
+			GetRoot()?.Tooltips.WidgetExited(this);
 		}
 	}
 

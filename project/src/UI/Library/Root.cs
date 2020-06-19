@@ -98,7 +98,11 @@ namespace Synergy.UI
 		private RootPanel content_;
 		private RootPanel floating_;
 		private Overlay overlay_ = null;
+		private readonly TooltipManager tooltips_;
+		private float topOffset_ = 0;
 		private bool dirty_ = true;
+
+		private readonly Canvas canvas_;
 
 		public Root()
 		{
@@ -110,6 +114,8 @@ namespace Synergy.UI
 
 			floating_ = new RootPanel(this);
 			floating_.Bounds = new Rectangle(bounds_);
+
+			tooltips_ = new TooltipManager(this);
 
 			{
 				var b = Synergy.Instance.CreateButton("b");
@@ -124,12 +130,27 @@ namespace Synergy.UI
 			var scrollview = viewport.parent;
 			var scriptui = scrollview.parent;
 
+			var rt = scrollview.GetComponent<RectTransform>();
+			topOffset_ = rt.offsetMin.y - rt.offsetMax.y;
+
+			canvas_ = viewport.GetComponent<Image>().canvas;
+
 			Style.PolishRoot(scriptui);
 		}
 
 		public Panel ContentPanel
 		{
 			get { return content_; }
+		}
+
+		public Panel FloatingPanel
+		{
+			get { return floating_; }
+		}
+
+		public TooltipManager Tooltips
+		{
+			get { return tooltips_; }
 		}
 
 		public Rectangle Bounds
@@ -166,6 +187,26 @@ namespace Synergy.UI
 					ShowOverlay();
 				else
 					HideOverlay();
+			}
+		}
+
+		public Point MousePosition
+		{
+			get
+			{
+				var mp = Input.mousePosition;
+
+				Vector2 pp;
+				RectTransformUtility.ScreenPointToLocalPointInRectangle(
+					canvas_.transform as RectTransform, mp,
+					canvas_.worldCamera, out pp);
+
+				pp.x = bounds_.Left + bounds_.Width / 2 + pp.x;
+				pp.y = bounds_.Top + (bounds_.Height - pp.y + topOffset_);
+
+				Synergy.LogError(pp.x.ToString() + " " + pp.y.ToString());
+
+				return new Point(pp.x, pp.y);
 			}
 		}
 

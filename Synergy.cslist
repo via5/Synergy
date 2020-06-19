@@ -30,6 +30,7 @@ project\src\UI\Library\Root.cs
 project\src\UI\Library\Style.cs
 project\src\UI\Library\Tabs.cs
 project\src\UI\Library\TextBox.cs
+project\src\UI\Library\Tooltip.cs
 project\src\UI\Library\Utilities.cs
 project\src\UI\Library\Widget.cs
 project\src\UI\MainUI\DelayUI.cs
