@@ -302,6 +302,8 @@ namespace Synergy.NewUI
 				new FactoryObjectWidget<
 					ModifierSyncFactory, IModifierSync, ModifierSyncUIFactory>();
 
+		private bool ignore_ = false;
+
 
 		public ModifierSyncPanel()
 		{
@@ -321,12 +323,19 @@ namespace Synergy.NewUI
 		public void Set(IModifier m)
 		{
 			modifier_ = m;
-			type_.Select(modifier_?.ModifierSync);
-			ui_.Set(modifier_?.ModifierSync);
+
+			using (var sf = new ScopedFlag((bool b) => ignore_ = b))
+			{
+				type_.Select(modifier_?.ModifierSync);
+				ui_.Set(modifier_?.ModifierSync);
+			}
 		}
 
 		private void OnTypeChanged(IModifierSync sync)
 		{
+			if (ignore_)
+				return;
+
 			modifier_.ModifierSync = sync;
 			ui_.Set(sync);
 		}
@@ -375,6 +384,7 @@ namespace Synergy.NewUI
 
 		public void Set(IModifierSync o)
 		{
+			// no-op
 		}
 	}
 
@@ -387,28 +397,65 @@ namespace Synergy.NewUI
 
 			Add(new UI.Label(S(
 				"This modifier is synchronized with the step progress. For " +
-				"ramp durations, the modifier will be at 50% when ramp up " +
-				"finishes.")),
+				"ramp durations, the modifier will be at 50% when ramping " +
+				" up finishes.")),
 				BorderLayout.Top);
 		}
 
 		public void Set(IModifierSync o)
 		{
+			// no-op
 		}
 	}
 
 
 	class OtherModifierSyncedModifierUI : UI.Panel, IUIFactoryWidget<IModifierSync>
 	{
+		private readonly TypedComboBox<IModifier> others_;
+		private OtherModifierSyncedModifier modifier_ = null;
+		private bool ignore_ = false;
+
 		public OtherModifierSyncedModifierUI()
 		{
-			Layout = new UI.BorderLayout();
-			Add(new UI.Label(
-				S("This modifier is synchronized with another modifier.")));
+			others_ = new TypedComboBox<IModifier>(OnSelectionChanged);
+
+			Layout = new UI.HorizontalFlow(10);
+			Add(new UI.Label(S("Modifier")));
+			Add(others_);
 		}
 
 		public void Set(IModifierSync o)
 		{
+			modifier_ = o as OtherModifierSyncedModifier;
+
+			using (var sf = new ScopedFlag((bool b) => ignore_ = b))
+			{
+				UpdateList();
+				others_.Select(modifier_.OtherModifier);
+			}
+		}
+
+		private void UpdateList()
+		{
+			var list = new List<IModifier>();
+
+			list.Add(null);
+
+			foreach (var mc in modifier_.ParentModifier.ParentStep.Modifiers)
+			{
+				if (mc.Modifier != null && mc.Modifier != modifier_.ParentModifier)
+					list.Add(mc.Modifier);
+			}
+
+			others_.SetItems(list, modifier_.OtherModifier);
+		}
+
+		private void OnSelectionChanged(IModifier m)
+		{
+			if (ignore_)
+				return;
+
+			modifier_.OtherModifier = m;
 		}
 	}
 

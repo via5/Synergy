@@ -205,6 +205,11 @@ namespace Synergy
 			DoSet(paused);
 		}
 
+		public override string ToString()
+		{
+			return Name;
+		}
+
 		protected abstract string MakeName();
 
 		protected virtual void DoTick(

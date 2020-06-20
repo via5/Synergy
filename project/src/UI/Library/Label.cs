@@ -23,6 +23,7 @@ namespace Synergy.UI
 		{
 			text_ = t;
 			align_ = align;
+			MinimumSize = new Size(DontCare, 40);
 		}
 
 		public string Text

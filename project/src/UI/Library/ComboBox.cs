@@ -25,7 +25,10 @@ namespace Synergy.UI
 
 			public string Text
 			{
-				get { return object_.ToString(); }
+				get
+				{
+					return object_?.ToString() ?? "";
+				}
 			}
 		}
 
