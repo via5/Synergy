@@ -1,4 +1,5 @@
-﻿using Synergy.UI;
+﻿using Battlehub.RTCommon;
+using Synergy.UI;
 using System;
 using System.Collections.Generic;
 
@@ -13,7 +14,7 @@ namespace Synergy.NewUI
 		{
 			Layout = new UI.BorderLayout(20);
 
-			Add(controls_, UI.BorderLayout.Left);
+			Add(controls_, UI.BorderLayout.Top);
 			Add(modifier_, UI.BorderLayout.Center);
 
 			controls_.SelectionChanged += OnModifierSelected;
@@ -51,15 +52,15 @@ namespace Synergy.NewUI
 		public delegate void ModifierCallback(ModifierContainer m);
 		public event ModifierCallback SelectionChanged;
 
+		private readonly UI.TypedComboBox<ModifierContainer> modifiers_;
 		private readonly UI.Button add_, clone_, clone0_, remove_;
-		private readonly UI.TypedListView<ModifierContainer> list_;
 
 		private Step step_ = null;
 		private bool ignore_ = false;
 
 		public ModifierControls()
 		{
-			list_ = new TypedListView<ModifierContainer>(OnSelectionChanged);
+			modifiers_ = new TypedComboBox<ModifierContainer>(OnSelectionChanged);
 			add_ = new UI.ToolButton("+", AddModifier);
 			clone_ = new UI.ToolButton(S("+*"), () => CloneModifier(0));
 			clone0_ = new UI.ToolButton(S("+*0"), () => CloneModifier(Utilities.CloneZero));
@@ -76,10 +77,11 @@ namespace Synergy.NewUI
 			p.Add(clone0_);
 			p.Add(remove_);
 
-			Layout = new UI.BorderLayout(5);
+			Layout = new UI.HorizontalFlow(20);
 
-			Add(p, UI.BorderLayout.Top);
-			Add(list_, UI.BorderLayout.Center);
+			Add(new UI.Label(S("Modifiers:")));
+			Add(modifiers_);
+			Add(p);
 		}
 
 		public override void Dispose()
@@ -91,7 +93,7 @@ namespace Synergy.NewUI
 		{
 			get
 			{
-				return list_.Selected;
+				return modifiers_.Selected;
 			}
 		}
 
@@ -115,8 +117,8 @@ namespace Synergy.NewUI
 				if (step_ != null)
 				{
 					var m = step_.AddEmptyModifier();
-					list_.AddItem(m);
-					list_.Select(m);
+					modifiers_.AddItem(m);
+					modifiers_.Select(m);
 				}
 			}
 		}
@@ -130,8 +132,8 @@ namespace Synergy.NewUI
 				{
 					var m2 = m.Clone(flags);
 					step_.AddModifier(m2);
-					list_.AddItem(m2);
-					list_.Select(m2);
+					modifiers_.AddItem(m2);
+					modifiers_.Select(m2);
 				}
 			}
 		}
@@ -154,7 +156,7 @@ namespace Synergy.NewUI
 				using (var sf = new ScopedFlag(b => ignore_ = b))
 				{
 					step_.DeleteModifier(m);
-					list_.RemoveItem(m);
+					modifiers_.RemoveItem(m);
 				}
 			});
 		}
@@ -167,9 +169,9 @@ namespace Synergy.NewUI
 		private void UpdateModifiers()
 		{
 			if (step_ == null)
-				list_.Clear();
+				modifiers_.Clear();
 			else
-				list_.Items = step_.Modifiers;
+				modifiers_.Items = step_.Modifiers;
 		}
 
 		private void OnModifiersChanged()
@@ -186,6 +188,9 @@ namespace Synergy.NewUI
 	{
 		private readonly ModifierInfo info_ = new ModifierInfo();
 		private readonly UI.Tabs tabs_ = new UI.Tabs();
+		private readonly ModifierSyncPanel sync_ = new ModifierSyncPanel();
+
+		private ModifierContainer mc_ = null;
 
 		public ModifierPanel()
 		{
@@ -195,9 +200,11 @@ namespace Synergy.NewUI
 			var rigidbody = new UI.Panel();
 			var morph = new UI.Panel();
 
-			tabs_.AddTab(S("Sync"), new ModifierSyncPanel());
+			tabs_.AddTab(S("Sync"), sync_);
 			tabs_.AddTab(S("Rigidbody"), new RigidbodyPanel());
 			tabs_.AddTab(S("Morph"), new MorphPanel());
+
+			info_.ModifierTypeChanged += OnTypeChanged;
 
 			Add(info_, UI.BorderLayout.Top);
 			Add(tabs_, UI.BorderLayout.Center);
@@ -205,13 +212,33 @@ namespace Synergy.NewUI
 
 		public void Set(ModifierContainer m)
 		{
+			mc_ = m;
+
 			info_.Set(m);
+
+			if (m.Modifier == null)
+			{
+				tabs_.Visible = false;
+			}
+			else
+			{
+				tabs_.Visible = true;
+				sync_.Set(m.Modifier);
+			}
+		}
+
+		private void OnTypeChanged()
+		{
+			Set(mc_);
 		}
 	}
 
 
 	class ModifierInfo : UI.Panel
 	{
+		public delegate void Callback();
+		public event Callback ModifierTypeChanged;
+
 		private readonly UI.TextBox name_;
 		private readonly UI.CheckBox enabled_;
 		private readonly FactoryComboBox<ModifierFactory, IModifier> type_;
@@ -258,13 +285,220 @@ namespace Synergy.NewUI
 				return;
 
 			mc_.Modifier = m;
+			ModifierTypeChanged?.Invoke();
+		}
+	}
+
+
+	interface IUIFactoryWidget<ObjectType> : UI.IWidget
+		where ObjectType : IFactoryObject
+	{
+		void Set(ObjectType o);
+	}
+
+	interface IUIFactory<ObjectType>
+		where ObjectType : IFactoryObject
+	{
+		Dictionary<string, Func<IUIFactoryWidget<ObjectType>>> GetCreators();
+	}
+
+
+
+	class FactoryObjectWidget<FactoryType, ObjectType, UIFactoryType> : UI.Panel
+		where FactoryType : IFactory<ObjectType>
+		where ObjectType : IFactoryObject
+		where UIFactoryType : IUIFactory<ObjectType>, new()
+	{
+		private readonly UIFactoryType factory_ = new UIFactoryType();
+		private IUIFactoryWidget<ObjectType> widget_ = null;
+		private string currentType_ = "";
+
+		public FactoryObjectWidget()
+			: base(new UI.BorderLayout())
+		{
+		}
+
+		public void Set(ObjectType o)
+		{
+			if (o == null)
+			{
+				if (widget_ != null)
+				{
+					widget_.Remove();
+					widget_ = null;
+				}
+
+				currentType_ = "";
+			}
+			else
+			{
+				var type = o.GetFactoryTypeName();
+
+				if (currentType_ == type)
+				{
+					widget_.Set(o);
+				}
+				else
+				{
+					if (widget_ != null)
+					{
+						widget_.Remove();
+						widget_ = null;
+					}
+
+					currentType_ = "";
+
+					widget_ = Create(type);
+
+					if (widget_ != null)
+					{
+						currentType_ = type;
+						AddGeneric(widget_, BorderLayout.Center);
+						widget_.Set(o);
+					}
+				}
+			}
+		}
+
+		private IUIFactoryWidget<ObjectType> Create(string factoryTypeName)
+		{
+			var creators = factory_.GetCreators();
+
+			Func <IUIFactoryWidget<ObjectType>> creator = null;
+			if (creators.TryGetValue(factoryTypeName, out creator))
+				return creator();
+
+			Synergy.LogError(
+				"ui factory: bad type name '" + factoryTypeName + "'");
+
+			return null;
 		}
 	}
 
 
 	class ModifierSyncPanel : UI.Panel
 	{
+		private IModifier modifier_ = null;
+
+		private readonly FactoryComboBox<ModifierSyncFactory, IModifierSync> type_;
+
+		private FactoryObjectWidget<
+			ModifierSyncFactory, IModifierSync, ModifierSyncUIFactory> ui_ =
+				new FactoryObjectWidget<
+					ModifierSyncFactory, IModifierSync, ModifierSyncUIFactory>();
+
+
 		public ModifierSyncPanel()
+		{
+			type_ = new FactoryComboBox<ModifierSyncFactory, IModifierSync>(
+				OnTypeChanged);
+
+			Layout = new BorderLayout();
+
+			var p = new Panel(new HorizontalFlow(20));
+			p.Add(new UI.Label(S("Sync type:")));
+			p.Add(type_);
+
+			Add(p, BorderLayout.Top);
+			Add(ui_, BorderLayout.Center);
+		}
+
+		public void Set(IModifier m)
+		{
+			modifier_ = m;
+			type_.Select(modifier_?.ModifierSync);
+			ui_.Set(modifier_?.ModifierSync);
+		}
+
+		private void OnTypeChanged(IModifierSync sync)
+		{
+			modifier_.ModifierSync = sync;
+			ui_.Set(sync);
+		}
+	}
+
+
+	class ModifierSyncUIFactory : IUIFactory<IModifierSync>
+	{
+		public Dictionary<string, Func<IUIFactoryWidget<IModifierSync>>> GetCreators()
+		{
+			return new Dictionary<string, Func<IUIFactoryWidget<IModifierSync>>>()
+			{
+				{
+					DurationSyncedModifier.FactoryTypeName,
+					() => { return new DurationSyncedModifierUI(); }
+				},
+
+				{
+					StepProgressSyncedModifier.FactoryTypeName,
+					() => { return new StepProgressSyncedModifierUI(); }
+				},
+
+				{
+					OtherModifierSyncedModifier.FactoryTypeName,
+					() => { return new OtherModifierSyncedModifierUI(); }
+				},
+
+				{
+					UnsyncedModifier.FactoryTypeName,
+					() => { return new UnsyncedModifierUI(); }
+				},
+			};
+		}
+	}
+
+
+	class DurationSyncedModifierUI : UI.Panel, IUIFactoryWidget<IModifierSync>
+	{
+		public DurationSyncedModifierUI()
+		{
+			Layout = new UI.BorderLayout();
+			Add(new UI.Label("duration synced"));
+		}
+
+		public void Set(IModifierSync o)
+		{
+		}
+	}
+
+
+	class StepProgressSyncedModifierUI : UI.Panel, IUIFactoryWidget<IModifierSync>
+	{
+		public StepProgressSyncedModifierUI()
+		{
+			Layout = new UI.BorderLayout();
+			Add(new UI.Label("step progress"));
+		}
+
+		public void Set(IModifierSync o)
+		{
+		}
+	}
+
+
+	class OtherModifierSyncedModifierUI : UI.Panel, IUIFactoryWidget<IModifierSync>
+	{
+		public OtherModifierSyncedModifierUI()
+		{
+			Layout = new UI.BorderLayout();
+			Add(new UI.Label("other modifier"));
+		}
+
+		public void Set(IModifierSync o)
+		{
+		}
+	}
+
+
+	class UnsyncedModifierUI : UI.Panel, IUIFactoryWidget<IModifierSync>
+	{
+		public UnsyncedModifierUI()
+		{
+			Layout = new UI.BorderLayout();
+			Add(new UI.Label("unsynced"));
+		}
+
+		public void Set(IModifierSync o)
 		{
 		}
 	}

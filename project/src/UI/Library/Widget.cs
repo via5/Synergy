@@ -107,7 +107,13 @@ namespace Synergy.UI
 	}
 
 
-	abstract class Widget : IDisposable
+	interface IWidget
+	{
+		void Remove();
+	}
+
+
+	abstract class Widget : IDisposable, IWidget
 	{
 		public virtual string TypeName { get { return "widget"; } }
 
@@ -406,6 +412,11 @@ namespace Synergy.UI
 			}
 		}
 
+
+		public void AddGeneric(UI.IWidget w, LayoutData d = null)
+		{
+			Add((Widget)w, d);
+		}
 
 		public T Add<T>(T w, LayoutData d = null)
 			where T : Widget
