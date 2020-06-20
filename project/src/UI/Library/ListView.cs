@@ -56,7 +56,8 @@ namespace Synergy.UI
 			rt.anchoredPosition = new Vector2(ClientBounds.Center.X, 0);
 		}
 
-		protected override Size GetPreferredSize()
+		protected override Size DoGetPreferredSize(
+			float maxWidth, float maxHeight)
 		{
 			return new Size(300, 200);
 		}

@@ -11,6 +11,8 @@ namespace Synergy.UI
 	{
 		public abstract string TypeName { get; }
 
+		public const float DontCare = -1;
+
 		private Widget parent_ = null;
 		private readonly List<Widget> children_ = new List<Widget>();
 		private float spacing_ = 0;
@@ -123,7 +125,8 @@ namespace Synergy.UI
 				if (totalWidth > 0)
 					totalWidth += Spacing;
 
-				var wr = new Rectangle(r.TopLeft, w.PreferredSize);
+				var wr = new Rectangle(
+					r.TopLeft, w.GetPreferredSize(DontCare, r.Height));
 
 				if (wr.Height < r.Height)
 				{
@@ -177,7 +180,7 @@ namespace Synergy.UI
 				if (i > 0)
 					totalWidth += Spacing;
 
-				var ps = Children[i].PreferredSize;
+				var ps = Children[i].GetPreferredSize(DontCare, DontCare);
 
 				totalWidth += ps.Width;
 				tallest = Math.Max(tallest, ps.Height);
@@ -203,7 +206,9 @@ namespace Synergy.UI
 
 			foreach (var w in Children)
 			{
-				var wr = new Rectangle(r.TopLeft, w.PreferredSize);
+				var wr = new Rectangle(
+					r.TopLeft, w.GetPreferredSize(r.Width, DontCare));
+
 				w.Bounds = wr;
 				r.Top += wr.Height + Spacing;
 			}
@@ -219,7 +224,7 @@ namespace Synergy.UI
 				if (i > 0)
 					totalHeight += Spacing;
 
-				var ps = Children[i].PreferredSize;
+				var ps = Children[i].GetPreferredSize(DontCare, DontCare);
 
 				totalHeight += ps.Height;
 				widest = Math.Max(widest, ps.Width);

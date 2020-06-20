@@ -308,7 +308,7 @@ namespace Synergy.NewUI
 			type_ = new FactoryComboBox<ModifierSyncFactory, IModifierSync>(
 				OnTypeChanged);
 
-			Layout = new BorderLayout();
+			Layout = new BorderLayout(20);
 
 			var p = new Panel(new HorizontalFlow(20));
 			p.Add(new UI.Label(S("Sync type:")));
@@ -368,7 +368,9 @@ namespace Synergy.NewUI
 		public DurationSyncedModifierUI()
 		{
 			Layout = new UI.BorderLayout();
-			Add(new UI.Label("duration synced"));
+			Add(new UI.Label(
+				S("This modifier is synchronized with the step duration.")),
+				BorderLayout.Top);
 		}
 
 		public void Set(IModifierSync o)
@@ -382,7 +384,12 @@ namespace Synergy.NewUI
 		public StepProgressSyncedModifierUI()
 		{
 			Layout = new UI.BorderLayout();
-			Add(new UI.Label("step progress"));
+
+			Add(new UI.Label(S(
+				"This modifier is synchronized with the step progress. For " +
+				"ramp durations, the modifier will be at 50% when ramp up " +
+				"finishes.")),
+				BorderLayout.Top);
 		}
 
 		public void Set(IModifierSync o)
@@ -396,7 +403,8 @@ namespace Synergy.NewUI
 		public OtherModifierSyncedModifierUI()
 		{
 			Layout = new UI.BorderLayout();
-			Add(new UI.Label("other modifier"));
+			Add(new UI.Label(
+				S("This modifier is synchronized with another modifier.")));
 		}
 
 		public void Set(IModifierSync o)
@@ -410,7 +418,7 @@ namespace Synergy.NewUI
 		public UnsyncedModifierUI()
 		{
 			Layout = new UI.BorderLayout();
-			Add(new UI.Label("unsynced"));
+			Add(new UI.Label(S("This modifier is unsynced.")));
 		}
 
 		public void Set(IModifierSync o)

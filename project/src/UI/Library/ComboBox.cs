@@ -288,7 +288,8 @@ namespace Synergy.UI
 		{
 		}
 
-		protected override Size GetPreferredSize()
+		protected override Size DoGetPreferredSize(
+			float maxWidth, float maxHeight)
 		{
 			float widest = 0;
 

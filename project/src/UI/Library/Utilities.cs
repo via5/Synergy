@@ -196,6 +196,13 @@ namespace Synergy.UI
 			Height = h;
 		}
 
+		public static Size Min(Size a, Size b)
+		{
+			return new Size(
+				Math.Min(a.Width, b.Width),
+				Math.Min(a.Height, b.Height));
+		}
+
 		public static Size Max(Size a, Size b)
 		{
 			return new Size(

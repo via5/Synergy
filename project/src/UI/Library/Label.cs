@@ -71,9 +71,10 @@ namespace Synergy.UI
 			textObject_.alignment = ToTextAnchor(align_);
 		}
 
-		protected override Size GetPreferredSize()
+		protected override Size DoGetPreferredSize(
+			float maxWidth, float maxHeight)
 		{
-			return new Size(Root.TextLength(text_), 40);
+			return Root.FitText(text_, new Size(maxWidth, maxHeight));
 		}
 
 		public static TextAnchor ToTextAnchor(int a)

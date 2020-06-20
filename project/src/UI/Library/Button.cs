@@ -59,7 +59,8 @@ namespace Synergy.UI
 			button_.buttonText.alignment = Label.ToTextAnchor(align_);
 		}
 
-		protected override Size GetPreferredSize()
+		protected override Size DoGetPreferredSize(
+			float maxWidth, float maxHeight)
 		{
 			return new Size(Root.TextLength(text_) + 20, 40);
 		}

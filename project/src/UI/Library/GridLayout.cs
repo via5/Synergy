@@ -268,7 +268,7 @@ namespace Synergy.UI
 
 					foreach (var w in cell)
 					{
-						var ps = w.PreferredSize;
+						var ps = w.GetPreferredSize(DontCare, DontCare);
 						cellPs.Width = Math.Max(cellPs.Width, ps.Width);
 						cellPs.Height = Math.Max(cellPs.Height, ps.Height);
 					}

@@ -99,7 +99,8 @@ namespace Synergy.UI
 			widget_.Text = w.Tooltip.Text;
 
 			// size of text
-			var size = Root.FitText(widget_.Text, Metrics.MaxTooltipWidth);
+			var size = Root.FitText(widget_.Text, new Size(
+				Metrics.MaxTooltipWidth, Widget.DontCare));
 
 			// widget is size of text plus its insets
 			size += widget_.Insets.Size;

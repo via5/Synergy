@@ -1,6 +1,7 @@
 ﻿using Leap.Unity;
 using LeapInternal;
 using System;
+using TypeReferences;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -256,20 +257,50 @@ namespace Synergy.UI
 			return tg_.GetPreferredWidth(s, ts_);
 		}
 
-		public static Size FitText(string s, float maxWidth)
+		public static Size FitText(string s, Size maxSize)
 		{
 			var ts = ts_;
 
-			ts.generationExtents = new Vector2(maxWidth, 0);
-			ts.horizontalOverflow = HorizontalWrapMode.Wrap;
-			ts.verticalOverflow = VerticalWrapMode.Overflow;
+			var extents = new Vector2();
+
+			if (maxSize.Width == Widget.DontCare)
+			{
+				extents.x = 10000;
+				ts.horizontalOverflow = HorizontalWrapMode.Overflow;
+			}
+			else
+			{
+				extents.x = maxSize.Width;
+				ts.horizontalOverflow = HorizontalWrapMode.Wrap;
+			}
+
+			if (maxSize.Height == Widget.DontCare)
+			{
+				extents.y = 10000;
+				ts.verticalOverflow = VerticalWrapMode.Overflow;
+			}
+			else
+			{
+				extents.y = maxSize.Height;
+				ts.verticalOverflow = VerticalWrapMode.Truncate;
+			}
+
+			ts.generationExtents = extents;
 			ts.generateOutOfBounds = false;
 			ts.resizeTextForBestFit = false;
 
 			var w = tg_.GetPreferredWidth(s, ts);
 			var h = tg_.GetPreferredHeight(s, ts);
 
-			return new Size(Math.Min(w, maxWidth), h);
+			var size = new Size(w, h);
+
+			if (maxSize.Width != Widget.DontCare)
+				size.Width = Math.Min(size.Width, maxSize.Width);
+
+			if (maxSize.Height != Widget.DontCare)
+				size.Height = Math.Min(size.Height, maxSize.Height);
+
+			return size;
 		}
 	}
 }

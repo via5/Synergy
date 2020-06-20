@@ -93,7 +93,8 @@ namespace Synergy.UI
 			Style.Polish(field_);
 		}
 
-		protected override Size GetPreferredSize()
+		protected override Size DoGetPreferredSize(
+			float maxWidth, float maxHeight)
 		{
 			return new Size(Root.TextLength(text_) + 20, 40);
 		}

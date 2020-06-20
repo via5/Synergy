@@ -342,22 +342,19 @@ namespace Synergy.UI
 			}
 		}
 
-		public Size PreferredSize
+		public Size GetPreferredSize(float maxWidth, float maxHeight)
 		{
-			get
-			{
-				var s = new Size();
+			var s = new Size();
 
-				if (layout_ != null)
-					s = layout_.PreferredSize;
+			if (layout_ != null)
+				s = layout_.PreferredSize;
 
-				s = Size.Max(s, GetPreferredSize());
-				s = Size.Max(s, MinimumSize);
+			s = Size.Max(s, DoGetPreferredSize(maxWidth, maxHeight));
+			s = Size.Max(s, MinimumSize);
 
-				s += Margins.Size + Borders.Size + Padding.Size;
+			s += Margins.Size + Borders.Size + Padding.Size;
 
-				return s;
-			}
+			return s;
 		}
 
 		public Size MinimumSize
@@ -405,7 +402,7 @@ namespace Synergy.UI
 				list.Add(name_);
 				list.Add("b=" + Bounds.ToString());
 				list.Add("rb=" + RelativeBounds.ToString());
-				list.Add("ps=" + PreferredSize.ToString());
+				list.Add("ps=" + GetPreferredSize(DontCare, DontCare).ToString());
 				list.Add("ly=" + (Layout?.TypeName ?? "none"));
 
 				return string.Join(" ", list.ToArray());
@@ -626,7 +623,8 @@ namespace Synergy.UI
 			// no-op
 		}
 
-		protected virtual Size GetPreferredSize()
+		protected virtual Size DoGetPreferredSize(
+			float maxWidth, float maxHeight)
 		{
 			return new Size(DontCare, DontCare);
 		}
