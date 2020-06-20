@@ -112,7 +112,7 @@ namespace Synergy.NewUI
 
 		public void AddModifier()
 		{
-			using (var sf = new ScopedFlag(b => ignore_ = b))
+			using (new ScopedFlag(b => ignore_ = b))
 			{
 				if (step_ != null)
 				{
@@ -125,7 +125,7 @@ namespace Synergy.NewUI
 
 		public void CloneModifier(int flags)
 		{
-			using (var sf = new ScopedFlag(b => ignore_ = b))
+			using (new ScopedFlag(b => ignore_ = b))
 			{
 				var m = Selected;
 				if (step_ != null && m != null)
@@ -153,7 +153,7 @@ namespace Synergy.NewUI
 				if (d.Button != UI.MessageDialog.OK)
 					return;
 
-				using (var sf = new ScopedFlag(b => ignore_ = b))
+				using (new ScopedFlag(b => ignore_ = b))
 				{
 					step_.DeleteModifier(m);
 					modifiers_.RemoveItem(m);
@@ -270,7 +270,7 @@ namespace Synergy.NewUI
 
 		public void Set(ModifierContainer m)
 		{
-			using (var sf = new ScopedFlag((b) => ignore_ = b))
+			using (new ScopedFlag((b) => ignore_ = b))
 			{
 				mc_ = m;
 				name_.Text = m.Name;
@@ -324,7 +324,7 @@ namespace Synergy.NewUI
 		{
 			modifier_ = m;
 
-			using (var sf = new ScopedFlag((bool b) => ignore_ = b))
+			using (new ScopedFlag((bool b) => ignore_ = b))
 			{
 				type_.Select(modifier_?.ModifierSync);
 				ui_.Set(modifier_?.ModifierSync);
@@ -412,26 +412,33 @@ namespace Synergy.NewUI
 	class OtherModifierSyncedModifierUI : UI.Panel, IUIFactoryWidget<IModifierSync>
 	{
 		private readonly TypedComboBox<IModifier> others_;
-		private OtherModifierSyncedModifier modifier_ = null;
+		private OtherModifierSyncedModifier sync_ = null;
 		private bool ignore_ = false;
 
 		public OtherModifierSyncedModifierUI()
 		{
 			others_ = new TypedComboBox<IModifier>(OnSelectionChanged);
 
-			Layout = new UI.HorizontalFlow(10);
-			Add(new UI.Label(S("Modifier")));
-			Add(others_);
+			var p = new UI.Panel(new UI.HorizontalFlow(20));
+			p.Add(new UI.Label(S("Modifier:")));
+			p.Add(others_);
+
+			Layout = new UI.BorderLayout(20);
+			Add(new UI.Label(S(
+				"This modifier is synced to the duration of another " +
+				"modifier.")),
+				BorderLayout.Top);
+			Add(p, BorderLayout.Center);
 		}
 
 		public void Set(IModifierSync o)
 		{
-			modifier_ = o as OtherModifierSyncedModifier;
+			sync_ = o as OtherModifierSyncedModifier;
 
-			using (var sf = new ScopedFlag((bool b) => ignore_ = b))
+			using (new ScopedFlag((bool b) => ignore_ = b))
 			{
 				UpdateList();
-				others_.Select(modifier_.OtherModifier);
+				others_.Select(sync_.OtherModifier);
 			}
 		}
 
@@ -441,13 +448,13 @@ namespace Synergy.NewUI
 
 			list.Add(null);
 
-			foreach (var mc in modifier_.ParentModifier.ParentStep.Modifiers)
+			foreach (var mc in sync_.ParentModifier.ParentStep.Modifiers)
 			{
-				if (mc.Modifier != null && mc.Modifier != modifier_.ParentModifier)
+				if (mc.Modifier != null && mc.Modifier != sync_.ParentModifier)
 					list.Add(mc.Modifier);
 			}
 
-			others_.SetItems(list, modifier_.OtherModifier);
+			others_.SetItems(list, sync_.OtherModifier);
 		}
 
 		private void OnSelectionChanged(IModifier m)
@@ -455,21 +462,53 @@ namespace Synergy.NewUI
 			if (ignore_)
 				return;
 
-			modifier_.OtherModifier = m;
+			sync_.OtherModifier = m;
 		}
 	}
 
 
 	class UnsyncedModifierUI : UI.Panel, IUIFactoryWidget<IModifierSync>
 	{
+		private readonly UI.Tabs tabs_ = new UI.Tabs();
+		private readonly DurationPanel duration_ = new DurationPanel();
+		private readonly DelayWidgets delay_ = new DelayWidgets();
+
+		private UnsyncedModifier sync_ = null;
+		private bool ignore_ = false;
+
 		public UnsyncedModifierUI()
 		{
-			Layout = new UI.BorderLayout();
-			Add(new UI.Label(S("This modifier is unsynced.")));
+			Layout = new UI.BorderLayout(20);
+
+			Add(new UI.Label(S(
+				"This modifier is has its own duration and delay.")),
+				BorderLayout.Top);
+			Add(tabs_);
+
+
+			tabs_.AddTab(S("Duration"), duration_);
+			tabs_.AddTab(S("Delay"), delay_);
+
+			duration_.Changed += OnDurationTypeChanged;
 		}
 
 		public void Set(IModifierSync o)
 		{
+			sync_ = o as UnsyncedModifier;
+
+			using (new ScopedFlag((bool b) => ignore_ = b))
+			{
+				duration_.Set(sync_.Duration);
+				delay_.Set(sync_.Delay);
+			}
+		}
+
+		private void OnDurationTypeChanged(IDuration d)
+		{
+			if (ignore_)
+				return;
+
+			sync_.Duration = d;
 		}
 	}
 

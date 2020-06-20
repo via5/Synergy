@@ -174,7 +174,7 @@
 
 		public void Set(IDuration d)
 		{
-			using (var sf = new ScopedFlag((b) => ignore_ = b))
+			using (new ScopedFlag((b) => ignore_ = b))
 			{
 				duration_ = d;
 
@@ -201,6 +201,7 @@
 			if (ignore_)
 				return;
 
+			Set(d);
 			Changed?.Invoke(d);
 		}
 	}
