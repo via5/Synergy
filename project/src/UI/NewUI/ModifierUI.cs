@@ -27,6 +27,11 @@ namespace Synergy.NewUI
 			controls_.Set(s);
 		}
 
+		public void SelectTab(int i)
+		{
+			modifier_.SelectTab(i);
+		}
+
 		public void SelectModifier(ModifierContainer m)
 		{
 			if (m == null)
@@ -145,12 +150,13 @@ namespace Synergy.NewUI
 				return;
 
 			var d = new UI.MessageDialog(
-				GetRoot(), S("Delete modifier"),
+				GetRoot(), UI.MessageDialog.Yes | UI.MessageDialog.No,
+				S("Delete modifier"),
 				S("Are you sure you want to delete modifier {0}?", m.Name));
 
 			d.RunDialog(() =>
 			{
-				if (d.Button != UI.MessageDialog.OK)
+				if (d.Button != UI.MessageDialog.Yes)
 					return;
 
 				using (new ScopedFlag(b => ignore_ = b))
@@ -208,6 +214,11 @@ namespace Synergy.NewUI
 
 			Add(info_, UI.BorderLayout.Top);
 			Add(tabs_, UI.BorderLayout.Center);
+		}
+
+		public void SelectTab(int i)
+		{
+			tabs_.Select(i);
 		}
 
 		public void Set(ModifierContainer m)
@@ -398,7 +409,7 @@ namespace Synergy.NewUI
 			Add(new UI.Label(S(
 				"This modifier is synchronized with the step progress. For " +
 				"ramp durations, the modifier will be at 50% when ramping " +
-				" up finishes.")),
+				"up finishes.")),
 				BorderLayout.Top);
 		}
 
@@ -513,8 +524,104 @@ namespace Synergy.NewUI
 	}
 
 
+	class AtomComboBox : ComboBox
+	{
+		public delegate void AtomCallback(Atom atom);
+		public event AtomCallback AtomSelectionChanged;
+
+		public delegate bool AtomPredicate(Atom atom);
+		private readonly AtomPredicate pred_;
+
+
+		public AtomComboBox(AtomPredicate pred = null)
+		{
+			pred_ = pred;
+
+			SelectionChanged += (string uid) =>
+			{
+				AtomSelectionChanged?.Invoke(SelectedAtom);
+			};
+
+			SuperController.singleton.onAtomUIDRenameHandlers +=
+				OnAtomUIDChanged;
+		}
+
+		public Atom SelectedAtom
+		{
+			get
+			{
+				var uid = Selected;
+				if (string.IsNullOrEmpty(uid))
+					return null;
+
+				return Synergy.Instance.GetAtomById(uid);
+			}
+		}
+
+		public override void Dispose()
+		{
+			base.Dispose();
+		}
+
+		private void OnAtomUIDChanged(string oldUID, string newUID)
+		{
+			var a = Selected;
+
+			if (a == oldUID)
+			{
+				UpdateAtoms();
+				Select(newUID);
+			}
+		}
+
+		protected override void OnOpen()
+		{
+			UpdateAtoms();
+			base.OnOpen();
+		}
+
+		private void UpdateAtoms()
+		{
+			var ignore = new HashSet<string>()
+			{
+				"[camerarig]"
+			};
+
+			var items = new List<string>();
+
+			items.Add(null);
+
+			var player = Synergy.Instance.GetAtomById("Player");
+			if (player != null)
+				items.Add(player.uid);
+
+			string sel = Selected;
+
+			foreach (var a in Synergy.Instance.GetSceneAtoms())
+			{
+				if (ignore.Contains(a.name.ToLower()))
+					continue;
+
+				if (pred_ != null)
+				{
+					if (!pred_(a))
+						continue;
+				}
+
+				items.Add(a.uid);
+			}
+
+			items.Sort();
+			SetItems(items, sel);
+		}
+	}
+
+
 	class RigidbodyPanel : UI.Panel
 	{
+		private readonly AtomComboBox atom_ = new AtomComboBox(
+			Utilities.AtomHasRigidbodies);
+
 		public RigidbodyPanel()
 		{
 			Layout = new UI.VerticalFlow(30);
@@ -526,7 +633,7 @@ namespace Synergy.NewUI
 			w.Layout = gl;
 
 			w.Add(new UI.Label(S("Atom")));
-			w.Add(new UI.ComboBox());
+			w.Add(atom_);
 			w.Add(new UI.Label(S("Receiver")));
 			w.Add(new UI.ComboBox());
 			w.Add(new UI.Label(S("Move type")));

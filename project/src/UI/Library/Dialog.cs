@@ -118,10 +118,10 @@ namespace Synergy.UI
 		private ButtonBox buttons_;
 		private int button_ = -1;
 
-		public MessageDialog(Root r, string title, string text)
+		public MessageDialog(Root r, int buttons, string title, string text)
 			: base(r, title)
 		{
-			buttons_ = new ButtonBox(OK | Cancel);
+			buttons_ = new ButtonBox(buttons);
 			buttons_.ButtonClicked += OnButtonClicked;
 
 			ContentPanel.Layout = new BorderLayout();

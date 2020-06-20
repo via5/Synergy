@@ -145,12 +145,13 @@ namespace Synergy.NewUI
 				return;
 
 			var d = new UI.MessageDialog(
-				GetRoot(), S("Delete step"),
+				GetRoot(), UI.MessageDialog.Yes | UI.MessageDialog.No,
+				S("Delete step"),
 				S("Are you sure you want to delete step {0}?", s.Name));
 
 			d.RunDialog(() =>
 			{
-				if (d.Button != UI.MessageDialog.OK)
+				if (d.Button != UI.MessageDialog.Yes)
 					return;
 
 				using (new ScopedFlag(b => ignore_ = b))

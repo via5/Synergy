@@ -38,7 +38,8 @@ namespace Synergy.NewUI
 			root_.DoLayoutIfNeeded();
 
 			var s = Synergy.Instance.Manager.AddStep();
-			s.AddEmptyModifier();
+			s.AddModifier(new ModifierContainer(new RigidbodyModifier()));
+			modifiersTab_.SelectTab(1);
 		}
 
 		public void SelectStep(Step s)

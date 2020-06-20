@@ -232,7 +232,7 @@ namespace Synergy.UI
 			storable_.choices = hashes;
 		}
 
-		private void UpdateLabel()
+		protected void UpdateLabel()
 		{
 			storable_.valNoCallback = "";
 			if (selection_ != -1)
@@ -273,6 +273,9 @@ namespace Synergy.UI
 	{
 		public override string TypeName { get { return "combobox"; } }
 
+		public delegate void Callback();
+		public event Callback Opened;
+
 		private Text arrow_ = null;
 
 
@@ -312,7 +315,13 @@ namespace Synergy.UI
 		{
 			base.DoCreate();
 
-			Popup.popup.onOpenPopupHandlers += OnOpen;
+			Popup.popup.onOpenPopupHandlers += () =>
+			{
+				Utilities.Handler(() =>
+				{
+					OnOpen();
+				});
+			};
 
 			var arrowObject = new GameObject();
 			arrowObject.transform.SetParent(WidgetObject.transform, false);
@@ -375,14 +384,13 @@ namespace Synergy.UI
 			rect.anchoredPosition = new Vector2(Bounds.Width / 2, Bounds.Height / 2);
 		}
 
-		private void OnOpen()
+		protected virtual void OnOpen()
 		{
-			Utilities.Handler(() =>
-			{
-				Root.SetFocus(this);
-				Root.SetOpenedPopup(Popup.popup);
-				Utilities.BringToTop(Popup.popup.popupPanel);
-			});
+			Root.SetFocus(this);
+			Root.SetOpenedPopup(Popup.popup);
+			Utilities.BringToTop(Popup.popup.popupPanel);
+
+			Opened?.Invoke();
 		}
 	}
 
