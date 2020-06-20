@@ -55,6 +55,7 @@ project\src\UI\MonitorUI\Modifiers\ModifierSyncsMonitorUI.cs
 project\src\UI\MonitorUI\Modifiers\MorphModifierMonitorUI.cs
 project\src\UI\MonitorUI\Modifiers\RigidbodyModifierMonitorUI.cs
 project\src\UI\NewUI\DurationUI.cs
+project\src\UI\NewUI\FactoryUI.cs
 project\src\UI\NewUI\ModifierUI.cs
 project\src\UI\NewUI\MovementUI.cs
 project\src\UI\NewUI\NewUI.cs
