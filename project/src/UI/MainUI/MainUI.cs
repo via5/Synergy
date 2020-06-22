@@ -288,7 +288,6 @@ namespace Synergy
 			widgets_.AddToUI(new SmallSpacer());
 			step_.AddToUI(CurrentStep);
 
-			insertStepBefore_.Enabled = (currentStep_ > 0);
 			cloneStep_.Enabled = (CurrentStep != null);
 			stepProgression_.Value = manager_.StepProgression;
 		}
