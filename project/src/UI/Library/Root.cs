@@ -1,25 +1,32 @@
-﻿using Leap.Unity;
-using LeapInternal;
-using System;
-using TypeReferences;
+﻿using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using UnityEditor;
 
 namespace Synergy.UI
 {
-	class ClickEater : MonoBehaviour, IPointerClickHandler, IPointerUpHandler, IPointerDownHandler
+	class MouseHandler : MonoBehaviour, IPointerClickHandler, IPointerUpHandler, IPointerDownHandler
 	{
+		public const int Continue = 0;
+		public const int StopPropagation = 1;
+
+		public delegate void Callback(PointerEventData data);
+		public event Callback Clicked, Down, Up;
+
 		public void OnPointerClick(PointerEventData data)
 		{
+			Clicked?.Invoke(data);
 		}
 
 		public void OnPointerDown(PointerEventData data)
 		{
+			Down?.Invoke(data);
 		}
 
 		public void OnPointerUp(PointerEventData data)
 		{
+			Up?.Invoke(data);
 		}
 	}
 
@@ -40,7 +47,7 @@ namespace Synergy.UI
 			graphics_.color = new Color(0, 0, 0, 0.7f);
 			graphics_.raycastTarget = true;
 
-			MainObject.AddComponent<ClickEater>();
+			MainObject.AddComponent<MouseHandler>();
 		}
 	}
 

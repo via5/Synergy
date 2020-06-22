@@ -2,6 +2,7 @@
 using Synergy.UI;
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Synergy.NewUI
 {
@@ -57,7 +58,7 @@ namespace Synergy.NewUI
 		public delegate void ModifierCallback(ModifierContainer m);
 		public event ModifierCallback SelectionChanged;
 
-		private readonly UI.TypedComboBox<ModifierContainer> modifiers_;
+		private readonly UI.ComboBox<ModifierContainer> modifiers_;
 		private readonly UI.Button add_, clone_, clone0_, remove_;
 
 		private Step step_ = null;
@@ -65,7 +66,7 @@ namespace Synergy.NewUI
 
 		public ModifierControls()
 		{
-			modifiers_ = new TypedComboBox<ModifierContainer>(OnSelectionChanged);
+			modifiers_ = new ComboBox<ModifierContainer>(OnSelectionChanged);
 			add_ = new UI.ToolButton("+", AddModifier);
 			clone_ = new UI.ToolButton(S("+*"), () => CloneModifier(0));
 			clone0_ = new UI.ToolButton(S("+*0"), () => CloneModifier(Utilities.CloneZero));
@@ -196,6 +197,8 @@ namespace Synergy.NewUI
 		private readonly UI.Tabs tabs_ = new UI.Tabs();
 		private readonly ModifierSyncPanel sync_ = new ModifierSyncPanel();
 
+		private readonly RigidbodyPanel rigidbody_ = new RigidbodyPanel();
+
 		private ModifierContainer mc_ = null;
 
 		public ModifierPanel()
@@ -207,7 +210,7 @@ namespace Synergy.NewUI
 			var morph = new UI.Panel();
 
 			tabs_.AddTab(S("Sync"), sync_);
-			tabs_.AddTab(S("Rigidbody"), new RigidbodyPanel());
+			tabs_.AddTab(S("Rigidbody"), rigidbody_);
 			tabs_.AddTab(S("Morph"), new MorphPanel());
 
 			info_.ModifierTypeChanged += OnTypeChanged;
@@ -235,6 +238,7 @@ namespace Synergy.NewUI
 			{
 				tabs_.Visible = true;
 				sync_.Set(m.Modifier);
+				rigidbody_.Set(m.Modifier);
 			}
 		}
 
@@ -422,13 +426,13 @@ namespace Synergy.NewUI
 
 	class OtherModifierSyncedModifierUI : UI.Panel, IUIFactoryWidget<IModifierSync>
 	{
-		private readonly TypedComboBox<IModifier> others_;
+		private readonly ComboBox<IModifier> others_;
 		private OtherModifierSyncedModifier sync_ = null;
 		private bool ignore_ = false;
 
 		public OtherModifierSyncedModifierUI()
 		{
-			others_ = new TypedComboBox<IModifier>(OnSelectionChanged);
+			others_ = new ComboBox<IModifier>(OnSelectionChanged);
 
 			var p = new UI.Panel(new UI.HorizontalFlow(20));
 			p.Add(new UI.Label(S("Modifier:")));
@@ -524,7 +528,7 @@ namespace Synergy.NewUI
 	}
 
 
-	class AtomComboBox : ComboBox
+	class AtomComboBox : ComboBox<string>
 	{
 		public delegate void AtomCallback(Atom atom);
 		public event AtomCallback AtomSelectionChanged;
@@ -561,6 +565,9 @@ namespace Synergy.NewUI
 		public override void Dispose()
 		{
 			base.Dispose();
+
+			SuperController.singleton.onAtomUIDRenameHandlers -=
+				OnAtomUIDChanged;
 		}
 
 		private void OnAtomUIDChanged(string oldUID, string newUID)
@@ -569,18 +576,18 @@ namespace Synergy.NewUI
 
 			if (a == oldUID)
 			{
-				UpdateAtoms();
+				UpdateList();
 				Select(newUID);
 			}
 		}
 
 		protected override void OnOpen()
 		{
-			UpdateAtoms();
+			UpdateList();
 			base.OnOpen();
 		}
 
-		private void UpdateAtoms()
+		private void UpdateList()
 		{
 			var ignore = new HashSet<string>()
 			{
@@ -617,10 +624,68 @@ namespace Synergy.NewUI
 	}
 
 
+	class RigidBodyComboBox : UI.ComboBox<string>
+	{
+		private Atom atom_ = null;
+		private bool dirty_ = false;
+
+		public Atom Atom
+		{
+			get
+			{
+				return atom_;
+			}
+
+			set
+			{
+				atom_ = value;
+				dirty_ = true;
+			}
+		}
+
+		protected override void OnOpen()
+		{
+			if (dirty_)
+			{
+				UpdateList();
+				dirty_ = false;
+			}
+
+			base.OnOpen();
+		}
+
+		private void UpdateList()
+		{
+			var list = new List<string>();
+
+			list.Add(null);
+
+			if (atom_ != null)
+			{
+				foreach (var fr in atom_.forceReceivers)
+				{
+					var rb = fr.GetComponent<Rigidbody>();
+					if (rb != null)
+						list.Add(rb.name);
+				}
+			}
+
+			list.Sort();
+			SetItems(list, Selected);
+		}
+	}
+
+
 	class RigidbodyPanel : UI.Panel
 	{
 		private readonly AtomComboBox atom_ = new AtomComboBox(
 			Utilities.AtomHasRigidbodies);
+
+		private readonly RigidBodyComboBox rigidbodies_ =
+			new RigidBodyComboBox();
+
+		private RigidbodyModifier modifier_ = null;
+
 
 		public RigidbodyPanel()
 		{
@@ -635,13 +700,13 @@ namespace Synergy.NewUI
 			w.Add(new UI.Label(S("Atom")));
 			w.Add(atom_);
 			w.Add(new UI.Label(S("Receiver")));
-			w.Add(new UI.ComboBox());
+			w.Add(rigidbodies_);
 			w.Add(new UI.Label(S("Move type")));
-			w.Add(new UI.ComboBox());
+			w.Add(new UI.ComboBox<string>());
 			w.Add(new UI.Label(S("Easing")));
-			w.Add(new UI.ComboBox());
+			w.Add(new UI.ComboBox<string>());
 			w.Add(new UI.Label(S("Direction")));
-			w.Add(new UI.ComboBox());
+			w.Add(new UI.ComboBox<string>());
 			w.Add(new UI.Panel());
 			w.Add(new UI.Panel());
 			Add(w);
@@ -678,6 +743,19 @@ namespace Synergy.NewUI
 			w.Add(new UI.Label(S("Interval")));
 			w.Add(new MovementWidgets());
 			Add(w);
+
+			atom_.AtomSelectionChanged += OnAtomChanged;
+		}
+
+		public void Set(IModifier m)
+		{
+			modifier_ = m as RigidbodyModifier;
+		}
+
+		private void OnAtomChanged(Atom a)
+		{
+			modifier_.Atom = a;
+			rigidbodies_.Atom = a;
 		}
 	}
 

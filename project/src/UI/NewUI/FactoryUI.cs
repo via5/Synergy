@@ -90,7 +90,7 @@ namespace Synergy.NewUI
 
 
 	class FactoryComboBox<FactoryType, ObjectType>
-		: UI.TypedComboBox<FactoryComboBoxItem<ObjectType>>
+		: UI.ComboBox<FactoryComboBoxItem<ObjectType>>
 			where FactoryType : IGenericFactory, new()
 			where ObjectType : class, IFactoryObject
 	{

@@ -39,8 +39,6 @@ namespace Synergy.UI
 		private int selection_ = -1;
 
 		private UIDynamicPopup popup_ = null;
-		private JSONStorableStringChooser storable_ =
-			new JSONStorableStringChooser("", new List<string>(), "", "");
 
 
 		public TypedListImpl(List<ItemType> items, ItemCallback selectionChanged)
@@ -184,9 +182,9 @@ namespace Synergy.UI
 		{
 			popup_ = WidgetObject.GetComponent<UIDynamicPopup>();
 			popup_.popup.showSlider = false;
+			popup_.popup.useDifferentDisplayValues = true;
 
-			storable_.popup = popup_.popup;
-			storable_.setCallbackFunction = OnSelectionChanged;
+			popup_.popup.onValueChangeHandlers += OnSelectionChanged;
 
 			var text = popup_.popup.popupButtonPrefab.GetComponentInChildren<Text>();
 			if (text != null)
@@ -219,6 +217,9 @@ namespace Synergy.UI
 
 		private void UpdateChoices()
 		{
+			if (popup_ == null)
+				return;
+
 			var display = new List<string>();
 			var hashes = new List<string>();
 
@@ -228,15 +229,29 @@ namespace Synergy.UI
 				hashes.Add(i.GetHashCode().ToString());
 			}
 
-			storable_.displayChoices = display;
-			storable_.choices = hashes;
+			popup_.popup.numPopupValues = display.Count;
+			for (int i = 0; i < display.Count; ++i)
+			{
+				popup_.popup.setDisplayPopupValue(i, display[i]);
+				popup_.popup.setPopupValue(i, hashes[i]);
+			}
 		}
 
 		protected void UpdateLabel()
 		{
-			storable_.valNoCallback = "";
+			if (popup_ == null)
+				return;
+
+			var visible = popup_.popup.visible;
+
+			popup_.popup.currentValueNoCallback = "";
 			if (selection_ != -1)
-				storable_.valNoCallback = items_[selection_].GetHashCode().ToString();
+			{
+				popup_.popup.currentValueNoCallback =
+					items_[selection_].GetHashCode().ToString();
+			}
+
+			popup_.popup.visible = visible;
 		}
 
 		private void AddItemNoUpdate(Item i)
@@ -268,7 +283,7 @@ namespace Synergy.UI
 	}
 
 
-	class TypedComboBox<ItemType> : TypedListImpl<ItemType>
+	class ComboBox<ItemType> : TypedListImpl<ItemType>
 		where ItemType : class
 	{
 		public override string TypeName { get { return "combobox"; } }
@@ -279,17 +294,17 @@ namespace Synergy.UI
 		private Text arrow_ = null;
 
 
-		public TypedComboBox(List<ItemType> items = null)
+		public ComboBox(List<ItemType> items = null)
 			: this(items, null)
 		{
 		}
 
-		public TypedComboBox(ItemCallback selectionChanged)
+		public ComboBox(ItemCallback selectionChanged)
 			: this(null, selectionChanged)
 		{
 		}
 
-		public TypedComboBox(List<ItemType> items, ItemCallback selectionChanged)
+		public ComboBox(List<ItemType> items, ItemCallback selectionChanged)
 			: base(items, selectionChanged)
 		{
 		}
@@ -315,7 +330,8 @@ namespace Synergy.UI
 		{
 			base.DoCreate();
 
-			Popup.popup.onOpenPopupHandlers += () =>
+			var h = Popup.popup.topButton.gameObject.AddComponent<MouseHandler>();
+			h.Up += (data) =>
 			{
 				Utilities.Handler(() =>
 				{
@@ -391,25 +407,6 @@ namespace Synergy.UI
 			Utilities.BringToTop(Popup.popup.popupPanel);
 
 			Opened?.Invoke();
-		}
-	}
-
-
-	class ComboBox : TypedComboBox<string>
-	{
-		public ComboBox(List<string> items = null)
-			: base(items, null)
-		{
-		}
-
-		public ComboBox(ItemCallback selectionChanged)
-			: base(null, selectionChanged)
-		{
-		}
-
-		public ComboBox(List<string> items, ItemCallback selectionChanged)
-			: base(items, selectionChanged)
-		{
 		}
 	}
 }

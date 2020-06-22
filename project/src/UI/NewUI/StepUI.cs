@@ -59,13 +59,13 @@ namespace Synergy.NewUI
 		public delegate void StepCallback(Step s);
 		public event StepCallback SelectionChanged;
 
-		private readonly UI.TypedComboBox<Step> steps_;
+		private readonly UI.ComboBox<Step> steps_;
 		private readonly UI.Button add_, clone_, clone0_, remove_, up_, down_;
 		private bool ignore_ = false;
 
 		public StepControls()
 		{
-			steps_ = new UI.TypedComboBox<Step>(OnSelectionChanged);
+			steps_ = new UI.ComboBox<Step>(OnSelectionChanged);
 			add_ = new UI.ToolButton("+", AddStep);
 			clone_ = new UI.ToolButton(S("+*"), () => CloneStep(0));
 			clone0_ = new UI.ToolButton(S("+*0"), () => CloneStep(Utilities.CloneZero));

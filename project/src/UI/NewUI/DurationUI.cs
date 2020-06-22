@@ -74,7 +74,7 @@
 	class RandomizableTimePanel : UI.Panel
 	{
 		private readonly TimeWidgets time_, range_, interval_;
-		private readonly UI.ComboBox cutoff_;
+		private readonly UI.ComboBox<string> cutoff_;
 		private RandomizableTime rt_ = null;
 
 		public RandomizableTimePanel(RandomizableTime rt = null)
@@ -82,7 +82,7 @@
 			time_ = new TimeWidgets(OnInitialChanged);
 			range_ = new TimeWidgets(OnRangeChanged);
 			interval_ = new TimeWidgets(OnIntervalChanged);
-			cutoff_ = new UI.ComboBox(
+			cutoff_ = new UI.ComboBox<string>(
 				RandomizableTime.GetCutoffNames(), OnCutoffChanged);
 
 			var gl = new UI.GridLayout(2);
