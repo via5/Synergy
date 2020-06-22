@@ -45,6 +45,12 @@ namespace Synergy.UI
 				while (cells_.Count < cols)
 					cells_.Add(new T());
 			}
+
+			public void Extend(int cols, T value)
+			{
+				while (cells_.Count < cols)
+					cells_.Add(value);
+			}
 		}
 
 
@@ -106,8 +112,13 @@ namespace Synergy.UI
 		}
 
 
+
+
 		private readonly CellData<List<Widget>> widgets_ =
 			new CellData<List<Widget>>();
+
+		private readonly RowData<bool> stretch_ = new RowData<bool>();
+
 
 		private float hspacing_ = 0;
 		private float vspacing_ = 0;
@@ -122,6 +133,7 @@ namespace Synergy.UI
 		public GridLayout(int cols)
 		{
 			widgets_.Extend(cols, 1);
+			stretch_.Extend(cols, true);
 		}
 
 		public static Data P(int col, int row)
@@ -156,6 +168,26 @@ namespace Synergy.UI
 			set { vspacing_ = value; }
 		}
 
+		public List<bool> Stretch
+		{
+			get
+			{
+				var list = new List<bool>();
+
+				for (int i = 0; i < stretch_.Count; ++i)
+					list.Add(stretch_.Cell(i));
+
+				return list;
+			}
+
+			set
+			{
+				stretch_.Extend(value.Count);
+				for (int i = 0; i < value.Count; ++i)
+					stretch_.Set(i, value[i]);
+			}
+		}
+
 		protected override void AddImpl(Widget w, LayoutData data)
 		{
 			var d = data as Data;
@@ -185,6 +217,7 @@ namespace Synergy.UI
 
 			widgets_.Extend(d.col + 1, d.row + 1);
 			widgets_.Cell(d.col, d.row).Add(w);
+			stretch_.Extend(d.col + 1, true);
 		}
 
 		protected override void LayoutImpl()
@@ -192,8 +225,36 @@ namespace Synergy.UI
 			var r = new Rectangle(Parent.Bounds);
 			var d = GetCellPreferredSizes();
 
-			float xfactor = 1;//.Width / d.ps.Width;
-			float yfactor = 1;//r.Height / d.ps.Height;
+			int stretchCols = 0;
+			for (int colIndex = 0; colIndex < stretch_.Count; ++colIndex)
+			{
+				if (stretch_.Cell(colIndex))
+					++stretchCols;
+			}
+
+			var totalExtraWidth = Math.Max(0, r.Width - d.ps.Width);
+			var extraWidth = new List<float>();
+
+			if (stretchCols == 0)
+			{
+				for (int colIndex = 0; colIndex < stretch_.Count; ++colIndex)
+					extraWidth.Add(0);
+			}
+			else
+			{
+				var addWidthPerCell = totalExtraWidth / stretchCols;
+
+				for (int colIndex = 0; colIndex < stretch_.Count; ++colIndex)
+				{
+					if (stretch_.Cell(colIndex))
+						extraWidth.Add(addWidthPerCell);
+					else
+						extraWidth.Add(0);
+				}
+			}
+
+
+			float yfactor = r.Height / d.ps.Height;
 
 			float x = r.Left;
 			float y = r.Top;
@@ -204,20 +265,23 @@ namespace Synergy.UI
 
 				for (int colIndex = 0; colIndex < widgets_.ColumnCount; ++colIndex)
 				{
+					if (colIndex > 0)
+						x += HorizontalSpacing;
+
 					var ws = widgets_.Cell(colIndex, rowIndex);
 					var ps = d.sizes.Cell(colIndex, rowIndex);
 					var uniformWidth = d.widths[colIndex];
 
-					var ww = Math.Min(ps.Width, uniformWidth);
+					//var ww = Math.Min(ps.Width, uniformWidth);
+					var ww = uniformWidth + extraWidth[colIndex];
 					var wh = ps.Height;
 
-					var wr = Rectangle.FromSize(
-						x, y, (ww * xfactor), (wh * yfactor));
+					var wr = Rectangle.FromSize(x, y, ww, (wh * yfactor));
 
 					foreach (var w in ws)
 						w.Bounds = wr;
 
-					x += uniformWidth + HorizontalSpacing;
+					x += wr.Width;
 					tallestInRow = Math.Max(tallestInRow, wr.Height);
 				}
 
@@ -279,7 +343,7 @@ namespace Synergy.UI
 					if (colIndex > 0)
 						width += HorizontalSpacing;
 
-					width += cellPs.Width;
+					width += d.widths[colIndex];
 					tallestInRow = Math.Max(tallestInRow, cellPs.Height);
 				}
 

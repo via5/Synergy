@@ -195,6 +195,8 @@ namespace Synergy.UI
 	{
 		public override string TypeName { get { return "verflow"; } }
 
+		private bool expand_ = true;
+
 		public VerticalFlow(int spacing = 0)
 		{
 			Spacing = spacing;
@@ -208,6 +210,9 @@ namespace Synergy.UI
 			{
 				var wr = new Rectangle(
 					r.TopLeft, w.GetPreferredSize(r.Width, DontCare));
+
+				if (expand_)
+					wr.Right = Math.Max(wr.Right, r.Right);
 
 				w.Bounds = wr;
 				r.Top += wr.Height + Spacing;

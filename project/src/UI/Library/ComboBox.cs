@@ -37,6 +37,7 @@ namespace Synergy.UI
 
 		private readonly List<Item> items_ = new List<Item>();
 		private int selection_ = -1;
+		private bool updatingChoices_ = false;
 
 		private UIDynamicPopup popup_ = null;
 
@@ -122,7 +123,7 @@ namespace Synergy.UI
 
 			for (int i = 0; i < items.Count; ++i)
 			{
-				if (items[i] == sel)
+				if (EqualityComparer<ItemType>.Default.Equals(items[i], sel))
 					selIndex = i;
 
 				AddItemNoUpdate(new Item(items[i]));
@@ -220,20 +221,23 @@ namespace Synergy.UI
 			if (popup_ == null)
 				return;
 
-			var display = new List<string>();
-			var hashes = new List<string>();
-
-			foreach (var i in items_)
+			using (new ScopedFlag((b) => updatingChoices_ = b))
 			{
-				display.Add(i.Text);
-				hashes.Add(i.GetHashCode().ToString());
-			}
+				var display = new List<string>();
+				var hashes = new List<string>();
 
-			popup_.popup.numPopupValues = display.Count;
-			for (int i = 0; i < display.Count; ++i)
-			{
-				popup_.popup.setDisplayPopupValue(i, display[i]);
-				popup_.popup.setPopupValue(i, hashes[i]);
+				foreach (var i in items_)
+				{
+					display.Add(i.Text);
+					hashes.Add(i.GetHashCode().ToString());
+				}
+
+				popup_.popup.numPopupValues = display.Count;
+				for (int i = 0; i < display.Count; ++i)
+				{
+					popup_.popup.setDisplayPopupValue(i, display[i]);
+					popup_.popup.setPopupValue(i, hashes[i]);
+				}
 			}
 		}
 
@@ -261,6 +265,9 @@ namespace Synergy.UI
 
 		private void OnSelectionChanged(string s)
 		{
+			if (updatingChoices_)
+				return;
+
 			Utilities.Handler(() =>
 			{
 				int sel = -1;

@@ -626,20 +626,39 @@ namespace Synergy.NewUI
 
 	class RigidBodyComboBox : UI.ComboBox<string>
 	{
+		public delegate void RigidbodyCallback(Rigidbody atom);
+		public event RigidbodyCallback RigidbodySelectionChanged;
+
 		private Atom atom_ = null;
 		private bool dirty_ = false;
 
-		public Atom Atom
+		public RigidBodyComboBox()
+		{
+			SelectionChanged += (string uid) =>
+			{
+				RigidbodySelectionChanged?.Invoke(SelectedRigidbody);
+			};
+		}
+
+		public void Set(Atom atom, Rigidbody rb)
+		{
+			Synergy.LogError("set: " + atom?.uid + " " + rb?.name);
+			atom_ = atom;
+			UpdateList(rb?.name);
+		}
+
+		public Rigidbody SelectedRigidbody
 		{
 			get
 			{
-				return atom_;
-			}
+				var name = Selected;
+				if (string.IsNullOrEmpty(name))
+					return null;
 
-			set
-			{
-				atom_ = value;
-				dirty_ = true;
+				if (atom_ == null)
+					return null;
+
+				return Utilities.FindRigidbody(atom_, name);
 			}
 		}
 
@@ -647,14 +666,14 @@ namespace Synergy.NewUI
 		{
 			if (dirty_)
 			{
-				UpdateList();
+				UpdateList(Selected);
 				dirty_ = false;
 			}
 
 			base.OnOpen();
 		}
 
-		private void UpdateList()
+		private void UpdateList(string sel)
 		{
 			var list = new List<string>();
 
@@ -671,7 +690,7 @@ namespace Synergy.NewUI
 			}
 
 			list.Sort();
-			SetItems(list, Selected);
+			SetItems(list, sel);
 		}
 	}
 
@@ -685,6 +704,7 @@ namespace Synergy.NewUI
 			new RigidBodyComboBox();
 
 		private RigidbodyModifier modifier_ = null;
+		private bool ignore_ = false;
 
 
 		public RigidbodyPanel()
@@ -695,7 +715,9 @@ namespace Synergy.NewUI
 			var gl = new UI.GridLayout(4);
 			gl.HorizontalSpacing = 20;
 			gl.VerticalSpacing = 20;
+			gl.Stretch = new List<bool>() { false, true, false, true };
 			w.Layout = gl;
+			w.Borders = new Insets(1);
 
 			w.Add(new UI.Label(S("Atom")));
 			w.Add(atom_);
@@ -745,6 +767,7 @@ namespace Synergy.NewUI
 			Add(w);
 
 			atom_.AtomSelectionChanged += OnAtomChanged;
+			rigidbodies_.RigidbodySelectionChanged += OnRigidbodyChanged;
 		}
 
 		public void Set(IModifier m)
@@ -755,7 +778,19 @@ namespace Synergy.NewUI
 		private void OnAtomChanged(Atom a)
 		{
 			modifier_.Atom = a;
-			rigidbodies_.Atom = a;
+			modifier_.Receiver = Utilities.FindRigidbody(
+				a, rigidbodies_.Selected);
+
+			using (new ScopedFlag((b) => ignore_ = b))
+				rigidbodies_.Set(modifier_.Atom, modifier_.Receiver);
+		}
+
+		private void OnRigidbodyChanged(Rigidbody rb)
+		{
+			if (ignore_)
+				return;
+
+			modifier_.Receiver = rb;
 		}
 	}
 
