@@ -460,12 +460,20 @@ namespace Synergy
 		{
 			Duration.Tick(deltaTime);
 
+			bool firstHalf = Duration.InFirstHalf;
+			float progress;
+
+			if (firstHalf)
+				progress = Duration.FirstHalfProgress;
+			else
+				progress = Duration.SecondHalfProgress;
+
+			DoModifierTicks(deltaTime, progress, firstHalf);
+
+
 			if (stepForwards)
 			{
-				float progress = Duration.FirstHalfProgress;
-				DoModifierTicks(deltaTime, progress, true);
-
-				if (progress == 1.0f)
+				if (Duration.TotalProgress >= 1.0f)
 				{
 					if (Delay.Halfway || Delay.EndForwards)
 					{
@@ -480,9 +488,6 @@ namespace Synergy
 			}
 			else
 			{
-				float progress = Duration.SecondHalfProgress;
-				DoModifierTicks(deltaTime, progress, false);
-
 				if (Duration.Finished && !HasUnfinishedModifiers())
 				{
 					waitingFor_ = null;
