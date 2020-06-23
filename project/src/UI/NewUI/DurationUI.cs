@@ -65,7 +65,7 @@
 		private void SetValue(float v)
 		{
 			current_ = v;
-			text_.Text = v.ToString();
+			text_.Text = v.ToString("0.00");
 			Changed?.Invoke(v);
 		}
 	}

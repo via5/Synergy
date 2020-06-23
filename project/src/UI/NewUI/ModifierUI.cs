@@ -281,6 +281,7 @@ namespace Synergy.NewUI
 			Add(p);
 
 			name_.MinimumSize = new UI.Size(300, DontCare);
+			enabled_.Changed += OnEnabledChanged;
 		}
 
 		public void Set(ModifierContainer m)
@@ -292,6 +293,14 @@ namespace Synergy.NewUI
 				enabled_.Checked = m.Enabled;
 				type_.Select(m.Modifier);
 			}
+		}
+
+		private void OnEnabledChanged(bool b)
+		{
+			if (ignore_)
+				return;
+
+			mc_.Enabled = b;
 		}
 
 		private void OnTypeChanged(IModifier m)
@@ -546,6 +555,8 @@ namespace Synergy.NewUI
 				AtomSelectionChanged?.Invoke(SelectedAtom);
 			};
 
+			UpdateList();
+
 			SuperController.singleton.onAtomUIDRenameHandlers +=
 				OnAtomUIDChanged;
 		}
@@ -639,6 +650,8 @@ namespace Synergy.NewUI
 
 		public RigidBodyComboBox()
 		{
+			UpdateList(null);
+
 			SelectionChanged += (string uid) =>
 			{
 				RigidbodySelectionChanged?.Invoke(SelectedRigidbody);
@@ -893,7 +906,7 @@ namespace Synergy.NewUI
 			using (new ScopedFlag((b) => ignore_ = b))
 			{
 				atom_.Select(modifier_.Atom);
-				receiver_.Select(modifier_.Receiver);
+				receiver_.Set(modifier_.Atom, modifier_.Receiver);
 				movementType_.Select(modifier_.Type);
 				easing_.Select(modifier_.Movement.Easing);
 				dir_.Set(modifier_.Direction);
@@ -904,6 +917,9 @@ namespace Synergy.NewUI
 
 		private void OnAtomChanged(Atom a)
 		{
+			if (ignore_)
+				return;
+
 			modifier_.Atom = a;
 			modifier_.Receiver = Utilities.FindRigidbody(
 				a, receiver_.Selected);
