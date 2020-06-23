@@ -63,7 +63,7 @@ namespace Synergy
 			receiver_.Atom = modifier_.Atom;
 			moveType_.Value = modifier_.Type;
 
-			var dirString = Utilities.DirectionString(modifier_.Direction);
+			var dirString = Utilities.LocalizedDirectionString(modifier_.Direction);
 			if (dirString == "")
 				dirString = "Custom";
 

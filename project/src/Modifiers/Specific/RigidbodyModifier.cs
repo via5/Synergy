@@ -278,7 +278,7 @@ namespace Synergy
 				else
 					n += Receiver.name;
 
-				var dirString = Utilities.DirectionString(Direction);
+				var dirString = Utilities.LocalizedDirectionString(Direction);
 				if (dirString != "")
 					n += " " + dirString;
 			}

@@ -179,6 +179,11 @@ namespace Synergy.UI
 			}
 		}
 
+		public int SelectedIndex
+		{
+			get { return selection_; }
+		}
+
 		protected override void DoCreate()
 		{
 			popup_ = WidgetObject.GetComponent<UIDynamicPopup>();

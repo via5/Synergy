@@ -153,14 +153,14 @@ namespace Synergy
 				return val;
 		}
 
-		public static string DirectionString(Vector3 v)
+		public static string LocalizedDirectionString(Vector3 v)
 		{
 			if (v == new Vector3(1, 0, 0))
-				return "X";
+				return Strings.Get("X");
 			else if (v == new Vector3(0, 1, 0))
-				return "Y";
+				return Strings.Get("Y");
 			else if (v == new Vector3(0, 0, 1))
-				return "Z";
+				return Strings.Get("Z");
 			else
 				return "";
 		}

@@ -710,9 +710,6 @@ namespace Synergy.NewUI
 		public event Callback Changed;
 
 		private readonly UI.ComboBox<string> type_ = new ComboBox<string>();
-		private readonly UI.Label xLabel_ = new UI.Label(S("X"));
-		private readonly UI.Label yLabel_ = new UI.Label(S("Y"));
-		private readonly UI.Label zLabel_ = new UI.Label(S("Z"));
 		private readonly UI.TextSlider x_ = new UI.TextSlider();
 		private readonly UI.TextSlider y_ = new UI.TextSlider();
 		private readonly UI.TextSlider z_ = new UI.TextSlider();
@@ -747,11 +744,11 @@ namespace Synergy.NewUI
 			};
 
 			sliders_.Layout = gl;
-			sliders_.Add(xLabel_);
+			sliders_.Add(new UI.Label(S("X")));
 			sliders_.Add(x_);
-			sliders_.Add(yLabel_);
+			sliders_.Add(new UI.Label(S("Y")));
 			sliders_.Add(y_);
-			sliders_.Add(zLabel_);
+			sliders_.Add(new UI.Label(S("Z")));
 			sliders_.Add(z_);
 
 
@@ -776,9 +773,9 @@ namespace Synergy.NewUI
 		{
 			using (new ScopedFlag((b) => ignore_ = b))
 			{
-				var dirString = Utilities.DirectionString(v);
+				var dirString = Utilities.LocalizedDirectionString(v);
 				if (dirString == "")
-					dirString = "Custom";
+					dirString = S("Custom");
 
 				type_.Select(dirString);
 
@@ -793,26 +790,22 @@ namespace Synergy.NewUI
 			if (ignore_)
 				return;
 
-			switch (s)
+			switch (type_.SelectedIndex)
 			{
-				case "X":
+				case 0:
 					Change(new Vector3(1, 0, 0));
 					break;
 
-				case "Y":
+				case 1:
 					Change(new Vector3(0, 1, 0));
 					break;
 
-				case "Z":
+				case 2:
 					Change(new Vector3(0, 0, 1));
 					break;
-
-				//case "Custom":
-				//	Change(new Vector3(0, 0, 0));
-				//	break;
 			}
 
-			ShowSliders(s == "Custom");
+			ShowSliders(type_.SelectedIndex == 3);
 		}
 
 		private void OnChanged(float f)
@@ -854,6 +847,9 @@ namespace Synergy.NewUI
 
 		private readonly DirectionPanel dir_ = new DirectionPanel();
 
+		private readonly MovementPanel min_ = new MovementPanel(S("Minimum"));
+		private readonly MovementPanel max_ = new MovementPanel(S("Maximum"));
+
 		private RigidbodyModifier modifier_ = null;
 		private bool ignore_ = false;
 
@@ -879,39 +875,9 @@ namespace Synergy.NewUI
 			w.Add(easing_);
 			Add(w);
 			Add(dir_);
-			
-			Add(new UI.Label("Minimum"));
 
-			w = new UI.Panel();
-			gl = new UI.GridLayout(2);
-			gl.HorizontalSpacing = 20;
-			gl.VerticalSpacing = 20;
-			w.Layout = gl;
-
-			w.Add(new UI.Label(S("Value")));
-			w.Add(new MovementWidgets());
-			w.Add(new UI.Label(S("Range")));
-			w.Add(new MovementWidgets());
-			w.Add(new UI.Label(S("Interval")));
-			w.Add(new MovementWidgets());
-			Add(w);
-
-
-			Add(new UI.Label("Maximum"));
-
-			w = new UI.Panel();
-			gl = new UI.GridLayout(2);
-			gl.HorizontalSpacing = 20;
-			gl.VerticalSpacing = 20;
-			w.Layout = gl;
-
-			w.Add(new UI.Label(S("Value")));
-			w.Add(new MovementWidgets());
-			w.Add(new UI.Label(S("Range")));
-			w.Add(new MovementWidgets());
-			w.Add(new UI.Label(S("Interval")));
-			w.Add(new MovementWidgets());
-			Add(w);
+			Add(min_);
+			Add(max_);
 
 			atom_.AtomSelectionChanged += OnAtomChanged;
 			receiver_.RigidbodySelectionChanged += OnRigidbodyChanged;
@@ -931,6 +897,8 @@ namespace Synergy.NewUI
 				movementType_.Select(modifier_.Type);
 				easing_.Select(modifier_.Movement.Easing);
 				dir_.Set(modifier_.Direction);
+				min_.Set(modifier_.Movement.Minimum);
+				max_.Set(modifier_.Movement.Maximum);
 			}
 		}
 
@@ -970,7 +938,6 @@ namespace Synergy.NewUI
 
 		private void OnDirectionChanged(Vector3 v)
 		{
-			Synergy.LogError(v.ToString());
 			modifier_.Direction = v;
 		}
 	}
