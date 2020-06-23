@@ -304,6 +304,7 @@ namespace Synergy.UI
 		public event Callback Opened;
 
 		private Text arrow_ = null;
+		private BorderGraphics borders_ = null;
 
 
 		public ComboBox(List<ItemType> items = null)
@@ -341,6 +342,15 @@ namespace Synergy.UI
 		protected override void DoCreate()
 		{
 			base.DoCreate();
+
+			Popup.popup.onOpenPopupHandlers += () =>
+			{
+				var rt2 = borders_.gameObject.GetComponent<RectTransform>();
+				Utilities.SetRectTransform(rt2, new Rectangle(
+					0, 0, new Size(
+					Popup.popup.popupPanel.rect.width,
+					Popup.popup.popupPanel.rect.height)));
+			};
 
 			var h = Popup.popup.topButton.gameObject.AddComponent<MouseHandler>();
 			h.Up += (data) =>
@@ -384,6 +394,13 @@ namespace Synergy.UI
 			rt = Popup.popup.popupPanel;
 			rt.offsetMin = new Vector2(rt.offsetMin.x - 10, rt.offsetMin.y);
 			rt.offsetMax = new Vector2(rt.offsetMax.x + 5, rt.offsetMax.y - 5);
+
+			var go = new GameObject();
+			go.transform.SetParent(Popup.popup.popupPanel.transform, false);
+			borders_ = go.AddComponent<BorderGraphics>();
+			borders_.Borders = new Insets(1);
+			borders_.Color = BorderColor;
+
 
 			var text = Popup.popup.topButton.GetComponentInChildren<Text>();
 			if (text != null)

@@ -8,16 +8,40 @@ namespace Synergy.UI
 {
 	class BorderGraphics : MaskableGraphic
 	{
-		private Widget widget_ = null;
+		private Insets borders_ = new Insets();
+		private Color color_ = new Color(0, 0, 0, 0);
 
 		public BorderGraphics()
 		{
+			raycastTarget = false;
 		}
 
-		public Widget Widget
+		public Insets Borders
 		{
-			get { return widget_; }
-			set { widget_ = value; }
+			get
+			{
+				return borders_;
+			}
+
+			set
+			{
+				borders_ = value;
+				SetVerticesDirty();
+			}
+		}
+
+		public Color Color
+		{
+			get
+			{
+				return color_;
+			}
+
+			set
+			{
+				color_ = value;
+				SetVerticesDirty();
+			}
 		}
 
 		protected override void OnPopulateMesh(VertexHelper vh)
@@ -29,26 +53,26 @@ namespace Synergy.UI
 			// left
 			Line(vh,
 				new Point(rt.rect.xMin, -rt.rect.yMin),
-				new Point(rt.rect.xMin + widget_.Borders.Left, -rt.rect.yMax),
-				widget_.BorderColor);
+				new Point(rt.rect.xMin + borders_.Left, -rt.rect.yMax),
+				color_);
 
 			// top
 			Line(vh,
 				new Point(rt.rect.xMin, -rt.rect.yMin),
-				new Point(rt.rect.xMax, -rt.rect.yMin - widget_.Borders.Top),
-				widget_.BorderColor);
+				new Point(rt.rect.xMax, -rt.rect.yMin - borders_.Top),
+				color_);
 
 			// right
 			Line(vh,
-				new Point(rt.rect.xMax - widget_.Borders.Right, -rt.rect.yMin),
+				new Point(rt.rect.xMax - borders_.Right, -rt.rect.yMin),
 				new Point(rt.rect.xMax, -rt.rect.yMax),
-				widget_.BorderColor);
+				color_);
 
 			// bottom
 			Line(vh,
-				new Point(rt.rect.xMin, -rt.rect.yMax + widget_.Borders.Bottom),
+				new Point(rt.rect.xMin, -rt.rect.yMax + borders_.Bottom),
 				new Point(rt.rect.xMax, -rt.rect.yMax),
-				widget_.BorderColor);
+				color_);
 		}
 
 		private void Line(VertexHelper vh, Point a, Point b, Color c)
@@ -247,6 +271,10 @@ namespace Synergy.UI
 			set
 			{
 				borders_ = value ?? new Insets(0);
+
+				if (borderGraphics_ != null)
+					borderGraphics_.Borders = value ?? new Insets(0);
+
 				NeedsLayout();
 			}
 		}
@@ -272,8 +300,18 @@ namespace Synergy.UI
 
 		public Color BorderColor
 		{
-			get { return borderColor_; }
-			set { borderColor_ = value; }
+			get
+			{
+				return borderColor_;
+			}
+
+			set
+			{
+				borderColor_ = value;
+
+				if (borderGraphics_ != null)
+					borderGraphics_.Color = value;
+			}
 		}
 
 		public Color BackgroundColor
@@ -490,9 +528,10 @@ namespace Synergy.UI
 
 				graphicsObject_ = new GameObject();
 				graphicsObject_.transform.SetParent(mainObject_.transform, false);
+
 				borderGraphics_ = graphicsObject_.AddComponent<BorderGraphics>();
-				borderGraphics_.Widget = this;
-				borderGraphics_.raycastTarget = false;
+				borderGraphics_.Borders = borders_;
+				borderGraphics_.Color = borderColor_;
 
 				SetBackground();
 			}
