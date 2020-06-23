@@ -562,6 +562,11 @@ namespace Synergy.NewUI
 			}
 		}
 
+		public void Select(Atom atom)
+		{
+			Select(atom?.uid);
+		}
+
 		public override void Dispose()
 		{
 			base.Dispose();
@@ -642,7 +647,6 @@ namespace Synergy.NewUI
 
 		public void Set(Atom atom, Rigidbody rb)
 		{
-			Synergy.LogError("set: " + atom?.uid + " " + rb?.name);
 			atom_ = atom;
 			UpdateList(rb?.name);
 		}
@@ -660,6 +664,11 @@ namespace Synergy.NewUI
 
 				return Utilities.FindRigidbody(atom_, name);
 			}
+		}
+
+		public void Select(Rigidbody rb)
+		{
+			Select(rb?.name);
 		}
 
 		protected override void OnOpen()
@@ -695,13 +704,155 @@ namespace Synergy.NewUI
 	}
 
 
+	class DirectionPanel : UI.Panel
+	{
+		public delegate void Callback(Vector3 v);
+		public event Callback Changed;
+
+		private readonly UI.ComboBox<string> type_ = new ComboBox<string>();
+		private readonly UI.Label xLabel_ = new UI.Label(S("X"));
+		private readonly UI.Label yLabel_ = new UI.Label(S("Y"));
+		private readonly UI.Label zLabel_ = new UI.Label(S("Z"));
+		private readonly UI.TextSlider x_ = new UI.TextSlider();
+		private readonly UI.TextSlider y_ = new UI.TextSlider();
+		private readonly UI.TextSlider z_ = new UI.TextSlider();
+		private readonly UI.Panel sliders_ = new Panel();
+
+		private bool ignore_ = false;
+
+		public DirectionPanel()
+		{
+			var gl = new GridLayout(2);
+			gl.Stretch = new List<bool>()
+			{
+				false, true,
+			};
+			gl.Spacing = 20;
+			Layout = gl;
+
+			type_.AddItem(S("X"));
+			type_.AddItem(S("Y"));
+			type_.AddItem(S("Z"));
+			type_.AddItem(S("Custom"));
+
+			gl = new GridLayout(6);
+			gl.Spacing = 20;
+
+			// only stretch the sliders
+			gl.Stretch = new List<bool>()
+			{
+				false, true,
+				false, true,
+				false, true
+			};
+
+			sliders_.Layout = gl;
+			sliders_.Add(xLabel_);
+			sliders_.Add(x_);
+			sliders_.Add(yLabel_);
+			sliders_.Add(y_);
+			sliders_.Add(zLabel_);
+			sliders_.Add(z_);
+
+
+			x_.ValueChanged += OnChanged;
+			y_.ValueChanged += OnChanged;
+			z_.ValueChanged += OnChanged;
+
+			var typePanel = new UI.Panel(new VerticalFlow(0, false));
+			typePanel.Add(type_);
+
+			Add(new UI.Label(S("Direction  ")));
+			Add(typePanel);
+			Add(new UI.Panel());
+			Add(sliders_);
+
+			type_.SelectionChanged += OnTypeChanged;
+
+			ShowSliders(false);
+		}
+
+		public void Set(Vector3 v)
+		{
+			using (new ScopedFlag((b) => ignore_ = b))
+			{
+				var dirString = Utilities.DirectionString(v);
+				if (dirString == "")
+					dirString = "Custom";
+
+				type_.Select(dirString);
+
+				x_.Set(v.x, -1, 1);
+				y_.Set(v.y, -1, 1);
+				z_.Set(v.z, -1, 1);
+			}
+		}
+
+		private void OnTypeChanged(string s)
+		{
+			if (ignore_)
+				return;
+
+			switch (s)
+			{
+				case "X":
+					Change(new Vector3(1, 0, 0));
+					break;
+
+				case "Y":
+					Change(new Vector3(0, 1, 0));
+					break;
+
+				case "Z":
+					Change(new Vector3(0, 0, 1));
+					break;
+
+				//case "Custom":
+				//	Change(new Vector3(0, 0, 0));
+				//	break;
+			}
+
+			ShowSliders(s == "Custom");
+		}
+
+		private void OnChanged(float f)
+		{
+			if (ignore_)
+				return;
+
+			Change(new Vector3(x_.Value, y_.Value, z_.Value));
+		}
+
+		private void Change(Vector3 v)
+		{
+			Set(v);
+			Changed?.Invoke(v);
+		}
+
+		private void ShowSliders(bool b)
+		{
+			sliders_.Visible = b;
+		}
+	}
+
+
 	class RigidbodyPanel : UI.Panel
 	{
 		private readonly AtomComboBox atom_ = new AtomComboBox(
 			Utilities.AtomHasRigidbodies);
 
-		private readonly RigidBodyComboBox rigidbodies_ =
+		private readonly RigidBodyComboBox receiver_ =
 			new RigidBodyComboBox();
+
+		private readonly FactoryComboBox<
+			RigidbodyMovementTypeFactory, IRigidbodyMovementType>
+				movementType_ = new FactoryComboBox<
+					RigidbodyMovementTypeFactory, IRigidbodyMovementType>();
+
+		private readonly FactoryComboBox<EasingFactory, IEasing> easing_ =
+			new FactoryComboBox<EasingFactory, IEasing>();
+
+		private readonly DirectionPanel dir_ = new DirectionPanel();
 
 		private RigidbodyModifier modifier_ = null;
 		private bool ignore_ = false;
@@ -717,22 +868,18 @@ namespace Synergy.NewUI
 			gl.VerticalSpacing = 20;
 			gl.Stretch = new List<bool>() { false, true, false, true };
 			w.Layout = gl;
-			w.Borders = new Insets(1);
 
 			w.Add(new UI.Label(S("Atom")));
 			w.Add(atom_);
 			w.Add(new UI.Label(S("Receiver")));
-			w.Add(rigidbodies_);
+			w.Add(receiver_);
 			w.Add(new UI.Label(S("Move type")));
-			w.Add(new UI.ComboBox<string>());
+			w.Add(movementType_);
 			w.Add(new UI.Label(S("Easing")));
-			w.Add(new UI.ComboBox<string>());
-			w.Add(new UI.Label(S("Direction")));
-			w.Add(new UI.ComboBox<string>());
-			w.Add(new UI.Panel());
-			w.Add(new UI.Panel());
+			w.Add(easing_);
 			Add(w);
-
+			Add(dir_);
+			
 			Add(new UI.Label("Minimum"));
 
 			w = new UI.Panel();
@@ -767,22 +914,34 @@ namespace Synergy.NewUI
 			Add(w);
 
 			atom_.AtomSelectionChanged += OnAtomChanged;
-			rigidbodies_.RigidbodySelectionChanged += OnRigidbodyChanged;
+			receiver_.RigidbodySelectionChanged += OnRigidbodyChanged;
+			movementType_.FactoryTypeChanged += OnMovementTypeChanged;
+			easing_.FactoryTypeChanged += OnEasingChanged;
+			dir_.Changed += OnDirectionChanged;
 		}
 
 		public void Set(IModifier m)
 		{
 			modifier_ = m as RigidbodyModifier;
+
+			using (new ScopedFlag((b) => ignore_ = b))
+			{
+				atom_.Select(modifier_.Atom);
+				receiver_.Select(modifier_.Receiver);
+				movementType_.Select(modifier_.Type);
+				easing_.Select(modifier_.Movement.Easing);
+				dir_.Set(modifier_.Direction);
+			}
 		}
 
 		private void OnAtomChanged(Atom a)
 		{
 			modifier_.Atom = a;
 			modifier_.Receiver = Utilities.FindRigidbody(
-				a, rigidbodies_.Selected);
+				a, receiver_.Selected);
 
 			using (new ScopedFlag((b) => ignore_ = b))
-				rigidbodies_.Set(modifier_.Atom, modifier_.Receiver);
+				receiver_.Set(modifier_.Atom, modifier_.Receiver);
 		}
 
 		private void OnRigidbodyChanged(Rigidbody rb)
@@ -791,6 +950,28 @@ namespace Synergy.NewUI
 				return;
 
 			modifier_.Receiver = rb;
+		}
+
+		private void OnMovementTypeChanged(IRigidbodyMovementType type)
+		{
+			if (ignore_)
+				return;
+
+			modifier_.Type = type;
+		}
+
+		private void OnEasingChanged(IEasing easing)
+		{
+			if (ignore_)
+				return;
+
+			modifier_.Movement.Easing = easing;
+		}
+
+		private void OnDirectionChanged(Vector3 v)
+		{
+			Synergy.LogError(v.ToString());
+			modifier_.Direction = v;
 		}
 	}
 

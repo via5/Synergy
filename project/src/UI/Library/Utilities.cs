@@ -32,6 +32,25 @@ namespace Synergy.UI
 			}
 		}
 
+		public static void SetRectTransform(RectTransform rt, Rectangle r)
+		{
+			rt.offsetMin = new Vector2(r.Left, r.Top);
+			rt.offsetMax = new Vector2(r.Right, r.Bottom);
+			rt.anchorMin = new Vector2(0, 1);
+			rt.anchorMax = new Vector2(0, 1);
+			rt.anchoredPosition = new Vector2(r.Center.X, -r.Center.Y);
+		}
+
+		public static void SetRectTransform(Component c, Rectangle r)
+		{
+			SetRectTransform(c.GetComponent<RectTransform>(), r);
+		}
+
+		public static void SetRectTransform(GameObject o, Rectangle r)
+		{
+			SetRectTransform(o.GetComponent<RectTransform>(), r);
+		}
+
 		public static GameObject FindChildRecursive(Component c, string name)
 		{
 			return FindChildRecursive(c.gameObject, name);
@@ -89,30 +108,34 @@ namespace Synergy.UI
 				DumpComponentsAndUp(parent);
 		}
 
-		public static void DumpComponentsAndDown(Component c)
+		public static void DumpComponentsAndDown(Component c, bool dumpRt = false)
 		{
-			DumpComponentsAndDown(c.gameObject);
+			DumpComponentsAndDown(c.gameObject, dumpRt);
 		}
 
-		public static void DumpComponentsAndDown(GameObject o, int indent = 0)
+		public static void DumpComponentsAndDown(
+			GameObject o, bool dumpRt = false, int indent = 0)
 		{
 			Synergy.LogError(new string(' ', indent * 2) + o.name);
 
-			var rt = o.GetComponent<RectTransform>();
-			if (rt != null)
+			if (dumpRt)
 			{
-				Synergy.LogError(new string(' ', indent * 2) + "->rect: " + rt.rect.ToString());
-				Synergy.LogError(new string(' ', indent * 2) + "->offsetMin: " + rt.offsetMin.ToString());
-				Synergy.LogError(new string(' ', indent * 2) + "->offsetMax: " + rt.offsetMax.ToString());
-				Synergy.LogError(new string(' ', indent * 2) + "->anchorMin: " + rt.anchorMin.ToString());
-				Synergy.LogError(new string(' ', indent * 2) + "->anchorMax: " + rt.anchorMax.ToString());
-				Synergy.LogError(new string(' ', indent * 2) + "->anchorPos: " + rt.anchoredPosition.ToString());
+				var rt = o.GetComponent<RectTransform>();
+				if (rt != null)
+				{
+					Synergy.LogError(new string(' ', indent * 2) + "->rect: " + rt.rect.ToString());
+					Synergy.LogError(new string(' ', indent * 2) + "->offsetMin: " + rt.offsetMin.ToString());
+					Synergy.LogError(new string(' ', indent * 2) + "->offsetMax: " + rt.offsetMax.ToString());
+					Synergy.LogError(new string(' ', indent * 2) + "->anchorMin: " + rt.anchorMin.ToString());
+					Synergy.LogError(new string(' ', indent * 2) + "->anchorMax: " + rt.anchorMax.ToString());
+					Synergy.LogError(new string(' ', indent * 2) + "->anchorPos: " + rt.anchoredPosition.ToString());
+				}
 			}
 
 			DumpComponents(o, indent);
 
 			foreach (Transform c in o.transform)
-				DumpComponentsAndDown(c.gameObject, indent + 1);
+				DumpComponentsAndDown(c.gameObject, dumpRt, indent + 1);
 		}
 
 		public static void DumpRectsAndDown(Component c)

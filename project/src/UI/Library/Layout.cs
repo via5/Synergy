@@ -197,9 +197,23 @@ namespace Synergy.UI
 
 		private bool expand_ = true;
 
-		public VerticalFlow(int spacing = 0)
+		public VerticalFlow(int spacing = 0, bool expand = true)
 		{
 			Spacing = spacing;
+			Expand = expand;
+		}
+
+		public bool Expand
+		{
+			get
+			{
+				return expand_;
+			}
+
+			set
+			{
+				expand_ = value;
+			}
 		}
 
 		protected override void LayoutImpl()

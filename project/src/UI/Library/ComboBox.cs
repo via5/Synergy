@@ -184,7 +184,7 @@ namespace Synergy.UI
 			popup_ = WidgetObject.GetComponent<UIDynamicPopup>();
 			popup_.popup.showSlider = false;
 			popup_.popup.useDifferentDisplayValues = true;
-
+			popup_.popup.labelText.gameObject.SetActive(false);
 			popup_.popup.onValueChangeHandlers += OnSelectionChanged;
 
 			var text = popup_.popup.popupButtonPrefab.GetComponentInChildren<Text>();

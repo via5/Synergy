@@ -501,25 +501,6 @@ namespace Synergy.UI
 				w.Create();
 		}
 
-		private void SetRectTransform(RectTransform rt, Rectangle r)
-		{
-			rt.offsetMin = new Vector2(r.Left, r.Top);
-			rt.offsetMax = new Vector2(r.Right, r.Bottom);
-			rt.anchorMin = new Vector2(0, 1);
-			rt.anchorMax = new Vector2(0, 1);
-			rt.anchoredPosition = new Vector2(r.Center.X, -r.Center.Y);
-		}
-
-		private void SetRectTransform(Component c, Rectangle r)
-		{
-			SetRectTransform(c.GetComponent<RectTransform>(), r);
-		}
-
-		private void SetRectTransform(GameObject o, Rectangle r)
-		{
-			SetRectTransform(o.GetComponent<RectTransform>(), r);
-		}
-
 		private void SetBackground()
 		{
 			if (mainObject_ == null)
@@ -538,7 +519,7 @@ namespace Synergy.UI
 		private void SetMainObjectBounds()
 		{
 			var r = RelativeBounds;
-			SetRectTransform(mainObject_, r);
+			Utilities.SetRectTransform(mainObject_, r);
 
 			var layoutElement = mainObject_.GetComponent<LayoutElement>();
 			layoutElement.minWidth = r.Width;
@@ -564,7 +545,7 @@ namespace Synergy.UI
 			var r = new Rectangle(0, 0, Bounds.Size);
 			r.Deflate(Margins);
 
-			SetRectTransform(bgObject_, r);
+			Utilities.SetRectTransform(bgObject_, r);
 		}
 
 		private void SetBorderBounds()
@@ -572,12 +553,12 @@ namespace Synergy.UI
 			var r = new Rectangle(0, 0, Bounds.Size);
 			r.Deflate(Margins);
 
-			SetRectTransform(borderGraphics_, r);
+			Utilities.SetRectTransform(borderGraphics_, r);
 		}
 
 		private void SetWidgetObjectBounds()
 		{
-			SetRectTransform(widgetObject_, ClientBounds);
+			Utilities.SetRectTransform(widgetObject_, ClientBounds);
 		}
 
 		public virtual void UpdateBounds()
