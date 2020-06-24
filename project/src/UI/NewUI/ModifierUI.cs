@@ -183,15 +183,11 @@ namespace Synergy.NewUI
 
 		private void OnRename()
 		{
-			var m = Selected?.Modifier;
-			if (m == null)
-				return;
-
 			InputDialog.GetInput(
-				GetRoot(), S("Rename modifier"), S("Modifier name"), m.Name,
+				GetRoot(), S("Rename modifier"), S("Modifier name"), Selected.Name,
 				(v) =>
 				{
-					m.UserDefinedName = v;
+					Selected.UserDefinedName = v;
 				});
 		}
 
@@ -253,23 +249,41 @@ namespace Synergy.NewUI
 			tabs_.Select(i);
 		}
 
-		public void Set(ModifierContainer m)
+		public void Set(ModifierContainer mc)
 		{
-			mc_ = m;
+			mc_ = mc;
 
-			info_.Set(m);
+			info_.Set(mc);
+			sync_.Set(mc);
 
-			if (m.Modifier == null)
+			var sel = tabs_.SelectedWidget;
+			bool needsReselect = false;
+			UI.Widget acceptedPanel = null;
+
+			for (int i=0; i<modifierPanels_.Count; ++i)
 			{
-				tabs_.Visible = false;
+				var p = modifierPanels_[i];
+
+				if (mc.Modifier != null && p.Accepts(mc.Modifier))
+				{
+					acceptedPanel = p;
+					tabs_.SetTabVisible(p, true);
+				}
+				else
+				{
+					if (sel == p)
+						needsReselect = true;
+
+					tabs_.SetTabVisible(p, false);
+				}
 			}
-			else
-			{
-				tabs_.Visible = true;
-				sync_.Set(m.Modifier);
 
-				foreach (var p in modifierPanels_)
-					tabs_.SetTabVisible(p, p.Accepts(m.Modifier));
+			if (needsReselect)
+			{
+				if (acceptedPanel == null)
+					tabs_.Select(0);
+				else
+					tabs_.Select(acceptedPanel);
 			}
 		}
 
@@ -338,7 +352,7 @@ namespace Synergy.NewUI
 
 	class ModifierSyncPanel : UI.Panel
 	{
-		private IModifier modifier_ = null;
+		private ModifierContainer modifier_ = null;
 
 		private readonly FactoryComboBox<ModifierSyncFactory, IModifierSync> type_;
 
@@ -365,9 +379,9 @@ namespace Synergy.NewUI
 			Add(ui_, BorderLayout.Center);
 		}
 
-		public void Set(IModifier m)
+		public void Set(ModifierContainer mc)
 		{
-			modifier_ = m;
+			modifier_ = mc;
 
 			using (new ScopedFlag((bool b) => ignore_ = b))
 			{

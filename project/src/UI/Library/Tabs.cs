@@ -59,7 +59,7 @@ namespace Synergy.UI
 				panel_.Add(widget_, BorderLayout.Center);
 
 				button_.Alignment = Label.AlignCenter | Label.AlignBottom;
-				button_.Clicked += () => { tabs_.Select(this); };
+				button_.Clicked += () => { tabs_.SelectImpl(this); };
 			}
 
 			public Button Button
@@ -120,6 +120,18 @@ namespace Synergy.UI
 			}
 		}
 
+		public Widget SelectedWidget
+		{
+			get
+			{
+				var i = Selected;
+				if (i < 0 || i >= tabs_.Count)
+					return null;
+
+				return tabs_[i].Widget;
+			}
+		}
+
 		public void AddTab(string text, Widget w)
 		{
 			var t = new Tab(this, text, w);
@@ -128,15 +140,27 @@ namespace Synergy.UI
 			top_.Add(t.Button);
 			stack_.AddToStack(t.Panel);
 
-			Select(tabs_[0]);
+			SelectImpl(tabs_[0]);
 		}
 
 		public void Select(int i)
 		{
 			if (i < 0 || i >= tabs_.Count)
-				Select(null);
+				SelectImpl(null);
 			else
-				Select(tabs_[i]);
+				SelectImpl(tabs_[i]);
+		}
+
+		public void Select(Widget w)
+		{
+			var i = IndexOfWidget(w);
+			if (i == -1)
+			{
+				Synergy.LogError("Select: widget not found");
+				return;
+			}
+
+			Select(i);
 		}
 
 		public void SetTabVisible(int i, bool b)
@@ -147,8 +171,6 @@ namespace Synergy.UI
 				return;
 			}
 
-			tabs_[i].Button.Visible = b;
-
 			if (i == Selected)
 			{
 				if (i < (tabs_.Count - 1))
@@ -158,6 +180,8 @@ namespace Synergy.UI
 				else
 					Select(-1);
 			}
+
+			tabs_[i].Button.Visible = b;
 		}
 
 		public void SetTabVisible(Widget w, bool b)
@@ -183,7 +207,7 @@ namespace Synergy.UI
 			return -1;
 		}
 
-		private void Select(Tab t)
+		private void SelectImpl(Tab t)
 		{
 			for (int i = 0; i < tabs_.Count; ++i)
 			{

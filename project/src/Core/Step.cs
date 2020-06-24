@@ -314,19 +314,14 @@ namespace Synergy
 			}
 
 			foreach (var m in modifiers_)
-			{
-				m.Step = this;
-
-				if (m.Modifier != null)
-					m.Modifier.ParentStep = this;
-			}
+				m.ParentStep = this;
 
 			return true;
 		}
 
 		public void AddModifier(ModifierContainer m)
 		{
-			m.Step = this;
+			m.ParentStep = this;
 			modifiers_.Add(m);
 			m.Added();
 			ModifiersChanged?.Invoke();

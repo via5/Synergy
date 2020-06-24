@@ -132,9 +132,9 @@ namespace Synergy
 		{
 			if (currentModifier_ != null)
 			{
-				if (currentModifier_.Step != null)
+				if (currentModifier_.ParentStep != null)
 				{
-					currentModifier_.Step.DeleteModifier(currentModifier_);
+					currentModifier_.ParentStep.DeleteModifier(currentModifier_);
 					Synergy.Instance.UI.NeedsReset("modifier deleted");
 				}
 			}
@@ -168,13 +168,13 @@ namespace Synergy
 
 		protected virtual void ListenForModifierEvents(IModifier newModifier)
 		{
-			var oldModifier = currentModifier_?.Modifier;
+			var oldModifier = currentModifier_;
 
 			if (oldModifier != null)
 				oldModifier.NameChanged -= NameChanged;
 
-			if (newModifier != null)
-				newModifier.NameChanged += NameChanged;
+			if (newModifier?.ParentContainer != null)
+				newModifier.ParentContainer.NameChanged += NameChanged;
 		}
 
 		private void NameChanged(IModifier m)
@@ -201,7 +201,7 @@ namespace Synergy
 			if (currentModifier_?.Modifier == null)
 				return;
 
-			currentModifier_.Modifier.ModifierSync = s;
+			currentModifier_.ModifierSync = s;
 			Synergy.Instance.UI.NeedsReset("modifier sync type changed");
 		}
 
@@ -213,13 +213,13 @@ namespace Synergy
 
 		private void DisableOthers()
 		{
-			currentModifier_?.Step?.DisableAllExcept(currentModifier_);
+			currentModifier_?.ParentStep?.DisableAllExcept(currentModifier_);
 			enabled_.Value = currentModifier_?.Enabled ?? false;
 		}
 
 		private void EnableAll()
 		{
-			currentModifier_?.Step?.EnableAll();
+			currentModifier_?.ParentStep?.EnableAll();
 			enabled_.Value = true;
 		}
 	}

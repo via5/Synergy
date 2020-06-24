@@ -44,7 +44,7 @@ namespace Synergy.NewUI
 			rm.Receiver = Utilities.FindRigidbody(rm.Atom, "head");
 			rm.Movement.Maximum.Initial = 100;
 			var m = new ModifierContainer(rm);
-			m.Modifier.ModifierSync = new UnsyncedModifier(
+			m.ModifierSync = new UnsyncedModifier(
 				new RandomDuration(1), new Delay(new RandomDuration(1), false, false));
 			s.AddModifier(m);
 

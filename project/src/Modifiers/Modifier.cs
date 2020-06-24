@@ -3,20 +3,18 @@ using System.Collections.Generic;
 
 namespace Synergy
 {
-	delegate void ModifierNameChangedHandler(IModifier m);
 	delegate void PreferredRangeChangedHandler();
 
 	interface IModifier : IFactoryObject
 	{
-		event ModifierNameChangedHandler NameChanged;
-
 		bool Finished { get; }
 		float TimeRemaining { get; }
-		Step ParentStep { get; set; }
+		Step ParentStep { get; }
+		ModifierContainer ParentContainer { get; set; }
 		string Name { get; }
-		string UserDefinedName { get; set; }
+		//string UserDefinedName { get; set; }
 		FloatRange PreferredRange { get; }
-		IModifierSync ModifierSync { get; set; }
+		IModifierSync ModifierSync { get; }
 
 		IModifier Clone(int cloneFlags = 0);
 
@@ -28,6 +26,7 @@ namespace Synergy
 		void Set(bool paused);
 		void Stop(float timeRemaining);
 		void Removed();
+		void PostLoad();
 	}
 
 	sealed class ModifierFactory : BasicFactory<IModifier>
@@ -46,17 +45,10 @@ namespace Synergy
 
 	abstract class BasicModifier : IModifier
 	{
-		public event ModifierNameChangedHandler NameChanged;
-
-		private string name_ = null;
-		private Step parent_ = null;
-
-		private readonly ExplicitHolder<IModifierSync> sync_ =
-			new ExplicitHolder<IModifierSync>();
+		private ModifierContainer parent_ = null;
 
 		protected BasicModifier()
 		{
-			ModifierSync = new DurationSyncedModifier();
 		}
 
 		public abstract IModifier Clone(int cloneFlags = 0);
@@ -65,63 +57,49 @@ namespace Synergy
 
 		public abstract FloatRange PreferredRange { get; }
 
-		public Step ParentStep
+
+		private string loadedUdn_ = null;
+		private IModifierSync loadedSync_ = null;
+
+
+		public ModifierContainer ParentContainer
 		{
 			get { return parent_; }
 			set { parent_ = value; }
 		}
 
-		public string UserDefinedName
+		public Step ParentStep
 		{
-			get
-			{
-				return name_;
-			}
+			get { return parent_?.ParentStep; }
+		}
 
-			set
-			{
-				name_ = value;
-				FireNameChanged();
-			}
+		public IModifierSync ModifierSync
+		{
+			get { return parent_?.ModifierSync; }
+		}
+
+		public void PostLoad()
+		{
+			parent_.UserDefinedName = loadedUdn_;
+			parent_.ModifierSync = loadedSync_;
+
+			loadedUdn_ = null;
+			loadedSync_ = null;
 		}
 
 		public string Name
 		{
 			get
 			{
-				if (name_ == null)
+				if (parent_?.ParentStep == null)
 				{
-					if (parent_ == null)
-					{
-						return "Modifier";
-					}
-					else
-					{
-						var i = parent_.IndexOfModifier(this);
-						return (i + 1).ToString() + ") " + MakeName();
-					}
+					return "Modifier";
 				}
 				else
 				{
-					return name_;
+					var i = parent_.ParentStep.IndexOfModifier(this);
+					return (i + 1).ToString() + ") " + MakeName();
 				}
-			}
-		}
-
-		public IModifierSync ModifierSync
-		{
-			get
-			{
-				return sync_.HeldValue;
-			}
-
-			set
-			{
-				sync_.HeldValue?.Removed();
-				sync_.Set(value);
-
-				if (sync_.HeldValue != null)
-					sync_.HeldValue.ParentModifier = this;
 			}
 		}
 
@@ -129,10 +107,10 @@ namespace Synergy
 		{
 			get
 			{
-				if (ModifierSync == null)
+				if (parent_.ModifierSync == null)
 					return true;
 
-				return ModifierSync.Finished;
+				return parent_.ModifierSync.Finished;
 			}
 		}
 
@@ -140,72 +118,71 @@ namespace Synergy
 		{
 			get
 			{
-				if (ModifierSync == null)
+				if (parent_.ModifierSync == null)
 					return 0;
 
-				return ModifierSync.TimeRemaining;
+				return parent_.ModifierSync.TimeRemaining;
 			}
 		}
 
 		public virtual void Stop(float timeRemaining)
 		{
-			if (ModifierSync != null)
-				ModifierSync.StopWhenFinished(timeRemaining);
+			if (parent_.ModifierSync != null)
+				parent_.ModifierSync.StopWhenFinished(timeRemaining);
 		}
 
 		protected void CopyTo(BasicModifier m, int cloneFlags)
 		{
-			m.ModifierSync = ModifierSync?.Clone(cloneFlags);
+			// no-op
 		}
 
 		public virtual void Removed()
 		{
-			ParentStep = null;
-			ModifierSync = null;
+			parent_ = null;
 		}
 
 		public virtual void Reset()
 		{
-			if (ModifierSync != null)
+			if (parent_.ModifierSync != null)
 			{
-				ModifierSync.Resume();
-				ModifierSync.Reset();
+				parent_.ModifierSync.Resume();
+				parent_.ModifierSync.Reset();
 			}
 		}
 
 		public void Tick(float deltaTime, float stepProgress, bool stepFirstHalf)
 		{
-			if (sync_ == null)
+			if (parent_.ModifierSync == null)
 				return;
 
-			if (ModifierSync.Tick(deltaTime))
+			if (parent_.ModifierSync.Tick(deltaTime))
 			{
 				DoTick(
 					deltaTime,
-					ModifierSync.GetProgress(this, stepProgress, stepFirstHalf),
-					ModifierSync.IsInFirstHalf(this, stepProgress, stepFirstHalf));
+					parent_.ModifierSync.GetProgress(this, stepProgress, stepFirstHalf),
+					parent_.ModifierSync.IsInFirstHalf(this, stepProgress, stepFirstHalf));
 
-				ModifierSync.PostTick();
+				parent_.ModifierSync.PostTick();
 			}
 		}
 
 		public void Resume()
 		{
-			if (ModifierSync != null)
-				ModifierSync.Resume();
+			if (parent_.ModifierSync != null)
+				parent_.ModifierSync.Resume();
 
 			DoResume();
 		}
 
 		public void TickPaused(float deltaTime)
 		{
-			ModifierSync.TickPaused(deltaTime);
+			parent_.ModifierSync.TickPaused(deltaTime);
 			DoTickPaused(deltaTime);
 		}
 
 		public void TickDelayed(float deltaTime, float stepProgress, bool stepFirstHalf)
 		{
-			if (ModifierSync.TickDelayed(deltaTime))
+			if (parent_.ModifierSync.TickDelayed(deltaTime))
 				Tick(deltaTime, stepProgress, stepFirstHalf);
 		}
 
@@ -244,18 +221,16 @@ namespace Synergy
 
 		protected void FireNameChanged()
 		{
-			if (ParentStep != null)
-				ParentStep.FireModifierNameChanged(this);
-
-			NameChanged?.Invoke(this);
+			if (parent_ != null)
+				parent_.FireNameChanged();
 		}
 
 		public virtual J.Node ToJSON()
 		{
 			var o = new J.Object();
 
-			o.Add("name", name_);
-			o.Add("sync", ModifierSync);
+			o.Add("name", parent_.UserDefinedName);
+			o.Add("sync", parent_.ModifierSync);
 
 			return o;
 		}
@@ -266,11 +241,8 @@ namespace Synergy
 			if (o == null)
 				return false;
 
-			o.Opt("name", ref name_);
-
-			IModifierSync s = null;
-			o.Opt<ModifierSyncFactory, IModifierSync>("sync", ref s);
-			ModifierSync = s;
+			o.Opt("name", ref loadedUdn_);
+			o.Opt<ModifierSyncFactory, IModifierSync>("sync", ref loadedSync_);
 
 			return true;
 		}
