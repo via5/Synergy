@@ -401,7 +401,7 @@ namespace Synergy
 						var mcopy = m.Modifier;
 
 						ModifierNameChangedHandler h =
-							() => OnModifierNameChanged(icopy);
+							(mm) => OnModifierNameChanged(icopy);
 
 						handlerRemovers_.Add(new Action(
 							() => mcopy.NameChanged -= h));

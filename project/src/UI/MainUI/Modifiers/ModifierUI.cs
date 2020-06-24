@@ -177,7 +177,7 @@ namespace Synergy
 				newModifier.NameChanged += NameChanged;
 		}
 
-		private void NameChanged()
+		private void NameChanged(IModifier m)
 		{
 			if (currentModifier_ != null)
 				header_.Text = currentModifier_.Name;

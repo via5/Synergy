@@ -161,4 +161,51 @@ namespace Synergy.UI
 				BorderLayout.Center);
 		}
 	}
+
+
+	class InputDialog : DialogWithButtons
+	{
+		public delegate void TextHandler(string value);
+
+		private readonly UI.TextBox textbox_;
+
+		public InputDialog(
+			Root r, string title, string text, string initialValue)
+				: base(r, OK | Cancel, title)
+		{
+			textbox_ = new UI.TextBox(initialValue);
+
+			ContentPanel.Layout = new VerticalFlow(10);
+			ContentPanel.Add(new UI.Label(text));
+			ContentPanel.Add(textbox_);
+
+			Created += () =>
+			{
+				textbox_.Focus();
+			};
+		}
+
+		public string Text
+		{
+			get
+			{
+				return textbox_.Text;
+			}
+		}
+
+		static public void GetInput(
+			Root r, string title, string text, string initialValue,
+			TextHandler h)
+		{
+			var d = new InputDialog(r, title, text, initialValue);
+
+			d.RunDialog(() =>
+			{
+				if (d.Button != OK)
+					return;
+
+				h(d.Text);
+			});
+		}
+	}
 }

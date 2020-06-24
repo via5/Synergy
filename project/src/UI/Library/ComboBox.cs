@@ -110,6 +110,11 @@ namespace Synergy.UI
 			}
 		}
 
+		public int Count
+		{
+			get { return items_.Count; }
+		}
+
 		public void Clear()
 		{
 			SetItems(new List<ItemType>());

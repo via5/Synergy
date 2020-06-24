@@ -59,7 +59,7 @@ namespace Synergy.NewUI
 		public event ModifierCallback SelectionChanged;
 
 		private readonly UI.ComboBox<ModifierContainer> modifiers_;
-		private readonly UI.Button add_, clone_, clone0_, remove_;
+		private readonly UI.Button add_, clone_, clone0_, remove_, rename_;
 
 		private Step step_ = null;
 		private bool ignore_ = false;
@@ -71,6 +71,7 @@ namespace Synergy.NewUI
 			clone_ = new UI.ToolButton(S("+*"), () => CloneModifier(0));
 			clone0_ = new UI.ToolButton(S("+*0"), () => CloneModifier(Utilities.CloneZero));
 			remove_ = new UI.ToolButton("\x2013", RemoveModifier);       // en dash
+			rename_ = new UI.ToolButton(S("Rename"), OnRename);
 
 			add_.Tooltip.Text = S("Add a new modifier");
 			clone_.Tooltip.Text = S("Clone this modifier");
@@ -82,6 +83,7 @@ namespace Synergy.NewUI
 			p.Add(clone_);
 			p.Add(clone0_);
 			p.Add(remove_);
+			p.Add(rename_);
 
 			Layout = new UI.HorizontalFlow(20);
 
@@ -106,12 +108,18 @@ namespace Synergy.NewUI
 		public void Set(Step s)
 		{
 			if (step_ != null)
+			{
 				step_.ModifiersChanged -= OnModifiersChanged;
+				step_.ModifierNameChanged -= OnModifierNameChanged;
+			}
 
 			step_ = s;
 
 			if (step_ != null)
+			{
 				step_.ModifiersChanged += OnModifiersChanged;
+				step_.ModifierNameChanged += OnModifierNameChanged;
+			}
 
 			UpdateModifiers();
 		}
@@ -173,6 +181,20 @@ namespace Synergy.NewUI
 			SelectionChanged?.Invoke(m);
 		}
 
+		private void OnRename()
+		{
+			var m = Selected?.Modifier;
+			if (m == null)
+				return;
+
+			InputDialog.GetInput(
+				GetRoot(), S("Rename modifier"), S("Modifier name"), m.Name,
+				(v) =>
+				{
+					m.UserDefinedName = v;
+				});
+		}
+
 		private void UpdateModifiers()
 		{
 			if (step_ == null)
@@ -187,6 +209,11 @@ namespace Synergy.NewUI
 				return;
 
 			UpdateModifiers();
+		}
+
+		private void OnModifierNameChanged(IModifier m)
+		{
+			modifiers_.UpdateItemsText();
 		}
 	}
 
@@ -253,7 +280,6 @@ namespace Synergy.NewUI
 	{
 		public event Callback ModifierTypeChanged;
 
-		private readonly UI.TextBox name_;
 		private readonly UI.CheckBox enabled_;
 		private readonly FactoryComboBox<ModifierFactory, IModifier> type_;
 		private ModifierContainer mc_ = null;
@@ -261,7 +287,6 @@ namespace Synergy.NewUI
 
 		public ModifierInfo()
 		{
-			name_ = new UI.TextBox();
 			enabled_ = new CheckBox(S("Modifier enabled"));
 			type_ = new FactoryComboBox<ModifierFactory, IModifier>(
 				OnTypeChanged);
@@ -269,17 +294,11 @@ namespace Synergy.NewUI
 			Layout = new UI.VerticalFlow(20);
 
 			var p = new UI.Panel(new UI.HorizontalFlow(10));
-			p.Add(new UI.Label(S("Name")));
-			p.Add(name_);
+			p.Add(new UI.Label(S("Modifier type")));
+			p.Add(type_);
 			p.Add(enabled_);
 			Add(p);
 
-			p = new UI.Panel(new UI.HorizontalFlow(10));
-			p.Add(new UI.Label(S("Modifier type")));
-			p.Add(type_);
-			Add(p);
-
-			name_.MinimumSize = new UI.Size(300, DontCare);
 			enabled_.Changed += OnEnabledChanged;
 		}
 
@@ -288,7 +307,6 @@ namespace Synergy.NewUI
 			using (new ScopedFlag((b) => ignore_ = b))
 			{
 				mc_ = m;
-				name_.Text = m.Name;
 				enabled_.Checked = m.Enabled;
 				type_.Select(m.Modifier);
 			}

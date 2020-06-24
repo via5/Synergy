@@ -193,28 +193,11 @@ namespace Synergy.NewUI
 			if (s == null)
 				return;
 
-			var d = new DialogWithButtons(
-				GetRoot(), DialogWithButtons.OK | DialogWithButtons.Cancel,
-				S("Rename step"));
-
-			var t = new UI.TextBox(s.Name);
-
-			d.ContentPanel.Layout = new VerticalFlow(10);
-			d.ContentPanel.Add(new UI.Label(S("Step name")));
-			d.ContentPanel.Add(t);
-
-			d.Created += () =>
-			{
-				t.Focus();
-			};
-
-			d.RunDialog(() =>
-			{
-				if (d.Button != DialogWithButtons.OK)
-					return;
-
-				s.UserDefinedName = t.Text;
-			});
+			InputDialog.GetInput(
+				GetRoot(), S("Rename step"), S("Step name"), s.Name, (v) =>
+				{
+					s.UserDefinedName = v;
+				});
 		}
 
 		private void UpdateSteps()

@@ -7,8 +7,11 @@ namespace Synergy
 {
 	sealed class Step : IJsonable
 	{
-		public delegate void StepNameChangedCallback(Step s);
-		public event StepNameChangedCallback StepNameChanged;
+		public delegate void StepCallback(Step s);
+		public event StepCallback StepNameChanged;
+
+		public delegate void ModifierCallback(IModifier m);
+		public event ModifierCallback ModifierNameChanged;
 
 		public delegate void Callback();
 		public event Callback ModifiersChanged;
@@ -353,6 +356,11 @@ namespace Synergy
 
 			modifiers_.Remove(m);
 			ModifiersChanged?.Invoke();
+		}
+
+		public void FireModifierNameChanged(IModifier m)
+		{
+			ModifierNameChanged?.Invoke(m);
 		}
 
 		public int IndexOfModifier(IModifier m)

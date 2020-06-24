@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 namespace Synergy
 {
-	public delegate void ModifierNameChangedHandler();
-	public delegate void PreferredRangeChangedHandler();
+	delegate void ModifierNameChangedHandler(IModifier m);
+	delegate void PreferredRangeChangedHandler();
 
 	interface IModifier : IFactoryObject
 	{
@@ -14,6 +14,7 @@ namespace Synergy
 		float TimeRemaining { get; }
 		Step ParentStep { get; set; }
 		string Name { get; }
+		string UserDefinedName { get; set; }
 		FloatRange PreferredRange { get; }
 		IModifierSync ModifierSync { get; set; }
 
@@ -72,8 +73,16 @@ namespace Synergy
 
 		public string UserDefinedName
 		{
-			get { return name_; }
-			set { name_ = value; }
+			get
+			{
+				return name_;
+			}
+
+			set
+			{
+				name_ = value;
+				FireNameChanged();
+			}
 		}
 
 		public string Name
@@ -235,7 +244,10 @@ namespace Synergy
 
 		protected void FireNameChanged()
 		{
-			NameChanged?.Invoke();
+			if (ParentStep != null)
+				ParentStep.FireModifierNameChanged(this);
+
+			NameChanged?.Invoke(this);
 		}
 
 		public virtual J.Node ToJSON()
