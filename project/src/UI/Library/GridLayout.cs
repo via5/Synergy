@@ -279,7 +279,12 @@ namespace Synergy.UI
 					var wr = Rectangle.FromSize(x, y, ww, (wh * yfactor));
 
 					foreach (var w in ws)
+					{
+						if (!w.Visible)
+							continue;
+
 						w.Bounds = wr;
+					}
 
 					x += wr.Width;
 					tallestInRow = Math.Max(tallestInRow, wr.Height);
@@ -332,6 +337,9 @@ namespace Synergy.UI
 
 					foreach (var w in cell)
 					{
+						if (!w.Visible)
+							continue;
+
 						var ps = w.GetPreferredSize(DontCare, DontCare);
 						cellPs.Width = Math.Max(cellPs.Width, ps.Width);
 						cellPs.Height = Math.Max(cellPs.Height, ps.Height);

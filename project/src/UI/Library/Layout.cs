@@ -122,6 +122,12 @@ namespace Synergy.UI
 
 			foreach (var w in Children)
 			{
+				if (!w.Visible)
+				{
+					bounds.Add(null);
+					continue;
+				}
+
 				if (totalWidth > 0)
 					totalWidth += Spacing;
 
@@ -167,7 +173,10 @@ namespace Synergy.UI
 			}
 
 			for (int i = 0; i < Children.Count; ++i)
-				Children[i].Bounds = bounds[i];
+			{
+				if (bounds[i] != null)
+					Children[i].Bounds = bounds[i];
+			}
 		}
 
 		protected override Size GetPreferredSize()
@@ -177,10 +186,14 @@ namespace Synergy.UI
 
 			for (int i=0; i<Children.Count; ++i)
 			{
+				var w = Children[i];
+				if (!w.Visible)
+					continue;
+
 				if (i > 0)
 					totalWidth += Spacing;
 
-				var ps = Children[i].GetPreferredSize(DontCare, DontCare);
+				var ps = w.GetPreferredSize(DontCare, DontCare);
 
 				totalWidth += ps.Width;
 				tallest = Math.Max(tallest, ps.Height);
@@ -222,6 +235,9 @@ namespace Synergy.UI
 
 			foreach (var w in Children)
 			{
+				if (!w.Visible)
+					continue;
+
 				var wr = new Rectangle(
 					r.TopLeft, w.GetPreferredSize(r.Width, DontCare));
 
@@ -240,10 +256,14 @@ namespace Synergy.UI
 
 			for (int i = 0; i < Children.Count; ++i)
 			{
+				var w = Children[i];
+				if (!w.Visible)
+					continue;
+
 				if (i > 0)
 					totalHeight += Spacing;
 
-				var ps = Children[i].GetPreferredSize(DontCare, DontCare);
+				var ps = w.GetPreferredSize(DontCare, DontCare);
 
 				totalHeight += ps.Height;
 				widest = Math.Max(widest, ps.Width);

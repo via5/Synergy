@@ -223,8 +223,8 @@ namespace Synergy.NewUI
 		private readonly ModifierInfo info_ = new ModifierInfo();
 		private readonly UI.Tabs tabs_ = new UI.Tabs();
 		private readonly ModifierSyncPanel sync_ = new ModifierSyncPanel();
-
-		private readonly RigidbodyPanel rigidbody_ = new RigidbodyPanel();
+		private readonly List<BasicModifierPanel> modifierPanels_ =
+			new List<BasicModifierPanel>();
 
 		private ModifierContainer mc_ = null;
 
@@ -233,12 +233,14 @@ namespace Synergy.NewUI
 			Layout = new UI.BorderLayout(30);
 
 			var sync = new UI.Panel();
-			var rigidbody = new UI.Panel();
-			var morph = new UI.Panel();
+
+			modifierPanels_.Add(new RigidbodyPanel());
+			modifierPanels_.Add(new MorphPanel());
 
 			tabs_.AddTab(S("Sync"), sync_);
-			tabs_.AddTab(S("Rigidbody"), rigidbody_);
-			tabs_.AddTab(S("Morph"), new MorphPanel());
+
+			foreach (var p in modifierPanels_)
+				tabs_.AddTab(p.Title, p);
 
 			info_.ModifierTypeChanged += OnTypeChanged;
 
@@ -265,7 +267,9 @@ namespace Synergy.NewUI
 			{
 				tabs_.Visible = true;
 				sync_.Set(m.Modifier);
-				rigidbody_.Set(m.Modifier);
+
+				foreach (var p in modifierPanels_)
+					tabs_.SetTabVisible(p, p.Accepts(m.Modifier));
 			}
 		}
 
@@ -859,7 +863,14 @@ namespace Synergy.NewUI
 	}
 
 
-	class RigidbodyPanel : UI.Panel
+	abstract class BasicModifierPanel : UI.Panel
+	{
+		public abstract string Title { get; }
+		public abstract bool Accepts(IModifier m);
+	}
+
+
+	class RigidbodyPanel : BasicModifierPanel
 	{
 		private readonly AtomComboBox atom_ = new AtomComboBox(
 			Utilities.AtomHasRigidbodies);
@@ -914,6 +925,16 @@ namespace Synergy.NewUI
 			movementType_.FactoryTypeChanged += OnMovementTypeChanged;
 			easing_.FactoryTypeChanged += OnEasingChanged;
 			dir_.Changed += OnDirectionChanged;
+		}
+
+		public override string Title
+		{
+			get { return S("Rigidbody"); }
+		}
+
+		public override bool Accepts(IModifier m)
+		{
+			return m is RigidbodyModifier;
 		}
 
 		public void Set(IModifier m)
@@ -976,7 +997,16 @@ namespace Synergy.NewUI
 	}
 
 
-	class MorphPanel : UI.Panel
+	class MorphPanel : BasicModifierPanel
 	{
+		public override string Title
+		{
+			get { return S("Morph"); }
+		}
+
+		public override bool Accepts(IModifier m)
+		{
+			return m is MorphModifier;
+		}
 	}
 }

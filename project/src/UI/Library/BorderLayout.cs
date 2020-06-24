@@ -105,7 +105,12 @@ namespace Synergy.UI
 
 			var center = new Size();
 			foreach (var w in sides_[CenterSide])
+			{
+				if (!w.Visible)
+					continue;
+
 				center = Size.Max(center, w.GetPreferredSize(DontCare, DontCare));
+			}
 
 			int hn =
 				(left > 0 ? 1 : 0) +
@@ -131,6 +136,9 @@ namespace Synergy.UI
 
 			foreach (var w in sides_[TopSide])
 			{
+				if (!w.Visible)
+					continue;
+
 				float wh = w.GetPreferredSize(av.Width, DontCare).Height;
 				tallest = Math.Max(tallest, wh);
 
@@ -165,6 +173,9 @@ namespace Synergy.UI
 
 			foreach (var w in sides_[BottomSide])
 			{
+				if (!w.Visible)
+					continue;
+
 				float wh = w.GetPreferredSize(av.Width, DontCare).Height;
 				tallest = Math.Max(tallest, wh);
 
@@ -199,6 +210,9 @@ namespace Synergy.UI
 
 			foreach (var w in sides_[LeftSide])
 			{
+				if (!w.Visible)
+					continue;
+
 				float ww = w.GetPreferredSize(DontCare, av.Height).Width;
 				widest = Math.Max(widest, ww);
 
@@ -234,6 +248,9 @@ namespace Synergy.UI
 
 			foreach (var w in sides_[RightSide])
 			{
+				if (!w.Visible)
+					continue;
+
 				float ww = w.GetPreferredSize(DontCare, av.Height).Width;
 				widest = Math.Max(widest, ww);
 
@@ -266,7 +283,12 @@ namespace Synergy.UI
 		private void DoCenter(Rectangle av)
 		{
 			foreach (var w in sides_[CenterSide])
+			{
+				if (!w.Visible)
+					continue;
+
 				w.Bounds = av;
+			}
 		}
 
 		private float SideWidth(int side, float maxHeight)
@@ -275,6 +297,9 @@ namespace Synergy.UI
 
 			foreach (var w in sides_[side])
 			{
+				if (!w.Visible)
+					continue;
+
 				float ww = w.GetPreferredSize(DontCare, maxHeight).Width;
 				widest = Math.Max(widest, ww);
 			}
@@ -288,6 +313,9 @@ namespace Synergy.UI
 
 			foreach (var w in sides_[side])
 			{
+				if (!w.Visible)
+					continue;
+
 				float wh = w.GetPreferredSize(maxWidth, DontCare).Height;
 				tallest = Math.Max(tallest, wh);
 			}

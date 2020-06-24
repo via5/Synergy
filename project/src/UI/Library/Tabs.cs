@@ -46,6 +46,7 @@ namespace Synergy.UI
 			private readonly Button button_;
 			private readonly Panel panel_;
 			private readonly Widget widget_;
+			private bool selected_ = false;
 
 			public Tab(Tabs tabs, string text, Widget w)
 			{
@@ -71,8 +72,19 @@ namespace Synergy.UI
 				get { return panel_; }
 			}
 
+			public Widget Widget
+			{
+				get { return widget_; }
+			}
+
+			public bool Selected
+			{
+				get { return selected_; }
+			}
+
 			public void SetSelected(bool b)
 			{
+				selected_ = b;
 				button_.MinimumSize = new Size(DontCare, b ? 50 : 40);
 			}
 		}
@@ -94,6 +106,20 @@ namespace Synergy.UI
 			stack_.Padding = new Insets(20);
 		}
 
+		public int Selected
+		{
+			get
+			{
+				for (int i = 0; i < tabs_.Count; ++i)
+				{
+					if (tabs_[i].Selected)
+						return i;
+				}
+
+				return -1;
+			}
+		}
+
 		public void AddTab(string text, Widget w)
 		{
 			var t = new Tab(this, text, w);
@@ -108,9 +134,53 @@ namespace Synergy.UI
 		public void Select(int i)
 		{
 			if (i < 0 || i >= tabs_.Count)
-				return;
+				Select(null);
+			else
+				Select(tabs_[i]);
+		}
 
-			Select(tabs_[i]);
+		public void SetTabVisible(int i, bool b)
+		{
+			if (i < 0 || i >= tabs_.Count)
+			{
+				Synergy.LogError("SetTabVisible: bad index " + i.ToString());
+				return;
+			}
+
+			tabs_[i].Button.Visible = b;
+
+			if (i == Selected)
+			{
+				if (i < (tabs_.Count - 1))
+					Select(i + 1);
+				else if (i > 0)
+					Select(i - 1);
+				else
+					Select(-1);
+			}
+		}
+
+		public void SetTabVisible(Widget w, bool b)
+		{
+			var i = IndexOfWidget(w);
+			if (i == -1)
+			{
+				Synergy.LogError("SetTabVisible: widget not found");
+				return;
+			}
+
+			SetTabVisible(i, b);
+		}
+
+		public int IndexOfWidget(Widget w)
+		{
+			for (int i = 0; i < tabs_.Count; ++i)
+			{
+				if (tabs_[i].Widget == w)
+					return i;
+			}
+
+			return -1;
 		}
 
 		private void Select(Tab t)
