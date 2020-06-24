@@ -8,7 +8,6 @@ namespace Synergy.UI
 	{
 		public override string TypeName { get { return "button"; } }
 
-		public delegate void Callback();
 		public event Callback Clicked;
 
 		private string text_ = "";

@@ -300,7 +300,6 @@ namespace Synergy.UI
 	{
 		public override string TypeName { get { return "combobox"; } }
 
-		public delegate void Callback();
 		public event Callback Opened;
 
 		private Text arrow_ = null;

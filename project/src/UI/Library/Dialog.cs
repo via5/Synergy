@@ -30,7 +30,7 @@ namespace Synergy.UI
 			MinimumSize = new Size(600, 200);
 		}
 
-		public Widget ContentPanel
+		public virtual Widget ContentPanel
 		{
 			get { return content_; }
 		}
@@ -39,12 +39,11 @@ namespace Synergy.UI
 		{
 			root_.OverlayVisible = true;
 
-			var s = MinimumSize;
-
+			var ps = GetPreferredSize(root_.Bounds.Width, root_.Bounds.Height);
 			Bounds = new Rectangle(
-				root_.Bounds.Center.X - (s.Width / 2),
-				root_.Bounds.Center.Y - (s.Height / 2),
-				s);
+				root_.Bounds.Center.X - (ps.Width / 2),
+				root_.Bounds.Center.Y - (ps.Height / 2),
+				ps);
 
 			DoLayout();
 			Create();
@@ -105,7 +104,7 @@ namespace Synergy.UI
 	}
 
 
-	class MessageDialog : Dialog
+	class DialogWithButtons : Dialog
 	{
 		// sync with ButtonBox
 		public const int OK     = 0x01;
@@ -115,21 +114,28 @@ namespace Synergy.UI
 		public const int Close  = 0x10;
 		public const int Apply  = 0x20;
 
-		private ButtonBox buttons_;
+		private readonly ButtonBox buttons_;
+		private readonly UI.Panel center_;
 		private int button_ = -1;
 
-		public MessageDialog(Root r, int buttons, string title, string text)
+		public DialogWithButtons(Root r, int buttons, string title)
 			: base(r, title)
 		{
 			buttons_ = new ButtonBox(buttons);
 			buttons_.ButtonClicked += OnButtonClicked;
 
-			ContentPanel.Layout = new BorderLayout();
-			ContentPanel.Add(
-				new UI.Label(text, UI.Label.AlignLeft | UI.Label.AlignTop),
-				BorderLayout.Center);
+			center_ = new UI.Panel(new BorderLayout());
 
-			ContentPanel.Add(buttons_, BorderLayout.Bottom);
+			base.ContentPanel.Layout = new BorderLayout();
+			base.ContentPanel.Add(center_, BorderLayout.Center);
+			base.ContentPanel.Add(buttons_, BorderLayout.Bottom);
+
+			center_.Margins = new Insets(0, 0, 0, 20);
+		}
+
+		public override Widget ContentPanel
+		{
+			get { return center_; }
 		}
 
 		public int Button
@@ -141,6 +147,18 @@ namespace Synergy.UI
 		{
 			button_ = id;
 			CloseDialog();
+		}
+	}
+
+
+	class MessageDialog : DialogWithButtons
+	{
+		public MessageDialog(Root r, int buttons, string title, string text)
+			: base(r, buttons, title)
+		{
+			ContentPanel.Add(
+				new UI.Label(text, UI.Label.AlignLeft | UI.Label.AlignTop),
+				BorderLayout.Center);
 		}
 	}
 }

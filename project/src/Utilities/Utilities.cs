@@ -25,6 +25,30 @@ namespace Synergy
 	}
 
 
+	public class IgnoreFlag
+	{
+		private bool ignore_ = false;
+
+		public static implicit operator bool(IgnoreFlag f)
+		{
+			return f.ignore_;
+		}
+
+		public void Do(Action a)
+		{
+			try
+			{
+				ignore_ = true;
+				a();
+			}
+			finally
+			{
+				ignore_ = false;
+			}
+		}
+	}
+
+
 	public class Strings
 	{
 		public static string Get(string s, params object[] ps)

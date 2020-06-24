@@ -150,8 +150,8 @@
 
 	class DurationPanel : UI.Panel
 	{
-		public delegate void Callback(IDuration d);
-		public event Callback Changed;
+		public delegate void DurationCallback(IDuration d);
+		public event DurationCallback Changed;
 
 		private readonly FactoryComboBox<DurationFactory, IDuration> type_;
 		private DurationWidgets widgets_ = null;

@@ -141,6 +141,9 @@ namespace Synergy.UI
 	{
 		public virtual string TypeName { get { return "widget"; } }
 
+		public delegate void Callback();
+		public event Callback Created;
+
 		public const float DontCare = -1;
 
 		private Widget parent_ = null;
@@ -430,6 +433,16 @@ namespace Synergy.UI
 			return null;
 		}
 
+		public void Focus()
+		{
+			DoFocus();
+		}
+
+		protected virtual void DoFocus()
+		{
+			// no-op
+		}
+
 		public virtual string DebugLine
 		{
 			get
@@ -538,6 +551,8 @@ namespace Synergy.UI
 
 			foreach (var w in children_)
 				w.Create();
+
+			Created?.Invoke();
 		}
 
 		private void SetBackground()

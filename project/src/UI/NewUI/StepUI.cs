@@ -61,6 +61,7 @@ namespace Synergy.NewUI
 
 		private readonly UI.ComboBox<Step> steps_;
 		private readonly UI.Button add_, clone_, clone0_, remove_, up_, down_;
+		private readonly UI.Button rename_;
 		private bool ignore_ = false;
 
 		public StepControls()
@@ -72,6 +73,7 @@ namespace Synergy.NewUI
 			remove_ = new UI.ToolButton("\x2013", RemoveStep);       // en dash
 			up_ = new UI.ToolButton("\x25b2", () => MoveStep(-1));   // up arrow
 			down_ = new UI.ToolButton("\x25bc", () => MoveStep(+1)); // down arrow
+			rename_ = new UI.Button("Rename", OnRename);
 
 			add_.Tooltip.Text = S("Add a new step");
 			clone_.Tooltip.Text = S("Clone this step");
@@ -87,6 +89,7 @@ namespace Synergy.NewUI
 			p.Add(remove_);
 			p.Add(up_);
 			p.Add(down_);
+			p.Add(rename_);
 
 			Layout = new UI.HorizontalFlow(20);
 			Add(new UI.Label(S("Steps:")));
@@ -147,7 +150,7 @@ namespace Synergy.NewUI
 			var d = new UI.MessageDialog(
 				GetRoot(), UI.MessageDialog.Yes | UI.MessageDialog.No,
 				S("Delete step"),
-				S("Are you sure you want to delete step {0}?", s.Name));
+				S("Are you sure you want to delete step '{0}'?", s.Name));
 
 			d.RunDialog(() =>
 			{
@@ -184,6 +187,36 @@ namespace Synergy.NewUI
 			steps_.UpdateItemsText();
 		}
 
+		private void OnRename()
+		{
+			var s = steps_.Selected;
+			if (s == null)
+				return;
+
+			var d = new DialogWithButtons(
+				GetRoot(), DialogWithButtons.OK | DialogWithButtons.Cancel,
+				S("Rename step"));
+
+			var t = new UI.TextBox(s.Name);
+
+			d.ContentPanel.Layout = new VerticalFlow(10);
+			d.ContentPanel.Add(new UI.Label(S("Step name")));
+			d.ContentPanel.Add(t);
+
+			d.Created += () =>
+			{
+				t.Focus();
+			};
+
+			d.RunDialog(() =>
+			{
+				if (d.Button != DialogWithButtons.OK)
+					return;
+
+				s.UserDefinedName = t.Text;
+			});
+		}
+
 		private void UpdateSteps()
 		{
 			steps_.SetItems(
@@ -195,7 +228,6 @@ namespace Synergy.NewUI
 
 	class StepInfo : UI.Panel
 	{
-		private readonly UI.TextBox name_;
 		private readonly UI.CheckBox enabled_, halfMove_;
 		private Step step_ = null;
 
@@ -203,7 +235,6 @@ namespace Synergy.NewUI
 		{
 			Layout = new UI.HorizontalFlow(10);
 
-			name_ = new UI.TextBox();
 			enabled_ = new UI.CheckBox(S("Step enabled"));
 			halfMove_ = new UI.CheckBox(S("Half move"));
 
@@ -212,13 +243,8 @@ namespace Synergy.NewUI
 				"Whether this step should stop halfway before executing " +
 				"the next step");
 
-			Add(new UI.Label(S("Name")));
-			Add(name_);
 			Add(enabled_);
 			Add(halfMove_);
-
-			name_.MinimumSize = new UI.Size(300, DontCare);
-			name_.Changed += OnNameChanged;
 
 			enabled_.Changed += OnEnabled;
 			halfMove_.Changed += OnHalfMove;
@@ -228,7 +254,6 @@ namespace Synergy.NewUI
 		{
 			step_ = s;
 
-			name_.Text = s.Name;
 			enabled_.Checked = s.Enabled;
 			halfMove_.Checked = s.HalfMove;
 		}

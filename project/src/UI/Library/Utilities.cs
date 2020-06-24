@@ -32,6 +32,65 @@ namespace Synergy.UI
 			}
 		}
 
+		public static int[] WordRange(string text, int caret)
+		{
+			if (text.Length == 0)
+				return new int[2] { 0, 0 };
+
+			int begin = caret;
+
+			if (caret >= text.Length)
+			{
+				// double-clicked past the end of the text
+				--begin;
+			}
+
+
+			{
+				var startedOnWs = char.IsWhiteSpace(text, begin);
+
+				while (begin > 0)
+				{
+					--begin;
+
+					var ws = char.IsWhiteSpace(text, begin);
+					if (ws != startedOnWs)
+					{
+						++begin;
+						break;
+					}
+				}
+			}
+
+
+			int end = caret;
+
+			if (end >= text.Length)
+			{
+				// double-clicked past the end of the text
+			}
+			else
+			{
+				var startedOnWs = char.IsWhiteSpace(text, end);
+
+				while (end < text.Length)
+				{
+					++end;
+
+					if (end >= text.Length)
+						break;
+
+					var ws = char.IsWhiteSpace(text, end);
+					if (ws != startedOnWs)
+					{
+						break;
+					}
+				}
+			}
+
+			return new int[2] { begin, end };
+		}
+
 		public static void SetRectTransform(RectTransform rt, Rectangle r)
 		{
 			rt.offsetMin = new Vector2(r.Left, r.Top);

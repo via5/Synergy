@@ -251,7 +251,6 @@ namespace Synergy.NewUI
 
 	class ModifierInfo : UI.Panel
 	{
-		public delegate void Callback();
 		public event Callback ModifierTypeChanged;
 
 		private readonly UI.TextBox name_;
@@ -719,8 +718,8 @@ namespace Synergy.NewUI
 
 	class DirectionPanel : UI.Panel
 	{
-		public delegate void Callback(Vector3 v);
-		public event Callback Changed;
+		public delegate void DirectionCallback(Vector3 v);
+		public event DirectionCallback Changed;
 
 		private readonly UI.ComboBox<string> type_ = new ComboBox<string>();
 		private readonly UI.TextSlider x_ = new UI.TextSlider();

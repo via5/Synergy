@@ -6,8 +6,8 @@ namespace Synergy.NewUI
 {
 	class MovementWidgets : UI.Panel
 	{
-		public delegate void Callback(float f);
-		public event Callback Changed;
+		public delegate void ValueCallback(float f);
+		public event ValueCallback Changed;
 
 		private readonly TextBox text_ = new TextBox();
 		private float reset_ = 0;

@@ -57,7 +57,12 @@ namespace Synergy.UI
 
 		public static Color EditableBackgroundColor
 		{
-			get { return Color.white; }
+			get { return new Color(0.84f, 0.84f, 0.84f); }
+		}
+
+		public static Color EditableSelectionBackgroundColor
+		{
+			get { return new Color(0.6f, 0.6f, 0.6f); }
 		}
 
 		public static Color BackgroundColor
@@ -161,17 +166,29 @@ namespace Synergy.UI
 			Polish(e.popup);
 		}
 
-		public static void Polish(UIDynamicTextField e)
+		public static void Polish(TextBox e)
 		{
 			// textbox background
-			e.backgroundImage.color = EditableBackgroundColor;
+			var bg = e.WidgetObject.GetComponentInChildren<Image>();
+			if (bg != null)
+				bg.color = EditableBackgroundColor;
 
 			// textbox text
-			e.UItext.alignment = TextAnchor.MiddleLeft;
-			e.UItext.color = EditableTextColor;
-			e.UItext.raycastTarget = false;
-			e.UItext.fontSize = Style.FontSize;
-			e.UItext.font = Style.Font;
+			var text = e.WidgetObject.GetComponentInChildren<Text>();
+			if (text != null)
+			{
+				text.alignment = TextAnchor.MiddleLeft;
+				text.color = EditableTextColor;
+				text.fontSize = Style.FontSize;
+				text.font = Style.Font;
+			}
+
+			var input = e.WidgetObject.GetComponentInChildren<InputField>();
+			if (input != null)
+			{
+				input.selectionColor = EditableSelectionBackgroundColor;
+				input.caretWidth = 2;
+			}
 		}
 
 		public static void Polish(UIPopup e)
