@@ -590,7 +590,7 @@ namespace Synergy
 
 		private void CopyTo(OtherModifierSyncedModifier m, int cloneFlags)
 		{
-			m.modifier_ = modifier_?.Clone(cloneFlags);
+			m.modifier_ = null;
 			m.modifierIndex_ = modifierIndex_;
 		}
 

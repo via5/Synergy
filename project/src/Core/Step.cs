@@ -38,6 +38,12 @@ namespace Synergy
 			Clear();
 		}
 
+		public void RelinquishModifiers()
+		{
+			modifiers_ = new List<ModifierContainer>();
+			enabledModifiers_ = new List<ModifierContainer>();
+		}
+
 		public void Clear()
 		{
 			if (modifiers_ != null)
@@ -80,6 +86,7 @@ namespace Synergy
 			}
 
 			s.halfMove_.Value = halfMove_.Value;
+			s.useGracePeriod_ = useGracePeriod_;
 
 			foreach (var m in modifiers_)
 				s.AddModifier(m.Clone(cloneFlags));
@@ -191,6 +198,12 @@ namespace Synergy
 			set { halfMove_.Value = value; }
 		}
 
+		public bool UseGracePeriod
+		{
+			get { return useGracePeriod_; }
+			set { useGracePeriod_ = value; }
+		}
+
 		public BoolParameter HalfMoveParameter
 		{
 			get { return halfMove_; }
@@ -239,6 +252,7 @@ namespace Synergy
 			o.Add("repeat", Repeat);
 			o.Add("delay", Delay);
 			o.Add("halfMove", halfMove_);
+			o.Add("useGracePeriod", useGracePeriod_);
 			o.Add("modifiers", modifiers_);
 
 			return o;
@@ -255,6 +269,7 @@ namespace Synergy
 			o.Opt("enabled", enabled_);
 			o.Opt("name", ref name_);
 			o.Opt("halfMove", halfMove_);
+			o.Opt("useGracePeriod", ref useGracePeriod_);
 			o.Opt("modifiers", ref modifiers_);
 
 			{
@@ -415,9 +430,36 @@ namespace Synergy
 			}
 		}
 
+		private bool NeedsTickPaused()
+		{
+			// modifiers in TickPaused() will reset movements, which is
+			// important when a modifier has a minimum movement that's not 0
+			//
+			// if TickPaused() isn't called, the modifier will be stuck at that
+			// minimum even when the step isn't active
+			//
+			// however, if the step is a half move, TickPaused() must not be
+			// called while the half move is active (that is, this step or a
+			// later step is currently executing) because the modifier must not
+			// be reset, since that would prevent the half move from working
+
+
+			// if this is not a half move, always call TickPaused()
+			if (!HalfMove)
+				return true;
+
+			// if this step is not active, always call TickPaused()
+			if (!Synergy.Instance.Manager.IsStepActive(this))
+				return true;
+
+			// this step is a half move and it's either executing or a later
+			// step is; don't call TickPaused() so modifiers don't get reset
+			return false;
+		}
+
 		public void TickPaused(float deltaTime)
 		{
-			if (!HalfMove)
+			if (NeedsTickPaused())
 				DoModifierTicksPaused(deltaTime);
 		}
 

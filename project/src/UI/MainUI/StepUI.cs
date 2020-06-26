@@ -8,6 +8,7 @@
 		private readonly ConfirmableButton delete_;
 		private readonly Checkbox enabled_;
 		private readonly Checkbox halfMove_;
+		private readonly Checkbox useGracePeriod_;
 
 		private readonly Collapsible durationCollapsible_;
 		private readonly DurationWidgets durationWidgets_;
@@ -30,6 +31,9 @@
 
 			halfMove_ = new Checkbox(
 				"Half move", false, StepHalfMoveChanged);
+
+			useGracePeriod_ = new Checkbox(
+				"Use grace period", false, UseGracePeriodChanged);
 
 			durationCollapsible_ = new Collapsible("Duration");
 			durationWidgets_ = new DurationWidgets(
@@ -55,6 +59,7 @@
 			header_.Text = currentStep_.Name;
 			enabled_.Parameter = currentStep_.EnabledParameter;
 			halfMove_.Parameter = currentStep_.HalfMoveParameter;
+			useGracePeriod_.Value = currentStep_.UseGracePeriod;
 			durationWidgets_.SetValue(currentStep_?.Duration);
 			repeatWidgets_.SetValue(currentStep_.Repeat, new FloatRange(0, 10));
 			delayWidgets_.SetValue(currentStep_?.Delay);
@@ -69,6 +74,7 @@
 			widgets_.AddToUI(delete_);
 			widgets_.AddToUI(enabled_);
 			widgets_.AddToUI(halfMove_);
+			widgets_.AddToUI(useGracePeriod_);
 
 			durationCollapsible_.AddToUI();
 			repeatCollapsible_.AddToUI();
@@ -111,6 +117,12 @@
 		{
 			if (currentStep_ != null)
 				currentStep_.Enabled = b;
+		}
+
+		private void UseGracePeriodChanged(bool b)
+		{
+			if (currentStep_ != null)
+				currentStep_.UseGracePeriod = b;
 		}
 
 		private void DurationTypeChanged(IDuration d)

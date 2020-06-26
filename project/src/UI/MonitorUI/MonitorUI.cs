@@ -3,6 +3,7 @@
 	class MonitorUI
 	{
 		private readonly Label runningStep_;
+		private readonly Checkbox active_;
 		private IDurationMonitor duration_ = null;
 		private readonly RandomizableTimeMonitorWidgets repeat_;
 		private IDurationMonitor delay_ = null;
@@ -17,6 +18,7 @@
 		public MonitorUI()
 		{
 			runningStep_ = new Label();
+			active_ = new Checkbox("Active");
 			repeat_ = new RandomizableTimeMonitorWidgets("Repeat");
 			waitingFor_ = new Label();
 			gracePeriod_ = new FloatSlider("Grace period");
@@ -57,6 +59,7 @@
 			}
 
 			widgets_.AddToUI(runningStep_);
+			widgets_.AddToUI(active_);
 
 			if (duration_ != null)
 				duration_.AddToUI(currentStep_.Duration);
@@ -95,6 +98,11 @@
 				runningStep_.Text = "Step running: (none)";
 			else
 				runningStep_.Text = "Step running: " + runningStep.Name;
+
+			if (currentStep_ == null)
+				active_.Value = false;
+			else
+				active_.Value = Synergy.Instance.Manager.IsStepActive(currentStep_);
 
 			if (currentStep_ == null)
 				repeat_.SetValue(null);

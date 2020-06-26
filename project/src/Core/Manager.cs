@@ -104,6 +104,16 @@ namespace Synergy
 			return true;
 		}
 
+		// whether `s` or a step later in the order is currently executing
+		//
+		public bool IsStepActive(Step s)
+		{
+			if (StepProgression == null)
+				return false;
+			else
+				return StepProgression.IsStepActive(s);
+		}
+
 		public void ResetAllSteps()
 		{
 			foreach (var s in steps_)
@@ -185,7 +195,9 @@ namespace Synergy
 					newStep.FromJSON(node);
 
 					foreach (var m in newStep.Modifiers)
-						s.AddModifier(new ModifierContainer(m.Modifier));
+						s.AddModifier(m);
+
+					newStep.RelinquishModifiers();
 
 					s.Reset();
 				}

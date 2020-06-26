@@ -209,6 +209,11 @@ namespace Synergy
 			}
 		}
 
+		public float RealMagnitude
+		{
+			get { return magnitude_; }
+		}
+
 
 		public override IModifier Clone(int cloneFlags = 0)
 		{

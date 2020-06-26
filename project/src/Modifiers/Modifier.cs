@@ -327,7 +327,7 @@ namespace Synergy
 				var atomUID = o.Get("atom").AsString();
 				if (atomUID != null)
 				{
-					if (J.Node.SaveType == SaveTypes.Preset)
+					if (atomUID == Utilities.PresetAtomPlaceholder)
 						Atom = Synergy.Instance.DefaultAtom;
 					else
 						Atom = SuperController.singleton.GetAtomByUid(atomUID);

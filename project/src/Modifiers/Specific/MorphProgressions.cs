@@ -287,6 +287,13 @@ namespace Synergy
 			return p;
 		}
 
+		private void CopyTo(NaturalMorphProgression m, int cloneFlags)
+		{
+			base.CopyTo(m, cloneFlags);
+			m.Duration = Duration.Clone(cloneFlags);
+			m.Delay = Delay.Clone(cloneFlags);
+		}
+
 		public override void Removed()
 		{
 			Duration = null;
@@ -523,11 +530,6 @@ namespace Synergy
 
 			foreach (var sm in morphs_)
 				sm.Reset();
-		}
-
-		private void CopyTo(NaturalMorphProgression m, int cloneFlags)
-		{
-			base.CopyTo(m, cloneFlags);
 		}
 
 		public override void MorphAdded(int i)

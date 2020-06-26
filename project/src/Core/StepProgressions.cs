@@ -13,6 +13,7 @@ namespace Synergy
 		void Removed();
 		void StepInserted(int at, Step s);
 		void StepDeleted(int at);
+		bool IsStepActive(Step s);
 	}
 
 	sealed class StepProgressionFactory : BasicFactory<IStepProgression>
@@ -55,6 +56,7 @@ namespace Synergy
 		public abstract Step Current { get; }
 		public abstract void Tick(float deltaTime);
 		public abstract void Next();
+		public abstract bool IsStepActive(Step s);
 
 		public virtual void Removed()
 		{
@@ -232,6 +234,17 @@ namespace Synergy
 			}
 		}
 
+		public override bool IsStepActive(Step s)
+		{
+			for (int i = 0; i <= current_; ++i)
+			{
+				if (GetStep(i) == s)
+					return true;
+			}
+
+			return false;
+		}
+
 		protected override void StepsChanged()
 		{
 			base.StepsChanged();
@@ -260,7 +273,6 @@ namespace Synergy
 		public override string GetDisplayName() { return DisplayName; }
 
 		private List<int> order_ = new List<int>();
-
 
 		protected override int GetStepIndex(int i)
 		{
@@ -367,6 +379,10 @@ namespace Synergy
 				s.Resume();
 		}
 
+		public override bool IsStepActive(Step s)
+		{
+			return true;
+		}
 
 		public override J.Node ToJSON()
 		{
