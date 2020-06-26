@@ -39,16 +39,17 @@ namespace Synergy.NewUI
 			root_.DoLayoutIfNeeded();
 
 			var s = Synergy.Instance.Manager.AddStep();
-			var rm = new RigidbodyModifier();
-			rm.Atom = Synergy.Instance.GetAtomById("Person");
-			rm.Receiver = Utilities.FindRigidbody(rm.Atom, "head");
-			rm.Movement.Maximum.Initial = 100;
-			var m = new ModifierContainer(rm);
+			var mm = new MorphModifier();
+			//var rm = new RigidbodyModifier();
+			//rm.Atom = Synergy.Instance.GetAtomById("Person");
+			//rm.Receiver = Utilities.FindRigidbody(rm.Atom, "head");
+			//rm.Movement.Maximum.Initial = 100;
+			var m = new ModifierContainer(mm);
 			m.ModifierSync = new UnsyncedModifier(
 				new RandomDuration(1), new Delay(new RandomDuration(1), false, false));
 			s.AddModifier(m);
 
-			//modifiersTab_.SelectTab(1);
+			modifiersTab_.SelectTab(2);
 		}
 
 		public void SelectStep(Step s)
