@@ -39,6 +39,7 @@ namespace Synergy.NewUI
 			tabs_.AddTab(S("Add morphs"), addMorphs_);
 
 			atom_.AtomSelectionChanged += OnAtomSelected;
+			tabs_.SelectionChanged += OnTabSelected;
 
 			tabs_.Select(2);
 		}
@@ -65,6 +66,12 @@ namespace Synergy.NewUI
 				return;
 
 			addMorphs_.Atom = atom;
+		}
+
+		private void OnTabSelected(int index)
+		{
+			if (index == 2)
+				addMorphs_.Activated();
 		}
 	}
 
@@ -490,6 +497,7 @@ namespace Synergy.NewUI
 
 		private Atom atom_ = null;
 		private readonly HashSet<DAZMorph> selection_ = new HashSet<DAZMorph>();
+		private bool first_ = true;
 		private IgnoreFlag ignore_ = new IgnoreFlag();
 
 		public AddMorphsTab()
@@ -554,8 +562,8 @@ namespace Synergy.NewUI
 			Layout = new UI.BorderLayout();
 			Add(stack_, UI.BorderLayout.Center);
 
+			SetStack();
 			UpdateToggleButton();
-			UpdateCategories();
 		}
 
 		public Atom Atom
@@ -568,8 +576,16 @@ namespace Synergy.NewUI
 			set
 			{
 				atom_ = value;
+				SetStack();
+			}
+		}
+
+		public void Activated()
+		{
+			if (first_)
+			{
+				first_ = false;
 				UpdateCategories();
-				UpdateMorphs();
 			}
 		}
 
@@ -614,13 +630,6 @@ namespace Synergy.NewUI
 
 		private void UpdateCategories()
 		{
-			if (atom_ == null)
-			{
-				stack_.Select(0);
-				return;
-			}
-
-			stack_.Select(1);
 			categories_.Update(atom_, CreateFilter());
 		}
 
@@ -630,6 +639,17 @@ namespace Synergy.NewUI
 				morphs_.Clear();
 			else
 				morphs_.Update(atom_, categories_.Selected.name, CreateFilter());
+		}
+
+		private void SetStack()
+		{
+			if (atom_ == null)
+			{
+				stack_.Select(0);
+				return;
+			}
+
+			stack_.Select(1);
 		}
 
 		private void OnCategorySelected(MorphCategoryListView.Category cat)

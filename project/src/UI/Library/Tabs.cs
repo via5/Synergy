@@ -94,6 +94,11 @@ namespace Synergy.UI
 			}
 		}
 
+
+		public delegate void SelectionCallback(int index);
+		public event SelectionCallback SelectionChanged;
+
+
 		private readonly Panel top_ = new Panel();
 		private readonly Stack stack_ = new Stack();
 		private readonly List<Tab> tabs_ = new List<Tab>();
@@ -214,10 +219,13 @@ namespace Synergy.UI
 
 		private void SelectImpl(Tab t)
 		{
+			int sel = -1;
+
 			for (int i = 0; i < tabs_.Count; ++i)
 			{
 				if (tabs_[i] == t)
 				{
+					sel = i;
 					stack_.Select(i);
 					tabs_[i].SetSelected(true);
 				}
@@ -226,6 +234,8 @@ namespace Synergy.UI
 					tabs_[i].SetSelected(false);
 				}
 			}
+
+			SelectionChanged?.Invoke(sel);
 		}
 	}
 }
