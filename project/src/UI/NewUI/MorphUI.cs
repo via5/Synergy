@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -40,8 +41,9 @@ namespace Synergy.NewUI
 
 			atom_.AtomSelectionChanged += OnAtomSelected;
 			tabs_.SelectionChanged += OnTabSelected;
+			addMorphs_.MorphsChanged += OnMorphsChanged;
 
-			tabs_.Select(2);
+			tabs_.Select(1);
 		}
 
 		public override bool Accepts(IModifier m)
@@ -56,7 +58,10 @@ namespace Synergy.NewUI
 			ignore_.Do(() =>
 			{
 				atom_.Select(modifier_.Atom);
+				//morphs_.Atom = modifier_.Atom;
+				//morphs_.SelectedMorphs = modifier_.Morphs;
 				addMorphs_.Atom = modifier_.Atom;
+				addMorphs_.SelectedMorphs = modifier_.Morphs;
 			});
 		}
 
@@ -66,6 +71,11 @@ namespace Synergy.NewUI
 				return;
 
 			addMorphs_.Atom = atom;
+		}
+
+		private void OnMorphsChanged(List<DAZMorph> morphs)
+		{
+			modifier_.SetMorphs(morphs);
 		}
 
 		private void OnTabSelected(int index)
@@ -84,18 +94,9 @@ namespace Synergy.NewUI
 	{
 		public SelectedMorphsTab()
 		{
-			var gl = new UI.GridLayout(1);
-			gl.VerticalSpacing = 10;
-			gl.UniformHeight = false;
-			gl.VerticalStretch = new List<bool>() { false, false, true, false };
-
-			var search = new UI.TextBox();
-			search.Placeholder = "Search";
-
-			var left = new UI.Panel(gl);
-			left.Add(new UI.Label(S("Selected morphs")));
-			left.Add(new UI.ListView<string>());
-			left.Add(search);
+			var left = new UI.Panel(new UI.BorderLayout());
+			left.Add(new UI.Label(S("Selected morphs")), UI.BorderLayout.Top);
+			left.Add(new UI.ListView<string>(), UI.BorderLayout.Center);
 
 
 			var right = new UI.Panel(new UI.VerticalFlow());
@@ -175,12 +176,14 @@ namespace Synergy.NewUI
 			public string name;
 			public bool hasPoses;
 			public bool hasMorphs;
+			public List<DAZMorph> morphs;
 
-			public Category(string name, bool hasPoses, bool hasMorphs)
+			public Category(string name)
 			{
 				this.name = name;
-				this.hasPoses = hasPoses;
-				this.hasMorphs = hasMorphs;
+				hasPoses = false;
+				hasMorphs = false;
+				morphs = new List<DAZMorph>();
 			}
 
 			public override string ToString()
@@ -216,11 +219,8 @@ namespace Synergy.NewUI
 			get { return list_.Selected; }
 		}
 
-		private bool ShouldShow(MorphFilter filter, Category c)
+		private bool FlagsMatch(MorphFilter filter, Category c)
 		{
-			if (!filter.search.IsMatch(c.name))
-				return false;
-
 			if (Bits.IsSet(filter.flags, MorphFilter.ShowMorphs))
 			{
 				if (c.hasMorphs)
@@ -232,6 +232,23 @@ namespace Synergy.NewUI
 				if (c.hasPoses)
 					return true;
 			}
+
+			return false;
+		}
+
+		private bool ShouldShow(MorphFilter filter, Category c)
+		{
+			if (!FlagsMatch(filter, c))
+				return false;
+
+			foreach (var m in c.morphs)
+			{
+				if (filter.search.IsMatch(m.displayName))
+					return true;
+			}
+
+			if (filter.search.IsMatch(c.name))
+				return true;
 
 			return false;
 		}
@@ -282,8 +299,10 @@ namespace Synergy.NewUI
 			if (atom_ == null)
 				return;
 
-			// all
-			cats_.Add(new Category("", true, true));
+			var all = new Category("");
+			all.hasMorphs = true;
+			all.hasPoses = true;
+			cats_.Add(all);
 
 			var d = new Dictionary<string, Category>();
 
@@ -293,18 +312,15 @@ namespace Synergy.NewUI
 
 				var name = MakeCategoryName(morph);
 
-				if (d.TryGetValue(name, out cat))
+				if (!d.TryGetValue(name, out cat))
 				{
-					cat.hasMorphs = cat.hasMorphs || !morph.isPoseControl;
-					cat.hasPoses = cat.hasPoses || morph.isPoseControl;
-				}
-				else
-				{
-					cat = new Category(
-						name, morph.isPoseControl, !morph.isPoseControl);
-
+					cat = new Category(name);
 					d.Add(name, cat);
 				}
+
+				cat.hasMorphs = cat.hasMorphs || !morph.isPoseControl;
+				cat.hasPoses = cat.hasPoses || morph.isPoseControl;
+				cat.morphs.Add(morph);
 			}
 
 			cats_.AddRange(d.Values.ToList());
@@ -379,10 +395,63 @@ namespace Synergy.NewUI
 			list_.UpdateItemText(list_.SelectedIndex);
 		}
 
-		private bool ShouldShow(MorphFilter filter, Morph m)
+		public void SetActive(Morph m, bool b)
 		{
-			// the filter regex is not used: if the category matched, all
-			// morphs are shown
+			m.active = b;
+			list_.UpdateItemText(m);
+		}
+
+		public Morph SetActive(DAZMorph m, bool b)
+		{
+			var s = Find(m);
+			if (s == null)
+			{
+				Synergy.LogError(
+					"can't set '" + m.displayName + "' " +
+					"active=" + b.ToString() + ", not in list");
+
+				return null;
+			}
+
+			SetActive(s, b);
+			return s;
+		}
+
+		public Morph Find(DAZMorph m)
+		{
+			var cat = MorphCategoryListView.MakeCategoryName(m);
+
+			List<Morph> list = null;
+			if (!morphs_.TryGetValue(cat, out list))
+			{
+				Synergy.LogError("can't find category '" + cat + "'");
+				return null;
+			}
+
+			foreach (var s in list)
+			{
+				if (s.morph == m)
+					return s;
+			}
+
+			return null;
+		}
+
+		private bool ShouldShow(string category, MorphFilter filter, Morph m)
+		{
+			// don't check names for the 'all' category
+			if (category != "")
+			{
+				// if the category name matched, don't check the morph names,
+				// just show all of them
+				//
+				// if the category name didn't match, only show morphs that do
+				if (!filter.search.IsMatch(category))
+				{
+					if (!filter.search.IsMatch(m.morph.displayName))
+						return false;
+				}
+			}
 
 			if (Bits.IsSet(filter.flags, MorphFilter.ShowMorphs))
 			{
@@ -415,14 +484,18 @@ namespace Synergy.NewUI
 			Morph oldSelection = list_.Selected;
 			var items = new List<Morph>();
 
-			if (category == "")
+			if (category == null)
+			{
+				// no selection
+			}
+			else if (category == "")
 			{
 				// all
 				foreach (var pair in morphs_)
 				{
 					foreach (var m in pair.Value)
 					{
-						if (!ShouldShow(filter, m))
+						if (!ShouldShow(category, filter, m))
 							continue;
 
 						items.Add(m);
@@ -437,7 +510,7 @@ namespace Synergy.NewUI
 				{
 					foreach (var m in list)
 					{
-						if (!ShouldShow(filter, m))
+						if (!ShouldShow(category, filter, m))
 							continue;
 
 						items.Add(m);
@@ -487,6 +560,9 @@ namespace Synergy.NewUI
 
 	class AddMorphsTab : UI.Panel
 	{
+		public delegate void MorphsCallback(List<DAZMorph> list);
+		public event MorphsCallback MorphsChanged;
+
 		private readonly UI.Stack stack_;
 		private readonly UI.ComboBox<string> show_;
 		private readonly MorphCategoryListView categories_;
@@ -495,7 +571,7 @@ namespace Synergy.NewUI
 		private readonly UI.Button toggle_;
 
 		private Atom atom_ = null;
-		private readonly HashSet<DAZMorph> selection_ = new HashSet<DAZMorph>();
+		private readonly List<DAZMorph> selection_ = new List<DAZMorph>();
 		private bool dirty_ = false;
 		private bool active_ = false;
 		private IgnoreFlag ignore_ = new IgnoreFlag();
@@ -581,6 +657,22 @@ namespace Synergy.NewUI
 			}
 		}
 
+		public List<SelectedMorph> SelectedMorphs
+		{
+			set
+			{
+				foreach (var s in selection_)
+					morphs_.SetActive(s, false);
+
+				selection_.Clear();
+
+				foreach (var sm in value)
+					selection_.Add(sm.Morph);
+
+				NeedsUpdate();
+			}
+		}
+
 		public void SetActive(bool b)
 		{
 			active_ = b;
@@ -604,6 +696,10 @@ namespace Synergy.NewUI
 		{
 			UpdateCategories();
 			UpdateMorphs();
+
+			foreach (var s in selection_)
+				morphs_.SetActive(s, true);
+
 			dirty_ = false;
 		}
 
@@ -653,10 +749,7 @@ namespace Synergy.NewUI
 
 		private void UpdateMorphs()
 		{
-			if (categories_.Selected == null)
-				morphs_.Clear();
-			else
-				morphs_.Update(atom_, categories_.Selected.name, CreateFilter());
+			morphs_.Update(atom_, categories_.Selected?.name, CreateFilter());
 		}
 
 		private void SetStack()
@@ -696,8 +789,16 @@ namespace Synergy.NewUI
 				return;
 
 			m.active = !m.active;
+
+			if (m.active)
+				selection_.Add(m.morph);
+			else
+				selection_.Remove(m.morph);
+
 			morphs_.SelectedItemChanged();
 			UpdateToggleButton();
+
+			MorphsChanged?.Invoke(new List<DAZMorph>(selection_));
 		}
 
 		private void OnShowChanged(string s)

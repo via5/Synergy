@@ -166,6 +166,13 @@ namespace Synergy.UI
 				UpdateLabel();
 		}
 
+		public void UpdateItemText(ItemType item)
+		{
+			int i = IndexOf(item);
+			if (i != -1)
+				UpdateItemText(i);
+		}
+
 		public virtual int IndexOf(ItemType item)
 		{
 			for (int i = 0; i < items_.Count; ++i)
