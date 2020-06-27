@@ -58,8 +58,10 @@ project\src\UI\MonitorUI\Modifiers\RigidbodyModifierMonitorUI.cs
 project\src\UI\NewUI\DurationUI.cs
 project\src\UI\NewUI\FactoryUI.cs
 project\src\UI\NewUI\ModifierUI.cs
+project\src\UI\NewUI\MorphUI.cs
 project\src\UI\NewUI\MovementUI.cs
 project\src\UI\NewUI\NewUI.cs
+project\src\UI\NewUI\RigidbodyUI.cs
 project\src\UI\NewUI\StepUI.cs
 project\src\UI\Widgets\AtomList.cs
 project\src\UI\Widgets\AudioClipsCheckboxes.cs
