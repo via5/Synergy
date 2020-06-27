@@ -70,8 +70,7 @@ namespace Synergy.NewUI
 
 		private void OnTabSelected(int index)
 		{
-			if (index == 2)
-				addMorphs_.Activated();
+			addMorphs_.SetActive(index == 2);
 		}
 	}
 
@@ -280,11 +279,11 @@ namespace Synergy.NewUI
 
 			cats_.Clear();
 
-			// all
-			cats_.Add(new Category("", true, true));
-
 			if (atom_ == null)
 				return;
+
+			// all
+			cats_.Add(new Category("", true, true));
 
 			var d = new Dictionary<string, Category>();
 
@@ -497,7 +496,8 @@ namespace Synergy.NewUI
 
 		private Atom atom_ = null;
 		private readonly HashSet<DAZMorph> selection_ = new HashSet<DAZMorph>();
-		private bool first_ = true;
+		private bool dirty_ = false;
+		private bool active_ = false;
 		private IgnoreFlag ignore_ = new IgnoreFlag();
 
 		public AddMorphsTab()
@@ -576,17 +576,35 @@ namespace Synergy.NewUI
 			set
 			{
 				atom_ = value;
+				NeedsUpdate();
 				SetStack();
 			}
 		}
 
-		public void Activated()
+		public void SetActive(bool b)
 		{
-			if (first_)
+			active_ = b;
+
+			if (active_ && dirty_)
+				DoUpdate();
+		}
+
+		private void NeedsUpdate()
+		{
+			if (!active_)
 			{
-				first_ = false;
-				UpdateCategories();
+				dirty_ = true;
+				return;
 			}
+
+			DoUpdate();
+		}
+
+		private void DoUpdate()
+		{
+			UpdateCategories();
+			UpdateMorphs();
+			dirty_ = false;
 		}
 
 		private void UpdateToggleButton()
