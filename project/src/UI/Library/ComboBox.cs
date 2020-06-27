@@ -131,7 +131,7 @@ namespace Synergy.UI
 			SetItems(new List<ItemType>());
 		}
 
-		public void SetItems(List<ItemType> items, ItemType sel = null)
+		public virtual void SetItems(List<ItemType> items, ItemType sel = null)
 		{
 			items_.Clear();
 
@@ -144,9 +144,6 @@ namespace Synergy.UI
 
 				AddItemNoUpdate(new Item(items[i]));
 			}
-
-			if (selIndex == -1 && items_.Count > 0)
-				selIndex = 0;
 
 			UpdateChoices();
 			Select(selIndex);
@@ -347,6 +344,14 @@ namespace Synergy.UI
 		public ComboBox(List<ItemType> items, ItemCallback selectionChanged)
 			: base(items, selectionChanged)
 		{
+		}
+
+		public override void SetItems(List<ItemType> items, ItemType sel = null)
+		{
+			base.SetItems(items, sel);
+
+			if (SelectedIndex == -1 && Count > 0)
+				Select(0);
 		}
 
 		protected override Size DoGetPreferredSize(
