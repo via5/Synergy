@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace Synergy.NewUI
@@ -101,37 +102,265 @@ namespace Synergy.NewUI
 	}
 
 
-	class AddMorphsTab : UI.Panel
+	class SearchTextBox : UI.Panel
 	{
-		private class MorphItem
-		{
-			public DAZMorph morph;
-			public bool selected;
-			public int allIndex = -1;
+		private const float SearchDelay = 0.7f;
 
-			public MorphItem(DAZMorph m, bool sel)
+		public delegate void StringCallback(string s);
+		public event StringCallback SearchChanged;
+
+		private readonly UI.TextBox textbox_;
+		private Timer timer_ = null;
+
+		public SearchTextBox()
+		{
+			textbox_ = new UI.TextBox();
+			textbox_.Placeholder = "Search";
+			textbox_.MinimumSize = new UI.Size(300, DontCare);
+			textbox_.Changed += OnTextChanged;
+
+			Layout = new UI.BorderLayout();
+			Add(textbox_, UI.BorderLayout.Center);
+		}
+
+		public string Text
+		{
+			get { return textbox_.Text; }
+		}
+
+		private void OnTextChanged(string s)
+		{
+			if (timer_ != null)
 			{
-				morph = m;
-				selected = sel;
+				timer_.Destroy();
+				timer_ = null;
+			}
+
+			timer_ = Synergy.Instance.CreateTimer(SearchDelay, OnTimer);
+		}
+
+		private void OnTimer()
+		{
+			SearchChanged?.Invoke(textbox_.Text);
+		}
+	}
+
+
+	class MorphItem
+	{
+		public DAZMorph morph;
+		public bool selected;
+
+		public MorphItem(DAZMorph m, bool sel)
+		{
+			morph = m;
+			selected = sel;
+		}
+
+		public override string ToString()
+		{
+			if (selected)
+				return "\u2713" + morph.displayName;
+			else
+				return "   " + morph.displayName;
+		}
+	}
+
+
+	struct MorphFilter
+	{
+		public const int ShowPoses = 0x01;
+		public const int ShowMorphs = 0x02;
+
+		public Regex search;
+		public int flags;
+
+		public MorphFilter(Regex search, int flags)
+		{
+			this.search = search;
+			this.flags = flags;
+		}
+	}
+
+
+	class MorphListView
+	{
+		private readonly UI.ListView<MorphItem> list_;
+		private MorphFilter filter_;
+
+		public MorphListView()
+		{
+			list_ = new UI.ListView<MorphItem>();
+			list_.SelectionChanged += OnSelection;
+		}
+
+		public UI.ListView<MorphItem> List
+		{
+			get { return list_; }
+		}
+
+		public MorphFilter Filter
+		{
+			get { return filter_; }
+			set { filter_ = value; }
+		}
+
+		private void OnSelection(MorphItem mi)
+		{
+		}
+	}
+
+
+	class MorphCategoryListView
+	{
+		public delegate void CategoryCallback(string name);
+		public event CategoryCallback CategorySelected;
+
+		public class Category
+		{
+			public string name;
+			public bool hasPoses;
+			public bool hasMorphs;
+
+			public Category(string name, bool hasPoses, bool hasMorphs)
+			{
+				this.name = name;
+				this.hasPoses = hasPoses;
+				this.hasMorphs = hasMorphs;
 			}
 
 			public override string ToString()
 			{
-				if (selected)
-					return "\u2713" + morph.displayName;
+				if (name == "")
+					return Strings.Get("(All)");
 				else
-					return "   " + morph.displayName;
+					return name;
 			}
 		}
 
-		private const float SearchDelay = 0.7f;
+		private readonly UI.ListView<Category> list_;
+		private List<Category> cats_ = new List<Category>();
+		private Atom atom_ = null;
+		private IgnoreFlag ignore_ = new IgnoreFlag();
 
+		public MorphCategoryListView()
+		{
+			list_ = new UI.ListView<Category>();
+			list_.SelectionChanged += OnSelection;
+		}
+
+		public UI.ListView<Category> List
+		{
+			get { return list_; }
+		}
+
+		private bool ShouldShow(MorphFilter filter, Category c)
+		{
+			if (!filter.search.IsMatch(c.name))
+				return false;
+
+			if (Bits.IsSet(filter.flags, MorphFilter.ShowMorphs))
+			{
+				if (c.hasMorphs)
+					return true;
+			}
+
+			if (Bits.IsSet(filter.flags, MorphFilter.ShowPoses))
+			{
+				if (c.hasPoses)
+					return true;
+			}
+
+			return false;
+		}
+
+		public void Update(Atom atom, MorphFilter filter)
+		{
+			Category oldSelection = list_.Selected;
+
+			if (cats_.Count == 0 || atom_ != atom)
+			{
+				atom_ = atom;
+				oldSelection = null;
+				GetCategories();
+			}
+
+			var items = new List<Category>();
+
+			for (int i = 0; i < cats_.Count; ++i)
+			{
+				var cat = cats_[i];
+
+				if (!ShouldShow(filter, cat))
+					continue;
+
+				items.Add(cat);
+			}
+
+			ignore_.Do(() =>
+			{
+				list_.SetItems(items, oldSelection);
+			});
+		}
+
+		private void GetCategories()
+		{
+			Synergy.LogError("MorphCategoryListView: getting cats");
+
+			cats_.Clear();
+
+			// all
+			cats_.Add(new Category("", true, true));
+
+			if (atom_ == null)
+				return;
+
+			var d = new Dictionary<string, Category>();
+
+			foreach (var morph in Utilities.GetAtomMorphs(atom_))
+			{
+				Category cat;
+
+				var name = morph.region;
+				if (name == "")
+					name = Strings.Get("(No category)");
+
+				if (d.TryGetValue(morph.region, out cat))
+				{
+					cat.hasMorphs = cat.hasMorphs || !morph.isPoseControl;
+					cat.hasPoses = cat.hasPoses || morph.isPoseControl;
+				}
+				else
+				{
+					cat = new Category(
+						name,
+						morph.isPoseControl, !morph.isPoseControl);
+
+					d.Add(morph.region, cat);
+				}
+			}
+
+			cats_ = d.Values.ToList();
+		}
+
+		private void OnSelection(Category cat)
+		{
+			if (ignore_)
+				return;
+
+			CategorySelected?.Invoke(cat.name);
+		}
+	}
+
+
+	class AddMorphsTab : UI.Panel
+	{
 		private readonly UI.Stack mainStack_, morphsStack_;
-		private readonly UI.ListView<string> categories_;
-		private readonly UI.ListView<MorphItem> morphs_, allMorphs_;
-		private readonly UI.TextBox search_;
+		private readonly UI.ComboBox<string> show_;
+		private readonly MorphCategoryListView categories_;
+		private readonly MorphListView morphs_, allMorphs_;
+		private readonly SearchTextBox search_;
 		private readonly UI.Button toggle_;
-		private Timer searchTimer_ = null;
 
 		private Atom atom_ = null;
 		private readonly HashSet<DAZMorph> selection_ = new HashSet<DAZMorph>();
@@ -140,23 +369,23 @@ namespace Synergy.NewUI
 
 		public AddMorphsTab()
 		{
-			categories_ = new UI.ListView<string>();
-			categories_.SelectionIndexChanged += OnCategorySelected;
+			categories_ = new MorphCategoryListView();
+			categories_.CategorySelected += OnCategorySelected;
 
 			var cats = new UI.Panel(new UI.BorderLayout());
 			cats.Add(new UI.Label(S("Categories")), UI.BorderLayout.Top);
-			cats.Add(categories_, UI.BorderLayout.Center);
+			cats.Add(categories_.List, UI.BorderLayout.Center);
 
 
-			morphs_ = new UI.ListView<MorphItem>();
-			morphs_.SelectionChanged += OnMorphSelected;
+			morphs_ = new MorphListView();
+			//morphs_.SelectionChanged += OnMorphSelected;
 
-			allMorphs_ = new UI.ListView<MorphItem>();
-			allMorphs_.SelectionChanged += OnAllMorphSelected;
+			allMorphs_ = new MorphListView();
+			//allMorphs_.SelectionChanged += OnAllMorphSelected;
 
 			morphsStack_ = new UI.Stack();
-			morphsStack_.AddToStack(morphs_);
-			morphsStack_.AddToStack(allMorphs_);
+			morphsStack_.AddToStack(morphs_.List);
+			morphsStack_.AddToStack(allMorphs_.List);
 
 			var morphs = new UI.Panel(new UI.BorderLayout());
 			var mp = new UI.Panel(new UI.BorderLayout());
@@ -179,18 +408,15 @@ namespace Synergy.NewUI
 
 			var top = new UI.Panel(new UI.HorizontalFlow(20));
 
-			var show = new UI.ComboBox<string>();
-			show.Items = new List<string>()
+			show_ = new UI.ComboBox<string>(new List<string>()
 			{
 				"Show all", "Show morphs only", "Show poses only"
-			};
+			}, OnShowChanged);
 
-			top.Add(show);
+			top.Add(show_);
 
-			search_ = new UI.TextBox();
-			search_.Placeholder = "Search";
-			search_.MinimumSize = new UI.Size(300, DontCare);
-			search_.Changed += OnSearchChanged;
+			search_ = new SearchTextBox();
+			search_.SearchChanged += OnSearchChanged;
 			top.Add(search_);
 
 			var mainPanel = new UI.Panel();
@@ -230,15 +456,14 @@ namespace Synergy.NewUI
 			set
 			{
 				atom_ = value;
-
 				UpdateCategories();
-				morphs_.Clear();
+				//morphs_.Clear();
 			}
 		}
 
 		private void UpdateToggleButton()
 		{
-			var m = ActiveMorphList.Selected;
+			var m = ActiveMorphList?.Selected;
 
 			if (m != null && m.selected)
 				toggle_.Text = S("Remove morph");
@@ -246,6 +471,33 @@ namespace Synergy.NewUI
 				toggle_.Text = S("Add morph");
 
 			toggle_.Enabled = (m != null);
+		}
+
+		private MorphFilter CreateFilter()
+		{
+			var text = search_.Text;
+			var pat = Regex.Escape(text).Replace("\\*", ".*");
+			var re = new Regex(pat, RegexOptions.IgnoreCase);
+
+			int flags = 0;
+
+			switch (show_.SelectedIndex)
+			{
+				case 1:
+					flags = MorphFilter.ShowMorphs;
+					break;
+
+				case 2:
+					flags = MorphFilter.ShowPoses;
+					break;
+
+				case 0:
+				default:
+					flags = MorphFilter.ShowMorphs | MorphFilter.ShowPoses;
+					break;
+			}
+
+			return new MorphFilter(re, flags);
 		}
 
 		private void UpdateCategories()
@@ -257,61 +509,12 @@ namespace Synergy.NewUI
 			}
 
 			mainStack_.Select(1);
-
-			bool showMorphs = true;
-			bool showPoses = true;
-
-
-			var oldSel = categories_.Selected;
-			categories_.Clear();
-
-
-			var categoryNames = new HashSet<string>();
-			var searchText = search_.Text;
-			var searchPattern = Regex.Escape(searchText).Replace("\\*", ".*");
-			var searchRe = new Regex(searchPattern, RegexOptions.IgnoreCase);
-
-			categoryNames.Add(S("(All)"));
-
-			int selIndex = -1;
-			int i = 1;
-
-			foreach (var mi in items_)
-			{
-				var morph = mi.morph;
-
-				if (!showMorphs && !morph.isPoseControl)
-					continue;
-
-				if (!showPoses && morph.isPoseControl)
-					continue;
-
-				var path = morph.region;
-				if (path == "")
-					path = S("(No category)");
-
-				if (!categoryNames.Contains(path))
-				{
-					if (searchRe.IsMatch(path))
-					{
-						if (path == oldSel)
-							selIndex = i;
-
-						categoryNames.Add(path);
-						++i;
-					}
-				}
-			}
-
-			ignore_.Do(() =>
-			{
-				categories_.Items = categoryNames.ToList();
-				categories_.Select(selIndex);
-			});
+			categories_.Update(atom_, CreateFilter());
 		}
 
 		private void UpdateMorphs(int catIndex)
 		{
+			/*
 			bool showMorphs = true;
 			bool showPoses = true;
 
@@ -383,56 +586,46 @@ namespace Synergy.NewUI
 
 					morphs_.Items = items;
 				}
-			}
+			}*/
 		}
 
-		private void OnCategorySelected(int catIndex)
+		private void OnCategorySelected(string name)
 		{
 			if (ignore_)
 				return;
 
-			UpdateMorphs(catIndex);
+			//UpdateMorphs(name);
 		}
 
 		private void OnSearchChanged(string s)
 		{
-			Synergy.LogError("search changed");
-
-			if (searchTimer_ != null)
-			{
-				searchTimer_.Destroy();
-				searchTimer_ = null;
-			}
-
-			searchTimer_ = Synergy.Instance.CreateTimer(
-				SearchDelay, OnSearchTimer);
-		}
-
-		private void OnSearchTimer()
-		{
-			Synergy.LogError("searching '" + search_.Text + "'");
-
-			UpdateCategories();
-			UpdateMorphs(categories_.SelectedIndex);
+			//UpdateCategories();
+			//UpdateMorphs(categories_.SelectedIndex);
 		}
 
 		private UI.ListView<MorphItem> ActiveMorphList
 		{
 			get
 			{
-				if (morphsStack_.Selected == 0)
-					return morphs_;
-				else
-					return allMorphs_;
+				//if (morphsStack_.Selected == 0)
+				//	return morphs_;
+				//else
+				//	return allMorphs_;
+				return null;
 			}
 		}
 
 		private void OnToggleMorph()
 		{
-			var m = ActiveMorphList.Selected;
-			m.selected = !m.selected;
-			ActiveMorphList.UpdateItemText(ActiveMorphList.SelectedIndex);
-			UpdateToggleButton();
+			//var m = ActiveMorphList.Selected;
+			//m.selected = !m.selected;
+			//ActiveMorphList.UpdateItemText(ActiveMorphList.SelectedIndex);
+			//UpdateToggleButton();
+		}
+
+		private void OnShowChanged(string s)
+		{
+			UpdateCategories();
 		}
 
 		private void OnMorphSelected(MorphItem m)
