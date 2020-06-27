@@ -13,7 +13,7 @@
 		{
 			text_ = new UI.TextBox();
 			text_.Validate += OnValidate;
-			text_.Changed += OnChanged;
+			text_.Edited += OnChanged;
 
 			Layout = new UI.HorizontalFlow(5);
 

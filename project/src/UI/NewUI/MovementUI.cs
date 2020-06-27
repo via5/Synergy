@@ -31,7 +31,7 @@ namespace Synergy.NewUI
 
 			Add(new ToolButton(S("Reset"), OnReset));
 
-			text_.Changed += OnTextChanged;
+			text_.Edited += OnTextChanged;
 		}
 
 		public void Set(float f)
@@ -102,7 +102,7 @@ namespace Synergy.NewUI
 		public MovementPanel(string caption)
 		{
 			var gl = new UI.GridLayout(2);
-			gl.Stretch = new List<bool>() { false, true };
+			gl.HorizontalStretch = new List<bool>() { false, true };
 			gl.HorizontalSpacing = 20;
 			gl.VerticalSpacing = 20;
 

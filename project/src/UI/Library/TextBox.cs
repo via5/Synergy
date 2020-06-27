@@ -66,7 +66,6 @@ namespace Synergy.UI
 			}
 
 			++clickCount_;
-			Synergy.LogError(clickCount_.ToString());
 
 			if (clickCount_ == 1)
 			{
@@ -80,7 +79,6 @@ namespace Synergy.UI
 
 				if (timeDiff <= DoubleClickTime && posDiff <= 4)
 				{
-					Synergy.LogError("double");
 					DoubleClick?.Invoke(data);
 				}
 				else
@@ -142,10 +140,12 @@ namespace Synergy.UI
 		public delegate void StringCallback(string s);
 
 		public event ValidateCallback Validate;
+		public event StringCallback Edited;
 		public event StringCallback Changed;
 
 
 		private string text_ = "";
+		private string placeholder_ = "";
 		private CustomInputField input_ = null;
 		private readonly IgnoreFlag ignore_ = new IgnoreFlag();
 
@@ -173,6 +173,22 @@ namespace Synergy.UI
 						input_.text = value;
 					});
 				}
+			}
+		}
+
+		public string Placeholder
+		{
+			get
+			{
+				return placeholder_;
+			}
+
+			set
+			{
+				placeholder_ = value;
+
+				if (input_ != null)
+					input_.placeholder.GetComponent<Text>().text = placeholder_;
 			}
 		}
 
@@ -214,10 +230,29 @@ namespace Synergy.UI
 			input_.textComponent = text;
 			input_.text = text_;
 			input_.onEndEdit.AddListener(OnEdited);
+			input_.onValueChanged.AddListener(OnValueChanged);
 			input_.lineType = InputField.LineType.SingleLine;
 
 			var image = WidgetObject.AddComponent<Image>();
 			image.raycastTarget = false;
+
+			// placeholder
+			var go = new GameObject();
+			go.transform.SetParent(input_.transform.parent, false);
+
+			text = go.AddComponent<Text>();
+			text.supportRichText = false;
+			text.horizontalOverflow = HorizontalWrapMode.Overflow;
+			text.raycastTarget = false;
+
+			rt = text.rectTransform;
+			rt.anchorMin = new Vector2(0, 0);
+			rt.anchorMax = new Vector2(1, 1);
+			rt.offsetMin = new Vector2(5, 0);
+			rt.offsetMax = new Vector2(0, -5);
+
+			input_.placeholder = text;
+			input_.placeholder.GetComponent<Text>().text = placeholder_;
 
 			Style.Polish(this);
 		}
@@ -281,6 +316,21 @@ namespace Synergy.UI
 			input_.SelectAllText();
 		}
 
+		private void OnValueChanged(string s)
+		{
+			if (Validate != null)
+				return;
+
+			Utilities.Handler(() =>
+			{
+				if (ignore_)
+					return;
+
+				text_ = s;
+				Changed?.Invoke(s);
+			});
+		}
+
 		private void OnEdited(string s)
 		{
 			Utilities.Handler(() =>
@@ -310,7 +360,7 @@ namespace Synergy.UI
 					text_ = s;
 				}
 
-				Changed?.Invoke(text_);
+				Edited?.Invoke(text_);
 			});
 		}
 	}

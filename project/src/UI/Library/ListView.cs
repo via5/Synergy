@@ -4,22 +4,22 @@ using UnityEngine.UI;
 
 namespace Synergy.UI
 {
-	class TypedListView<ItemType> : TypedListImpl<ItemType>
+	class ListView<ItemType> : TypedListImpl<ItemType>
 		where ItemType : class
 	{
 		public override string TypeName { get { return "list"; } }
 
-		public TypedListView(List<ItemType> items = null)
+		public ListView(List<ItemType> items = null)
 			: this(items, null)
 		{
 		}
 
-		public TypedListView(ItemCallback selectionChanged)
+		public ListView(ItemCallback selectionChanged)
 			: this(null, selectionChanged)
 		{
 		}
 
-		public TypedListView(List<ItemType> items, ItemCallback selectionChanged)
+		public ListView(List<ItemType> items, ItemCallback selectionChanged)
 			: base(items, selectionChanged)
 		{
 			Borders = new Insets(1);
@@ -60,10 +60,5 @@ namespace Synergy.UI
 		{
 			return new Size(300, 200);
 		}
-	}
-
-
-	class ListView : TypedListView<string>
-	{
 	}
 }

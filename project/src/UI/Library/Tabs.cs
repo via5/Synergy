@@ -16,6 +16,11 @@ namespace Synergy.UI
 			Layout = new BorderLayout();
 		}
 
+		public int Selected
+		{
+			get { return selection_; }
+		}
+
 		public void AddToStack(Widget w)
 		{
 			w.Visible = false;

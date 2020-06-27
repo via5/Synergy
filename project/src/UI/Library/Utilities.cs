@@ -343,11 +343,13 @@ namespace Synergy.UI
 		public float Width
 		{
 			get { return Right - Left; }
+			set { Right = Left + value; }
 		}
 
 		public float Height
 		{
 			get { return Bottom - Top; }
+			set { Bottom = Top + value; }
 		}
 
 		public Point TopLeft

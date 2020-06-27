@@ -35,6 +35,9 @@ namespace Synergy.UI
 		public delegate void ItemCallback(ItemType item);
 		public event ItemCallback SelectionChanged;
 
+		public delegate void IndexCallback(int index);
+		public event IndexCallback SelectionIndexChanged;
+
 		private readonly List<Item> items_ = new List<Item>();
 		private int selection_ = -1;
 		private bool updatingChoices_ = false;
@@ -110,6 +113,14 @@ namespace Synergy.UI
 			}
 		}
 
+		public ItemType At(int index)
+		{
+			if (index < 0 || index >= items_.Count)
+				return null;
+			else
+				return items_[index].Object;
+		}
+
 		public int Count
 		{
 			get { return items_.Count; }
@@ -147,6 +158,17 @@ namespace Synergy.UI
 			UpdateLabel();
 		}
 
+		public void UpdateItemText(int index)
+		{
+			if (index < 0 || index >= items_.Count)
+				return;
+
+			popup_.popup.setDisplayPopupValue(index, items_[index].Text);
+
+			if (index == selection_)
+				UpdateLabel();
+		}
+
 		public virtual int IndexOf(ItemType item)
 		{
 			for (int i = 0; i < items_.Count; ++i)
@@ -171,6 +193,7 @@ namespace Synergy.UI
 			selection_ = i;
 			UpdateLabel();
 			SelectionChanged?.Invoke(Selected);
+			SelectionIndexChanged?.Invoke(selection_);
 		}
 
 		public ItemType Selected

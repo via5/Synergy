@@ -117,7 +117,8 @@ namespace Synergy.UI
 		private readonly CellData<List<Widget>> widgets_ =
 			new CellData<List<Widget>>();
 
-		private readonly RowData<bool> stretch_ = new RowData<bool>();
+		private readonly RowData<bool> horStretch_ = new RowData<bool>();
+		private readonly RowData<bool> verStretch_ = new RowData<bool>();
 
 
 		private float hspacing_ = 0;
@@ -133,7 +134,7 @@ namespace Synergy.UI
 		public GridLayout(int cols)
 		{
 			widgets_.Extend(cols, 1);
-			stretch_.Extend(cols, true);
+			horStretch_.Extend(cols, true);
 		}
 
 		public static Data P(int col, int row)
@@ -168,23 +169,49 @@ namespace Synergy.UI
 			set { vspacing_ = value; }
 		}
 
-		public List<bool> Stretch
+		public bool UniformHeight
+		{
+			get { return uniformHeight_; }
+			set { uniformHeight_ = value; }
+		}
+
+		public List<bool> HorizontalStretch
 		{
 			get
 			{
 				var list = new List<bool>();
 
-				for (int i = 0; i < stretch_.Count; ++i)
-					list.Add(stretch_.Cell(i));
+				for (int i = 0; i < horStretch_.Count; ++i)
+					list.Add(horStretch_.Cell(i));
 
 				return list;
 			}
 
 			set
 			{
-				stretch_.Extend(value.Count);
+				horStretch_.Extend(value.Count);
 				for (int i = 0; i < value.Count; ++i)
-					stretch_.Set(i, value[i]);
+					horStretch_.Set(i, value[i]);
+			}
+		}
+
+		public List<bool> VerticalStretch
+		{
+			get
+			{
+				var list = new List<bool>();
+
+				for (int i = 0; i < verStretch_.Count; ++i)
+					list.Add(verStretch_.Cell(i));
+
+				return list;
+			}
+
+			set
+			{
+				verStretch_.Extend(value.Count);
+				for (int i = 0; i < value.Count; ++i)
+					verStretch_.Set(i, value[i]);
 			}
 		}
 
@@ -217,7 +244,8 @@ namespace Synergy.UI
 
 			widgets_.Extend(d.col + 1, d.row + 1);
 			widgets_.Cell(d.col, d.row).Add(w);
-			stretch_.Extend(d.col + 1, true);
+			horStretch_.Extend(d.col + 1, true);
+			verStretch_.Extend(d.row + 1, true);
 		}
 
 		protected override void LayoutImpl()
@@ -225,36 +253,70 @@ namespace Synergy.UI
 			var r = new Rectangle(Parent.Bounds);
 			var d = GetCellPreferredSizes();
 
-			int stretchCols = 0;
-			for (int colIndex = 0; colIndex < stretch_.Count; ++colIndex)
-			{
-				if (stretch_.Cell(colIndex))
-					++stretchCols;
-			}
 
-			var totalExtraWidth = Math.Max(0, r.Width - d.ps.Width);
 			var extraWidth = new List<float>();
 
-			if (stretchCols == 0)
 			{
-				for (int colIndex = 0; colIndex < stretch_.Count; ++colIndex)
-					extraWidth.Add(0);
-			}
-			else
-			{
-				var addWidthPerCell = totalExtraWidth / stretchCols;
-
-				for (int colIndex = 0; colIndex < stretch_.Count; ++colIndex)
+				int stretchCols = 0;
+				for (int colIndex = 0; colIndex < horStretch_.Count; ++colIndex)
 				{
-					if (stretch_.Cell(colIndex))
-						extraWidth.Add(addWidthPerCell);
-					else
+					if (horStretch_.Cell(colIndex))
+						++stretchCols;
+				}
+
+				var totalExtraWidth = Math.Max(0, r.Width - d.ps.Width);
+
+				if (stretchCols == 0)
+				{
+					for (int colIndex = 0; colIndex < horStretch_.Count; ++colIndex)
 						extraWidth.Add(0);
+				}
+				else
+				{
+					var addWidthPerCell = totalExtraWidth / stretchCols;
+
+					for (int colIndex = 0; colIndex < horStretch_.Count; ++colIndex)
+					{
+						if (horStretch_.Cell(colIndex))
+							extraWidth.Add(addWidthPerCell);
+						else
+							extraWidth.Add(0);
+					}
 				}
 			}
 
 
-			float yfactor = r.Height / d.ps.Height;
+			var extraHeight = new List<float>();
+
+			{
+				int stretchRows = 0;
+				for (int rowIndex = 0; rowIndex < verStretch_.Count; ++rowIndex)
+				{
+					if (verStretch_.Cell(rowIndex))
+						++stretchRows;
+				}
+
+				var totalExtraHeight = Math.Max(0, r.Height - d.ps.Height);
+
+				if (stretchRows == 0)
+				{
+					for (int rowIndex = 0; rowIndex < verStretch_.Count; ++rowIndex)
+						extraHeight.Add(0);
+				}
+				else
+				{
+					var addHeightPerCell = totalExtraHeight / stretchRows;
+
+					for (int rowIndex = 0; rowIndex < verStretch_.Count; ++rowIndex)
+					{
+						if (verStretch_.Cell(rowIndex))
+							extraHeight.Add(addHeightPerCell);
+						else
+							extraHeight.Add(0);
+					}
+				}
+			}
+
 
 			float x = r.Left;
 			float y = r.Top;
@@ -272,11 +334,10 @@ namespace Synergy.UI
 					var ps = d.sizes.Cell(colIndex, rowIndex);
 					var uniformWidth = d.widths[colIndex];
 
-					//var ww = Math.Min(ps.Width, uniformWidth);
 					var ww = uniformWidth + extraWidth[colIndex];
-					var wh = ps.Height;
+					var wh = ps.Height + extraHeight[rowIndex];
 
-					var wr = Rectangle.FromSize(x, y, ww, (wh * yfactor));
+					var wr = Rectangle.FromSize(x, y, ww, wh);
 
 					foreach (var w in ws)
 					{

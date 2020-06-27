@@ -23,6 +23,22 @@ namespace Synergy.UI
 				Clicked += clicked;
 		}
 
+		public string Text
+		{
+			get
+			{
+				return text_;
+			}
+
+			set
+			{
+				text_ = value;
+
+				if (button_ != null)
+					button_.buttonText.text = value;
+			}
+		}
+
 		public int Alignment
 		{
 			get
@@ -49,6 +65,12 @@ namespace Synergy.UI
 			button_.button.onClick.AddListener(OnClicked);
 			button_.buttonText.text = text_;
 
+			Style.Polish(button_);
+		}
+
+		protected override void DoSetEnabled(bool b)
+		{
+			button_.button.interactable = b;
 			Style.Polish(button_);
 		}
 

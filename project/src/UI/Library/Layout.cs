@@ -106,11 +106,18 @@ namespace Synergy.UI
 		public const int AlignRight = 0x20;
 
 		private int align_;
+		private bool expand_ = false;
 
 		public HorizontalFlow(int spacing = 0, int align = AlignLeft|AlignTop)
 		{
 			Spacing = spacing;
 			align_ = align;
+		}
+
+		public bool Expand
+		{
+			get { return expand_; }
+			set { expand_ = value; }
 		}
 
 		protected override void LayoutImpl()
@@ -134,7 +141,11 @@ namespace Synergy.UI
 				var wr = new Rectangle(
 					r.TopLeft, w.GetPreferredSize(DontCare, r.Height));
 
-				if (wr.Height < r.Height)
+				if (expand_)
+				{
+					wr.Height = r.Height;
+				}
+				else if (wr.Height < r.Height)
 				{
 					if (Bits.IsSet(align_, AlignVCenter))
 					{

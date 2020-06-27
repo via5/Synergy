@@ -160,6 +160,7 @@ namespace Synergy.UI
 		private BorderGraphics borderGraphics_ = null;
 
 		private bool visible_ = true;
+		private bool enabled_ = true;
 		private Insets margins_ = new Insets();
 		private Insets borders_ = new Insets();
 		private Insets padding_ = new Insets();
@@ -237,8 +238,11 @@ namespace Synergy.UI
 
 			set
 			{
-				visible_ = value;
-				NeedsLayout();
+				if (visible_ != value)
+				{
+					visible_ = value;
+					NeedsLayout();
+				}
 			}
 		}
 
@@ -248,6 +252,22 @@ namespace Synergy.UI
 				return visible_;
 			else
 				return mainObject_.activeInHierarchy;
+		}
+
+		public bool Enabled
+		{
+			get
+			{
+				return enabled_;
+			}
+
+			set
+			{
+				enabled_ = value;
+
+				if (widgetObject_ != null)
+					DoSetEnabled(enabled_);
+			}
 		}
 
 		public Insets Margins
@@ -537,7 +557,9 @@ namespace Synergy.UI
 				widgetObject_ = CreateGameObject();
 				widgetObject_.AddComponent<MouseCallbacks>().Widget = this;
 				widgetObject_.transform.SetParent(mainObject_.transform, false);
+
 				DoCreate();
+				DoSetEnabled(enabled_);
 
 				graphicsObject_ = new GameObject();
 				graphicsObject_.transform.SetParent(mainObject_.transform, false);
@@ -654,6 +676,11 @@ namespace Synergy.UI
 		}
 
 		protected virtual void DoCreate()
+		{
+			// no-op
+		}
+
+		protected virtual void DoSetEnabled(bool b)
 		{
 			// no-op
 		}

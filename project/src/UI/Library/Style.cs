@@ -50,9 +50,19 @@ namespace Synergy.UI
 			get { return new Color(0.84f, 0.84f, 0.84f); }
 		}
 
+		public static Color DisabledTextColor
+		{
+			get { return new Color(0.7f, 0.7f, 0.7f); }
+		}
+
 		public static Color EditableTextColor
 		{
 			get { return Color.black; }
+		}
+
+		public static Color PlaceholderTextColor
+		{
+			get { return new Color(0.5f, 0.5f, 0.5f); }
 		}
 
 		public static Color EditableBackgroundColor
@@ -75,6 +85,11 @@ namespace Synergy.UI
 			get { return new Color(0.25f, 0.25f, 0.25f); }
 		}
 
+		public static Color DisabledButtonBackgroundColor
+		{
+			get { return new Color(0.15f, 0.15f, 0.15f); }
+		}
+
 		public static Color HighlightBackgroundColor
 		{
 			get { return new Color(0.35f, 0.35f, 0.35f); }
@@ -90,25 +105,6 @@ namespace Synergy.UI
 			get { return 28; }
 		}
 
-
-		private static void PolishButton(Component e)
-		{
-			var i = e.GetComponent<Image>();
-			i.color = Color.white;
-
-			var st = e.GetComponentInChildren<UIStyleText>();
-			if (st != null)
-			{
-				st.color = TextColor;
-				st.UpdateStyle();
-			}
-
-			var sb = e.GetComponent<UIStyleButton>();
-			sb.normalColor = ButtonBackgroundColor;
-			sb.highlightedColor = HighlightBackgroundColor;
-			sb.pressedColor = HighlightBackgroundColor;
-			sb.UpdateStyle();
-		}
 
 		public static void ClampScrollView(GameObject scrollView)
 		{
@@ -147,9 +143,32 @@ namespace Synergy.UI
 			// so the box will have to stay white for now
 		}
 
+		public static void Polish(UnityEngine.UI.Button e)
+		{
+			var i = e.GetComponent<Image>();
+			i.color = Color.white;
+
+			var st = e.GetComponentInChildren<UIStyleText>();
+			if (st != null)
+			{
+				if (e.interactable)
+					st.color = TextColor;
+				else
+					st.color = DisabledTextColor;
+
+				st.UpdateStyle();
+			}
+
+			var sb = e.GetComponent<UIStyleButton>();
+			sb.normalColor = ButtonBackgroundColor;
+			sb.highlightedColor = HighlightBackgroundColor;
+			sb.pressedColor = HighlightBackgroundColor;
+			sb.UpdateStyle();
+		}
+
 		public static void Polish(UIDynamicButton e)
 		{
-			PolishButton(e);
+			Polish(e.button);
 		}
 
 		public static void Polish(UIDynamicPopup e)
@@ -183,12 +202,20 @@ namespace Synergy.UI
 				text.font = Style.Font;
 			}
 
+			// field
 			var input = e.WidgetObject.GetComponentInChildren<InputField>();
 			if (input != null)
 			{
 				input.selectionColor = EditableSelectionBackgroundColor;
 				input.caretWidth = 2;
 			}
+
+			// placeholder
+			var ph = input.placeholder.GetComponent<Text>();
+			ph.color = PlaceholderTextColor;
+			ph.font = Font;
+			ph.fontSize = FontSize;
+			ph.fontStyle = FontStyle.Italic;
 		}
 
 		public static void Polish(UIPopup e)
@@ -219,20 +246,21 @@ namespace Synergy.UI
 
 			// topButton is the actual combobox the user clicks to open the
 			// popup
-			PolishButton(e.topButton);
+			Polish(e.topButton);
 
 			// popupButtonPrefab is the prefab used to create items in the
 			// popup
-			PolishButton(e.popupButtonPrefab);
+			Polish(e.popupButtonPrefab.GetComponent<UnityEngine.UI.Button>());
 
 			// there's some empty space at the bottom of the list, remove it
 			// by changing the bottom offset of both the viewport and vertical
-			// scrollbar
+			// scrollbar; the scrollbar is also one pixel too far to the right
 			var rt = viewport.GetComponent<RectTransform>();
 			rt.offsetMin = new Vector2(rt.offsetMin.x, 0);
 
 			rt = scrollbar.GetComponent<RectTransform>();
-			rt.offsetMin = new Vector2(rt.offsetMin.x, 0);
+			rt.offsetMin = new Vector2(rt.offsetMin.x - 1, 0);
+			rt.offsetMax = new Vector2(rt.offsetMax.x - 1, rt.offsetMax.y);
 
 			// scrollbar background color
 			scrollbar.GetComponent<Image>().color = BackgroundColor;

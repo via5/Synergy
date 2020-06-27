@@ -40,6 +40,7 @@ namespace Synergy.NewUI
 
 			var s = Synergy.Instance.Manager.AddStep();
 			var mm = new MorphModifier();
+			mm.Atom = Synergy.Instance.GetAtomById("Person");
 			//var rm = new RigidbodyModifier();
 			//rm.Atom = Synergy.Instance.GetAtomById("Person");
 			//rm.Receiver = Utilities.FindRigidbody(rm.Atom, "head");

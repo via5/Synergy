@@ -173,7 +173,7 @@ namespace Synergy.UI
 
 			text_.Text = "0";
 
-			text_.Changed += OnTextChanged;
+			text_.Edited += OnTextChanged;
 			slider_.ValueChanged += OnValueChanged;
 
 			if (valueChanged != null)
