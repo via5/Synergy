@@ -12,6 +12,9 @@ namespace Synergy
 		public const int PlayingState = 4;
 		public const int PausedState = 5;
 
+		public const int PlayNow = 0;
+		public const int PlayIfClear = 1;
+
 		private AudioSourceControl source_ = null;
 		private List<NamedAudioClip> clips_ = new List<NamedAudioClip>();
 		private ShuffledOrder clipOrder_ = new ShuffledOrder();
@@ -23,6 +26,7 @@ namespace Synergy
 		private bool inDelay_ = false;
 		private bool needsDelay_ = false;
 		private int state_ = StartingState;
+		private int playType_ = PlayNow;
 
 		public AudioModifier()
 		{
@@ -123,6 +127,12 @@ namespace Synergy
 			}
 		}
 
+		public int PlayType
+		{
+			get { return playType_; }
+			set { playType_ = value; }
+		}
+
 
 		public override J.Node ToJSON()
 		{
@@ -136,6 +146,8 @@ namespace Synergy
 
 				o.Add("clips", clipsArray);
 			}
+
+			o.Add("playType", playType_);
 
 			return o;
 		}
@@ -174,6 +186,8 @@ namespace Synergy
 					Reshuffle();
 				}
 			}
+
+			o.Opt("playType", ref playType_);
 
 			return true;
 		}
@@ -260,9 +274,23 @@ namespace Synergy
 
 			if (newClip_)
 			{
-				source_.PlayNow(currentClip_);
-				source_.audioSource.time = 0;
-				newClip_ = false;
+				switch (playType_)
+				{
+					case PlayIfClear:
+						source_.PlayIfClear(currentClip_);
+						break;
+
+					case PlayNow:  // fall-through
+					default:
+						source_.PlayNow(currentClip_);
+						break;
+				}
+
+				if (source_.playingClip == currentClip_)
+				{
+					source_.audioSource.time = 0;
+					newClip_ = false;
+				}
 			}
 		}
 
