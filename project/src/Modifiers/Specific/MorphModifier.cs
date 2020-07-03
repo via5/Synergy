@@ -74,7 +74,10 @@ namespace Synergy
 			set
 			{
 				if (!value)
-					Reset();
+				{
+					if (morph_ != null)
+						morph_.morphValue = Morph.startValue;
+				}
 
 				enabled_.Value = value;
 			}

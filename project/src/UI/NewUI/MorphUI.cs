@@ -58,8 +58,7 @@ namespace Synergy.NewUI
 			ignore_.Do(() =>
 			{
 				atom_.Select(modifier_.Atom);
-				morphs_.Atom = modifier_.Atom;
-				morphs_.SelectedMorphs = modifier_.Morphs;
+				morphs_.Set(modifier_);
 				addMorphs_.Atom = modifier_.Atom;
 				addMorphs_.SelectedMorphs = modifier_.Morphs;
 			});
@@ -94,31 +93,51 @@ namespace Synergy.NewUI
 	class MorphPanel : UI.Panel
 	{
 		private readonly UI.CheckBox enabled_ = new UI.CheckBox(S("Enabled"));
+
 		private readonly MovementPanel min_ = new MovementPanel(
 			S("Minimum"), MovementWidgets.SmallMovement);
+
 		private readonly MovementPanel max_ = new MovementPanel(
 			S("Maximum"), MovementWidgets.SmallMovement);
 
+		private MorphModifier modifier_ = null;
 		private SelectedMorph morph_ = null;
 
 		public MorphPanel()
 		{
-			Layout = new UI.VerticalFlow();
+			Layout = new UI.VerticalFlow(40);
 
 			Add(enabled_);
-			Add(min_);
-			Add(max_);
+			Add(CreateMovementPanel(min_, OnCopyMinimum));
+			Add(CreateMovementPanel(max_, OnCopyMaximum));
 
 			enabled_.Changed += OnEnabled;
 		}
 
-		public void Set(SelectedMorph sm)
+		private UI.Panel CreateMovementPanel(
+			MovementPanel mp, UI.Button.Callback copyCallback)
 		{
+			var vf = new UI.VerticalFlow(10);
+			vf.Expand = false;
+
+			var p = new UI.Panel(vf);
+			p.Add(mp);
+			p.Add(new UI.Button(S("Copy to other morphs"), copyCallback));
+
+			return p;
+		}
+
+		public void Set(MorphModifier mm, SelectedMorph sm)
+		{
+			modifier_ = mm;
 			morph_ = sm;
+
 			if (morph_ == null)
 				return;
 
 			enabled_.Checked = sm.Enabled;
+			min_.Set(sm.Movement.Minimum);
+			max_.Set(sm.Movement.Maximum);
 		}
 
 		private void OnEnabled(bool b)
@@ -127,6 +146,34 @@ namespace Synergy.NewUI
 				return;
 
 			morph_.Enabled = b;
+		}
+
+		private void OnCopyMinimum()
+		{
+			if (modifier_ == null || morph_ == null)
+				return;
+
+			foreach (var sm in modifier_.Morphs)
+			{
+				if (sm == morph_)
+					continue;
+
+				sm.Movement.Minimum = morph_.Movement.Minimum.Clone();
+			}
+		}
+
+		private void OnCopyMaximum()
+		{
+			if (modifier_ == null || morph_ == null)
+				return;
+
+			foreach (var sm in modifier_.Morphs)
+			{
+				if (sm == morph_)
+					continue;
+
+				sm.Movement.Maximum = morph_.Movement.Maximum.Clone();
+			}
 		}
 	}
 
@@ -150,6 +197,7 @@ namespace Synergy.NewUI
 
 		private readonly UI.ListView<SelectedMorphItem> list_;
 		private readonly MorphPanel panel_;
+		private MorphModifier modifier_ = null;
 
 		public SelectedMorphsTab()
 		{
@@ -166,6 +214,13 @@ namespace Synergy.NewUI
 			list_.SelectionChanged += OnSelection;
 
 			Update(null);
+		}
+
+		public void Set(MorphModifier m)
+		{
+			modifier_ = m;
+			Atom = m.Atom;
+			SelectedMorphs = m.Morphs;
 		}
 
 		public Atom Atom
@@ -195,7 +250,7 @@ namespace Synergy.NewUI
 		private void Update(SelectedMorph sm)
 		{
 			panel_.Visible = (sm != null);
-			panel_.Set(sm);
+			panel_.Set(modifier_, sm);
 		}
 	}
 
