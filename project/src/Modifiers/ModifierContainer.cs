@@ -85,8 +85,6 @@
 			set
 			{
 				enabled_.Value = value;
-				if (!enabled_.Value && Modifier != null)
-					Modifier.Reset();
 			}
 		}
 

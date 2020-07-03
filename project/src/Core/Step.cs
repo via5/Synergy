@@ -412,8 +412,14 @@ namespace Synergy
 
 			foreach (var m in modifiers_)
 			{
-				if (m.Modifier != null && m.Enabled)
+				if (m.Modifier == null)
+					continue;
+
+				if (m.Enabled)
 					enabledModifiers_.Add(m);
+				else
+					m.Modifier.Reset();
+
 			}
 		}
 

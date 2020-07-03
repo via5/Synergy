@@ -73,13 +73,10 @@ namespace Synergy
 
 			set
 			{
-				if (!value)
-				{
-					if (morph_ != null)
-						morph_.morphValue = Morph.startValue;
-				}
-
 				enabled_.Value = value;
+
+				if (!value)
+					Reset();
 			}
 		}
 
@@ -134,14 +131,20 @@ namespace Synergy
 		{
 			enabled_.Unregister();
 			Movement = null;
-
-			if (morph_ != null)
-				morph_.morphValue = Morph.startValue;
+			ResetMorphValue();
 		}
 
 		public void Resume()
 		{
 			// no-op
+		}
+
+		public void ResetMorphValue()
+		{
+			if (morph_ == null)
+				return;
+
+			morph_.morphValue = morph_.startValue;
 		}
 
 		public void Reset()
@@ -546,6 +549,12 @@ namespace Synergy
 		{
 			base.Reset();
 			Progression.Reset();
+
+			if (!ParentContainer.Enabled)
+			{
+				foreach (var sm in morphs_)
+					sm.ResetMorphValue();
+			}
 		}
 
 		protected override string MakeName()
