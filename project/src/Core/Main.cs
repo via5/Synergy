@@ -66,20 +66,22 @@ namespace Synergy
 		private void CreateTestStuff(Atom a)
 		{
 			var s = Synergy.Instance.Manager.AddStep();
-			var mm = new MorphModifier();
-			mm.Atom = a;
-			mm.Progression = new SequentialMorphProgression(true);
-			mm.AddMorph(Utilities.GetAtomMorph(mm.Atom, "Smile Full Face"));
-			mm.AddMorph(Utilities.GetAtomMorph(mm.Atom, "Eyes Closed"));
-			mm.AddMorph(Utilities.GetAtomMorph(mm.Atom, "Mouth Open"));
-			//var rm = new RigidbodyModifier();
-			//rm.Atom = Synergy.Instance.GetAtomById("Person");
-			//rm.Receiver = Utilities.FindRigidbody(rm.Atom, "head");
-			//rm.Movement.Maximum.Initial = 100;
-			var m = new ModifierContainer(mm);
-			m.ModifierSync = new UnsyncedModifier(
-				new RandomDuration(5), new Delay(new RandomDuration(1), false, false));
-			s.AddModifier(m);
+
+			var lm = new LightModifier(new ColorLightProperty());
+			lm.Atom = GetAtomById("InvisibleLight");
+			s.AddModifier(new ModifierContainer(lm));
+
+			//var mm = new MorphModifier();
+			//mm.Atom = a;
+			//mm.Progression = new SequentialMorphProgression(true);
+			//mm.AddMorph(Utilities.GetAtomMorph(mm.Atom, "Smile Full Face"));
+			//mm.AddMorph(Utilities.GetAtomMorph(mm.Atom, "Eyes Closed"));
+			//mm.AddMorph(Utilities.GetAtomMorph(mm.Atom, "Mouth Open"));
+			//
+			//var m = new ModifierContainer(mm);
+			//m.ModifierSync = new UnsyncedModifier(
+			//	new RandomDuration(5), new Delay(new RandomDuration(1), false, false));
+			//s.AddModifier(m);
 		}
 
 		public Timer CreateTimer(float seconds, Timer.Callback callback)

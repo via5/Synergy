@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace Synergy.UI
@@ -91,6 +92,11 @@ namespace Synergy.UI
 			get { return new Color(0.25f, 0.25f, 0.25f); }
 		}
 
+		public static Color SliderBackgroundColor
+		{
+			get { return new Color(0.20f, 0.20f, 0.20f); }
+		}
+
 		public static Color DisabledButtonBackgroundColor
 		{
 			get { return new Color(0.15f, 0.15f, 0.15f); }
@@ -104,6 +110,11 @@ namespace Synergy.UI
 		public static Color SelectionBackgroundColor
 		{
 			get { return new Color(0.4f, 0.4f, 0.4f); }
+		}
+
+		public static int SliderTextSize
+		{
+			get { return 20; }
 		}
 
 
@@ -132,7 +143,146 @@ namespace Synergy.UI
 			}
 		}
 
-		public static void Polish(UIDynamicToggle e)
+		public static void Polish(ColorPicker e)
+		{
+			var picker = e.WidgetObject.GetComponent<UIDynamicColorPicker>();
+			Polish(picker, e.Font, e.FontSize);
+		}
+
+		private static void Polish(
+			UIDynamicColorPicker e, Font font, int fontSize)
+		{
+			// background
+			e.GetComponent<Image>().color = new Color(0, 0, 0, 0);
+
+			// label on top
+			e.labelText.color = TextColor;
+			e.labelText.alignment = TextAnchor.MiddleLeft;
+
+			var sliders = new List<UnityEngine.UI.Slider>()
+			{
+				e.colorPicker.redSlider,
+				e.colorPicker.greenSlider,
+				e.colorPicker.blueSlider
+			};
+
+			foreach (var slider in sliders)
+			{
+				// sliders are actually in a parent that has the panel, label,
+				// input and slider
+				var parent = slider.transform.parent;
+
+				var panel = Utilities.FindChildRecursive(parent, "Panel");
+				if (panel != null)
+				{
+					panel.GetComponent<Image>().color = new Color(0, 0, 0, 0);
+				}
+
+				var text = Utilities.FindChildRecursive(parent, "Text")
+					?.GetComponent<Text>();
+				if (text != null)
+				{
+					var rt = text.GetComponent<RectTransform>();
+					rt.offsetMin = new Vector2(rt.offsetMin.x - 10, rt.offsetMin.y);
+
+					Polish(text, font, SliderTextSize);
+				}
+
+				var input = Utilities.FindChildRecursive(parent, "InputField")
+					?.GetComponent<InputField>();
+				if (input != null)
+				{
+					var rt = input.GetComponent<RectTransform>();
+					rt.offsetMax = new Vector2(rt.offsetMax.x + 10, rt.offsetMax.y);
+
+					// that input doesn't seem to get styled properly, can't
+					// get the background color to change, so just change the
+					// text color
+					//Polish(input, font, fontSize, false);
+
+					input.textComponent.color = TextColor;
+					input.textComponent.fontSize = SliderTextSize;
+				}
+
+
+				{
+					var rt = slider.GetComponent<RectTransform>();
+					rt.offsetMin = new Vector2(rt.offsetMin.x - 10, rt.offsetMin.y + 10);
+					rt.offsetMax = new Vector2(rt.offsetMax.x + 10, rt.offsetMax.y);
+				}
+
+
+				// polish the slider itself
+				Polish(slider);
+			}
+
+			{
+				// moving all the sliders down to make space for the color
+				// sample at the top
+
+				// blue
+				var rt = e.colorPicker.blueSlider.transform.parent.GetComponent<RectTransform>();
+				rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y - 10);
+				rt.offsetMax = new Vector2(rt.offsetMax.x, rt.offsetMax.y - 10);
+
+				// green
+				rt = e.colorPicker.greenSlider.transform.parent.GetComponent<RectTransform>();
+				rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y - 30);
+				rt.offsetMax = new Vector2(rt.offsetMax.x, rt.offsetMax.y - 30);
+
+				// red
+				rt = e.colorPicker.redSlider.transform.parent.GetComponent<RectTransform>();
+				rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y - 50);
+				rt.offsetMax = new Vector2(rt.offsetMax.x, rt.offsetMax.y - 50);
+
+				// sample
+				rt = e.colorPicker.colorSample.GetComponent<RectTransform>();
+				rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y - 50);
+			}
+
+			// buttons at the bottom
+			var buttons = new List<string>()
+			{
+				"DefaultValueButton",
+				"CopyToClipboardButton",
+				"PasteFromClipboardButton"
+			};
+
+			foreach (var name in buttons)
+			{
+				var b = Utilities.FindChildRecursive(e, name)
+					?.GetComponent<UnityEngine.UI.Button>();
+
+				if (b != null)
+					Polish(b, font, fontSize, false);
+			}
+		}
+
+		private static void Polish(UnityEngine.UI.Slider e)
+		{
+			// slider background color
+			e.GetComponent<UnityEngine.UI.Image>().color = SliderBackgroundColor;
+
+			var ss = e.GetComponent<UIStyleSlider>();
+			ss.normalColor = ButtonBackgroundColor;
+			ss.highlightedColor = HighlightBackgroundColor;
+			ss.pressedColor = HighlightBackgroundColor;
+			ss.UpdateStyle();
+
+			var fill = Utilities.FindChildRecursive(e, "Fill");
+			fill.GetComponent<Image>().color = new Color(0, 0, 0, 0);
+
+			var rt = fill.GetComponent<RectTransform>();
+			rt.offsetMin = new Vector2(rt.offsetMin.x - 4, rt.offsetMin.y);
+		}
+
+		public static void Polish(CheckBox e)
+		{
+			var toggle = e.WidgetObject.GetComponent<UIDynamicToggle>();
+			Polish(toggle);
+		}
+
+		private static void Polish(UIDynamicToggle e)
 		{
 			// background color of the whole widget
 			e.backgroundImage.color = new Color(0, 0, 0, 0);
@@ -145,7 +295,8 @@ namespace Synergy.UI
 		}
 
 		private static void Polish(
-			UnityEngine.UI.Button e, Font font, int fontSize)
+			UnityEngine.UI.Button e, Font font, int fontSize,
+			bool changeFont = true)
 		{
 			var i = e.GetComponent<Image>();
 			i.color = Color.white;
@@ -158,7 +309,9 @@ namespace Synergy.UI
 				else
 					st.color = DisabledTextColor;
 
-				st.fontSize = (fontSize < 0 ? DefaultFontSize : fontSize);
+				if (changeFont)
+					st.fontSize = (fontSize < 0 ? DefaultFontSize : fontSize);
+
 				st.UpdateStyle();
 			}
 
@@ -209,43 +362,64 @@ namespace Synergy.UI
 		public static void Polish(Label e)
 		{
 			var text = e.WidgetObject.GetComponent<Text>();
+			Polish(text, e.Font, e.FontSize);
+		}
 
-			text.color = Style.TextColor;
-			text.fontSize = (e.FontSize < 0 ? DefaultFontSize : e.FontSize);
-			text.font = e.Font ?? DefaultFont;
+		private static void Polish(
+			Text e, Font font, int fontSize, bool changeFont=true)
+		{
+			e.color = Style.TextColor;
+
+			if (changeFont)
+			{
+				e.fontSize = (fontSize < 0 ? DefaultFontSize : fontSize);
+				e.font = font ?? DefaultFont;
+			}
 		}
 
 		public static void Polish(TextBox e)
 		{
+			var input = e.WidgetObject.GetComponentInChildren<InputField>();
+			if (input != null)
+				Polish(input, e.Font, e.FontSize);
+		}
+
+		private static void Polish(
+			InputField input, Font font, int fontSize, bool changeFont=true)
+		{
 			// textbox background
-			var bg = e.WidgetObject.GetComponentInChildren<Image>();
+			var bg = input.GetComponentInChildren<Image>();
 			if (bg != null)
 				bg.color = EditableBackgroundColor;
 
 			// textbox text
-			var text = e.WidgetObject.GetComponentInChildren<Text>();
+			var text = input.textComponent;//.GetComponentInChildren<Text>();
 			if (text != null)
 			{
-				text.alignment = TextAnchor.MiddleLeft;
+				//text.alignment = TextAnchor.MiddleLeft;
 				text.color = EditableTextColor;
-				text.fontSize = (e.FontSize < 0 ? DefaultFontSize : e.FontSize);
-				text.font = e.Font ?? DefaultFont;
+
+				if (changeFont)
+				{
+					text.fontSize = (fontSize < 0 ? DefaultFontSize : fontSize);
+					text.font = font ?? DefaultFont;
+				}
 			}
 
 			// field
-			var input = e.WidgetObject.GetComponentInChildren<InputField>();
-			if (input != null)
-			{
-				input.selectionColor = EditableSelectionBackgroundColor;
-				input.caretWidth = 2;
-			}
+			input.selectionColor = EditableSelectionBackgroundColor;
+			input.caretWidth = 2;
 
 			// placeholder
 			var ph = input.placeholder.GetComponent<Text>();
 			ph.color = PlaceholderTextColor;
-			ph.font = e.Font ?? DefaultFont;
-			ph.fontSize = (e.FontSize < 0 ? DefaultFontSize : e.FontSize);
-			ph.fontStyle = FontStyle.Italic;
+
+			if (changeFont)
+			{
+				ph.font = font ?? DefaultFont;
+				ph.fontSize = (fontSize < 0 ? DefaultFontSize : fontSize);
+				ph.fontStyle = FontStyle.Italic;
+			}
 		}
 
 		private static void Polish(UIPopup e, Font font, int fontSize)

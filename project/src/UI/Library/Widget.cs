@@ -686,7 +686,7 @@ namespace Synergy.UI
 			Utilities.SetRectTransform(borderGraphics_, r);
 		}
 
-		private void SetWidgetObjectBounds()
+		protected virtual void SetWidgetObjectBounds()
 		{
 			Utilities.SetRectTransform(widgetObject_, ClientBounds);
 		}

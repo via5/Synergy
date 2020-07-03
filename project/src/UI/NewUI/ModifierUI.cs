@@ -231,6 +231,7 @@ namespace Synergy.NewUI
 
 			modifierPanels_.Add(new RigidbodyModifierPanel());
 			modifierPanels_.Add(new MorphModifierPanel());
+			modifierPanels_.Add(new LightModifierPanel());
 
 			tabs_.AddTab(S("Sync"), sync_);
 
@@ -280,7 +281,6 @@ namespace Synergy.NewUI
 
 			if (needsReselect)
 			{
-
 				if (acceptedPanel < 0)
 					tabs_.Select(0);
 				else

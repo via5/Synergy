@@ -18,6 +18,14 @@ namespace Synergy.NewUI
 
 		public NewUI()
 		{
+			//var cp = new UI.ColorPicker();
+			//cp.Borders = new Insets(2);
+			//
+			//root_.ContentPanel.Layout = new UI.VerticalFlow(10);
+			//root_.ContentPanel.Add(cp);
+			//root_.ContentPanel.Add(new TextBox("test", "placeholdeR"));
+
+
 			tabs_.AddTab(S("Step"), stepTab_);
 			tabs_.AddTab(S("Modifiers"), modifiersTab_);
 
@@ -35,7 +43,7 @@ namespace Synergy.NewUI
 			steps_.SelectionChanged += OnStepSelected;
 			root_.DoLayoutIfNeeded();
 
-			modifiersTab_.SelectTab(2);
+			modifiersTab_.SelectTab(3);
 		}
 
 		public void SelectStep(Step s)

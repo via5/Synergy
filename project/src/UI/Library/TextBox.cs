@@ -149,9 +149,10 @@ namespace Synergy.UI
 		private CustomInputField input_ = null;
 		private readonly IgnoreFlag ignore_ = new IgnoreFlag();
 
-		public TextBox(string t = "")
+		public TextBox(string t = "", string placeholder = "")
 		{
 			text_ = t;
+			placeholder_ = placeholder;
 		}
 
 		public string Text

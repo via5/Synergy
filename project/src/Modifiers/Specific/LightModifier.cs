@@ -283,10 +283,12 @@ namespace Synergy
 		private ILightProperty property_ = null;
 
 
-		public LightModifier()
+		public LightModifier(ILightProperty property = null)
 		{
 			if (!Utilities.AtomHasComponent<Light>(Atom))
 				Atom = null;
+
+			Property = property;
 		}
 
 		public override IModifier Clone(int cloneFlags = 0)
@@ -305,13 +307,7 @@ namespace Synergy
 		public override void Removed()
 		{
 			base.Removed();
-
-			if (Atom != null)
-			{
-				Light light = Atom.GetComponentInChildren<Light>();
-				if (light != null)
-					property_?.Reset(light);
-			}
+			ResetProperty();
 		}
 
 		public ILightProperty Property
@@ -323,8 +319,19 @@ namespace Synergy
 
 			set
 			{
+				ResetProperty();
 				property_ = value;
 				FirePreferredRangeChanged();
+			}
+		}
+
+		private void ResetProperty()
+		{
+			if (Atom != null)
+			{
+				Light light = Atom.GetComponentInChildren<Light>();
+				if (light != null)
+					property_?.Reset(light);
 			}
 		}
 

@@ -70,6 +70,7 @@
     <Compile Include="src\UI\Library\BorderLayout.cs" />
     <Compile Include="src\UI\Library\Button.cs" />
     <Compile Include="src\UI\Library\Checkbox.cs" />
+    <Compile Include="src\UI\Library\ColorPicker.cs" />
     <Compile Include="src\UI\Library\Slider.cs" />
     <Compile Include="src\UI\Library\Tooltip.cs" />
     <Compile Include="src\UI\Library\ComboBox.cs" />
@@ -107,6 +108,7 @@
     <Compile Include="src\UI\MonitorUI\MovementMonitorUI.cs" />
     <Compile Include="src\UI\NewUI\DurationUI.cs" />
     <Compile Include="src\UI\NewUI\FactoryUI.cs" />
+    <Compile Include="src\UI\NewUI\LightModifierUI.cs" />
     <Compile Include="src\UI\NewUI\ModifierUI.cs" />
     <Compile Include="src\UI\NewUI\MorphUI.cs" />
     <Compile Include="src\UI\NewUI\MovementUI.cs" />

@@ -20,6 +20,7 @@ project\src\Modifiers\Specific\RigidbodyModifier.cs
 project\src\UI\Library\BorderLayout.cs
 project\src\UI\Library\Button.cs
 project\src\UI\Library\CheckBox.cs
+project\src\UI\Library\ColorPicker.cs
 project\src\UI\Library\ComboBox.cs
 project\src\UI\Library\Dialog.cs
 project\src\UI\Library\GridLayout.cs
@@ -57,6 +58,7 @@ project\src\UI\MonitorUI\Modifiers\MorphModifierMonitorUI.cs
 project\src\UI\MonitorUI\Modifiers\RigidbodyModifierMonitorUI.cs
 project\src\UI\NewUI\DurationUI.cs
 project\src\UI\NewUI\FactoryUI.cs
+project\src\UI\NewUI\LightModifierUI.cs
 project\src\UI\NewUI\ModifierUI.cs
 project\src\UI\NewUI\MorphUI.cs
 project\src\UI\NewUI\MovementUI.cs

@@ -70,7 +70,7 @@ namespace Synergy.UI
 				rt.offsetMin.x + (rt.offsetMax.x - rt.offsetMin.x) / 2,
 				rt.offsetMin.y + (rt.offsetMax.y - rt.offsetMin.y) / 2);
 
-			Style.Polish(toggle_);
+			Style.Polish(this);
 		}
 
 		protected override Size DoGetPreferredSize(
