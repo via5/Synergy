@@ -668,15 +668,33 @@ namespace Synergy
 
 			if (HoldHalfway)
 			{
-				for (int i = 0; i < morphs_.Count; ++i)
+				if (firstHalf)
 				{
-					float singleMorphProgress = Utilities.Clamp(
-						p / singleMorph, 0.0f, 1.0f);
+					for (int i = 0; i < morphs_.Count; ++i)
+					{
+						float singleMorphProgress = Utilities.Clamp(
+							p / singleMorph, 0.0f, 1.0f);
 
-					p -= singleMorph;
+						p -= singleMorph;
 
-					var m = morphs_[GetMorphIndex(i)];
-					m.Tick(deltaTime, singleMorphProgress, firstHalf);
+						var m = morphs_[GetMorphIndex(i)];
+						m.Tick(deltaTime, singleMorphProgress, true);
+					}
+				}
+				else
+				{
+					p = 1.0f - p;
+
+					for (int i = 0; i < morphs_.Count; ++i)
+					{
+						float singleMorphProgress = Utilities.Clamp(
+							p / singleMorph, 0.0f, 1.0f);
+
+						p -= singleMorph;
+
+						var m = morphs_[GetMorphIndex(i)];
+						m.Tick(deltaTime, 1.0f - singleMorphProgress, false);
+					}
 				}
 			}
 			else
