@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Synergy.NewUI
 {
-	class RigidbodyPanel : BasicModifierPanel
+	class RigidbodyModifierPanel : BasicModifierPanel
 	{
 		private readonly AtomComboBox atom_ = new AtomComboBox(
 			Utilities.AtomHasRigidbodies);
@@ -28,7 +28,7 @@ namespace Synergy.NewUI
 		private bool ignore_ = false;
 
 
-		public RigidbodyPanel()
+		public RigidbodyModifierPanel()
 		{
 			Layout = new UI.VerticalFlow(30);
 

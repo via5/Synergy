@@ -151,7 +151,7 @@ namespace Synergy.UI
 		private readonly List<Widget> children_ = new List<Widget>();
 		private Layout layout_ = null;
 		private Rectangle bounds_ = new Rectangle();
-		private Size minSize_ = new Size(0, 0);
+		private Size minSize_ = new Size(DontCare, DontCare);
 
 		private GameObject mainObject_ = null;
 		private GameObject widgetObject_ = null;
@@ -166,6 +166,8 @@ namespace Synergy.UI
 		private Insets padding_ = new Insets();
 		private Color borderColor_ = Style.TextColor;
 		private Color bgColor_ = new Color(0, 0, 0, 0);
+		private Font font_ = null;
+		private int fontSize_ = -1;
 		private readonly Tooltip tooltip_;
 
 
@@ -216,6 +218,40 @@ namespace Synergy.UI
 					layout_.Parent = this;
 
 				NeedsLayout();
+			}
+		}
+
+		public Font Font
+		{
+			get
+			{
+				return font_;
+			}
+
+			set
+			{
+				if (font_ != value)
+				{
+					font_ = value;
+					NeedsLayout();
+				}
+			}
+		}
+
+		public int FontSize
+		{
+			get
+			{
+				return fontSize_;
+			}
+
+			set
+			{
+				if (fontSize_ != value)
+				{
+					fontSize_ = value;
+					NeedsLayout();
+				}
 			}
 		}
 
@@ -416,6 +452,24 @@ namespace Synergy.UI
 			s += Margins.Size + Borders.Size + Padding.Size;
 
 			return s;
+		}
+
+		public Size GetMinimumSize()
+		{
+			if (minSize_.Width == DontCare || minSize_.Height == DontCare)
+			{
+				var ms = DoGetMinimumSize();
+
+				var s = new Size();
+				s.Width = minSize_.Width == DontCare ? ms.Width : minSize_.Width;
+				s.Height = minSize_.Height == DontCare ? ms.Height : minSize_.Height;
+
+				return s;
+			}
+			else
+			{
+				return minSize_;
+			}
 		}
 
 		public Size MinimumSize
@@ -687,6 +741,11 @@ namespace Synergy.UI
 
 		protected virtual Size DoGetPreferredSize(
 			float maxWidth, float maxHeight)
+		{
+			return new Size(DontCare, DontCare);
+		}
+
+		protected virtual Size DoGetMinimumSize()
 		{
 			return new Size(DontCare, DontCare);
 		}

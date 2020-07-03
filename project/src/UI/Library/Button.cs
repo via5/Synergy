@@ -17,7 +17,6 @@ namespace Synergy.UI
 		public Button(string t = "", Callback clicked = null)
 		{
 			text_ = t;
-			MinimumSize = new Size(150, 40);
 
 			if (clicked != null)
 				Clicked += clicked;
@@ -65,13 +64,13 @@ namespace Synergy.UI
 			button_.button.onClick.AddListener(OnClicked);
 			button_.buttonText.text = text_;
 
-			Style.Polish(button_);
+			Style.Polish(this);
 		}
 
 		protected override void DoSetEnabled(bool b)
 		{
 			button_.button.interactable = b;
-			Style.Polish(button_);
+			Style.Polish(this);
 		}
 
 		public override void UpdateBounds()
@@ -83,7 +82,12 @@ namespace Synergy.UI
 		protected override Size DoGetPreferredSize(
 			float maxWidth, float maxHeight)
 		{
-			return new Size(Root.TextLength(text_) + 20, 40);
+			return new Size(Root.TextLength(Font, FontSize, text_) + 20, 40);
+		}
+
+		protected override Size DoGetMinimumSize()
+		{
+			return new Size(150, 40);
 		}
 
 		private void OnClicked()
@@ -99,10 +103,20 @@ namespace Synergy.UI
 
 	class ToolButton : UI.Button
 	{
-		public ToolButton(string text = "", UI.Button.Callback clicked = null)
+		public ToolButton(string text = "", Callback clicked = null)
 			: base(text, clicked)
 		{
-			MinimumSize = new UI.Size(50, DontCare);
+		}
+
+		protected override Size DoGetPreferredSize(
+			float maxWidth, float maxHeight)
+		{
+			return new Size(Root.TextLength(Font, FontSize, Text) + 20, 40);
+		}
+
+		protected override Size DoGetMinimumSize()
+		{
+			return new UI.Size(50, DontCare);
 		}
 	}
 }

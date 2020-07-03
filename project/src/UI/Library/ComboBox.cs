@@ -240,7 +240,7 @@ namespace Synergy.UI
 			UpdateChoices();
 			UpdateLabel();
 
-			Style.Polish(popup_);
+			Style.Polish(this);
 		}
 
 		protected List<Item> InternalItems
@@ -367,7 +367,11 @@ namespace Synergy.UI
 			float widest = 0;
 
 			foreach (var i in InternalItems)
-				widest = Math.Max(widest, Root.TextLength(i.Text) + 50);
+			{
+				widest = Math.Max(
+					widest,
+					Root.TextLength(Font, FontSize, i.Text) + 50);
+			}
 
 			return new Size(Math.Max(175, widest), 40);
 		}
@@ -410,8 +414,8 @@ namespace Synergy.UI
 			arrow_.color = Style.TextColor;
 			arrow_.raycastTarget = false;
 			arrow_.text = "\x25bc";
-			arrow_.fontSize = Style.FontSize;
-			arrow_.font = Style.Font;
+			arrow_.fontSize = Style.DefaultFontSize;
+			arrow_.font = Style.DefaultFont;
 
 			var rt = Popup.popup.labelText.transform.parent.gameObject.GetComponent<RectTransform>();
 			rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y);

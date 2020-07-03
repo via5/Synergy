@@ -229,8 +229,8 @@ namespace Synergy.NewUI
 
 			var sync = new UI.Panel();
 
-			modifierPanels_.Add(new RigidbodyPanel());
-			modifierPanels_.Add(new MorphPanel());
+			modifierPanels_.Add(new RigidbodyModifierPanel());
+			modifierPanels_.Add(new MorphModifierPanel());
 
 			tabs_.AddTab(S("Sync"), sync_);
 

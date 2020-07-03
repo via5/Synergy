@@ -166,6 +166,36 @@ namespace Synergy.UI
 				r.Left += wr.Width + Spacing;
 			}
 
+			if (totalWidth > Parent.Bounds.Width)
+			{
+				var excess = totalWidth - Parent.Bounds.Width;
+				float offset = 0;
+
+				for (int i = 0; i < bounds.Count; ++i)
+				{
+					var b = bounds[i];
+					if (b == null)
+						continue;
+
+					b.Translate(-offset, 0);
+
+					if (excess > 0)
+					{
+						var ms = Children[i].GetMinimumSize();
+
+						if (b.Width > ms.Width)
+						{
+							var d = Math.Min(b.Width - ms.Width, excess);
+							b.Width -= d;
+							excess -= d;
+							offset += d;
+							totalWidth -= d;
+						}
+					}
+
+				}
+			}
+
 			if (Bits.IsSet(align_, AlignCenter))
 			{
 				float offset = (Parent.Bounds.Width / 2) - (totalWidth / 2);

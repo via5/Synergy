@@ -121,9 +121,6 @@ namespace Synergy.UI
 			floating_ = new RootPanel(this);
 			tooltips_ = new TooltipManager(this);
 
-			ts_.font = Style.Font;
-			ts_.fontSize = Style.FontSize;
-
 			var scriptUI = Synergy.Instance.UITransform.GetComponentInChildren<MVRScriptUI>();
 
 			AttachTo(scriptUI);
@@ -192,6 +189,8 @@ namespace Synergy.UI
 		{
 			if (dirty_)
 			{
+				var start = Time.realtimeSinceStartup;
+
 				content_.DoLayout();
 				content_.Create();
 				content_.UpdateBounds();
@@ -199,6 +198,10 @@ namespace Synergy.UI
 				floating_.DoLayout();
 				floating_.Create();
 				floating_.UpdateBounds();
+
+				var t = Time.realtimeSinceStartup - start;
+
+				Synergy.LogError("layout: " + t.ToString("0.000") + "s");
 
 				dirty_ = false;
 			}
@@ -259,14 +262,31 @@ namespace Synergy.UI
 				overlay_.Visible = false;
 		}
 
-		public static float TextLength(string s)
-		{
-			return tg_.GetPreferredWidth(s, ts_);
-		}
-
-		public static Size FitText(string s, Size maxSize)
+		public static float TextLength(Font font, int fontSize, string s)
 		{
 			var ts = ts_;
+			ts.font = font ?? Style.DefaultFont;
+			ts.fontSize = (fontSize < 0 ? Style.DefaultFontSize : fontSize);
+
+			return tg_.GetPreferredWidth(s, ts);
+		}
+
+		public static Size TextSize(Font font, int fontSize, string s)
+		{
+			var ts = ts_;
+			ts.font = font ?? Style.DefaultFont;
+			ts.fontSize = (fontSize < 0 ? Style.DefaultFontSize : fontSize);
+
+			return new Size(
+				tg_.GetPreferredWidth(s, ts),
+				tg_.GetPreferredHeight(s, ts));
+		}
+
+		public static Size FitText(Font font, int fontSize, string s, Size maxSize)
+		{
+			var ts = ts_;
+			ts.font = font ?? Style.DefaultFont;
+			ts.fontSize = (fontSize < 0 ? Style.DefaultFontSize : fontSize);
 
 			var extents = new Vector2();
 

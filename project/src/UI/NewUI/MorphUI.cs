@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace Synergy.NewUI
 {
-	class MorphPanel : BasicModifierPanel
+	class MorphModifierPanel : BasicModifierPanel
 	{
 		public override string Title
 		{
@@ -25,7 +25,7 @@ namespace Synergy.NewUI
 		private MorphModifier modifier_ = null;
 		private IgnoreFlag ignore_ = new IgnoreFlag();
 
-		public MorphPanel()
+		public MorphModifierPanel()
 		{
 			var p = new UI.Panel(new UI.HorizontalFlow(10));
 			p.Add(new UI.Label(S("Atom")));
@@ -58,8 +58,8 @@ namespace Synergy.NewUI
 			ignore_.Do(() =>
 			{
 				atom_.Select(modifier_.Atom);
-				//morphs_.Atom = modifier_.Atom;
-				//morphs_.SelectedMorphs = modifier_.Morphs;
+				morphs_.Atom = modifier_.Atom;
+				morphs_.SelectedMorphs = modifier_.Morphs;
 				addMorphs_.Atom = modifier_.Atom;
 				addMorphs_.SelectedMorphs = modifier_.Morphs;
 			});
@@ -76,6 +76,7 @@ namespace Synergy.NewUI
 		private void OnMorphsChanged(List<DAZMorph> morphs)
 		{
 			modifier_.SetMorphs(morphs);
+			morphs_.SelectedMorphs = modifier_.Morphs;
 		}
 
 		private void OnTabSelected(int index)
@@ -90,21 +91,111 @@ namespace Synergy.NewUI
 	}
 
 
+	class MorphPanel : UI.Panel
+	{
+		private readonly UI.CheckBox enabled_ = new UI.CheckBox(S("Enabled"));
+		private readonly MovementPanel min_ = new MovementPanel(
+			S("Minimum"), MovementWidgets.SmallMovement);
+		private readonly MovementPanel max_ = new MovementPanel(
+			S("Maximum"), MovementWidgets.SmallMovement);
+
+		private SelectedMorph morph_ = null;
+
+		public MorphPanel()
+		{
+			Layout = new UI.VerticalFlow();
+
+			Add(enabled_);
+			Add(min_);
+			Add(max_);
+
+			enabled_.Changed += OnEnabled;
+		}
+
+		public void Set(SelectedMorph sm)
+		{
+			morph_ = sm;
+			if (morph_ == null)
+				return;
+
+			enabled_.Checked = sm.Enabled;
+		}
+
+		private void OnEnabled(bool b)
+		{
+			if (morph_ == null)
+				return;
+
+			morph_.Enabled = b;
+		}
+	}
+
+
 	class SelectedMorphsTab : UI.Panel
 	{
+		private class SelectedMorphItem
+		{
+			public SelectedMorph sm;
+
+			public SelectedMorphItem(SelectedMorph sm)
+			{
+				this.sm = sm;
+			}
+
+			public override string ToString()
+			{
+				return sm.DisplayName;
+			}
+		}
+
+		private readonly UI.ListView<SelectedMorphItem> list_;
+		private readonly MorphPanel panel_;
+
 		public SelectedMorphsTab()
 		{
+			list_ = new UI.ListView<SelectedMorphItem>();
+			panel_ = new MorphPanel();
+
 			var left = new UI.Panel(new UI.BorderLayout());
-			left.Add(new UI.Label(S("Selected morphs")), UI.BorderLayout.Top);
-			left.Add(new UI.ListView<string>(), UI.BorderLayout.Center);
+			left.Add(list_, UI.BorderLayout.Center);
 
-
-			var right = new UI.Panel(new UI.VerticalFlow());
-			right.Add(new UI.CheckBox(S("Enabled")));
-
-			Layout = new UI.BorderLayout();
+			Layout = new UI.BorderLayout(10);
 			Add(left, UI.BorderLayout.Left);
-			Add(right, UI.BorderLayout.Center);
+			Add(panel_, UI.BorderLayout.Center);
+
+			list_.SelectionChanged += OnSelection;
+
+			Update(null);
+		}
+
+		public Atom Atom
+		{
+			set { }
+		}
+
+		public List<SelectedMorph> SelectedMorphs
+		{
+			set
+			{
+				var items = new List<SelectedMorphItem>();
+
+				foreach (var sm in value)
+					items.Add(new SelectedMorphItem(sm));
+
+				list_.SetItems(items, list_.Selected);
+				list_.Select(0);
+			}
+		}
+
+		private void OnSelection(SelectedMorphItem i)
+		{
+			Update(i?.sm);
+		}
+
+		private void Update(SelectedMorph sm)
+		{
+			panel_.Visible = (sm != null);
+			panel_.Set(sm);
 		}
 	}
 

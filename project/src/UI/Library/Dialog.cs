@@ -26,8 +26,6 @@ namespace Synergy.UI
 
 			Add(title_, BorderLayout.Top);
 			Add(content_, BorderLayout.Center);
-
-			MinimumSize = new Size(600, 200);
 		}
 
 		public virtual Widget ContentPanel
@@ -60,6 +58,11 @@ namespace Synergy.UI
 			Destroy();
 
 			Closed?.Invoke();
+		}
+
+		protected override Size DoGetMinimumSize()
+		{
+			return new Size(600, 200);
 		}
 	}
 

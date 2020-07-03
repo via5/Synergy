@@ -76,7 +76,8 @@ namespace Synergy.UI
 		protected override Size DoGetPreferredSize(
 			float maxWidth, float maxHeight)
 		{
-			return new Size(Root.TextLength(text_) + 20 + 40, 40);
+			var w = Root.TextLength(Font, FontSize, text_);
+			return new Size(w + 20 + 40, 40);
 		}
 
 		private void OnClicked(bool b)

@@ -4,8 +4,34 @@ using System.Collections.Generic;
 
 namespace Synergy.NewUI
 {
+	class SmallButton : UI.Button
+	{
+		public SmallButton(string text = "", Callback clicked = null)
+			: base(text, clicked)
+		{
+		}
+
+		protected override Size DoGetPreferredSize(
+			float maxWidth, float maxHeight)
+		{
+			return DoGetMinimumSize();
+		}
+
+		protected override Size DoGetMinimumSize()
+		{
+			var s = Root.TextSize(Font, FontSize, Text);
+			s.Width += 10;
+			s.Height = 40;
+			return s;
+		}
+	}
+
+
 	class MovementWidgets : UI.Panel
 	{
+		public const int NoFlags       = 0x00;
+		public const int SmallMovement = 0x01;
+
 		public delegate void ValueCallback(float f);
 		public event ValueCallback Changed;
 
@@ -14,22 +40,31 @@ namespace Synergy.NewUI
 		private float last_ = 0;
 		private bool ignore_ = false;
 
-		public MovementWidgets()
+		public MovementWidgets(int flags = NoFlags)
 		{
-			Layout = new UI.HorizontalFlow(5);
+			var hf = new UI.HorizontalFlow(5);
+			hf.Expand = false;
+			Layout = hf;
 
 			Add(text_);
-			text_.MinimumSize = new Size(Root.TextLength("9999.99") + 20, DontCare);
+			text_.MinimumSize = new Size(
+				Root.TextLength(Font, FontSize, "9999.99") + 20, DontCare);
+
+			if (!Bits.IsSet(flags, SmallMovement))
+				Add(CreateButton("-100", -100));
 
 			Add(CreateButton("-10",  -10));
 			Add(CreateButton("-1",   -1));
-			Add(CreateButton("-0.1", -0.1f));
+			Add(CreateButton("-.1", -0.1f));
 			Add(CreateButton("0",     0));
-			Add(CreateButton("+0.1", +0.1f));
+			Add(CreateButton("+.1", +0.1f));
 			Add(CreateButton("+1",   +1));
 			Add(CreateButton("+10",  +10));
 
-			Add(new ToolButton(S("Reset"), OnReset));
+			if (!Bits.IsSet(flags, SmallMovement))
+				Add(CreateButton("+100", +100));
+
+			Add(new ToolButton(S("R"), OnReset));
 
 			text_.Edited += OnTextChanged;
 		}
@@ -44,12 +79,16 @@ namespace Synergy.NewUI
 			}
 		}
 
-		private ToolButton CreateButton(string t, float d)
+		private SmallButton CreateButton(string t, float d)
 		{
+			SmallButton b;
+
 			if (d == 0)
-				return new ToolButton(t, OnZero);
+				b = new SmallButton(t, OnZero);
 			else
-				return new ToolButton(t, () => OnAdd(d));
+				b = new SmallButton(t, () => OnAdd(d));
+
+			return b;
 		}
 
 		private void OnAdd(float d)
@@ -92,15 +131,20 @@ namespace Synergy.NewUI
 
 	class MovementPanel : UI.Panel
 	{
-		private readonly MovementWidgets value_ = new MovementWidgets();
-		private readonly MovementWidgets range_ = new MovementWidgets();
-		private readonly MovementWidgets interval_ = new MovementWidgets();
+		private readonly MovementWidgets value_;
+		private readonly MovementWidgets range_;
+		private readonly MovementWidgets interval_;
 
 		private RandomizableFloat rf_ = null;
 		private bool ignore_ = false;
 
-		public MovementPanel(string caption)
+		public MovementPanel(
+			string caption, int flags = MovementWidgets.NoFlags)
 		{
+			value_ = new MovementWidgets(flags);
+			range_ = new MovementWidgets(flags);
+			interval_ = new MovementWidgets(flags);
+
 			var gl = new UI.GridLayout(2);
 			gl.HorizontalStretch = new List<bool>() { false, true };
 			gl.HorizontalSpacing = 20;

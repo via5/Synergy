@@ -152,7 +152,6 @@ namespace Synergy.UI
 		public TextBox(string t = "")
 		{
 			text_ = t;
-			MinimumSize = new Size(100, DontCare);
 		}
 
 		public string Text
@@ -218,8 +217,8 @@ namespace Synergy.UI
 
 			var text = field.AddComponent<Text>();
 			text.color = Style.TextColor;
-			text.fontSize = Style.FontSize;
-			text.font = Style.Font;
+			text.fontSize = Style.DefaultFontSize;
+			text.font = Style.DefaultFont;
 			text.alignment = TextAnchor.MiddleLeft;
 
 			input_ = field.AddComponent<CustomInputField>();
@@ -260,7 +259,12 @@ namespace Synergy.UI
 		protected override Size DoGetPreferredSize(
 			float maxWidth, float maxHeight)
 		{
-			return new Size(Root.TextLength(text_) + 20, 40);
+			return new Size(Root.TextLength(Font, FontSize, text_) + 20, 40);
+		}
+
+		protected override Size DoGetMinimumSize()
+		{
+			return new Size(100, DontCare);
 		}
 
 		private void OnMouseDown(PointerEventData data)

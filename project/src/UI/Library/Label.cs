@@ -23,7 +23,6 @@ namespace Synergy.UI
 		{
 			text_ = t;
 			align_ = align;
-			MinimumSize = new Size(DontCare, 40);
 		}
 
 		public string Text
@@ -36,6 +35,7 @@ namespace Synergy.UI
 			set
 			{
 				text_ = value;
+				NeedsLayout();
 
 				if (textObject_ != null)
 					textObject_.text = value;
@@ -60,10 +60,9 @@ namespace Synergy.UI
 		protected override void DoCreate()
 		{
 			textObject_ = WidgetObject.AddComponent<Text>();
-			textObject_.color = Style.TextColor;
 			textObject_.text = text_;
-			textObject_.fontSize = Style.FontSize;
-			textObject_.font = Style.Font;
+
+			Style.Polish(this);
 		}
 
 		public override void UpdateBounds()
@@ -75,7 +74,13 @@ namespace Synergy.UI
 		protected override Size DoGetPreferredSize(
 			float maxWidth, float maxHeight)
 		{
-			return Root.FitText(text_, new Size(maxWidth, maxHeight));
+			return Root.FitText(
+				Font, FontSize, text_, new Size(maxWidth, maxHeight));
+		}
+
+		protected override Size DoGetMinimumSize()
+		{
+			return Root.TextSize(Font, FontSize, text_);
 		}
 
 		public static TextAnchor ToTextAnchor(int a)

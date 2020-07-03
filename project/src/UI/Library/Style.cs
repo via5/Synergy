@@ -31,7 +31,7 @@ namespace Synergy.UI
 	{
 		private static Font font_ = null;
 
-		public static Font Font
+		public static Font DefaultFont
 		{
 			get
 			{
@@ -44,6 +44,12 @@ namespace Synergy.UI
 				return font_;
 			}
 		}
+
+		public static int DefaultFontSize
+		{
+			get { return 28; }
+		}
+
 
 		public static Color TextColor
 		{
@@ -100,11 +106,6 @@ namespace Synergy.UI
 			get { return new Color(0.4f, 0.4f, 0.4f); }
 		}
 
-		public static int FontSize
-		{
-			get { return 28; }
-		}
-
 
 		public static void ClampScrollView(GameObject scrollView)
 		{
@@ -143,7 +144,8 @@ namespace Synergy.UI
 			// so the box will have to stay white for now
 		}
 
-		public static void Polish(UnityEngine.UI.Button e)
+		private static void Polish(
+			UnityEngine.UI.Button e, Font font, int fontSize)
 		{
 			var i = e.GetComponent<Image>();
 			i.color = Color.white;
@@ -156,6 +158,7 @@ namespace Synergy.UI
 				else
 					st.color = DisabledTextColor;
 
+				st.fontSize = (fontSize < 0 ? DefaultFontSize : fontSize);
 				st.UpdateStyle();
 			}
 
@@ -166,12 +169,15 @@ namespace Synergy.UI
 			sb.UpdateStyle();
 		}
 
-		public static void Polish(UIDynamicButton e)
+		private static void Polish(UIDynamicButton e, Font font, int fontSize)
 		{
-			Polish(e.button);
+			Polish(e.button, font, fontSize);
+
+			e.buttonText.font = font ?? DefaultFont;
+			e.buttonText.fontSize = (fontSize < 0 ? DefaultFontSize : fontSize);
 		}
 
-		public static void Polish(UIDynamicPopup e)
+		private static void Polish(UIDynamicPopup e, Font font, int fontSize)
 		{
 			// popups normally have a label on the left side and this controls
 			// the offset of the popup button; since the label is removed, this
@@ -182,7 +188,31 @@ namespace Synergy.UI
 			// equivalent to what's on the left and right
 			e.popup.topBottomBuffer = 3;
 
-			Polish(e.popup);
+			Polish(e.popup, font, fontSize);
+		}
+
+		public static void Polish<ItemType>(TypedListImpl<ItemType> list)
+			where ItemType : class
+		{
+			Polish(
+				list.WidgetObject.GetComponent<UIDynamicPopup>(),
+				list.Font, list.FontSize);
+		}
+
+		public static void Polish(Button b)
+		{
+			Polish(
+				b.WidgetObject.GetComponent<UIDynamicButton>(),
+				b.Font, b.FontSize);
+		}
+
+		public static void Polish(Label e)
+		{
+			var text = e.WidgetObject.GetComponent<Text>();
+
+			text.color = Style.TextColor;
+			text.fontSize = (e.FontSize < 0 ? DefaultFontSize : e.FontSize);
+			text.font = e.Font ?? DefaultFont;
 		}
 
 		public static void Polish(TextBox e)
@@ -198,8 +228,8 @@ namespace Synergy.UI
 			{
 				text.alignment = TextAnchor.MiddleLeft;
 				text.color = EditableTextColor;
-				text.fontSize = Style.FontSize;
-				text.font = Style.Font;
+				text.fontSize = (e.FontSize < 0 ? DefaultFontSize : e.FontSize);
+				text.font = e.Font ?? DefaultFont;
 			}
 
 			// field
@@ -213,12 +243,12 @@ namespace Synergy.UI
 			// placeholder
 			var ph = input.placeholder.GetComponent<Text>();
 			ph.color = PlaceholderTextColor;
-			ph.font = Font;
-			ph.fontSize = FontSize;
+			ph.font = e.Font ?? DefaultFont;
+			ph.fontSize = (e.FontSize < 0 ? DefaultFontSize : e.FontSize);
 			ph.fontStyle = FontStyle.Italic;
 		}
 
-		public static void Polish(UIPopup e)
+		private static void Polish(UIPopup e, Font font, int fontSize)
 		{
 			var scrollView = Utilities.FindChildRecursive(e, "Scroll View");
 			var viewport = Utilities.FindChildRecursive(e, "Viewport");
@@ -246,11 +276,13 @@ namespace Synergy.UI
 
 			// topButton is the actual combobox the user clicks to open the
 			// popup
-			Polish(e.topButton);
+			Polish(e.topButton, font, fontSize);
 
 			// popupButtonPrefab is the prefab used to create items in the
 			// popup
-			Polish(e.popupButtonPrefab.GetComponent<UnityEngine.UI.Button>());
+			Polish(
+				e.popupButtonPrefab.GetComponent<UnityEngine.UI.Button>(),
+				font, fontSize);
 
 			// there's some empty space at the bottom of the list, remove it
 			// by changing the bottom offset of both the viewport and vertical
