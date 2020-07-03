@@ -76,6 +76,11 @@ namespace Synergy.UI
 		protected override Size DoGetPreferredSize(
 			float maxWidth, float maxHeight)
 		{
+			return DoGetMinimumSize();
+		}
+
+		protected override Size DoGetMinimumSize()
+		{
 			var w = Root.TextLength(Font, FontSize, text_);
 			return new Size(w + 20 + 40, 40);
 		}

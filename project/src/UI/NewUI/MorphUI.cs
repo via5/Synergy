@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Synergy.UI;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -41,6 +42,7 @@ namespace Synergy.NewUI
 
 			atom_.AtomSelectionChanged += OnAtomSelected;
 			tabs_.SelectionChanged += OnTabSelected;
+			morphs_.MorphsChanged += OnMorphsChanged;
 			addMorphs_.MorphsChanged += OnMorphsChanged;
 
 			tabs_.Select(1);
@@ -76,6 +78,7 @@ namespace Synergy.NewUI
 		{
 			modifier_.SetMorphs(morphs);
 			morphs_.SelectedMorphs = modifier_.Morphs;
+			addMorphs_.SelectedMorphs = modifier_.Morphs;
 		}
 
 		private void OnTabSelected(int index)
@@ -90,8 +93,12 @@ namespace Synergy.NewUI
 	}
 
 
+
 	class MorphPanel : UI.Panel
 	{
+		public delegate void MorphsCallback(List<DAZMorph> list);
+		public event MorphsCallback MorphsChanged;
+
 		private readonly UI.CheckBox enabled_ = new UI.CheckBox(S("Enabled"));
 
 		private readonly MovementPanel min_ = new MovementPanel(
@@ -105,9 +112,14 @@ namespace Synergy.NewUI
 
 		public MorphPanel()
 		{
+			var top = new UI.Panel(new UI.HorizontalFlow());
+			top.Add(enabled_);
+			top.Add(new UI.Spacer());
+			top.Add(new UI.Button(S("Remove"), OnRemove));
+
 			Layout = new UI.VerticalFlow(40);
 
-			Add(enabled_);
+			Add(top);
 			Add(CreateMovementPanel(min_, OnCopyMinimum));
 			Add(CreateMovementPanel(max_, OnCopyMaximum));
 
@@ -175,11 +187,30 @@ namespace Synergy.NewUI
 				sm.Movement.Maximum = morph_.Movement.Maximum.Clone();
 			}
 		}
+
+		private void OnRemove()
+		{
+			if (modifier_ == null || morph_ == null)
+				return;
+
+			var list = new List<DAZMorph>();
+
+			foreach (var sm in modifier_.Morphs)
+			{
+				if (sm != morph_)
+					list.Add(sm.Morph);
+			}
+
+			MorphsChanged?.Invoke(list);
+		}
 	}
 
 
 	class SelectedMorphsTab : UI.Panel
 	{
+		public delegate void MorphsCallback(List<DAZMorph> list);
+		public event MorphsCallback MorphsChanged;
+
 		private class SelectedMorphItem
 		{
 			public SelectedMorph sm;
@@ -212,6 +243,10 @@ namespace Synergy.NewUI
 			Add(panel_, UI.BorderLayout.Center);
 
 			list_.SelectionChanged += OnSelection;
+			panel_.MorphsChanged += (list) =>
+			{
+				MorphsChanged?.Invoke(list);
+			};
 
 			Update(null);
 		}
@@ -304,13 +339,17 @@ namespace Synergy.NewUI
 		public const int ShowPoses = 0x01;
 		public const int ShowMorphs = 0x02;
 
+		public string searchText;
 		public Regex search;
 		public int flags;
 
-		public MorphFilter(Regex search, int flags)
+		public MorphFilter(string searchText, int flags)
 		{
-			this.search = search;
+			this.searchText = searchText;
 			this.flags = flags;
+
+			var pat = Regex.Escape(searchText).Replace("\\*", ".*");
+			this.search = new Regex(pat, RegexOptions.IgnoreCase);
 		}
 	}
 
@@ -384,6 +423,10 @@ namespace Synergy.NewUI
 
 		private bool ShouldShow(MorphFilter filter, Category c)
 		{
+			// all
+			if (c.name == "")
+				return true;
+
 			if (!FlagsMatch(filter, c))
 				return false;
 
@@ -585,8 +628,8 @@ namespace Synergy.NewUI
 
 		private bool ShouldShow(string category, MorphFilter filter, Morph m)
 		{
-			// don't check names for the 'all' category
-			if (category != "")
+			// don't check names for the 'all' category when there's no filter
+			if (category != "" || filter.searchText != "")
 			{
 				// if the category name matched, don't check the morph names,
 				// just show all of them
@@ -721,6 +764,7 @@ namespace Synergy.NewUI
 		private bool dirty_ = false;
 		private bool active_ = false;
 		private IgnoreFlag ignore_ = new IgnoreFlag();
+		private IgnoreFlag ignoreMorphChanged_ = new IgnoreFlag();
 
 		public AddMorphsTab()
 		{
@@ -807,6 +851,9 @@ namespace Synergy.NewUI
 		{
 			set
 			{
+				if (ignoreMorphChanged_)
+					return;
+
 				foreach (var s in selection_)
 					morphs_.SetActive(s, false);
 
@@ -863,10 +910,6 @@ namespace Synergy.NewUI
 
 		private MorphFilter CreateFilter()
 		{
-			var text = search_.Text;
-			var pat = Regex.Escape(text).Replace("\\*", ".*");
-			var re = new Regex(pat, RegexOptions.IgnoreCase);
-
 			int flags;
 
 			switch (show_.SelectedIndex)
@@ -885,7 +928,7 @@ namespace Synergy.NewUI
 					break;
 			}
 
-			return new MorphFilter(re, flags);
+			return new MorphFilter(search_.Text, flags);
 		}
 
 		private void UpdateCategories()
@@ -944,7 +987,10 @@ namespace Synergy.NewUI
 			morphs_.SelectedItemChanged();
 			UpdateToggleButton();
 
-			MorphsChanged?.Invoke(new List<DAZMorph>(selection_));
+			ignoreMorphChanged_.Do(() =>
+			{
+				MorphsChanged?.Invoke(new List<DAZMorph>(selection_));
+			});
 		}
 
 		private void OnShowChanged(string s)

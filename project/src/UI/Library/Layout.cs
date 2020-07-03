@@ -139,7 +139,7 @@ namespace Synergy.UI
 					totalWidth += Spacing;
 
 				var wr = new Rectangle(
-					r.TopLeft, w.GetPreferredSize(DontCare, r.Height));
+					r.TopLeft, w.GetPreferredSize(r.Width, r.Height));
 
 				if (expand_)
 				{

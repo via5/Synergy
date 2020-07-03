@@ -779,4 +779,18 @@ namespace Synergy.UI
 			Layout = ly;
 		}
 	}
+
+
+	class Spacer : UI.Widget
+	{
+		protected override Size DoGetPreferredSize(float maxWidth, float maxHeight)
+		{
+			return new Size(maxWidth, maxHeight);
+		}
+
+		protected override Size DoGetMinimumSize()
+		{
+			return new Size(0, 0);
+		}
+	}
 }
