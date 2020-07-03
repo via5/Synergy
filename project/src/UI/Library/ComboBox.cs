@@ -441,7 +441,7 @@ namespace Synergy.UI
 			var go = new GameObject();
 			go.transform.SetParent(Popup.popup.popupPanel.transform, false);
 			borders_ = go.AddComponent<BorderGraphics>();
-			borders_.Borders = new Insets(1);
+			borders_.Borders = new Insets(2);
 			borders_.Color = BorderColor;
 
 

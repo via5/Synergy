@@ -84,7 +84,7 @@ namespace Synergy.NewUI
 
 		private void OnTabSelected(int index)
 		{
-			addMorphs_.SetActive(index == 2);
+			addMorphs_.SetActive(index == tabs_.IndexOfWidget(addMorphs_));
 		}
 	}
 

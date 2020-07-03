@@ -67,9 +67,8 @@ namespace Synergy
 		{
 			var s = Synergy.Instance.Manager.AddStep();
 
-			var lm = new LightModifier(new ColorLightProperty());
-			lm.Atom = GetAtomById("InvisibleLight");
-			s.AddModifier(new ModifierContainer(lm));
+			var am = new AudioModifier();
+			s.AddModifier(new ModifierContainer(am));
 
 			//var mm = new MorphModifier();
 			//mm.Atom = a;

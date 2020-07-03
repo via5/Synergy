@@ -258,6 +258,16 @@ namespace Synergy.UI
 			}
 		}
 
+		public static void Polish(Slider e)
+		{
+			Polish(e.WidgetObject.GetComponent<UIDynamicSlider>());
+		}
+
+		private static void Polish(UIDynamicSlider e)
+		{
+			Polish(e.slider);
+		}
+
 		private static void Polish(UnityEngine.UI.Slider e)
 		{
 			// slider background color
@@ -429,6 +439,8 @@ namespace Synergy.UI
 			var scrollbar = Utilities.FindChildRecursive(e, "Scrollbar Vertical");
 			var scrollbarHandle = Utilities.FindChildRecursive(scrollbar, "Handle");
 
+			Utilities.DumpComponentsAndDown(scrollbar);
+
 			ClampScrollView(scrollView);
 
 			// background color for items in the popup; to have items be the
@@ -469,7 +481,7 @@ namespace Synergy.UI
 			rt.offsetMax = new Vector2(rt.offsetMax.x - 1, rt.offsetMax.y);
 
 			// scrollbar background color
-			scrollbar.GetComponent<Image>().color = BackgroundColor;
+			scrollbar.GetComponent<Image>().color = SliderBackgroundColor;
 
 			// scrollbar handle color
 			scrollbarHandle.GetComponent<Image>().color = ButtonBackgroundColor;

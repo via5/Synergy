@@ -292,6 +292,28 @@ namespace Synergy
 			return (AtomAudioSource(a) != null);
 		}
 
+		private static NamedAudioClip LoadClip(string path)
+		{
+			var sc = SuperController.singleton;
+			var cm = URLAudioClipManager.singleton;
+
+			var loadPath = sc.NormalizeLoadPath(path);
+
+			if (cm.GetClip(loadPath) != null)
+				return null;
+
+			cm.QueueFilePath(path);
+			var clip = cm.GetClip(path);
+
+			if (clip == null)
+			{
+				Synergy.LogError("error while loading " + loadPath);
+				return null;
+			}
+
+			return clip;
+		}
+
 		public static void AddAudioClip(Action<NamedAudioClip> f)
 		{
 			try
@@ -304,25 +326,64 @@ namespace Synergy
 					if (string.IsNullOrEmpty(path))
 						return;
 
-					var loadPath = sc.NormalizeLoadPath(path);
-
-					if (cm.GetClip(loadPath) != null)
-					{
-						Synergy.LogError("already exists");
-						return;
-					}
-
-					cm.QueueFilePath(path);
-					var clip = cm.GetClip(path);
-
-					if (clip == null)
-					{
-						Synergy.LogError("error while loading");
-						return;
-					}
-
-					f(clip);
+					var clip = LoadClip(path);
+					if (clip != null)
+						f(clip);
 				});
+			}
+			catch (Exception e)
+			{
+				Synergy.LogError(e.Message);
+			}
+		}
+
+		public static void AddAudioClipDirectory(Action<List<NamedAudioClip>> f)
+		{
+			var exts = new List<string>() { ".mp3", ".wav", ".ogg" };
+
+			try
+			{
+				var sc = SuperController.singleton;
+				var cm = URLAudioClipManager.singleton;
+
+				sc.GetDirectoryPathDialog((string path) =>
+				{
+					if (string.IsNullOrEmpty(path))
+						return;
+
+					var files = sc.GetFilesAtPath(path)?.ToList();
+					if (files == null)
+						return;
+
+					var list = new List<NamedAudioClip>();
+
+					foreach (var file in files)
+					{
+						bool skip = true;
+
+						foreach (var ext in exts)
+						{
+							if (file.EndsWith(ext, StringComparison.OrdinalIgnoreCase))
+							{
+								skip = false;
+								break;
+							}
+						}
+
+						if (skip)
+						{
+							Synergy.LogVerbose("skipping " + file);
+							continue;
+						}
+
+						var clip = LoadClip(file);
+						if (clip != null)
+							list.Add(clip);
+					}
+
+					f(list);
+
+				}, sc.currentLoadDir);
 			}
 			catch (Exception e)
 			{

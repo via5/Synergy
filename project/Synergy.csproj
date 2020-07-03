@@ -106,6 +106,7 @@
     <Compile Include="src\UI\MonitorUI\Modifiers\RigidbodyModifierMonitorUI.cs" />
     <Compile Include="src\UI\MonitorUI\MonitorUI.cs" />
     <Compile Include="src\UI\MonitorUI\MovementMonitorUI.cs" />
+    <Compile Include="src\UI\NewUI\AudioModifierUI.cs" />
     <Compile Include="src\UI\NewUI\DurationUI.cs" />
     <Compile Include="src\UI\NewUI\FactoryUI.cs" />
     <Compile Include="src\UI\NewUI\LightModifierUI.cs" />

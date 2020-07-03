@@ -22,7 +22,7 @@ namespace Synergy.UI
 
 		public Slider()
 		{
-			Borders = new Insets(1);
+			Borders = new Insets(2);
 		}
 
 		public float Value
@@ -135,10 +135,9 @@ namespace Synergy.UI
 				rt.offsetMin.x + (rt.offsetMax.x - rt.offsetMin.x) / 2,
 				rt.offsetMin.y + (rt.offsetMax.y - rt.offsetMin.y) / 2);
 
-			slider_.slider.GetComponent<Image>().color = new Color(0, 0, 0, 0);
-
 			var fill = Utilities.FindChildRecursive(WidgetObject, "Fill");
-			fill.GetComponent<Image>().color = new Color(0, 0, 0, 0);
+
+			Style.Polish(this);
 		}
 
 		protected override Size DoGetPreferredSize(

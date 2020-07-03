@@ -22,7 +22,7 @@ namespace Synergy.UI
 		public ListView(List<ItemType> items, ItemCallback selectionChanged)
 			: base(items, selectionChanged)
 		{
-			Borders = new Insets(1);
+			Borders = new Insets(2);
 		}
 
 		protected override GameObject CreateGameObject()

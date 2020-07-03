@@ -35,8 +35,6 @@ namespace Synergy.NewUI
 			ui_ = new FactoryObjectWidget<
 				LightPropertyFactory, ILightProperty, LightPropertyUIFactory>();
 
-			Layout = new UI.BorderLayout(20);
-
 			var w = new UI.Panel(new UI.VerticalFlow(30));
 
 			var gl = new UI.GridLayout(4);
@@ -53,6 +51,7 @@ namespace Synergy.NewUI
 			w.Add(min_);
 			w.Add(max_);
 
+			Layout = new UI.BorderLayout(20);
 			Add(w, UI.BorderLayout.Top);
 			Add(ui_, UI.BorderLayout.Center);
 

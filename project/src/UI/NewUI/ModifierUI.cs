@@ -232,6 +232,7 @@ namespace Synergy.NewUI
 			modifierPanels_.Add(new RigidbodyModifierPanel());
 			modifierPanels_.Add(new MorphModifierPanel());
 			modifierPanels_.Add(new LightModifierPanel());
+			modifierPanels_.Add(new AudioModifierPanel());
 
 			tabs_.AddTab(S("Sync"), sync_);
 

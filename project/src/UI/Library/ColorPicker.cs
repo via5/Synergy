@@ -125,7 +125,10 @@ namespace Synergy.UI
 
 		private void OnChanged(Color color)
 		{
-			Changed?.Invoke(color);
+			Utilities.Handler(() =>
+			{
+				Changed?.Invoke(color);
+			});
 		}
 	}
 }
