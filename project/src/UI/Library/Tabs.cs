@@ -176,12 +176,10 @@ namespace Synergy.UI
 		public void SetTabVisible(int i, bool b)
 		{
 			if (i < 0 || i >= tabs_.Count)
-			{
-				Synergy.LogError("SetTabVisible: bad index " + i.ToString());
 				return;
-			}
 
-			if (i == Selected)
+
+			if (!b && i == Selected)
 			{
 				if (i < (tabs_.Count - 1))
 					Select(i + 1);

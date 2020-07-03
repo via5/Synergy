@@ -18,9 +18,6 @@ namespace Synergy.NewUI
 
 		public NewUI()
 		{
-			//s.Duration = new RampDuration();
-			//Synergy.Instance.Manager.AddStep();
-
 			tabs_.AddTab(S("Step"), stepTab_);
 			tabs_.AddTab(S("Modifiers"), modifiersTab_);
 
@@ -37,20 +34,6 @@ namespace Synergy.NewUI
 
 			steps_.SelectionChanged += OnStepSelected;
 			root_.DoLayoutIfNeeded();
-
-			var s = Synergy.Instance.Manager.AddStep();
-			var mm = new MorphModifier();
-			mm.Atom = Synergy.Instance.GetAtomById("Person");
-			mm.AddMorph(Utilities.GetAtomMorph(mm.Atom, "Smile Full Face"));
-			mm.AddMorph(Utilities.GetAtomMorph(mm.Atom, "Eyes Closed"));
-			//var rm = new RigidbodyModifier();
-			//rm.Atom = Synergy.Instance.GetAtomById("Person");
-			//rm.Receiver = Utilities.FindRigidbody(rm.Atom, "head");
-			//rm.Movement.Maximum.Initial = 100;
-			var m = new ModifierContainer(mm);
-			m.ModifierSync = new UnsyncedModifier(
-				new RandomDuration(1), new Delay(new RandomDuration(1), false, false));
-			s.AddModifier(m);
 
 			modifiersTab_.SelectTab(2);
 		}

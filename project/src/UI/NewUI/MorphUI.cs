@@ -45,7 +45,7 @@ namespace Synergy.NewUI
 			morphs_.MorphsChanged += OnMorphsChanged;
 			addMorphs_.MorphsChanged += OnMorphsChanged;
 
-			tabs_.Select(1);
+			tabs_.Select(0);
 		}
 
 		public override bool Accepts(IModifier m)
@@ -60,6 +60,7 @@ namespace Synergy.NewUI
 			ignore_.Do(() =>
 			{
 				atom_.Select(modifier_.Atom);
+				progression_.Set(modifier_);
 				morphs_.Set(modifier_);
 				addMorphs_.Atom = modifier_.Atom;
 				addMorphs_.SelectedMorphs = modifier_.Morphs;
@@ -90,8 +91,210 @@ namespace Synergy.NewUI
 
 	class MorphProgressionTab : UI.Panel
 	{
+		private MorphModifier modifier_ = null;
+
+		private readonly FactoryComboBox<
+			MorphProgressionFactory, IMorphProgression> type_;
+
+		private FactoryObjectWidget<
+			MorphProgressionFactory,
+			IMorphProgression,
+			MorphProgressionUIFactory> ui_;
+
+		private IgnoreFlag ignore_ = new IgnoreFlag();
+
+
+		public MorphProgressionTab()
+		{
+			type_ = new FactoryComboBox<
+				MorphProgressionFactory, IMorphProgression>(OnTypeChanged);
+
+			ui_ = new FactoryObjectWidget<
+				MorphProgressionFactory,
+				IMorphProgression,
+				MorphProgressionUIFactory>();
+
+			Layout = new BorderLayout(20);
+
+			var p = new Panel(new HorizontalFlow(20));
+			p.Add(new UI.Label(S("Progression type:")));
+			p.Add(type_);
+
+			Add(p, BorderLayout.Top);
+			Add(ui_, BorderLayout.Center);
+		}
+
+		public void Set(MorphModifier m)
+		{
+			modifier_ = m;
+
+			ignore_.Do(() =>
+			{
+				type_.Select(modifier_?.Progression);
+				ui_.Set(modifier_?.Progression);
+			});
+		}
+
+		private void OnTypeChanged(IMorphProgression mp)
+		{
+			if (ignore_ || modifier_ == null)
+				return;
+
+			modifier_.Progression = mp;
+			ui_.Set(mp);
+		}
 	}
 
+
+	class MorphProgressionUIFactory : IUIFactory<IMorphProgression>
+	{
+		public Dictionary<string, Func<IUIFactoryWidget<IMorphProgression>>> GetCreators()
+		{
+			return new Dictionary<string, Func<IUIFactoryWidget<IMorphProgression>>>()
+			{
+				{
+					NaturalMorphProgression.FactoryTypeName,
+					() => { return new NaturalMorphProgressionUI(); }
+				},
+
+				{
+					ConcurrentMorphProgression.FactoryTypeName,
+					() => { return new ConcurrentMorphProgressionUI(); }
+				},
+
+				{
+					SequentialMorphProgression.FactoryTypeName,
+					() => { return new SequentialMorphProgressionUI(); }
+				},
+
+				{
+					RandomMorphProgression.FactoryTypeName,
+					() => { return new RandomMorphProgressionUI(); }
+				},
+			};
+		}
+	}
+
+
+	class NaturalMorphProgressionUI : UI.Panel, IUIFactoryWidget<IMorphProgression>
+	{
+		private readonly UI.Tabs tabs_ = new UI.Tabs();
+		private readonly DurationPanel duration_ = new DurationPanel();
+		private readonly DelayWidgets delay_ = new DelayWidgets();
+
+		private NaturalMorphProgression progression_ = null;
+		private IgnoreFlag ignore_ = new IgnoreFlag();
+
+		public NaturalMorphProgressionUI()
+		{
+			Layout = new UI.BorderLayout(20);
+
+			Add(new UI.Label(S(
+				"Morphs will use their own copy of the duration and " +
+				"delay set below.")),
+				BorderLayout.Top);
+			Add(tabs_);
+
+
+			tabs_.AddTab(S("Duration"), duration_);
+			tabs_.AddTab(S("Delay"), delay_);
+
+			duration_.Changed += OnDurationTypeChanged;
+		}
+
+		public void Set(IMorphProgression o)
+		{
+			progression_ = o as NaturalMorphProgression;
+
+			ignore_.Do(() =>
+			{
+				duration_.Set(progression_.Duration);
+				delay_.Set(progression_.Delay);
+			});
+		}
+
+		private void OnDurationTypeChanged(IDuration d)
+		{
+			if (ignore_)
+				return;
+
+			progression_.Duration = d;
+		}
+	}
+
+
+	class ConcurrentMorphProgressionUI : UI.Panel, IUIFactoryWidget<IMorphProgression>
+	{
+		public ConcurrentMorphProgressionUI()
+		{
+			Layout = new UI.BorderLayout();
+			Add(new UI.Label(
+				S("All morphs will be set concurrently.")),
+				BorderLayout.Top);
+		}
+
+		public void Set(IMorphProgression o)
+		{
+			// no-op
+		}
+	}
+
+
+	abstract class OrderedMorphProgressionUI :
+		UI.Panel, IUIFactoryWidget<IMorphProgression>
+	{
+		private OrderedMorphProgression progression_ = null;
+
+		private readonly UI.CheckBox hold_;
+		private readonly IgnoreFlag ignore_ = new IgnoreFlag();
+
+		public OrderedMorphProgressionUI(string text)
+		{
+			hold_ = new CheckBox(S("Hold halfway"), OnHoldHawayChanged);
+			var p = new UI.Panel(new UI.HorizontalFlow(20));
+			p.Add(hold_);
+
+			Layout = new UI.BorderLayout(40);
+			Add(new UI.Label(text), BorderLayout.Top);
+			Add(p, BorderLayout.Center);
+		}
+
+		public void Set(IMorphProgression o)
+		{
+			progression_ = o as OrderedMorphProgression;
+
+			ignore_.Do(() =>
+			{
+				hold_.Checked = progression_.HoldHalfway;
+			});
+		}
+
+		private void OnHoldHawayChanged(bool b)
+		{
+			if (ignore_)
+				return;
+
+			progression_.HoldHalfway = b;
+		}
+	}
+
+
+	class SequentialMorphProgressionUI : OrderedMorphProgressionUI
+	{
+		public SequentialMorphProgressionUI()
+			: base(S("Morphs will be set sequentially."))
+		{
+		}
+	}
+
+
+	class RandomMorphProgressionUI : OrderedMorphProgressionUI
+	{
+		public RandomMorphProgressionUI()
+			: base(S("Morphs will be set sequentially in a random order."))
+		{
+		}
+	}
 
 
 	class MorphPanel : UI.Panel
@@ -115,7 +318,7 @@ namespace Synergy.NewUI
 			var top = new UI.Panel(new UI.HorizontalFlow());
 			top.Add(enabled_);
 			top.Add(new UI.Spacer());
-			top.Add(new UI.Button(S("Remove"), OnRemove));
+			top.Add(new UI.Button(S("Remove morph"), OnRemove));
 
 			Layout = new UI.VerticalFlow(40);
 
@@ -592,6 +795,9 @@ namespace Synergy.NewUI
 
 		public Morph SetActive(DAZMorph m, bool b)
 		{
+			if (morphs_.Count == 0)
+				return null;
+
 			var s = Find(m);
 			if (s == null)
 			{

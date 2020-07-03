@@ -255,9 +255,9 @@ namespace Synergy.NewUI
 			info_.Set(mc);
 			sync_.Set(mc);
 
-			var sel = tabs_.SelectedWidget;
+			var sel = tabs_.Selected;
 			bool needsReselect = false;
-			UI.Widget acceptedPanel = null;
+			int acceptedPanel = -1;
 
 			for (int i=0; i<modifierPanels_.Count; ++i)
 			{
@@ -265,13 +265,13 @@ namespace Synergy.NewUI
 
 				if (mc.Modifier != null && p.Accepts(mc.Modifier))
 				{
-					acceptedPanel = p;
+					acceptedPanel = tabs_.IndexOfWidget(p);
 					p.Set(mc.Modifier);
 					tabs_.SetTabVisible(p, true);
 				}
 				else
 				{
-					if (sel == p)
+					if (sel == tabs_.IndexOfWidget(p))
 						needsReselect = true;
 
 					tabs_.SetTabVisible(p, false);
@@ -280,7 +280,8 @@ namespace Synergy.NewUI
 
 			if (needsReselect)
 			{
-				if (acceptedPanel == null)
+
+				if (acceptedPanel < 0)
 					tabs_.Select(0);
 				else
 					tabs_.Select(acceptedPanel);
@@ -354,20 +355,22 @@ namespace Synergy.NewUI
 	{
 		private ModifierContainer modifier_ = null;
 
-		private readonly FactoryComboBox<ModifierSyncFactory, IModifierSync> type_;
+		private readonly FactoryComboBox<
+			ModifierSyncFactory, IModifierSync> type_;
 
 		private FactoryObjectWidget<
-			ModifierSyncFactory, IModifierSync, ModifierSyncUIFactory> ui_ =
-				new FactoryObjectWidget<
-					ModifierSyncFactory, IModifierSync, ModifierSyncUIFactory>();
+			ModifierSyncFactory, IModifierSync, ModifierSyncUIFactory> ui_;
 
-		private bool ignore_ = false;
+		private IgnoreFlag ignore_ = new IgnoreFlag();
 
 
 		public ModifierSyncPanel()
 		{
 			type_ = new FactoryComboBox<ModifierSyncFactory, IModifierSync>(
 				OnTypeChanged);
+
+			ui_ = new FactoryObjectWidget<
+				ModifierSyncFactory, IModifierSync, ModifierSyncUIFactory>();
 
 			Layout = new BorderLayout(20);
 
@@ -383,16 +386,16 @@ namespace Synergy.NewUI
 		{
 			modifier_ = mc;
 
-			using (new ScopedFlag((bool b) => ignore_ = b))
+			ignore_.Do(() =>
 			{
 				type_.Select(modifier_?.ModifierSync);
 				ui_.Set(modifier_?.ModifierSync);
-			}
+			});
 		}
 
 		private void OnTypeChanged(IModifierSync sync)
 		{
-			if (ignore_)
+			if (ignore_ || modifier_ == null)
 				return;
 
 			modifier_.ModifierSync = sync;
@@ -533,14 +536,14 @@ namespace Synergy.NewUI
 		private readonly DelayWidgets delay_ = new DelayWidgets();
 
 		private UnsyncedModifier sync_ = null;
-		private bool ignore_ = false;
+		private IgnoreFlag ignore_ = new IgnoreFlag();
 
 		public UnsyncedModifierUI()
 		{
 			Layout = new UI.BorderLayout(20);
 
 			Add(new UI.Label(S(
-				"This modifier is has its own duration and delay.")),
+				"This modifier has its own duration and delay.")),
 				BorderLayout.Top);
 			Add(tabs_);
 
@@ -555,11 +558,11 @@ namespace Synergy.NewUI
 		{
 			sync_ = o as UnsyncedModifier;
 
-			using (new ScopedFlag((bool b) => ignore_ = b))
+			ignore_.Do(() =>
 			{
 				duration_.Set(sync_.Duration);
 				delay_.Set(sync_.Delay);
-			}
+			});
 		}
 
 		private void OnDurationTypeChanged(IDuration d)
