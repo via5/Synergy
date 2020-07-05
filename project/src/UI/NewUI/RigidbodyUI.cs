@@ -92,8 +92,7 @@ namespace Synergy.NewUI
 				return;
 
 			modifier_.Atom = a;
-			modifier_.Receiver = Utilities.FindRigidbody(
-				a, receiver_.Selected);
+			modifier_.Receiver = receiver_.SelectedRigidbody;
 
 			using (new ScopedFlag((b) => ignore_ = b))
 				receiver_.Set(modifier_.Atom, modifier_.Receiver);
@@ -130,22 +129,35 @@ namespace Synergy.NewUI
 	}
 
 
-	class RigidBodyComboBox : UI.ComboBox<string>
+	class RigidBodyComboBox : UI.Panel
 	{
 		public delegate void RigidbodyCallback(Rigidbody atom);
 		public event RigidbodyCallback RigidbodySelectionChanged;
+
+		private readonly UI.ComboBox<string> cb_;
+		private readonly GotoButton goto_;
 
 		private Atom atom_ = null;
 		private bool dirty_ = false;
 
 		public RigidBodyComboBox()
 		{
+			cb_ = new UI.ComboBox<string>();
+			goto_ = new GotoButton(OnGoto);
+
+			Layout = new UI.BorderLayout(5);
+			Add(cb_, UI.BorderLayout.Center);
+			Add(goto_, UI.BorderLayout.Right);
+
 			UpdateList(null);
 
-			SelectionChanged += (string uid) =>
+			cb_.SelectionChanged += (string uid) =>
 			{
+				goto_.Enabled = !string.IsNullOrEmpty(uid);
 				RigidbodySelectionChanged?.Invoke(SelectedRigidbody);
 			};
+
+			cb_.Opened += OnOpen;
 		}
 
 		public void Set(Atom atom, Rigidbody rb)
@@ -158,7 +170,7 @@ namespace Synergy.NewUI
 		{
 			get
 			{
-				var name = Selected;
+				var name = cb_.Selected;
 				if (string.IsNullOrEmpty(name))
 					return null;
 
@@ -171,18 +183,29 @@ namespace Synergy.NewUI
 
 		public void Select(Rigidbody rb)
 		{
-			Select(rb?.name);
+			cb_.Select(rb?.name);
 		}
 
-		protected override void OnOpen()
+		private void OnGoto()
+		{
+			if (atom_ == null)
+				return;
+
+			var rb = SelectedRigidbody;
+			if (rb == null)
+				return;
+
+			SuperController.singleton.SelectController(
+				atom_.uid, rb.name + "Control");
+		}
+
+		private void OnOpen()
 		{
 			if (dirty_)
 			{
-				UpdateList(Selected);
+				UpdateList(cb_.Selected);
 				dirty_ = false;
 			}
-
-			base.OnOpen();
 		}
 
 		private void UpdateList(string sel)
@@ -202,7 +225,7 @@ namespace Synergy.NewUI
 			}
 
 			list.Sort();
-			SetItems(list, sel);
+			cb_.SetItems(list, sel);
 		}
 	}
 }

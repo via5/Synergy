@@ -63,6 +63,7 @@ namespace Synergy.UI
 			button_ = WidgetObject.GetComponent<UIDynamicButton>();
 			button_.button.onClick.AddListener(OnClicked);
 			button_.buttonText.text = text_;
+			button_.buttonText.alignment = Label.ToTextAnchor(align_);
 
 			Style.Polish(this);
 		}
@@ -76,7 +77,10 @@ namespace Synergy.UI
 		public override void UpdateBounds()
 		{
 			base.UpdateBounds();
-			button_.buttonText.alignment = Label.ToTextAnchor(align_);
+
+			var rt = button_.GetComponent<RectTransform>();
+			rt.offsetMin = new Vector2(rt.offsetMin.x - 2, rt.offsetMin.y - 1);
+			rt.offsetMax = new Vector2(rt.offsetMax.x + 2, rt.offsetMax.y);
 		}
 
 		protected override Size DoGetPreferredSize(

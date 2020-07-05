@@ -55,8 +55,8 @@ namespace Synergy.UI
 				0.75f, 0.75f, 0.75f);
 
 			var rt = toggle_.toggle.image.rectTransform;
-			rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y - 10);
-			rt.offsetMax = new Vector2(rt.offsetMax.x - 20, rt.offsetMax.y - 30);
+			rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y - 8);
+			rt.offsetMax = new Vector2(rt.offsetMax.x - 20, rt.offsetMax.y - 28);
 			rt.anchorMin = new Vector2(0, 1);
 			rt.anchorMax = new Vector2(0, 1);
 			rt.anchoredPosition = new Vector2(

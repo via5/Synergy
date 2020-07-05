@@ -576,7 +576,16 @@ namespace Synergy.NewUI
 	}
 
 
-	class AtomComboBox : ComboBox<string>
+	class GotoButton : UI.ToolButton
+	{
+		public GotoButton(UI.Button.Callback cb = null)
+			: base(S("G"), cb)
+		{
+		}
+	}
+
+
+	class AtomComboBox : UI.Panel
 	{
 		public delegate void AtomCallback(Atom atom);
 		public event AtomCallback AtomSelectionChanged;
@@ -584,15 +593,26 @@ namespace Synergy.NewUI
 		public delegate bool AtomPredicate(Atom atom);
 		private readonly AtomPredicate pred_;
 
+		private readonly ComboBox<string> cb_;
+		private readonly GotoButton goto_;
 
 		public AtomComboBox(AtomPredicate pred = null)
 		{
 			pred_ = pred;
+			cb_ = new ComboBox<string>();
+			goto_ = new GotoButton(OnGoto);
 
-			SelectionChanged += (string uid) =>
+			Layout = new UI.BorderLayout(5);
+			Add(cb_, UI.BorderLayout.Center);
+			Add(goto_, UI.BorderLayout.Right);
+
+			cb_.SelectionChanged += (string uid) =>
 			{
+				goto_.Enabled = (SelectedAtom != null);
 				AtomSelectionChanged?.Invoke(SelectedAtom);
 			};
+
+			cb_.Opened += OnOpen;
 
 			UpdateList();
 
@@ -604,7 +624,7 @@ namespace Synergy.NewUI
 		{
 			get
 			{
-				var uid = Selected;
+				var uid = cb_.Selected;
 				if (string.IsNullOrEmpty(uid))
 					return null;
 
@@ -614,7 +634,7 @@ namespace Synergy.NewUI
 
 		public void Select(Atom atom)
 		{
-			Select(atom?.uid);
+			cb_.Select(atom?.uid);
 		}
 
 		public override void Dispose()
@@ -627,19 +647,27 @@ namespace Synergy.NewUI
 
 		private void OnAtomUIDChanged(string oldUID, string newUID)
 		{
-			var a = Selected;
+			var a = cb_.Selected;
 
 			if (a == oldUID)
 			{
 				UpdateList();
-				Select(newUID);
+				cb_.Select(newUID);
 			}
 		}
 
-		protected override void OnOpen()
+		private void OnGoto()
+		{
+			if (SelectedAtom == null)
+				return;
+
+			SuperController.singleton.SelectController(
+				SelectedAtom.mainController);
+		}
+
+		private void OnOpen()
 		{
 			UpdateList();
-			base.OnOpen();
 		}
 
 		private void UpdateList()
@@ -657,7 +685,7 @@ namespace Synergy.NewUI
 			if (player != null)
 				items.Add(player.uid);
 
-			string sel = Selected;
+			string sel = cb_.Selected;
 
 			foreach (var a in Synergy.Instance.GetSceneAtoms())
 			{
@@ -674,7 +702,7 @@ namespace Synergy.NewUI
 			}
 
 			items.Sort();
-			SetItems(items, sel);
+			cb_.SetItems(items, sel);
 		}
 	}
 

@@ -4,12 +4,30 @@ namespace Synergy.NewUI
 {
 	class AudioModifierPanel : BasicModifierPanel
 	{
+		class PlayTypeItem
+		{
+			public string text;
+			public int type;
+
+			public PlayTypeItem(string text, int type)
+			{
+				this.text = text;
+				this.type = type;
+			}
+
+			public override string ToString()
+			{
+				return text;
+			}
+		}
+
 		private readonly AtomComboBox atom_ = new AtomComboBox(
 			Utilities.AtomCanPlayAudio);
 
-		private readonly UI.Tabs tabs_ = new UI.Tabs();
-		private readonly AudioClipsTab clips_ = new AudioClipsTab();
-		private readonly RandomDurationWidgets delay_ = new RandomDurationWidgets();
+		private readonly UI.ComboBox<PlayTypeItem> playType_;
+		private readonly UI.Tabs tabs_;
+		private readonly AudioClipsTab clips_;
+		private readonly RandomDurationWidgets delay_;
 
 		private AudioModifier modifier_ = null;
 		private IgnoreFlag ignore_ = new IgnoreFlag();
@@ -17,6 +35,16 @@ namespace Synergy.NewUI
 
 		public AudioModifierPanel()
 		{
+			playType_ = new UI.ComboBox<PlayTypeItem>(new List<PlayTypeItem>()
+			{
+				new PlayTypeItem(S("Play now"), AudioModifier.PlayNow),
+				new PlayTypeItem(S("Play if clear"), AudioModifier.PlayIfClear)
+			});
+
+			tabs_ = new UI.Tabs();
+			clips_ = new AudioClipsTab();
+			delay_ = new RandomDurationWidgets();
+
 			var gl = new UI.GridLayout(4);
 			gl.Spacing = 20;
 			gl.HorizontalStretch = new List<bool>() { false, true, false, true };
@@ -25,7 +53,7 @@ namespace Synergy.NewUI
 			p.Add(new UI.Label(S("Atom")));
 			p.Add(atom_);
 			p.Add(new UI.Label(S("Play type")));
-			p.Add(new UI.ComboBox<string>());
+			p.Add(playType_);
 
 			Layout = new UI.BorderLayout(20);
 			Add(p, UI.BorderLayout.Top);
@@ -36,6 +64,7 @@ namespace Synergy.NewUI
 
 			tabs_.SelectionChanged += OnTabSelected;
 			atom_.AtomSelectionChanged += OnAtomChanged;
+			playType_.SelectionChanged += OnPlayTypeChanged;
 
 			tabs_.Select(0);
 		}
@@ -74,6 +103,11 @@ namespace Synergy.NewUI
 
 			modifier_.Atom = a;
 			clips_.AtomChanged();
+		}
+
+		private void OnPlayTypeChanged(PlayTypeItem i)
+		{
+			modifier_.PlayType = i.type;
 		}
 	}
 
@@ -466,7 +500,9 @@ namespace Synergy.NewUI
 			Synergy.LogError("playing " + clip_.displayName);
 
 			source_.PlayNow(clip_);
-			source_.audioSource.time = 0;
+
+			if (source_.playingClip == clip_)
+				source_.audioSource.time = 0;
 		}
 
 		private void OnStop()
@@ -510,6 +546,7 @@ namespace Synergy.NewUI
 			if (source_?.audioSource == null)
 				return;
 
+			Synergy.LogError("seeking to " + v.ToString());
 			source_.audioSource.time = v;
 		}
 

@@ -68,7 +68,7 @@ namespace Synergy
 			var s = Synergy.Instance.Manager.AddStep();
 
 			var am = new AudioModifier(a);
-			am.AddClip(Utilities.GetAudioClip("crying3.mp3"));
+			am.AddClip(Utilities.GetAudioClip("43402866_light-switch-06.mp3"));
 			am.AddClip(Utilities.GetAudioClip("41957518_pen-click-01.mp3"));
 
 			s.AddModifier(new ModifierContainer(am));
@@ -307,7 +307,7 @@ namespace Synergy
 
 		static public void LogVerbose(string s)
 		{
-		   // if (instance_ == null || instance_.options_.VerboseLog)
+		   if (instance_ == null || instance_.options_.VerboseLog)
 		        SuperController.LogError(s);
 		}
 	}

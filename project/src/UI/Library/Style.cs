@@ -99,7 +99,7 @@ namespace Synergy.UI
 
 		public static Color DisabledButtonBackgroundColor
 		{
-			get { return new Color(0.15f, 0.15f, 0.15f); }
+			get { return new Color(0.20f, 0.20f, 0.20f); }
 		}
 
 		public static Color HighlightBackgroundColor
@@ -329,6 +329,7 @@ namespace Synergy.UI
 			sb.normalColor = ButtonBackgroundColor;
 			sb.highlightedColor = HighlightBackgroundColor;
 			sb.pressedColor = HighlightBackgroundColor;
+			sb.disabledColor = DisabledButtonBackgroundColor;
 			sb.UpdateStyle();
 		}
 

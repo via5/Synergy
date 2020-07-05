@@ -110,7 +110,7 @@ namespace Synergy.UI
 			Add(top_, BorderLayout.Top);
 			Add(stack_, BorderLayout.Center);
 
-			top_.Layout = new HorizontalFlow(0, HorizontalFlow.AlignBottom);
+			top_.Layout = new HorizontalFlow(2, HorizontalFlow.AlignBottom);
 			stack_.Layout = new BorderLayout();
 			stack_.Borders = new Insets(2);
 			stack_.Padding = new Insets(20);

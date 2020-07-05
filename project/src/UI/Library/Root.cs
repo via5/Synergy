@@ -201,7 +201,7 @@ namespace Synergy.UI
 
 				var t = Time.realtimeSinceStartup - start;
 
-				Synergy.LogError("layout: " + t.ToString("0.000") + "s");
+				Synergy.LogVerbose("layout: " + t.ToString("0.000") + "s");
 
 				dirty_ = false;
 			}
@@ -211,7 +211,7 @@ namespace Synergy.UI
 		{
 			if (!dirty_)
 			{
-				Synergy.LogError("needs layout: " + why);
+				Synergy.LogVerbose("needs layout: " + why);
 				dirty_ = true;
 			}
 		}

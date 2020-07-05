@@ -279,11 +279,13 @@ namespace Synergy
 				switch (playType_)
 				{
 					case PlayIfClear:
+						Synergy.LogVerbose("play if clear: " + currentClip_.displayName);
 						source_.PlayIfClear(currentClip_);
 						break;
 
 					case PlayNow:  // fall-through
 					default:
+						Synergy.LogVerbose("play now: " + currentClip_.displayName);
 						source_.PlayNow(currentClip_);
 						break;
 				}
@@ -318,6 +320,7 @@ namespace Synergy
 				if (currentClip_ == c)
 				{
 					StopAudio();
+					needsDelay_ = false;
 					currentClip_ = null;
 				}
 
