@@ -10,6 +10,7 @@ namespace Synergy
 		bool InFirstHalf { get; }
 		float TotalProgress { get; }
 		bool InFirstHalfTotal { get; }
+		bool FirstHalfFinished { get; }
 		bool Finished { get; }
 		float TimeRemaining { get; }
 		float Current { get; }
@@ -46,6 +47,7 @@ namespace Synergy
 		public abstract float TotalProgress { get; }
 		public abstract bool InFirstHalf { get; }
 		public abstract bool InFirstHalfTotal { get; }
+		public abstract bool FirstHalfFinished { get; }
 		public abstract bool Finished { get; }
 		public abstract float TimeRemaining { get; }
 		public abstract float Current { get; }
@@ -102,6 +104,12 @@ namespace Synergy
 		{
 			get { return Time.InFirstHalf; }
 		}
+
+		public override bool FirstHalfFinished
+		{
+			get { return TotalProgress >= 1.0f; }
+		}
+
 
 		public override float TotalProgress
 		{
@@ -302,6 +310,11 @@ namespace Synergy
 			{
 				return goingUp_;
 			}
+		}
+
+		public override bool FirstHalfFinished
+		{
+			get { return TotalProgress >= 1.0f && !holding_; }
 		}
 
 		public override bool Finished

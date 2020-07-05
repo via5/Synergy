@@ -364,7 +364,7 @@ namespace Synergy
 		{
 			get
 			{
-				return (elapsed_ > current_);
+				return (elapsed_ >= current_);
 			}
 		}
 
@@ -448,14 +448,9 @@ namespace Synergy
 			else
 			{
 				if (current_ <= maxTime)
-				{
 					elapsed_ = 0;
-				}
 				else
-				{
-					elapsed_ = 0;
-					current_ = 0;
-				}
+					elapsed_ = current_;
 			}
 		}
 

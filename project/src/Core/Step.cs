@@ -515,7 +515,7 @@ namespace Synergy
 
 			if (stepForwards)
 			{
-				if (Duration.TotalProgress >= 1.0f)
+				if (Duration.FirstHalfFinished)
 				{
 					if (Delay.Halfway || Delay.EndForwards)
 					{
