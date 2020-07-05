@@ -127,15 +127,10 @@ namespace Synergy.UI
 			UI.Utilities.FindChildRecursive(WidgetObject, "Panel").SetActive(false);
 
 			var rt = slider_.slider.GetComponent<RectTransform>();
-			rt.offsetMin = new Vector2(-1, -Bounds.Height + 1);
-			rt.offsetMax = new Vector2(Bounds.Width, 0);
-			rt.anchorMin = new Vector2(0, 1);
-			rt.anchorMax = new Vector2(0, 1);
-			rt.anchoredPosition = new Vector2(
-				rt.offsetMin.x + (rt.offsetMax.x - rt.offsetMin.x) / 2,
-				rt.offsetMin.y + (rt.offsetMax.y - rt.offsetMin.y) / 2);
-
-			var fill = Utilities.FindChildRecursive(WidgetObject, "Fill");
+			rt.offsetMin = new Vector2(
+				rt.offsetMin.x - 12, rt.offsetMin.y - 30);
+			rt.offsetMax = new Vector2(
+				rt.offsetMax.x + 12, rt.offsetMax.y - 30);
 
 			Style.Polish(this);
 		}

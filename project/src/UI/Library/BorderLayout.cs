@@ -16,6 +16,11 @@ namespace Synergy.UI
 			{
 				side = s;
 			}
+
+			public static implicit operator int(Data d)
+			{
+				return d.side;
+			}
 		}
 
 		public static Data Left = new Data(0);
@@ -25,16 +30,10 @@ namespace Synergy.UI
 		public static Data Center = new Data(4);
 		public static Data DefaultSide = Center;
 
-		private const int LeftSide = 0;
-		private const int TopSide = 1;
-		private const int RightSide = 2;
-		private const int BottomSide = 3;
-		private const int CenterSide = 4;
-
-		private const int TopLeft = 0;
-		private const int TopRight = 1;
-		private const int BottomLeft = 2;
-		private const int BottomRight = 3;
+		public const int TopLeft = 0;
+		public const int TopRight = 1;
+		public const int BottomLeft = 2;
+		public const int BottomRight = 3;
 
 
 		private readonly List<Widget>[] sides_ = new List<Widget>[5];
@@ -47,10 +46,21 @@ namespace Synergy.UI
 			for (int i = 0; i < 5; ++i)
 				sides_[i] = new List<Widget>();
 
-			corners_[TopLeft] = TopSide;
-			corners_[TopRight] = TopSide;
-			corners_[BottomLeft] = BottomSide;
-			corners_[BottomRight] = BottomSide;
+			corners_[TopLeft] = Top;
+			corners_[TopRight] = Top;
+			corners_[BottomLeft] = Bottom;
+			corners_[BottomRight] = Bottom;
+		}
+
+		public void SetCorner(int corner, int side)
+		{
+			if (corner < 0 || corner >= 4)
+				return;
+
+			if (side < 0 || side >= 4)
+				return;
+
+			corners_[corner] = side;
 		}
 
 		protected override void AddImpl(Widget w, LayoutData data = null)
@@ -98,18 +108,18 @@ namespace Synergy.UI
 
 		protected override Size GetPreferredSize()
 		{
-			var left = SideWidth(LeftSide, DontCare);
-			var right = SideWidth(RightSide, DontCare);
-			var top = SideHeight(TopSide, DontCare);
-			var bottom = SideHeight(BottomSide, DontCare);
+			var left = SideWidth(Left, DontCare);
+			var right = SideWidth(Right, DontCare);
+			var top = SideHeight(Top, DontCare);
+			var bottom = SideHeight(Bottom, DontCare);
 
 			var center = new Size();
-			foreach (var w in sides_[CenterSide])
+			foreach (var w in sides_[Center])
 			{
 				if (!w.Visible)
 					continue;
 
-				center = Size.Max(center, w.GetPreferredSize(DontCare, DontCare));
+				center = Size.Max(center, w.GetRealPreferredSize(DontCare, DontCare));
 			}
 
 			int hn =
@@ -134,12 +144,12 @@ namespace Synergy.UI
 		{
 			float tallest = 0;
 
-			foreach (var w in sides_[TopSide])
+			foreach (var w in sides_[Top])
 			{
 				if (!w.Visible)
 					continue;
 
-				float wh = w.GetPreferredSize(av.Width, DontCare).Height;
+				float wh = w.GetRealPreferredSize(av.Width, DontCare).Height;
 				tallest = Math.Max(tallest, wh);
 
 				Rectangle r = new Rectangle();
@@ -149,14 +159,24 @@ namespace Synergy.UI
 				r.Right = r.Left + av.Width;
 				r.Bottom = r.Top + wh;
 
-				var lw = SideWidth(LeftSide, av.Height);
-				var rw = SideWidth(RightSide, av.Height);
+				var lw = SideWidth(Left, av.Height);
+				var rw = SideWidth(Right, av.Height);
 
-				if (corners_[TopLeft] != TopSide)
+				if (corners_[TopLeft] != Top)
+				{
 					r.Left += lw;
 
-				if (corners_[TopRight] != TopSide)
+					if (lw > 0)
+						r.Left += Spacing;
+				}
+
+				if (corners_[TopRight] != Top)
+				{
 					r.Right -= rw;
+
+					if (rw > 0)
+						r.Right -= Spacing;
+				}
 
 				w.Bounds = r;
 			}
@@ -171,12 +191,12 @@ namespace Synergy.UI
 		{
 			float tallest = 0;
 
-			foreach (var w in sides_[BottomSide])
+			foreach (var w in sides_[Bottom])
 			{
 				if (!w.Visible)
 					continue;
 
-				float wh = w.GetPreferredSize(av.Width, DontCare).Height;
+				float wh = w.GetRealPreferredSize(av.Width, DontCare).Height;
 				tallest = Math.Max(tallest, wh);
 
 				Rectangle r = new Rectangle();
@@ -186,14 +206,24 @@ namespace Synergy.UI
 				r.Right = r.Left + av.Width;
 				r.Bottom = r.Top + wh;
 
-				var lw = SideWidth(LeftSide, av.Height);
-				var rw = SideWidth(RightSide, av.Height);
+				var lw = SideWidth(Left, av.Height);
+				var rw = SideWidth(Right, av.Height);
 
-				if (corners_[BottomLeft] != BottomSide)
+				if (corners_[BottomLeft] != Bottom)
+				{
 					r.Left += lw;
 
-				if (corners_[BottomRight] != BottomSide)
+					if (lw > 0)
+						r.Left += Spacing;
+				}
+
+				if (corners_[BottomRight] != Bottom)
+				{
 					r.Right -= rw;
+
+					if (rw > 0)
+						r.Right -= Spacing;
+				}
 
 				w.Bounds = r;
 			}
@@ -208,12 +238,12 @@ namespace Synergy.UI
 		{
 			float widest = 0;
 
-			foreach (var w in sides_[LeftSide])
+			foreach (var w in sides_[Left])
 			{
 				if (!w.Visible)
 					continue;
 
-				float ww = w.GetPreferredSize(DontCare, av.Height).Width;
+				float ww = w.GetRealPreferredSize(DontCare, av.Height).Width;
 				widest = Math.Max(widest, ww);
 
 				Rectangle r = new Rectangle();
@@ -224,14 +254,24 @@ namespace Synergy.UI
 				r.Right = r.Left + ww;
 				r.Bottom = r.Top + av.Height;
 
-				var th = SideHeight(TopSide, av.Width);
-				var bh = SideHeight(BottomSide, av.Width);
+				var th = SideHeight(Top, av.Width);
+				var bh = SideHeight(Bottom, av.Width);
 
-				if (corners_[TopLeft] != LeftSide)
+				if (corners_[TopLeft] != Left)
+				{
 					r.Top += th;
 
-				if (corners_[BottomLeft] != LeftSide)
+					if (th > 0)
+						r.Top += Spacing;
+				}
+
+				if (corners_[BottomLeft] != Left)
+				{
 					r.Bottom -= bh;
+
+					if (bh > 0)
+						r.Bottom -= Spacing;
+				}
 
 				w.Bounds = r;
 			}
@@ -246,12 +286,12 @@ namespace Synergy.UI
 		{
 			float widest = 0;
 
-			foreach (var w in sides_[RightSide])
+			foreach (var w in sides_[Right])
 			{
 				if (!w.Visible)
 					continue;
 
-				float ww = w.GetPreferredSize(DontCare, av.Height).Width;
+				float ww = w.GetRealPreferredSize(DontCare, av.Height).Width;
 				widest = Math.Max(widest, ww);
 
 				Rectangle r = new Rectangle();
@@ -262,14 +302,24 @@ namespace Synergy.UI
 				r.Right = r.Left + ww;
 				r.Bottom = r.Top + av.Height;
 
-				var th = SideHeight(TopSide, av.Width);
-				var bh = SideHeight(BottomSide, av.Width);
+				var th = SideHeight(Top, av.Width);
+				var bh = SideHeight(Bottom, av.Width);
 
-				if (corners_[TopRight] != RightSide)
+				if (corners_[TopRight] != Right)
+				{
 					r.Top += th;
 
-				if (corners_[BottomRight] != RightSide)
+					if (th > 0)
+						r.Top += Spacing;
+				}
+
+				if (corners_[BottomRight] != Right)
+				{
 					r.Bottom -= bh;
+
+					if (bh > 0)
+						r.Bottom -= Spacing;
+				}
 
 				w.Bounds = r;
 			}
@@ -282,7 +332,7 @@ namespace Synergy.UI
 
 		private void DoCenter(Rectangle av)
 		{
-			foreach (var w in sides_[CenterSide])
+			foreach (var w in sides_[Center])
 			{
 				if (!w.Visible)
 					continue;
@@ -300,7 +350,7 @@ namespace Synergy.UI
 				if (!w.Visible)
 					continue;
 
-				float ww = w.GetPreferredSize(DontCare, maxHeight).Width;
+				float ww = w.GetRealPreferredSize(DontCare, maxHeight).Width;
 				widest = Math.Max(widest, ww);
 			}
 
@@ -316,7 +366,7 @@ namespace Synergy.UI
 				if (!w.Visible)
 					continue;
 
-				float wh = w.GetPreferredSize(maxWidth, DontCare).Height;
+				float wh = w.GetRealPreferredSize(maxWidth, DontCare).Height;
 				tallest = Math.Max(tallest, wh);
 			}
 

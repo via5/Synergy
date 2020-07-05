@@ -152,6 +152,7 @@ namespace Synergy.UI
 		private Layout layout_ = null;
 		private Rectangle bounds_ = new Rectangle();
 		private Size minSize_ = new Size(DontCare, DontCare);
+		private Size maxSize_ = new Size(DontCare, DontCare);
 
 		private GameObject mainObject_ = null;
 		private GameObject widgetObject_ = null;
@@ -217,7 +218,7 @@ namespace Synergy.UI
 				if (layout_ != null)
 					layout_.Parent = this;
 
-				NeedsLayout();
+				NeedsLayout("layout changed");
 			}
 		}
 
@@ -233,7 +234,7 @@ namespace Synergy.UI
 				if (font_ != value)
 				{
 					font_ = value;
-					NeedsLayout();
+					NeedsLayout("font changed");
 				}
 			}
 		}
@@ -250,7 +251,7 @@ namespace Synergy.UI
 				if (fontSize_ != value)
 				{
 					fontSize_ = value;
-					NeedsLayout();
+					NeedsLayout("font size changed");
 				}
 			}
 		}
@@ -277,7 +278,7 @@ namespace Synergy.UI
 				if (visible_ != value)
 				{
 					visible_ = value;
-					NeedsLayout();
+					NeedsLayout("visibility changed");
 				}
 			}
 		}
@@ -316,7 +317,7 @@ namespace Synergy.UI
 			set
 			{
 				margins_ = value ?? new Insets(0);
-				NeedsLayout();
+				NeedsLayout("margins changed");
 			}
 		}
 
@@ -334,7 +335,7 @@ namespace Synergy.UI
 				if (borderGraphics_ != null)
 					borderGraphics_.Borders = value ?? new Insets(0);
 
-				NeedsLayout();
+				NeedsLayout("borders changed");
 			}
 		}
 
@@ -348,7 +349,7 @@ namespace Synergy.UI
 			set
 			{
 				padding_ = value ?? new Insets(0);
-				NeedsLayout();
+				NeedsLayout("padding changed");
 			}
 		}
 
@@ -439,7 +440,7 @@ namespace Synergy.UI
 			}
 		}
 
-		public Size GetPreferredSize(float maxWidth, float maxHeight)
+		public Size GetRealPreferredSize(float maxWidth, float maxHeight)
 		{
 			var s = new Size();
 
@@ -449,12 +450,18 @@ namespace Synergy.UI
 			s = Size.Max(s, DoGetPreferredSize(maxWidth, maxHeight));
 			s = Size.Max(s, MinimumSize);
 
+			if (maxSize_.Width >= 0)
+				s.Width = Math.Min(s.Width, maxSize_.Width);
+
+			if (maxSize_.Height >= 0)
+				s.Height = Math.Min(s.Height, maxSize_.Height);
+
 			s += Margins.Size + Borders.Size + Padding.Size;
 
 			return s;
 		}
 
-		public Size GetMinimumSize()
+		public Size GetRealMinimumSize()
 		{
 			if (minSize_.Width == DontCare || minSize_.Height == DontCare)
 			{
@@ -482,7 +489,21 @@ namespace Synergy.UI
 			set
 			{
 				minSize_ = value;
-				NeedsLayout();
+				NeedsLayout("min size changed");
+			}
+		}
+
+		public Size MaximumSize
+		{
+			get
+			{
+				return maxSize_;
+			}
+
+			set
+			{
+				maxSize_ = value;
+				NeedsLayout("max size changed");
 			}
 		}
 
@@ -527,7 +548,7 @@ namespace Synergy.UI
 				list.Add(name_);
 				list.Add("b=" + Bounds.ToString());
 				list.Add("rb=" + RelativeBounds.ToString());
-				list.Add("ps=" + GetPreferredSize(DontCare, DontCare).ToString());
+				list.Add("ps=" + GetRealPreferredSize(DontCare, DontCare).ToString());
 				list.Add("ly=" + (Layout?.TypeName ?? "none"));
 
 				return string.Join(" ", list.ToArray());
@@ -546,7 +567,7 @@ namespace Synergy.UI
 			w.parent_ = this;
 			children_.Add(w);
 			layout_?.Add(w, d);
-			NeedsLayout();
+			NeedsLayout("widget added (" + w.DebugLine + ")");
 			return w;
 		}
 
@@ -563,9 +584,10 @@ namespace Synergy.UI
 
 			layout_.Remove(w);
 			w.parent_ = null;
-			w.Destroy();
 
-			NeedsLayout();
+			NeedsLayout("widget removed (" + w.DebugLine + ")");
+
+			w.Destroy();
 		}
 
 		public void Remove()
@@ -706,10 +728,15 @@ namespace Synergy.UI
 			mainObject_.SetActive(visible_);
 		}
 
-		public virtual void NeedsLayout()
+		public void NeedsLayout(string why)
+		{
+			NeedsLayoutImpl(TypeName + ": " + why);
+		}
+
+		protected virtual void NeedsLayoutImpl(string why)
 		{
 			if (parent_ != null)
-				parent_.NeedsLayout();
+				parent_.NeedsLayoutImpl(why);
 		}
 
 		public void Dump(int indent = 0)

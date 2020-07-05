@@ -123,6 +123,7 @@ namespace Synergy.UI
 
 		private float hspacing_ = 0;
 		private float vspacing_ = 0;
+		private bool uniformWidth_ = true;
 		private bool uniformHeight_ = true;
 		private int nextCol_ = 0;
 		private int nextRow_ = 0;
@@ -173,6 +174,12 @@ namespace Synergy.UI
 		{
 			get { return uniformHeight_; }
 			set { uniformHeight_ = value; }
+		}
+
+		public bool UniformWidth
+		{
+			get { return uniformWidth_; }
+			set { uniformWidth_ = value; }
 		}
 
 		public List<bool> HorizontalStretch
@@ -334,8 +341,17 @@ namespace Synergy.UI
 					var ps = d.sizes.Cell(colIndex, rowIndex);
 					var uniformWidth = d.widths[colIndex];
 
-					var ww = uniformWidth + extraWidth[colIndex];
-					var wh = ps.Height + extraHeight[rowIndex];
+					float ww = 0;
+					if (uniformWidth_)
+						ww = uniformWidth + extraWidth[colIndex];
+					else
+						ww = ps.Width + extraWidth[colIndex];
+
+					float wh = 0;
+					if (uniformHeight_)
+						wh = d.tallest + extraHeight[rowIndex];
+					else
+						wh = ps.Height + extraHeight[rowIndex];
 
 					var wr = Rectangle.FromSize(x, y, ww, wh);
 
@@ -347,14 +363,14 @@ namespace Synergy.UI
 						w.Bounds = wr;
 					}
 
-					x += wr.Width;
+					x += uniformWidth + extraWidth[colIndex];
 					tallestInRow = Math.Max(tallestInRow, wr.Height);
 				}
 
 				x = r.Left;
 
 				if (uniformHeight_)
-					y += d.tallest + VerticalSpacing;
+					y += d.tallest + extraHeight[rowIndex] + VerticalSpacing;
 				else
 					y += tallestInRow + VerticalSpacing;
 			}
@@ -401,7 +417,7 @@ namespace Synergy.UI
 						if (!w.Visible)
 							continue;
 
-						var ps = w.GetPreferredSize(DontCare, DontCare);
+						var ps = w.GetRealPreferredSize(DontCare, DontCare);
 						cellPs.Width = Math.Max(cellPs.Width, ps.Width);
 						cellPs.Height = Math.Max(cellPs.Height, ps.Height);
 					}

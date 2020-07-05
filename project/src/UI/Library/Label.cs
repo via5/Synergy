@@ -34,8 +34,13 @@ namespace Synergy.UI
 
 			set
 			{
-				text_ = value;
-				NeedsLayout();
+				if (text_ != value)
+				{
+					text_ = value;
+
+					if (Root.TextLength(Font, FontSize, text_) > Bounds.Width)
+						NeedsLayout("text changed");
+				}
 
 				if (textObject_ != null)
 					textObject_.text = value;
@@ -52,7 +57,7 @@ namespace Synergy.UI
 			set
 			{
 				align_ = value;
-				NeedsLayout();
+				NeedsLayout("alignment changed");
 			}
 		}
 
@@ -61,6 +66,8 @@ namespace Synergy.UI
 		{
 			textObject_ = WidgetObject.AddComponent<Text>();
 			textObject_.text = text_;
+			textObject_.horizontalOverflow = HorizontalWrapMode.Overflow;
+			textObject_.maskable = true;
 
 			Style.Polish(this);
 		}
@@ -74,13 +81,13 @@ namespace Synergy.UI
 		protected override Size DoGetPreferredSize(
 			float maxWidth, float maxHeight)
 		{
-			return Root.FitText(
-				Font, FontSize, text_, new Size(maxWidth, maxHeight));
+			return new Size(Root.FitText(
+				Font, FontSize, text_, new Size(maxWidth, maxHeight)).Width, 40);
 		}
 
 		protected override Size DoGetMinimumSize()
 		{
-			return Root.TextSize(Font, FontSize, text_);
+			return new Size(Root.TextLength(Font, FontSize, text_), 40);
 		}
 
 		public static TextAnchor ToTextAnchor(int a)

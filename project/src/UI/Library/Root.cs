@@ -62,9 +62,9 @@ namespace Synergy.UI
 			Margins = new Insets(5);
 		}
 
-		public override void NeedsLayout()
+		protected override void NeedsLayoutImpl(string why)
 		{
-			root_.SetDirty();
+			root_.SetDirty(why);
 		}
 
 		public override Root GetRoot()
@@ -207,9 +207,13 @@ namespace Synergy.UI
 			}
 		}
 
-		public void SetDirty()
+		public void SetDirty(string why)
 		{
-			dirty_ = true;
+			if (!dirty_)
+			{
+				Synergy.LogError("needs layout: " + why);
+				dirty_ = true;
+			}
 		}
 
 		public bool OverlayVisible

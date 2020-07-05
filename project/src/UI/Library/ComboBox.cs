@@ -427,8 +427,8 @@ namespace Synergy.UI
 				rt.offsetMin.y + (rt.offsetMax.y - rt.offsetMin.y) / 2);
 
 			rt = Popup.popup.topButton.gameObject.GetComponent<RectTransform>();
-			rt.offsetMin = new Vector2(rt.offsetMin.x - 9, rt.offsetMin.y - 5);
-			rt.offsetMax = new Vector2(rt.offsetMax.x + 5, rt.offsetMax.y + 5);
+			rt.offsetMin = new Vector2(rt.offsetMin.x - 12, rt.offsetMin.y - 6);
+			rt.offsetMax = new Vector2(rt.offsetMax.x + 8, rt.offsetMax.y + 6);
 			rt.anchoredPosition = new Vector2(
 				rt.offsetMin.x + (rt.offsetMax.x - rt.offsetMin.x) / 2,
 				rt.offsetMin.y + (rt.offsetMax.y - rt.offsetMin.y) / 2);

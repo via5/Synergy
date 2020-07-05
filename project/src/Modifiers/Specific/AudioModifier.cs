@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Synergy
 {
@@ -28,8 +29,9 @@ namespace Synergy
 		private int state_ = StartingState;
 		private int playType_ = PlayNow;
 
-		public AudioModifier()
+		public AudioModifier(Atom a = null)
 		{
+			Atom = a;
 			Delay = new RandomDuration(1);
 			CheckSource();
 		}
@@ -305,6 +307,21 @@ namespace Synergy
 			if (c != null)
 			{
 				clips_.Add(c);
+				Reshuffle();
+			}
+		}
+
+		public void RemoveClip(NamedAudioClip c)
+		{
+			if (c != null && clips_.Contains(c))
+			{
+				if (currentClip_ == c)
+				{
+					StopAudio();
+					currentClip_ = null;
+				}
+
+				clips_.Remove(c);
 				Reshuffle();
 			}
 		}

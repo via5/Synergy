@@ -67,7 +67,10 @@ namespace Synergy
 		{
 			var s = Synergy.Instance.Manager.AddStep();
 
-			var am = new AudioModifier();
+			var am = new AudioModifier(a);
+			am.AddClip(Utilities.GetAudioClip("crying3.mp3"));
+			am.AddClip(Utilities.GetAudioClip("41957518_pen-click-01.mp3"));
+
 			s.AddModifier(new ModifierContainer(am));
 
 			//var mm = new MorphModifier();
@@ -83,9 +86,9 @@ namespace Synergy
 			//s.AddModifier(m);
 		}
 
-		public Timer CreateTimer(float seconds, Timer.Callback callback)
+		public Timer CreateTimer(float seconds, Timer.Callback f, int flags=0)
 		{
-			return timers_.CreateTimer(seconds, callback);
+			return timers_.CreateTimer(seconds, f, flags);
 		}
 
 		public void RemoveTimer(Timer t)

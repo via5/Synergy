@@ -439,8 +439,6 @@ namespace Synergy.UI
 			var scrollbar = Utilities.FindChildRecursive(e, "Scrollbar Vertical");
 			var scrollbarHandle = Utilities.FindChildRecursive(scrollbar, "Handle");
 
-			Utilities.DumpComponentsAndDown(scrollbar);
-
 			ClampScrollView(scrollView);
 
 			// background color for items in the popup; to have items be the

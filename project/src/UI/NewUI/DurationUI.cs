@@ -1,4 +1,6 @@
-﻿namespace Synergy.NewUI
+﻿using System.Collections.Generic;
+
+namespace Synergy.NewUI
 {
 	class TimeWidgets : UI.Panel
 	{
@@ -88,20 +90,25 @@
 			var gl = new UI.GridLayout(2);
 			gl.HorizontalSpacing = 10;
 			gl.VerticalSpacing = 20;
+			gl.UniformHeight = false;
+			gl.UniformWidth = false;
 
-			Layout = gl;
+			var p = new UI.Panel(gl);
 
-			Add(new UI.Label(S("Time")));
-			Add(time_);
+			p.Add(new UI.Label(S("Time")));
+			p.Add(time_);
 
-			Add(new UI.Label(S("Random range")));
-			Add(range_);
+			p.Add(new UI.Label(S("Random range")));
+			p.Add(range_);
 
-			Add(new UI.Label(S("Random interval")));
-			Add(interval_);
+			p.Add(new UI.Label(S("Random interval")));
+			p.Add(interval_);
 
-			Add(new UI.Label(S("Cut-off")));
-			Add(cutoff_);
+			p.Add(new UI.Label(S("Cut-off")));
+			p.Add(cutoff_);
+
+			Layout = new UI.VerticalFlow();
+			Add(p);
 
 			Set(rt);
 		}
@@ -232,8 +239,8 @@
 		{
 			rt_ = new RandomizableTimePanel(d?.Time);
 
-			Layout = new UI.BorderLayout();
-			Add(rt_, UI.BorderLayout.Center);
+			Layout = new UI.VerticalFlow();
+			Add(rt_);
 		}
 
 		public override bool Set(IDuration d)

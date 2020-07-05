@@ -37,7 +37,7 @@ namespace Synergy.UI
 		{
 			root_.OverlayVisible = true;
 
-			var ps = GetPreferredSize(root_.Bounds.Width, root_.Bounds.Height);
+			var ps = GetRealPreferredSize(root_.Bounds.Width, root_.Bounds.Height);
 			Bounds = new Rectangle(
 				root_.Bounds.Center.X - (ps.Width / 2),
 				root_.Bounds.Center.Y - (ps.Height / 2),

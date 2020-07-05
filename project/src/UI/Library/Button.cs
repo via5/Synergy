@@ -48,7 +48,7 @@ namespace Synergy.UI
 			set
 			{
 				align_ = value;
-				NeedsLayout();
+				NeedsLayout("alignment changed");
 			}
 		}
 

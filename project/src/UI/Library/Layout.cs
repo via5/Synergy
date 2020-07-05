@@ -93,10 +93,8 @@ namespace Synergy.UI
 	}
 
 
-	class HorizontalFlow : Layout
+	abstract class FlowLayout : Layout
 	{
-		public override string TypeName { get { return "horflow"; } }
-
 		public const int AlignTop = 0x01;
 		public const int AlignVCenter = 0x02;
 		public const int AlignBottom = 0x04;
@@ -106,11 +104,12 @@ namespace Synergy.UI
 		public const int AlignRight = 0x20;
 
 		private int align_;
-		private bool expand_ = false;
+		private bool expand_;
 
-		public HorizontalFlow(int spacing = 0, int align = AlignLeft|AlignTop)
+		public FlowLayout(int spacing, int align, bool expand)
 		{
 			Spacing = spacing;
+			expand_ = expand;
 			align_ = align;
 		}
 
@@ -118,6 +117,23 @@ namespace Synergy.UI
 		{
 			get { return expand_; }
 			set { expand_ = value; }
+		}
+
+		public int Alignment
+		{
+			get { return align_; }
+			set { align_ = value; }
+		}
+	}
+
+
+	class HorizontalFlow : FlowLayout
+	{
+		public override string TypeName { get { return "horflow"; } }
+
+		public HorizontalFlow(int spacing = 0, int align = AlignLeft|AlignTop)
+			: base(spacing, align, false)
+		{
 		}
 
 		protected override void LayoutImpl()
@@ -139,19 +155,19 @@ namespace Synergy.UI
 					totalWidth += Spacing;
 
 				var wr = new Rectangle(
-					r.TopLeft, w.GetPreferredSize(r.Width, r.Height));
+					r.TopLeft, w.GetRealPreferredSize(r.Width, r.Height));
 
-				if (expand_)
+				if (Expand)
 				{
 					wr.Height = r.Height;
 				}
 				else if (wr.Height < r.Height)
 				{
-					if (Bits.IsSet(align_, AlignVCenter))
+					if (Bits.IsSet(Alignment, AlignVCenter))
 					{
 						wr.MoveTo(wr.Left, r.Top + (r.Height / 2) - (wr.Height / 2));
 					}
-					else if (Bits.IsSet(align_, AlignBottom))
+					else if (Bits.IsSet(Alignment, AlignBottom))
 					{
 						wr.MoveTo(wr.Left, r.Bottom - wr.Height);
 					}
@@ -181,7 +197,7 @@ namespace Synergy.UI
 
 					if (excess > 0)
 					{
-						var ms = Children[i].GetMinimumSize();
+						var ms = Children[i].GetRealMinimumSize();
 
 						if (b.Width > ms.Width)
 						{
@@ -196,13 +212,13 @@ namespace Synergy.UI
 				}
 			}
 
-			if (Bits.IsSet(align_, AlignCenter))
+			if (Bits.IsSet(Alignment, AlignCenter))
 			{
 				float offset = (Parent.Bounds.Width / 2) - (totalWidth / 2);
 				foreach (var wr in bounds)
 					wr.Translate(offset, 0);
 			}
-			else if (Bits.IsSet(align_, AlignRight))
+			else if (Bits.IsSet(Alignment, AlignRight))
 			{
 				float offset = Parent.Bounds.Width - totalWidth;
 				foreach (var wr in bounds)
@@ -234,7 +250,7 @@ namespace Synergy.UI
 				if (i > 0)
 					totalWidth += Spacing;
 
-				var ps = w.GetPreferredSize(DontCare, DontCare);
+				var ps = w.GetRealPreferredSize(DontCare, DontCare);
 
 				totalWidth += ps.Width;
 				tallest = Math.Max(tallest, ps.Height);
@@ -245,48 +261,112 @@ namespace Synergy.UI
 	}
 
 
-	class VerticalFlow : Layout
+	class VerticalFlow : FlowLayout
 	{
 		public override string TypeName { get { return "verflow"; } }
 
-		private bool expand_ = true;
-
 		public VerticalFlow(int spacing = 0, bool expand = true)
+			: base(spacing, AlignLeft | AlignTop, expand)
 		{
-			Spacing = spacing;
-			Expand = expand;
-		}
-
-		public bool Expand
-		{
-			get
-			{
-				return expand_;
-			}
-
-			set
-			{
-				expand_ = value;
-			}
 		}
 
 		protected override void LayoutImpl()
 		{
 			var r = new Rectangle(Parent.Bounds);
 
+			var bounds = new List<Rectangle>();
+			float totalHeight = 0;
+
 			foreach (var w in Children)
 			{
 				if (!w.Visible)
+				{
+					bounds.Add(null);
 					continue;
+				}
+
+				if (totalHeight > 0)
+					totalHeight += Spacing;
 
 				var wr = new Rectangle(
-					r.TopLeft, w.GetPreferredSize(r.Width, DontCare));
+					r.TopLeft, w.GetRealPreferredSize(r.Width, r.Height));
 
-				if (expand_)
-					wr.Right = Math.Max(wr.Right, r.Right);
+				if (Expand)
+				{
+					wr.Width = r.Width;
+				}
+				else if (wr.Width < r.Width)
+				{
+					if (Bits.IsSet(Alignment, AlignCenter))
+					{
+						wr.MoveTo(r.Left + (r.Width / 2) - (wr.Width / 2), wr.Top);
+					}
+					else if (Bits.IsSet(Alignment, AlignRight))
+					{
+						wr.MoveTo(r.Right - wr.Width, wr.Top);
+					}
+					else // AlignLeft
+					{
+						// no-op
+					}
+				}
 
-				w.Bounds = wr;
+				bounds.Add(wr);
+				totalHeight += wr.Height;
 				r.Top += wr.Height + Spacing;
+			}
+
+			if (totalHeight > Parent.Bounds.Height)
+			{
+				var excess = totalHeight - Parent.Bounds.Height;
+				float offset = 0;
+
+				for (int i = 0; i < bounds.Count; ++i)
+				{
+					var b = bounds[i];
+					if (b == null)
+						continue;
+
+					b.Translate(0, -offset);
+
+					if (excess > 0)
+					{
+						var ms = Children[i].GetRealMinimumSize();
+
+						if (b.Height > ms.Height)
+						{
+							var d = Math.Min(b.Height - ms.Height, excess);
+							b.Height -= d;
+							excess -= d;
+							offset += d;
+							totalHeight -= d;
+						}
+					}
+
+				}
+			}
+
+			if (Bits.IsSet(Alignment, AlignVCenter))
+			{
+				float offset = (Parent.Bounds.Height / 2) - (totalHeight / 2);
+				foreach (var wr in bounds)
+					wr.Translate(0, offset);
+			}
+			else if (Bits.IsSet(Alignment, AlignBottom))
+			{
+				float offset = Parent.Bounds.Height - totalHeight;
+				foreach (var wr in bounds)
+					wr.Translate(0, offset);
+			}
+			else // left
+			{
+				// no-op
+			}
+
+			for (int i = 0; i < Children.Count; ++i)
+			{
+				if (bounds[i] != null)
+					Children[i].Bounds = bounds[i];
 			}
 		}
 
@@ -304,7 +384,7 @@ namespace Synergy.UI
 				if (i > 0)
 					totalHeight += Spacing;
 
-				var ps = w.GetPreferredSize(DontCare, DontCare);
+				var ps = w.GetRealPreferredSize(DontCare, DontCare);
 
 				totalHeight += ps.Height;
 				widest = Math.Max(widest, ps.Width);
