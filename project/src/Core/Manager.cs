@@ -115,6 +115,9 @@ namespace Synergy
 
 		public bool IsOnlyEnabledStep(Step s)
 		{
+			if (Synergy.Instance.Manager.StepProgression is ConcurrentStepProgression)
+				return true;
+
 			foreach (var ss in steps_)
 			{
 				if (ss.Enabled && ss != s)

@@ -465,7 +465,7 @@ namespace Synergy.NewUI
 		{
 			Layout = new UI.VerticalFlow();
 
-			var p = new UI.Panel(new UI.HorizontalFlow());
+			var p = new UI.Panel(new UI.HorizontalFlow(10));
 			p.Add(new UI.Button(S("Play"), OnPlay));
 			p.Add(new UI.Button(S("Stop"), OnStop));
 
