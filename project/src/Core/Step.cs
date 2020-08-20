@@ -338,15 +338,10 @@ namespace Synergy
 		{
 			m.Removed();
 
-			// todo: needs a generic notification
-			foreach (var sm in modifiers_)
+			if (m.Modifier != null)
 			{
-				if (sm.Modifier != null)
-				{
-					var om = sm.Modifier.ModifierSync as OtherModifierSyncedModifier;
-					if (om != null)
-						om.OtherModifier = null;
-				}
+				foreach (var sm in modifiers_)
+					sm.ModifierSync?.OtherModifierRemoved(m.Modifier);
 			}
 
 			modifiers_.Remove(m);
