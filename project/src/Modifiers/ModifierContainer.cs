@@ -39,8 +39,8 @@
 		private void CopyTo(ModifierContainer m, int cloneFlags)
 		{
 			m.parent_ = parent_;
-			m.ModifierSync = ModifierSync?.Clone(cloneFlags);
 			m.Modifier = Modifier?.Clone(cloneFlags);
+			m.ModifierSync = ModifierSync?.Clone(cloneFlags);
 			m.enabled_.Value = enabled_.Value;
 		}
 

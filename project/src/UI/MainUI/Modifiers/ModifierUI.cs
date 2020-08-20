@@ -359,7 +359,10 @@ namespace Synergy
 		{
 			sync_ = s as OtherModifierSyncedModifier;
 			if (sync_?.ParentModifier?.ParentStep == null)
+			{
+				Synergy.LogError("omsync has no parent step");
 				return;
+			}
 
 			var names = new List<string>();
 			bool found = false;
