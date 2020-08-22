@@ -430,7 +430,7 @@ namespace Synergy
 		{
 			try
 			{
-				if (Delay.Active)
+				if (Delay.ActiveType != Delay.None)
 					return DoDelay(deltaTime);
 
 				if (HalfMove)
@@ -501,14 +501,14 @@ namespace Synergy
 			else
 				progress = Duration.SecondHalfProgress;
 
-			Delay.Duration.Tick(deltaTime);
+			Delay.ActiveDuration.Tick(deltaTime);
 			DoModifierTicksDelayed(deltaTime, progress, firstHalf);
 
-			if (!Delay.Duration.Finished)
+			if (!Delay.ActiveDuration.Finished)
 				return true;
 
-			Delay.Duration.Reset();
-			Delay.Active = false;
+			Delay.ActiveDuration.Reset();
+			Delay.ActiveType = Delay.None;
 
 			if (Delay.StopAfter)
 			{
@@ -545,9 +545,14 @@ namespace Synergy
 			{
 				if (Duration.FirstHalfFinished)
 				{
-					if (Delay.Halfway || Delay.EndForwards)
+					if (Delay.Halfway)
 					{
-						Delay.Active = true;
+						Delay.ActiveType = Delay.HalfwayType;
+						Delay.StopAfter = true;
+					}
+					else if (Delay.EndForwards)
+					{
+						Delay.ActiveType = Delay.EndForwardsType;
 						Delay.StopAfter = true;
 					}
 					else
@@ -565,7 +570,7 @@ namespace Synergy
 
 					if (Delay.EndBackwards)
 					{
-						Delay.Active = true;
+						Delay.ActiveType = Delay.EndBackwardsType;
 						Delay.StopAfter = true;
 						Delay.ResetDurationAfter = true;
 					}
@@ -586,7 +591,7 @@ namespace Synergy
 			{
 				if (Delay.EndBackwards)
 				{
-					Delay.Active = true;
+					Delay.ActiveType = Delay.EndBackwardsType;
 					Delay.StopAfter = true;
 					Delay.ResetDurationAfter = true;
 
@@ -626,7 +631,7 @@ namespace Synergy
 
 						if (Delay.EndForwards)
 						{
-							Delay.Active = true;
+							Delay.ActiveType = Delay.EndForwardsType;
 							Delay.StopAfter = true;
 							Delay.ResetDurationAfter = true;
 						}
@@ -647,7 +652,7 @@ namespace Synergy
 				if ((inFirstHalf_ && !firstHalf) && Delay.Halfway)
 				{
 					inFirstHalf_ = firstHalf;
-					Delay.Active = true;
+					Delay.ActiveType = Delay.HalfwayType;
 				}
 				else
 				{

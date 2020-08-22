@@ -67,23 +67,17 @@ namespace Synergy
 		{
 			var s = Synergy.Instance.Manager.AddStep();
 
-			var am = new AudioModifier(a);
-			am.AddClip(Utilities.GetAudioClip("43402866_light-switch-06.mp3"));
-			am.AddClip(Utilities.GetAudioClip("41957518_pen-click-01.mp3"));
 
-			s.AddModifier(new ModifierContainer(am));
-
-			//var mm = new MorphModifier();
-			//mm.Atom = a;
-			//mm.Progression = new SequentialMorphProgression(true);
-			//mm.AddMorph(Utilities.GetAtomMorph(mm.Atom, "Smile Full Face"));
-			//mm.AddMorph(Utilities.GetAtomMorph(mm.Atom, "Eyes Closed"));
-			//mm.AddMorph(Utilities.GetAtomMorph(mm.Atom, "Mouth Open"));
+			//var m = new RigidbodyModifier(a, "head");
+			//m.Movement = new Movement(-100, 100);
 			//
-			//var m = new ModifierContainer(mm);
-			//m.ModifierSync = new UnsyncedModifier(
-			//	new RandomDuration(5), new Delay(new RandomDuration(1), false, false));
-			//s.AddModifier(m);
+			//var mc = new ModifierContainer(m, new UnsyncedModifier());
+
+			//s.Delay.SameDelay = false;
+			s.Delay.Halfway = true;
+			s.Delay.HalfwayDuration = new RandomDuration(1);
+			s.Duration = new RandomDuration(0.5f);
+			//s.AddModifier(mc);
 		}
 
 		public Timer CreateTimer(float seconds, Timer.Callback f, int flags=0)

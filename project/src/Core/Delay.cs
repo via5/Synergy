@@ -4,8 +4,21 @@ namespace Synergy
 {
 	sealed class Delay : IJsonable
 	{
-		private readonly ExplicitHolder<IDuration> duration_ =
+		public const int None = 0;
+		public const int HalfwayType = 1;
+		public const int EndForwardsType = 2;
+		public const int EndBackwardsType = 3;
+
+
+		private readonly ExplicitHolder<IDuration> halfwayDuration_ =
 			new ExplicitHolder<IDuration>();
+
+		private readonly ExplicitHolder<IDuration> endForwardsDuration_ =
+			new ExplicitHolder<IDuration>();
+
+		private readonly ExplicitHolder<IDuration> endBackwardsDuration_ =
+			new ExplicitHolder<IDuration>();
+
 
 		private readonly BoolParameter halfway_ =
 			new BoolParameter("Halfway", false);
@@ -16,6 +29,8 @@ namespace Synergy
 		private readonly BoolParameter endBackwards_ =
 			new BoolParameter("EndBackwards", false);
 
+		private bool sameDelay_ = true;
+		private int activeType_ = None;
 
 		public Delay()
 			: this(null, false, false)
@@ -25,17 +40,21 @@ namespace Synergy
 		public Delay(IDuration d, bool halfway, bool endForwards)
 		{
 			if (d == null)
-				Duration = new RandomDuration();
+				HalfwayDuration = new RandomDuration();
 			else
-				Duration = d;
+				HalfwayDuration = d;
 
+			EndForwardsDuration = new RandomDuration();
+			EndBackwardsDuration = new RandomDuration();
 			halfway_.Value = halfway;
 			endForwards_.Value = endForwards;
 		}
 
 		public void Removed()
 		{
-			Duration = null;
+			HalfwayDuration = null;
+			EndForwardsDuration = null;
+			EndBackwardsDuration = null;
 			halfway_.Unregister();
 			endForwards_.Unregister();
 			endBackwards_.Unregister();
@@ -50,25 +69,94 @@ namespace Synergy
 
 		private void CopyTo(Delay d, int cloneFlags)
 		{
-			d.Duration = Duration?.Clone(cloneFlags);
+			d.HalfwayDuration = HalfwayDuration?.Clone(cloneFlags);
+			d.EndForwardsDuration = EndForwardsDuration?.Clone(cloneFlags);
+			d.EndBackwardsDuration = EndBackwardsDuration?.Clone(cloneFlags);
 			d.halfway_.Value = halfway_.Value;
 			d.endForwards_.Value = endForwards_.Value;
 			d.endBackwards_.Value = endBackwards_.Value;
 		}
 
-		public IDuration Duration
+
+		public IDuration SingleDuration
+		{
+			get { return HalfwayDuration; }
+			set { HalfwayDuration = value; }
+		}
+
+		public IDuration ActiveDuration
 		{
 			get
 			{
-				return duration_.HeldValue;
+				switch (activeType_)
+				{
+					case HalfwayType:
+						return HalfwayDuration;
+
+					case EndForwardsType:
+						return EndForwardsDuration;
+
+					case EndBackwardsType:
+						return EndBackwardsDuration;
+
+					case None:  // fall-through
+					default:
+						return null;
+				}
+			}
+		}
+
+		public IDuration HalfwayDuration
+		{
+			get
+			{
+				return halfwayDuration_.HeldValue;
 			}
 
 			set
 			{
-				if (duration_.HeldValue != null)
-					duration_.HeldValue.Removed();
+				if (halfwayDuration_.HeldValue != null)
+					halfwayDuration_.HeldValue.Removed();
 
-				duration_.Set(value);
+				halfwayDuration_.Set(value);
+			}
+		}
+
+		public IDuration EndForwardsDuration
+		{
+			get
+			{
+				if (sameDelay_)
+					return halfwayDuration_.HeldValue;
+				else
+					return endForwardsDuration_.HeldValue;
+			}
+
+			set
+			{
+				if (endForwardsDuration_.HeldValue != null)
+					endForwardsDuration_.HeldValue.Removed();
+
+				endForwardsDuration_.Set(value);
+			}
+		}
+
+		public IDuration EndBackwardsDuration
+		{
+			get
+			{
+				if (sameDelay_)
+					return halfwayDuration_.HeldValue;
+				else
+					return endBackwardsDuration_.HeldValue;
+			}
+
+			set
+			{
+				if (endBackwardsDuration_.HeldValue != null)
+					endBackwardsDuration_.HeldValue.Removed();
+
+				endBackwardsDuration_.Set(value);
 			}
 		}
 
@@ -105,18 +193,32 @@ namespace Synergy
 			get { return endBackwards_; }
 		}
 
-		public bool Active { get; set; } = false;
+		public int ActiveType
+		{
+			get { return activeType_; }
+			set { activeType_ = value; }
+		}
+
 		public bool StopAfter { get; set; } = false;
 		public bool ResetDurationAfter { get; set; } = false;
+
+		public bool SameDelay
+		{
+			get { return sameDelay_; }
+			set { sameDelay_ = value; }
+		}
 
 		public J.Node ToJSON()
 		{
 			var o = new J.Object();
 
-			o.Add("duration", Duration);
+			o.Add("halfwayDuration", HalfwayDuration);
+			o.Add("endForwardsDuration", EndForwardsDuration);
+			o.Add("endBackwardsDuration", EndBackwardsDuration);
 			o.Add("halfway", Halfway);
 			o.Add("endForwards", EndForwards);
 			o.Add("endBackwards", EndBackwards);
+			o.Add("sameDelay", sameDelay_);
 
 			return o;
 		}
@@ -128,12 +230,31 @@ namespace Synergy
 				return false;
 
 			IDuration d = null;
-			o.Opt<DurationFactory, IDuration>("duration", ref d);
-			Duration = d;
+
+			if (o.HasKey("duration"))
+			{
+				// migration from v3
+				o.Opt<DurationFactory, IDuration>("duration", ref d);
+				HalfwayDuration = d;
+				EndForwardsDuration = new RandomDuration();
+				EndBackwardsDuration = new RandomDuration();
+			}
+			else
+			{
+				o.Opt<DurationFactory, IDuration>("halfwayDuration", ref d);
+				HalfwayDuration = d;
+
+				o.Opt<DurationFactory, IDuration>("endForwardsDuration", ref d);
+				EndForwardsDuration = d;
+
+				o.Opt<DurationFactory, IDuration>("endBackwardsDuration", ref d);
+				EndBackwardsDuration = d;
+			}
 
 			o.Opt("halfway", halfway_);
 			o.Opt("endForwards", endForwards_);
 			o.Opt("endBackwards", endBackwards_);
+			o.Opt("sameDelay", ref sameDelay_);
 
 			return true;
 		}

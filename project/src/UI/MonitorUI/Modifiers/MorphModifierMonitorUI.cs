@@ -15,7 +15,7 @@ namespace Synergy
 			public Collapsible collapsible;
 			public MovementMonitorWidgets movement;
 			public DurationMonitorWidgets duration;
-			public DurationMonitorWidgets delay;
+			public DelayMonitor delay;
 			public Checkbox stopping;
 			public Checkbox finished;
 			public FloatSlider customTargetTime;
@@ -138,7 +138,7 @@ namespace Synergy
 				if (mi != null)
 				{
 					mm.duration = new DurationMonitorWidgets("Duration", Widget.Right);
-					mm.delay = new DurationMonitorWidgets("Delay", Widget.Right);
+					mm.delay = new DelayMonitor(Widget.Right);
 					mm.stopping = new Checkbox("Stopping", null, Widget.Right);
 					mm.finished = new Checkbox("Finished", null, Widget.Right);
 					mm.customTargetTime = new FloatSlider(
@@ -149,7 +149,7 @@ namespace Synergy
 						"Custom target value", null, Widget.Right);
 
 					mm.collapsible.Add(mm.duration.GetWidgets(mi.duration));
-					mm.collapsible.Add(mm.delay.GetWidgets(mi.delay.Duration));
+					mm.collapsible.Add(mm.delay.GetWidgets(mi.delay));
 					mm.collapsible.Add(mm.stopping);
 					mm.collapsible.Add(mm.finished);
 					mm.collapsible.Add(mm.customTargetTime);

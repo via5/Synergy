@@ -23,10 +23,10 @@
 		{
 		}
 
-		public ModifierContainer(IModifier m)
+		public ModifierContainer(IModifier m, IModifierSync sync=null)
 		{
 			Modifier = m;
-			ModifierSync = new DurationSyncedModifier();
+			ModifierSync = sync ?? new DurationSyncedModifier();
 		}
 
 		public ModifierContainer Clone(int cloneFlags = 0)

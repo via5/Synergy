@@ -103,6 +103,9 @@ namespace Synergy
 		{
 			var half = initial_.Value / 2;
 
+			value_.Initial = half;
+			value_.Range = Math.Abs(half);
+
 			initial_.Value = half;
 			range_.Value = Math.Abs(half);
 		}
@@ -159,6 +162,9 @@ namespace Synergy
 		{
 			var half = initial_.Value / 2;
 
+			value_.Initial = half;
+			value_.Range = Math.Abs(half);
+
 			initial_.Value = half;
 			range_.Value = Math.Abs(half);
 		}
@@ -183,6 +189,9 @@ namespace Synergy
 		protected override void RandomizeHalf()
 		{
 			var half = initial_.Value / 2;
+
+			value_.Initial = half;
+			value_.Range = Math.Abs(half);
 
 			initial_.Value = half;
 			range_.Value = Math.Abs(half);

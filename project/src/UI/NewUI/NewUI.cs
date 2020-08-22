@@ -107,7 +107,7 @@ namespace Synergy.NewUI
 
 			using (new ScopedFlag((b) => ignore_ = b))
 			{
-				duration_.Set(delay_.Duration);
+				duration_.Set(delay_.SingleDuration);
 				halfWay_.Checked = delay_.Halfway;
 				endForwards_.Checked = delay_.EndForwards;
 				endBackwards_.Checked = delay_.EndBackwards;

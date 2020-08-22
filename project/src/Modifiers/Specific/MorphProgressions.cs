@@ -187,7 +187,9 @@ namespace Synergy
 			public void ResetDelay(Delay master)
 			{
 				delay = master.Clone();
-				delay.Duration.Reset();
+				delay.HalfwayDuration.Reset();
+				delay.EndForwardsDuration.Reset();
+				delay.EndBackwardsDuration.Reset();
 			}
 		}
 
@@ -360,13 +362,11 @@ namespace Synergy
 				}
 
 
-				if (mi.delay.Active)
+				if (mi.delay.ActiveType != Delay.None)
 				{
-					mi.delay.Duration.Tick(deltaTime);
-					if (!mi.delay.Duration.Finished)
+					mi.delay.ActiveDuration.Tick(deltaTime);
+					if (!mi.delay.ActiveDuration.Finished)
 						continue;
-
-					mi.delay.Active = false;
 
 					if (mi.delay.ResetDurationAfter)
 					{
@@ -377,6 +377,8 @@ namespace Synergy
 					{
 						mi.ResetDelay(Delay);
 					}
+
+					mi.delay.ActiveType = Delay.None;
 				}
 
 
@@ -401,7 +403,7 @@ namespace Synergy
 					{
 						if (mi.delay.EndForwards)
 						{
-							mi.delay.Active = true;
+							mi.delay.ActiveType = Delay.EndForwardsType;
 							mi.delay.ResetDurationAfter = true;
 						}
 						else
@@ -414,7 +416,7 @@ namespace Synergy
 				{
 					if ((mi.inFirstHalf && !fh) && mi.delay.Halfway)
 					{
-						mi.delay.Active = true;
+						mi.delay.ActiveType = Delay.HalfwayType;
 					}
 				}
 

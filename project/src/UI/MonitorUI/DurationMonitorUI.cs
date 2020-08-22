@@ -104,6 +104,7 @@ namespace Synergy
 
 		public override List<IWidget> GetWidgets(IDuration d)
 		{
+			duration_ = d as RandomDuration;
 			return timeWidgets_.GetWidgets();
 		}
 
