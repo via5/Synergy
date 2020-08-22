@@ -1,12 +1,71 @@
-﻿namespace Synergy
+﻿using System.Collections.Generic;
+
+namespace Synergy
 {
+	class DelayMonitor
+	{
+		private readonly int flags_;
+		private Delay delay_ = null;
+		private readonly DurationMonitorWidgets singleDuration_;
+		private readonly DurationMonitorWidgets halfwayDuration_;
+		private readonly DurationMonitorWidgets endForwardsDuration_;
+		private readonly DurationMonitorWidgets endBackwardsDuration_;
+
+		public DelayMonitor(int flags=0)
+		{
+			flags_ = flags;
+			singleDuration_ = new DurationMonitorWidgets("Delay", flags);
+			halfwayDuration_ = new DurationMonitorWidgets("Halfway delay", flags);
+			endForwardsDuration_ = new DurationMonitorWidgets("End forwards delay", flags);
+			endBackwardsDuration_ = new DurationMonitorWidgets("End backwards delay", flags);
+		}
+
+		public List<IWidget> GetWidgets(Delay d)
+		{
+			delay_ = d;
+
+			if (delay_.SameDelay)
+			{
+				return singleDuration_.GetWidgets(d.SingleDuration);
+			}
+			else
+			{
+				var list = new List<IWidget>();
+
+				list.AddRange(halfwayDuration_.GetWidgets(d.HalfwayDuration));
+				list.AddRange(endForwardsDuration_.GetWidgets(d.EndForwardsDuration));
+				list.AddRange(endBackwardsDuration_.GetWidgets(d.EndBackwardsDuration));
+
+				return list;
+			}
+		}
+
+		public void Update()
+		{
+			if (delay_ == null)
+				return;
+
+			if (delay_.SameDelay)
+			{
+				singleDuration_.Update();
+			}
+			else
+			{
+				halfwayDuration_.Update();
+				endForwardsDuration_.Update();
+				endBackwardsDuration_.Update();
+			}
+		}
+	}
+
+
 	class MonitorUI
 	{
 		private readonly Label runningStep_;
 		private readonly Checkbox active_;
 		private IDurationMonitor duration_ = null;
 		private readonly RandomizableTimeMonitorWidgets repeat_;
-		private IDurationMonitor delay_ = null;
+		private DelayMonitor delay_;
 		private readonly Label waitingFor_;
 		private readonly FloatSlider gracePeriod_;
 		private IModifierMonitor modifierMonitor_ = null;
@@ -20,6 +79,7 @@
 			runningStep_ = new Label();
 			active_ = new Checkbox("Active");
 			repeat_ = new RandomizableTimeMonitorWidgets("Repeat");
+			delay_ = new DelayMonitor();
 			waitingFor_ = new Label();
 			gracePeriod_ = new FloatSlider("Grace period");
 		}
@@ -48,16 +108,6 @@
 				}
 			}
 
-			if (currentStep_?.Delay?.Duration != null)
-			{
-				if (delay_ == null ||
-					delay_.DurationType != currentStep_.Delay.Duration.GetFactoryTypeName())
-				{
-					delay_ = CreateDurationMonitor(
-						"Delay", currentStep_.Delay.Duration);
-				}
-			}
-
 			widgets_.AddToUI(runningStep_);
 			widgets_.AddToUI(active_);
 
@@ -67,8 +117,8 @@
 			foreach (var w in repeat_.GetWidgets())
 				widgets_.AddToUI(w);
 
-			if (delay_ != null)
-				delay_.AddToUI(currentStep_.Delay.Duration);
+			foreach (var w in delay_.GetWidgets(currentStep_?.Delay))
+				widgets_.AddToUI(w);
 
 			widgets_.AddToUI(waitingFor_);
 			widgets_.AddToUI(gracePeriod_);
@@ -83,9 +133,6 @@
 
 			if (duration_ != null)
 				duration_.RemoveFromUI();
-
-			if (delay_ != null)
-				delay_.RemoveFromUI();
 
 			if (modifierMonitor_ != null)
 				modifierMonitor_.RemoveFromUI();
@@ -124,8 +171,7 @@
 			if (duration_ != null)
 				duration_.Update();
 
-			if (delay_ != null)
-				delay_.Update();
+			delay_.Update();
 
 			if (modifierMonitor_ != null)
 				modifierMonitor_.Update();

@@ -228,8 +228,10 @@ namespace Synergy
 
 				var t = Duration.TimeRemaining;
 
-				if ((!Finished && inFirstHalf_ && Delay.Halfway) || Delay.Active)
-					t += Delay.Duration.TimeRemaining;
+				if (!Finished && inFirstHalf_ && Delay.Halfway)
+					t += Delay.HalfwayDuration.TimeRemaining;
+				else if (Delay.ActiveType != Delay.None)
+					return Delay.ActiveDuration.TimeRemaining;
 
 				return t;
 			}
@@ -288,7 +290,7 @@ namespace Synergy
 
 		public override bool Tick(float deltaTime)
 		{
-			if (Delay.Active)
+			if (Delay.ActiveType != Delay.None)
 				return DoDelay(deltaTime);
 
 			Duration.Tick(deltaTime);
@@ -323,11 +325,11 @@ namespace Synergy
 				{
 					if (MustStopWhenFinished)
 					{
-						if (Delay.Duration.Current >= StopGracePeriod)
+						if (Delay.EndForwardsDuration.Current >= StopGracePeriod)
 							return;
 					}
 
-					Delay.Active = true;
+					Delay.ActiveType = Delay.EndForwardsType;
 					Delay.StopAfter = true;
 					Delay.ResetDurationAfter = true;
 				}
@@ -355,7 +357,7 @@ namespace Synergy
 				if ((inFirstHalf_ && !firstHalf) && Delay.Halfway)
 				{
 					inFirstHalf_ = firstHalf;
-					Delay.Active = true;
+					Delay.ActiveType = Delay.HalfwayType;
 				}
 				else
 				{
@@ -416,13 +418,13 @@ namespace Synergy
 
 		private bool DoDelay(float deltaTime)
 		{
-			Delay.Duration.Tick(deltaTime);
+			Delay.ActiveDuration.Tick(deltaTime);
 
-			if (!Delay.Duration.Finished)
+			if (!Delay.ActiveDuration.Finished)
 				return true;
 
-			Delay.Duration.Reset();
-			Delay.Active = false;
+			Delay.ActiveDuration.Reset();
+			Delay.ActiveType = Delay.None;
 
 			if (Delay.StopAfter)
 			{
@@ -456,7 +458,7 @@ namespace Synergy
 
 			var graceForDelay = StopGracePeriod - Duration.Current;
 
-			if (graceForDelay < Delay.Duration.Current)
+			if (graceForDelay < Delay.HalfwayDuration.Current)
 			{
 				// duration + delay would be longer than grace period,
 				// cancel

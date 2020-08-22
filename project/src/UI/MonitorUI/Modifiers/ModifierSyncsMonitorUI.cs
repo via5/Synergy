@@ -79,11 +79,13 @@
 		}
 
 		private IDurationMonitor duration_ = null;
-		private IDurationMonitor delay_;
+		private DelayMonitor delay_;
+		private WidgetList widgets_ = new WidgetList();
 
 		public UnsyncedModifierModifier(int flags)
 			: base(flags)
 		{
+			delay_ = new DelayMonitor(flags);
 		}
 
 		public override void AddToUI(IModifierSync s)
@@ -101,23 +103,21 @@
 					"Unsynced duration", us.Duration, flags_);
 			}
 
-			delay_ = MonitorUI.CreateDurationMonitor(
-				"Delay", us.Delay.Duration, flags_);
-
 			if (duration_ != null)
 				duration_.AddToUI(us.Duration);
 
-			delay_.AddToUI(us.Delay.Duration);
+			foreach (var w in delay_.GetWidgets(us.Delay))
+				widgets_.AddToUI(w);
 		}
 
 		public override void RemoveFromUI()
 		{
 			base.RemoveFromUI();
 
+			widgets_.RemoveFromUI();
+
 			if (duration_ != null)
 				duration_.RemoveFromUI();
-
-			delay_.RemoveFromUI();
 		}
 
 		public override void Update()

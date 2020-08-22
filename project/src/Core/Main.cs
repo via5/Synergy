@@ -69,23 +69,11 @@ namespace Synergy
 
 		private void CreateTestStuff(Atom a)
 		{
-			var s = new Step();
-
-			var rm = new RigidbodyModifier(a, Utilities.FindRigidbody(a, "head"));
-			rm.Movement.Maximum.Initial = 50;
-			s.AddModifier(new ModifierContainer(rm));
-
-			//var mm = new MorphModifier(a, Utilities.GetAtomMorph(a, "Mouth Open"));
-			//mm.Progression = new ConcurrentMorphProgression();
-			//s.AddModifier(new ModifierContainer(mm));
-
-			manager_.AddStep(s);
-			rm.Movement.Maximum.InitialParameter.Register();
 		}
 
-		public Timer CreateTimer(float seconds, Timer.Callback callback)
+		public Timer CreateTimer(float seconds, Timer.Callback f, int flags=0)
 		{
-			return timers_.CreateTimer(seconds, callback);
+			return timers_.CreateTimer(seconds, f, flags);
 		}
 
 		public void RemoveTimer(Timer t)
@@ -298,8 +286,8 @@ namespace Synergy
 
 		static public void LogVerbose(string s)
 		{
-		   // if (instance_ == null || instance_.options_.VerboseLog)
-		   //     SuperController.LogError(s);
+		    if (instance_ == null || instance_.options_.VerboseLog)
+		        SuperController.LogError(s);
 		}
 	}
 }
