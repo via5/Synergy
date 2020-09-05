@@ -71,9 +71,9 @@ namespace Synergy
 		{
 		}
 
-		public Timer CreateTimer(float seconds, Timer.Callback f, int flags=0)
+		public Timer CreateTimer(float seconds, Timer.Callback f)
 		{
-			return timers_.CreateTimer(seconds, f, flags);
+			return timers_.CreateTimer(seconds, f);
 		}
 
 		public void RemoveTimer(Timer t)
