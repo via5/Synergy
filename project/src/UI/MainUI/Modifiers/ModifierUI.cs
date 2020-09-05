@@ -286,6 +286,7 @@ namespace Synergy
 		private readonly DelayWidgets delayWidgets_;
 
 		private readonly ConfirmableButton copy_;
+		private readonly ConfirmableButton syncToThis_;
 
 		private UnsyncedModifier unsynced_ = null;
 
@@ -304,6 +305,9 @@ namespace Synergy
 
 			copy_ = new ConfirmableButton(
 				"Copy to other unsynced", CopyToAll, flags_);
+
+			syncToThis_ = new ConfirmableButton(
+				"Sync all to this", SyncToThis, flags_);
 		}
 
 		public override void AddToUI(IModifierSync s)
@@ -325,6 +329,7 @@ namespace Synergy
 			delayCollapsible_.AddToUI();
 
 			copy_.AddToUI();
+			syncToThis_.AddToUI();
 		}
 
 		public override void RemoveFromUI()
@@ -332,6 +337,7 @@ namespace Synergy
 			durationCollapsible_.RemoveFromUI();
 			delayCollapsible_.RemoveFromUI();
 			copy_.RemoveFromUI();
+			syncToThis_.RemoveFromUI();
 		}
 
 		private void DurationTypeChanged(IDuration d)
@@ -362,6 +368,23 @@ namespace Synergy
 
 				other.Duration = unsynced_.Duration.Clone();
 				other.Delay = unsynced_.Delay.Clone();
+			}
+		}
+
+		private void SyncToThis()
+		{
+			var m = unsynced_?.ParentModifier;
+			var s = m?.ParentStep;
+
+			if (m == null || s == null)
+				return;
+
+			foreach (var sm in s.Modifiers)
+			{
+				if (sm.Modifier == m)
+					continue;
+
+				sm.ModifierSync = new OtherModifierSyncedModifier(m);
 			}
 		}
 	}
