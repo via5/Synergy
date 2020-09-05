@@ -2,10 +2,17 @@
 {
 	sealed class ModifierContainer : IJsonable
 	{
-		private Step step_ = null;
+		public delegate void ModifierNameChangedHandler(IModifier m);
+		public event ModifierNameChangedHandler NameChanged;
+
+		private Step parent_ = null;
+		private string name_ = null;
 
 		private readonly ExplicitHolder<IModifier> modifier_ =
 			new ExplicitHolder<IModifier>();
+
+		private readonly ExplicitHolder<IModifierSync> sync_ =
+			new ExplicitHolder<IModifierSync>();
 
 		private readonly BoolParameter enabled_ =
 			new BoolParameter("Enabled", true);
@@ -19,6 +26,7 @@
 		public ModifierContainer(IModifier m)
 		{
 			Modifier = m;
+			ModifierSync = new DurationSyncedModifier();
 		}
 
 		public ModifierContainer Clone(int cloneFlags = 0)
@@ -30,25 +38,23 @@
 
 		private void CopyTo(ModifierContainer m, int cloneFlags)
 		{
-			m.step_ = step_;
+			m.parent_ = parent_;
 			m.Modifier = Modifier?.Clone(cloneFlags);
+			m.ModifierSync = ModifierSync?.Clone(cloneFlags);
 			m.enabled_.Value = enabled_.Value;
 		}
 
 
-		public Step Step
+		public Step ParentStep
 		{
 			get
 			{
-				return step_;
+				return parent_;
 			}
 
 			set
 			{
-				step_ = value;
-
-				if (Modifier != null)
-					Modifier.ParentStep = value;
+				parent_ = value;
 			}
 		}
 
@@ -65,7 +71,7 @@
 				modifier_.Set(value);
 
 				if (modifier_.HeldValue != null)
-					modifier_.HeldValue.ParentStep = step_;
+					modifier_.HeldValue.ParentContainer = this;
 			}
 		}
 
@@ -79,8 +85,6 @@
 			set
 			{
 				enabled_.Value = value;
-				if (!enabled_.Value && Modifier != null)
-					Modifier.Reset();
 			}
 		}
 
@@ -89,26 +93,64 @@
 			get { return enabled_; }
 		}
 
+		public string UserDefinedName
+		{
+			get
+			{
+				return name_;
+			}
+
+			set
+			{
+				name_ = value;
+				FireNameChanged();
+			}
+		}
+
 		public string Name
 		{
 			get
 			{
-				if (Modifier == null)
+				if (name_ == null)
 				{
-					if (step_ == null)
+					if (Modifier == null)
 					{
-						return "Modifier";
+						if (parent_ == null)
+						{
+							return "Modifier";
+						}
+						else
+						{
+							var i = parent_.IndexOfModifier(this);
+							return "Modifier " + (i + 1).ToString();
+						}
 					}
 					else
 					{
-						var i = step_.IndexOfModifier(this);
-						return "Modifier " + (i + 1).ToString();
+						return Modifier.Name;
 					}
 				}
 				else
 				{
-					return Modifier.Name;
+					return name_;
 				}
+			}
+		}
+
+		public IModifierSync ModifierSync
+		{
+			get
+			{
+				return sync_.HeldValue;
+			}
+
+			set
+			{
+				sync_.HeldValue?.Removed();
+				sync_.Set(value);
+
+				if (sync_.HeldValue != null)
+					sync_.HeldValue.ParentModifier = Modifier;
 			}
 		}
 
@@ -120,7 +162,17 @@
 		public void Removed()
 		{
 			Modifier = null;
+			ParentStep = null;
+			ModifierSync = null;
 			enabled_.Unregister();
+		}
+
+		public void FireNameChanged()
+		{
+			if (parent_ != null)
+				parent_.FireModifierNameChanged(Modifier);
+
+			NameChanged?.Invoke(Modifier);
 		}
 
 		public J.Node ToJSON()
@@ -142,6 +194,9 @@
 			IModifier m = null;
 			o.Opt<ModifierFactory, IModifier>("modifier", ref m);
 			Modifier = m;
+
+			if (Modifier != null)
+				Modifier.PostLoad();
 
 			o.Opt("enabled", enabled_);
 

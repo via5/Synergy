@@ -4,6 +4,12 @@ namespace Synergy
 {
 	sealed class Manager : IJsonable
 	{
+		public delegate void Callback();
+		public delegate void StepCallback(Step s);
+
+		public event Callback StepsChanged;
+		public event StepCallback StepNameChanged;
+
 		private List<Step> steps_ = new List<Step>();
 
 		private readonly ExplicitHolder<IStepProgression> progression_ =
@@ -43,8 +49,9 @@ namespace Synergy
 		public void Clear()
 		{
 			while (steps_.Count != 0)
-				DeleteStep(steps_[0]);
+				DeleteStepNoCallback(steps_[0]);
 
+			StepsChanged?.Invoke();
 			StepProgression = new SequentialStepProgression();
 		}
 
@@ -56,12 +63,12 @@ namespace Synergy
 			}
 		}
 
-		public void AddStep(Step s = null)
+		public Step AddStep(Step s = null)
 		{
-			InsertStep(steps_.Count, s);
+			return InsertStep(steps_.Count, s);
 		}
 
-		public void InsertStep(int at, Step s = null)
+		public Step InsertStep(int at, Step s = null)
 		{
 			if (s == null)
 				s = new Step();
@@ -69,15 +76,28 @@ namespace Synergy
 			steps_.Insert(at, s);
 			StepProgression?.StepInserted(at, s);
 			s.Added();
+
+			s.StepNameChanged += OnStepNameChanged;
+			StepsChanged?.Invoke();
+
+			return s;
 		}
 
 		public void DeleteStep(Step s)
 		{
+			DeleteStepNoCallback(s);
+			StepsChanged?.Invoke();
+		}
+
+		private void DeleteStepNoCallback(Step s)
+		{
 			var i = steps_.IndexOf(s);
+
 			steps_.Remove(s);
 			StepProgression?.StepDeleted(i);
-
 			s.Removed();
+
+			s.StepNameChanged -= OnStepNameChanged;
 		}
 
 		public Step GetStep(int i)
@@ -95,6 +115,9 @@ namespace Synergy
 
 		public bool IsOnlyEnabledStep(Step s)
 		{
+			if (Synergy.Instance.Manager.StepProgression is ConcurrentStepProgression)
+				return true;
+
 			foreach (var ss in steps_)
 			{
 				if (ss.Enabled && ss != s)
@@ -297,6 +320,11 @@ namespace Synergy
 			StepProgression = sp;
 
 			return true;
+		}
+
+		private void OnStepNameChanged(Step s)
+		{
+			StepNameChanged?.Invoke(s);
 		}
 	}
 }

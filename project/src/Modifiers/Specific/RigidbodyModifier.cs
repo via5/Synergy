@@ -256,6 +256,21 @@ namespace Synergy
 			magnitude_ = NoMagnitude;
 		}
 
+		protected override void AtomChanged()
+		{
+			base.AtomChanged();
+
+			if (Atom == null)
+			{
+				Receiver = null;
+			}
+			else if (receiver_ != null)
+			{
+				var oldName = receiver_.name;
+				Receiver = Utilities.FindRigidbody(Atom, oldName);
+			}
+		}
+
 		protected override string MakeName()
 		{
 			string n = type_.ShortName + " ";

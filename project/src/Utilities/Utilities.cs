@@ -138,7 +138,7 @@ namespace Synergy
 
 		public static Rigidbody FindRigidbody(Atom atom, string name)
 		{
-			if (atom == null)
+			if (atom == null || name == null)
 				return null;
 
 			foreach (var fr in atom.forceReceivers)

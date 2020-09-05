@@ -73,10 +73,10 @@ namespace Synergy
 
 			set
 			{
+				enabled_.Value = value;
+
 				if (!value)
 					Reset();
-
-				enabled_.Value = value;
 			}
 		}
 
@@ -131,12 +131,20 @@ namespace Synergy
 		{
 			enabled_.Unregister();
 			Movement = null;
-			Reset();
+			ResetMorphValue();
 		}
 
 		public void Resume()
 		{
 			// no-op
+		}
+
+		public void ResetMorphValue()
+		{
+			if (morph_ == null)
+				return;
+
+			morph_.morphValue = morph_.startValue;
 		}
 
 		public void Reset()
@@ -417,7 +425,7 @@ namespace Synergy
 					var sm = morphs_[i];
 					morphs_.RemoveAt(i);
 
-					sm.Reset();
+					sm.Removed();
 					Progression.MorphRemoved(i);
 
 					break;
@@ -440,10 +448,49 @@ namespace Synergy
 
 		public void SetMorphs(List<DAZMorph> morphs)
 		{
-			morphs_.Clear();
+			var fixedMorphs = new List<SelectedMorph>();
 
 			foreach (var m in morphs)
-				morphs_.Add(SelectedMorph.Create(Atom, m));
+			{
+				bool found = false;
+
+				foreach (var sm in morphs_)
+				{
+					if (sm.Morph == m)
+					{
+						fixedMorphs.Add(sm);
+						found = true;
+						break;
+					}
+				}
+
+				if (!found)
+				{
+					var nsm = SelectedMorph.Create(Atom, m);
+					nsm.Movement = new Movement(0, 1);
+					fixedMorphs.Add(nsm);
+				}
+			}
+
+
+			int i = 0;
+			while (i < morphs_.Count)
+			{
+				if (fixedMorphs.Contains(morphs_[i]))
+				{
+					++i;
+				}
+				else
+				{
+					morphs_[i].Removed();
+					morphs_.RemoveAt(i);
+				}
+			}
+
+			morphs_.Clear();
+			morphs_.AddRange(fixedMorphs);
+
+			Synergy.LogError("new morphs: " + morphs.Count.ToString());
 
 			Progression.MorphsChanged();
 		}
@@ -458,8 +505,12 @@ namespace Synergy
 			{
 				var newMorph = Utilities.FindMorphInNewAtom(Atom, sm.Morph);
 				if (newMorph == null)
+				{
+					sm.Removed();
 					continue;
+				}
 
+				sm.Reset();
 				sm.Atom = Atom;
 				sm.Morph = newMorph;
 
@@ -498,6 +549,12 @@ namespace Synergy
 		{
 			base.Reset();
 			Progression.Reset();
+
+			if (!ParentContainer.Enabled)
+			{
+				foreach (var sm in morphs_)
+					sm.ResetMorphValue();
+			}
 		}
 
 		protected override string MakeName()

@@ -268,7 +268,7 @@ namespace Synergy
 			float initial, float range, float interval,
 			int cutoff=CutoffClosest)
 				: base(
-					  new FloatParameter( "Initial", initial, 10),
+					  new FloatParameter("Initial", initial, 10),
 					  new FloatParameter("Range", range, 10),
 					  new FloatParameter("Interval", interval, 10))
 		{

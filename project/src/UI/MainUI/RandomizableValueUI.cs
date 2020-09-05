@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System;
 
 namespace Synergy
 {
@@ -10,6 +11,7 @@ namespace Synergy
 		protected BasicSlider<T, Parameter> initial_ = null;
 		protected BasicSlider<T, Parameter> range_ = null;
 		protected readonly FloatSlider interval_;
+		private Button randomHalf_;
 
 		public RandomizableValueWidgets(string name, int flags)
 			: base(flags)
@@ -17,6 +19,8 @@ namespace Synergy
 			interval_ = new FloatSlider(
 				name + " change interval", 0, new FloatRange(0, 10),
 				IntervalChanged, flags);
+
+			randomHalf_ = new Button("Randomize half", RandomizeHalf, flags);
 		}
 
 		public void SetValue(
@@ -43,7 +47,7 @@ namespace Synergy
 		{
 			return new List<IWidget>()
 			{
-				initial_, range_, interval_
+				initial_, range_, interval_, randomHalf_
 			};
 		}
 
@@ -74,6 +78,8 @@ namespace Synergy
 			if (value_ != null)
 				value_.Interval = x;
 		}
+
+		protected abstract void RandomizeHalf();
 	}
 
 
@@ -90,6 +96,14 @@ namespace Synergy
 			range_ = new FloatSlider(
 				name + " random range", 0, new FloatRange(0, 0),
 				RangeChanged, flags);
+		}
+
+		protected override void RandomizeHalf()
+		{
+			var half = initial_.Value / 2;
+
+			initial_.Value = half;
+			range_.Value = Math.Abs(half);
 		}
 	}
 
@@ -139,6 +153,14 @@ namespace Synergy
 			if (value_ != null)
 				((RandomizableTime)value_).Cutoff = i;
 		}
+
+		protected override void RandomizeHalf()
+		{
+			var half = initial_.Value / 2;
+
+			initial_.Value = half;
+			range_.Value = Math.Abs(half);
+		}
 	}
 
 
@@ -155,6 +177,14 @@ namespace Synergy
 			range_ = new IntSlider(
 				name + " range", 0, new IntRange(0, 0),
 				RangeChanged, flags);
+		}
+
+		protected override void RandomizeHalf()
+		{
+			var half = initial_.Value / 2;
+
+			initial_.Value = half;
+			range_.Value = Math.Abs(half);
 		}
 	}
 

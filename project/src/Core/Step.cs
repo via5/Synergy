@@ -7,6 +7,16 @@ namespace Synergy
 {
 	sealed class Step : IJsonable
 	{
+		public delegate void StepCallback(Step s);
+		public event StepCallback StepNameChanged;
+
+		public delegate void ModifierCallback(IModifier m);
+		public event ModifierCallback ModifierNameChanged;
+
+		public delegate void Callback();
+		public event Callback ModifiersChanged;
+
+
 		private readonly BoolParameter enabled_ =
 			new BoolParameter("Enabled", true);
 
@@ -56,7 +66,7 @@ namespace Synergy
 			name_ = null;
 			Duration = new RandomDuration();
 			Repeat = new RandomizableTime(0);
-			Delay = new Delay();
+			Delay = new Delay(new RandomDuration(), false, false);
 			halfMove_.Value = false;
 			inFirstHalf_ = true;
 			modifiers_ = new List<ModifierContainer>();
@@ -125,8 +135,16 @@ namespace Synergy
 
 		public string UserDefinedName
 		{
-			get { return name_; }
-			set { name_ = value; }
+			get
+			{
+				return name_;
+			}
+
+			set
+			{
+				name_ = value;
+				StepNameChanged?.Invoke(this);
+			}
 		}
 
 		public string Name
@@ -291,44 +309,43 @@ namespace Synergy
 			}
 
 			foreach (var m in modifiers_)
-			{
-				m.Step = this;
-
-				if (m.Modifier != null)
-					m.Modifier.ParentStep = this;
-			}
+				m.ParentStep = this;
 
 			return true;
 		}
 
 		public void AddModifier(ModifierContainer m)
 		{
-			m.Step = this;
+			m.ParentStep = this;
 			modifiers_.Add(m);
 			m.Added();
+			ModifiersChanged?.Invoke();
 		}
 
-		public void AddEmptyModifier()
+		public ModifierContainer AddEmptyModifier()
 		{
-			AddModifier(new ModifierContainer());
+			var m = new ModifierContainer();
+			AddModifier(m);
+			return m;
 		}
 
 		public void DeleteModifier(ModifierContainer m)
 		{
 			m.Removed();
 
-			// todo: needs a generic notification
-			foreach (var sm in modifiers_)
+			if (m.Modifier != null)
 			{
-				if (sm.Modifier != null)
-				{
-					var om = sm.Modifier.ModifierSync as OtherModifierSyncedModifier;
-					if (om != null)
-						om.OtherModifier = null;
-				}
+				foreach (var sm in modifiers_)
+					sm.ModifierSync?.OtherModifierRemoved(m.Modifier);
 			}
 
 			modifiers_.Remove(m);
+			ModifiersChanged?.Invoke();
+		}
+
+		public void FireModifierNameChanged(IModifier m)
+		{
+			ModifierNameChanged?.Invoke(m);
 		}
 
 		public int IndexOfModifier(IModifier m)
@@ -385,8 +402,13 @@ namespace Synergy
 
 			foreach (var m in modifiers_)
 			{
-				if (m.Modifier != null && m.Enabled)
+				if (m.Modifier == null)
+					continue;
+
+				if (m.Enabled)
 					enabledModifiers_.Add(m);
+				else
+					m.Modifier.Reset();
 			}
 		}
 

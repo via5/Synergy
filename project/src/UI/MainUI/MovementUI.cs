@@ -32,7 +32,6 @@ namespace Synergy
 				min_.SetValue(m_.Minimum, preferredRange);
 				max_.SetValue(m_.Maximum, preferredRange);
 			}
-
 		}
 
 		public List<IWidget> GetWidgets()

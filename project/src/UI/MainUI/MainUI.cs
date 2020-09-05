@@ -384,18 +384,16 @@ namespace Synergy
 					int icopy = i;
 
 					var m = CurrentStep.Modifiers[icopy];
-					if (m.Modifier != null)
+
+					ModifierContainer.ModifierNameChangedHandler h =
+						(mm) => OnModifierNameChanged(icopy);
+
+					handlerRemovers_.Add(new Action(() =>
 					{
-						var mcopy = m.Modifier;
+						m.NameChanged -= h;
+					}));
 
-						ModifierNameChangedHandler h =
-							() => OnModifierNameChanged(icopy);
-
-						handlerRemovers_.Add(new Action(
-							() => mcopy.NameChanged -= h));
-
-						mcopy.NameChanged += h;
-					}
+					m.NameChanged += h;
 				}
 			}
 

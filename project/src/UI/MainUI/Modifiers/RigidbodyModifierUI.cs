@@ -132,10 +132,12 @@ namespace Synergy
 		{
 			base.AtomChanged(atom);
 
-			receiver_.Value = "";
 			receiver_.Atom = atom;
 
-			modifier_.Receiver = null;
+			if (modifier_.Receiver == null)
+				receiver_.Value = "";
+			else
+				receiver_.Value = modifier_.Receiver.name;
 		}
 	}
 }

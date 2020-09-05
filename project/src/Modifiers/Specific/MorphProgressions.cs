@@ -637,6 +637,11 @@ namespace Synergy
 			new BoolParameter("HoldHalfway", false);
 
 
+		public OrderedMorphProgression(bool holdHalfway = false)
+		{
+			HoldHalfway = holdHalfway;
+		}
+
 		public bool HoldHalfway
 		{
 			get { return holdHalfway_.Value; }
@@ -777,6 +782,11 @@ namespace Synergy
 		public static string DisplayName { get; } = "Sequential";
 		public override string GetDisplayName() { return DisplayName; }
 
+		public SequentialMorphProgression(bool holdHalfway = false)
+			: base(holdHalfway)
+		{
+		}
+
 		public override IMorphProgression Clone(int cloneFlags = 0)
 		{
 			var p = new SequentialMorphProgression();
@@ -805,6 +815,11 @@ namespace Synergy
 		public override string GetDisplayName() { return DisplayName; }
 
 		private readonly ShuffledOrder order_ = new ShuffledOrder();
+
+		public RandomMorphProgression(bool holdHalfway = false)
+			: base(holdHalfway)
+		{
+		}
 
 		public override IMorphProgression Clone(int cloneFlags = 0)
 		{

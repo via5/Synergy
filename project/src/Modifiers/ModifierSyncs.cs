@@ -8,6 +8,7 @@ namespace Synergy
 
 		IModifierSync Clone(int cloneFlags = 0);
 		void Removed();
+		void OtherModifierRemoved(IModifier m);
 
 		void StopWhenFinished(float timeRemaining);
 		void Resume();
@@ -68,6 +69,11 @@ namespace Synergy
 		public virtual void Removed()
 		{
 			ParentModifier = null;
+		}
+
+		public virtual void OtherModifierRemoved(IModifier m)
+		{
+			// no-op
 		}
 
 		public abstract bool Finished { get; }
@@ -666,6 +672,14 @@ namespace Synergy
 				return modifier_.ModifierSync.IsInFirstHalf(
 					modifier_, stepProgress, stepForwards);
 			}
+		}
+
+		public override void OtherModifierRemoved(IModifier m)
+		{
+			if (OtherModifier == m)
+				OtherModifier = null;
+			else
+				modifierIndex_ = -1;
 		}
 
 		public override void Reset()

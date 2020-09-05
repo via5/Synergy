@@ -132,9 +132,9 @@ namespace Synergy
 		{
 			if (currentModifier_ != null)
 			{
-				if (currentModifier_.Step != null)
+				if (currentModifier_.ParentStep != null)
 				{
-					currentModifier_.Step.DeleteModifier(currentModifier_);
+					currentModifier_.ParentStep.DeleteModifier(currentModifier_);
 					Synergy.Instance.UI.NeedsReset("modifier deleted");
 				}
 			}
@@ -168,16 +168,16 @@ namespace Synergy
 
 		protected virtual void ListenForModifierEvents(IModifier newModifier)
 		{
-			var oldModifier = currentModifier_?.Modifier;
+			var oldModifier = currentModifier_;
 
 			if (oldModifier != null)
 				oldModifier.NameChanged -= NameChanged;
 
-			if (newModifier != null)
-				newModifier.NameChanged += NameChanged;
+			if (newModifier?.ParentContainer != null)
+				newModifier.ParentContainer.NameChanged += NameChanged;
 		}
 
-		private void NameChanged()
+		private void NameChanged(IModifier m)
 		{
 			if (currentModifier_ != null)
 				header_.Text = currentModifier_.Name;
@@ -201,7 +201,7 @@ namespace Synergy
 			if (currentModifier_?.Modifier == null)
 				return;
 
-			currentModifier_.Modifier.ModifierSync = s;
+			currentModifier_.ModifierSync = s;
 			Synergy.Instance.UI.NeedsReset("modifier sync type changed");
 		}
 
@@ -213,13 +213,13 @@ namespace Synergy
 
 		private void DisableOthers()
 		{
-			currentModifier_?.Step?.DisableAllExcept(currentModifier_);
+			currentModifier_?.ParentStep?.DisableAllExcept(currentModifier_);
 			enabled_.Value = currentModifier_?.Enabled ?? false;
 		}
 
 		private void EnableAll()
 		{
-			currentModifier_?.Step?.EnableAll();
+			currentModifier_?.ParentStep?.EnableAll();
 			enabled_.Value = true;
 		}
 	}
@@ -285,6 +285,8 @@ namespace Synergy
 		private readonly Collapsible delayCollapsible_;
 		private readonly DelayWidgets delayWidgets_;
 
+		private readonly ConfirmableButton copy_;
+
 		private UnsyncedModifier unsynced_ = null;
 
 		public UnsyncedModifierUI(int flags)
@@ -299,6 +301,9 @@ namespace Synergy
 			delayCollapsible_ = new Collapsible("Delay", null, flags_);
 			delayWidgets_ = new DelayWidgets(flags_);
 			delayWidgets_.SupportsHalfMove = false;
+
+			copy_ = new ConfirmableButton(
+				"Copy to other unsynced", CopyToAll, flags_);
 		}
 
 		public override void AddToUI(IModifierSync s)
@@ -318,12 +323,15 @@ namespace Synergy
 
 			durationCollapsible_.AddToUI();
 			delayCollapsible_.AddToUI();
+
+			copy_.AddToUI();
 		}
 
 		public override void RemoveFromUI()
 		{
 			durationCollapsible_.RemoveFromUI();
 			delayCollapsible_.RemoveFromUI();
+			copy_.RemoveFromUI();
 		}
 
 		private void DurationTypeChanged(IDuration d)
@@ -333,6 +341,28 @@ namespace Synergy
 
 			unsynced_.Duration = d;
 			Synergy.Instance.UI.NeedsReset("modifier sync duration changed");
+		}
+
+		private void CopyToAll()
+		{
+			var m = unsynced_?.ParentModifier;
+			var s = m?.ParentStep;
+
+			if (m == null || s == null)
+				return;
+
+			foreach (var sm in s.Modifiers)
+			{
+				if (sm.Modifier == m)
+					continue;
+
+				var other = sm.ModifierSync as UnsyncedModifier;
+				if (other == null)
+					continue;
+
+				other.Duration = unsynced_.Duration.Clone();
+				other.Delay = unsynced_.Delay.Clone();
+			}
 		}
 	}
 
