@@ -277,13 +277,13 @@ namespace Synergy
 			if (!Utilities.AtomHasMorphs(Atom))
 				Atom = null;
 
-			Progression = new NaturalMorphProgression();
+			Progression = new SequentialMorphProgression();
 		}
 
 		public MorphModifier(Atom a, DAZMorph m)
 		{
 			Atom = a;
-			Progression = new NaturalMorphProgression();
+			Progression = new SequentialMorphProgression();
 			AddMorph(m);
 		}
 
