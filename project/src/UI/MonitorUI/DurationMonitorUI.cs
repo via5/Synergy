@@ -121,7 +121,8 @@ namespace Synergy
 
 		private readonly FloatSlider start_;
 		private readonly FloatSlider end_;
-		private readonly FloatSlider over_;
+		private readonly FloatSlider timeUp_;
+		private readonly FloatSlider timeDown_;
 		private readonly FloatSlider hold_;
 		private readonly FloatSlider elapsed_;
 		private readonly FloatSlider totalElapsed_;
@@ -144,8 +145,12 @@ namespace Synergy
 				name + " end", 0, new FloatRange(0, 0), null,
 				flags_ | FloatSlider.Disabled);
 
-			over_ = new FloatSlider(
-				name + " total duration", 0, new FloatRange(0, 0), null,
+			timeUp_ = new FloatSlider(
+				name + " time up", 0, new FloatRange(0, 0), null,
+				flags_ | FloatSlider.Disabled);
+
+			timeDown_ = new FloatSlider(
+				name + " time down", 0, new FloatRange(0, 0), null,
 				flags_ | FloatSlider.Disabled);
 
 			hold_ = new FloatSlider(
@@ -177,7 +182,8 @@ namespace Synergy
 
 			widgets_.AddToUI(start_);
 			widgets_.AddToUI(end_);
-			widgets_.AddToUI(over_);
+			widgets_.AddToUI(timeUp_);
+			widgets_.AddToUI(timeDown_);
 			widgets_.AddToUI(hold_);
 
 			widgets_.AddToUI(elapsed_);
@@ -192,7 +198,8 @@ namespace Synergy
 			{
 				start_,
 				end_,
-				over_,
+				timeUp_,
+				timeDown_,
 				hold_,
 
 				elapsed_,
@@ -208,7 +215,8 @@ namespace Synergy
 			{
 				start_.Value = 0;
 				end_.Value = 0;
-				over_.Value = 0;
+				timeUp_.Value = 0;
+				timeDown_.Value = 0;
 				hold_.Value = 0;
 
 				elapsed_.Value = 0;
@@ -220,7 +228,8 @@ namespace Synergy
 			{
 				start_.Value = duration_.Range.Minimum;
 				end_.Value = duration_.Range.Maximum;
-				over_.Value = duration_.Over;
+				timeUp_.Value = duration_.TimeUp;
+				timeDown_.Value = duration_.TimeDown;
 				hold_.Value = duration_.Hold;
 
 				elapsed_.Value = duration_.Elapsed;

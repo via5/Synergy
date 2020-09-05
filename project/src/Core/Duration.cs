@@ -234,8 +234,11 @@ namespace Synergy
 		private readonly FloatParameter max_ =
 			new FloatParameter("Maximum", 1, 10);
 
-		private readonly FloatParameter over_ =
-			new FloatParameter("RampTime", 1, 10);
+		private readonly FloatParameter timeUp_ =
+			new FloatParameter("RampTimeUp", 1, 10);
+
+		private readonly FloatParameter timeDown_ =
+			new FloatParameter("RampTimeDown", 1, 10);
 
 		private readonly FloatParameter hold_ =
 			new FloatParameter("HoldMaximum", 0, 10);
@@ -262,7 +265,8 @@ namespace Synergy
 		{
 			min_.Value = min;
 			max_.Value = max;
-			over_.Value = over;
+			timeUp_.Value = over;
+			timeDown_.Value = over;
 			hold_.Value = hold;
 		}
 
@@ -333,14 +337,14 @@ namespace Synergy
 
 				if (goingUp_)
 				{
-					t += Over - totalElapsed_;
+					t += TimeUp - totalElapsed_;
 					t += Hold;
-					t += Over;
+					t += TimeDown;
 				}
 				else if (holding_)
 				{
 					t += Hold - holdingElapsed_;
-					t += Over;
+					t += TimeDown;
 				}
 				else
 				{
@@ -356,15 +360,26 @@ namespace Synergy
 			get { return current_; }
 		}
 
-		public float Over
+		public float TimeUp
 		{
-			get { return over_.Value; }
-			set { over_.Value = value; }
+			get { return timeUp_.Value; }
+			set { timeUp_.Value = value; }
 		}
 
-		public FloatParameter OverParameter
+		public FloatParameter TimeUpParameter
 		{
-			get { return over_; }
+			get { return timeUp_; }
+		}
+
+		public float TimeDown
+		{
+			get { return timeDown_.Value; }
+			set { timeDown_.Value = value; }
+		}
+
+		public FloatParameter TimeDownParameter
+		{
+			get { return timeDown_; }
 		}
 
 		public FloatRange Range
@@ -448,10 +463,20 @@ namespace Synergy
 		{
 			get
 			{
-				if (Over <= 0)
-					return 1;
+				if (goingUp_)
+				{
+					if (TimeUp <= 0)
+						return 1;
 
-				return Utilities.Clamp(totalElapsed_ / Over, 0, 1);
+					return Utilities.Clamp(totalElapsed_ / TimeUp, 0, 1);
+				}
+				else
+				{
+					if (TimeDown <= 0)
+						return 1;
+
+					return Utilities.Clamp(totalElapsed_ / TimeDown, 0, 1);
+				}
 			}
 		}
 
@@ -484,7 +509,8 @@ namespace Synergy
 
 			min_.Unregister();
 			max_.Unregister();
-			over_.Unregister();
+			timeUp_.Unregister();
+			timeDown_.Unregister();
 			hold_.Unregister();
 			rampUp_.Unregister();
 			rampDown_.Unregister();
@@ -498,7 +524,8 @@ namespace Synergy
 			{
 				d.min_.Value = min_.Value;
 				d.max_.Value = max_.Value;
-				d.over_.Value = over_.Value;
+				d.timeUp_.Value = timeUp_.Value;
+				d.timeDown_.Value = timeDown_.Value;
 				d.hold_.Value = hold_.Value;
 			}
 
@@ -515,14 +542,14 @@ namespace Synergy
 					if (RampUp)
 						totalElapsed_ += delta;
 					else
-						totalElapsed_ = Over;
+						totalElapsed_ = TimeUp;
 
-					if (totalElapsed_ >= Over)
+					if (totalElapsed_ >= TimeUp)
 					{
-						totalElapsed_ = Over;
-						Next();
+						totalElapsed_ = TimeDown;
 						goingUp_ = false;
 						holding_ = true;
+						Next();
 					}
 				}
 				else
@@ -586,7 +613,7 @@ namespace Synergy
 
 		public override void Reset(float maxTime)
 		{
-			if ((Over * 2 + Hold) > maxTime)
+			if ((TimeUp + TimeDown + Hold) > maxTime)
 			{
 				finished_ = true;
 				elapsed_ = 0;
@@ -617,7 +644,8 @@ namespace Synergy
 			o.Add("easing", easing_);
 			o.Add("minimum", min_);
 			o.Add("maximum", max_);
-			o.Add("over", over_);
+			o.Add("timeUp", timeUp_);
+			o.Add("timeDown", timeDown_);
 			o.Add("hold", hold_);
 			o.Add("rampUp", rampUp_);
 			o.Add("rampDown", rampDown_);
@@ -635,10 +663,24 @@ namespace Synergy
 
 			o.Opt("minimum", min_);
 			o.Opt("maximum", max_);
-			o.Opt("over", over_);
 			o.Opt("hold", hold_);
 			o.Opt("rampUp", rampUp_);
 			o.Opt("rampDown", rampDown_);
+
+			if (o.HasKey("over"))
+			{
+				// migration
+				var over = new FloatParameter("over", 0, 0);
+				o.Opt("over", over);
+
+				TimeUp = over.Value;
+				TimeDown = over.Value;
+			}
+			else
+			{
+				o.Opt("timeUp", timeUp_);
+				o.Opt("timeDown", timeDown_);
+			}
 
 			return true;
 		}

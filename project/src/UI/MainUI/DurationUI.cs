@@ -175,7 +175,8 @@ namespace Synergy
 		}
 
 
-		private readonly FloatSlider over_;
+		private readonly FloatSlider timeUp_;
+		private readonly FloatSlider timeDown_;
 		private readonly FloatSlider min_;
 		private readonly FloatSlider max_;
 		private readonly FloatSlider hold_;
@@ -190,8 +191,11 @@ namespace Synergy
 		public RampDurationUI(string name, int flags = 0)
 			: base(name)
 		{
-			over_ = new FloatSlider(
-				MakeText("Ramp time"), DurationChanged, flags);
+			timeUp_ = new FloatSlider(
+				MakeText("Ramp time up"), TimeUpChanged, flags);
+
+			timeDown_ = new FloatSlider(
+				MakeText("Ramp time down"), TimeDownChanged, flags);
 
 			min_ = new FloatSlider(
 				MakeText("Minimum duration"), MinimumChanged, flags);
@@ -218,7 +222,8 @@ namespace Synergy
 
 			if (duration_ == null)
 			{
-				over_.Value = 0;
+				timeUp_.Value = 0;
+				timeDown_.Value = 0;
 				min_.Value = 0;
 				max_.Value = 0;
 				hold_.Value = 0;
@@ -229,7 +234,8 @@ namespace Synergy
 			}
 			else
 			{
-				over_.Parameter = duration_.OverParameter;
+				timeUp_.Parameter = duration_.TimeUpParameter;
+				timeDown_.Parameter = duration_.TimeDownParameter;
 				min_.Parameter = duration_.MinimumParameter;
 				max_.Parameter = duration_.MaximumParameter;
 				hold_.Parameter = duration_.HoldParameter;
@@ -244,7 +250,8 @@ namespace Synergy
 		{
 			return new List<IWidget>()
 			{
-				over_,
+				timeUp_,
+				timeDown_,
 				min_,
 				max_,
 				hold_,
@@ -254,10 +261,16 @@ namespace Synergy
 			};
 		}
 
-		private void DurationChanged(float f)
+		private void TimeUpChanged(float f)
 		{
 			if (duration_ != null)
-				duration_.Over = f;
+				duration_.TimeUp = f;
+		}
+
+		private void TimeDownChanged(float f)
+		{
+			if (duration_ != null)
+				duration_.TimeDown = f;
 		}
 
 		private void MinimumChanged(float f)

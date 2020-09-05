@@ -424,7 +424,7 @@ namespace Synergy
 
 				names.Add(m.Name);
 
-				if (sync_.OtherModifier == m.Modifier)
+				if (sync_.OtherModifier != null && sync_.OtherModifier == m.Modifier)
 					found = true;
 			}
 
