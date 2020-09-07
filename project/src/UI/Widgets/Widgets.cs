@@ -40,6 +40,7 @@ namespace Synergy
 		public const int Right          = 0x02;
 		public const int Constrained    = 0x04;  // slider
 		public const int Tall           = 0x08;  // button, checkbox
+		public const int NavButtons     = 0x10;  // string list
 
 		public const int LineHeight = 60;
 
@@ -745,6 +746,58 @@ namespace Synergy
 
 			element_ = sc_.CreateScrollablePopup(
 				storable_, Bits.IsSet(flags_, Right));
+
+			if (Bits.IsSet(flags_, NavButtons))
+			{
+				// thank mr acidbubbles
+
+				element_.popup.labelText.alignment = TextAnchor.UpperCenter;
+				element_.popup.labelText.GetComponent<RectTransform>().anchorMax = new Vector2(0, 0.89f);
+
+				{
+					var btn = UnityEngine.Object.Instantiate(
+						Synergy.Instance.manager.configurableButtonPrefab);
+
+					btn.SetParent(element_.transform, false);
+					UnityEngine.Object.Destroy(btn.GetComponent<LayoutElement>());
+					btn.GetComponent<UIDynamicButton>().label = "<";
+					btn.GetComponent<UIDynamicButton>().button.onClick.AddListener(() =>
+					{
+						element_.popup.SetPreviousValue();
+					});
+
+					var prevBtnRect = btn.GetComponent<RectTransform>();
+					prevBtnRect.pivot = new Vector2(0, 0);
+					prevBtnRect.anchoredPosition = new Vector2(10f, 0);
+					prevBtnRect.sizeDelta = new Vector2(0f, 0f);
+					prevBtnRect.offsetMin = new Vector2(5f, 5f);
+					prevBtnRect.offsetMax = new Vector2(80f, 50f);
+					prevBtnRect.anchorMin = new Vector2(0f, 0f);
+					prevBtnRect.anchorMax = new Vector2(0f, 0f);
+				}
+
+				{
+					var btn = UnityEngine.Object.Instantiate(
+						Synergy.Instance.manager.configurableButtonPrefab);
+
+					btn.SetParent(element_.transform, false);
+					UnityEngine.Object.Destroy(btn.GetComponent<LayoutElement>());
+					btn.GetComponent<UIDynamicButton>().label = ">";
+					btn.GetComponent<UIDynamicButton>().button.onClick.AddListener(() =>
+					{
+						element_.popup.SetNextValue();
+					});
+
+					var prevBtnRect = btn.GetComponent<RectTransform>();
+					prevBtnRect.pivot = new Vector2(0, 0);
+					prevBtnRect.anchoredPosition = new Vector2(10f, 0);
+					prevBtnRect.sizeDelta = new Vector2(0f, 0f);
+					prevBtnRect.offsetMin = new Vector2(82f, 5f);
+					prevBtnRect.offsetMax = new Vector2(157f, 50f);
+					prevBtnRect.anchorMin = new Vector2(0f, 0f);
+					prevBtnRect.anchorMax = new Vector2(0f, 0f);
+				}
+			}
 		}
 
 		protected override void DoRemoveFromUI()
@@ -789,6 +842,7 @@ namespace Synergy
 			});
 		}
 	}
+
 
 	class Checkbox : BasicWidget<JSONStorableBool, UIDynamicToggle>
 	{

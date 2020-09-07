@@ -50,7 +50,8 @@ namespace Synergy
 			options_ = new OptionsUI(Widget.Right);
 
 			stepsList_ = new StringList(
-				"Steps", "", new List<string>(), StepChanged);
+				"Steps", "", new List<string>(), StepChanged,
+				 Widget.NavButtons);
 
 			insertStepBefore_ = new Button(
 				"Insert step before", InsertStepBefore);
@@ -64,7 +65,7 @@ namespace Synergy
 
 			modifiersList_ = new StringList(
 				"Modifiers", "", new List<string>(), ModifierChanged,
-				Widget.Right);
+				Widget.Right | Widget.NavButtons);
 			addModifier_ = new Button(
 				"Add modifier", AddModifier, Widget.Right);
 			cloneModifier_ = new Button(
