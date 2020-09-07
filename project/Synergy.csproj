@@ -63,6 +63,7 @@
     <Compile Include="src\Modifiers\ModifierContainer.cs" />
     <Compile Include="src\Modifiers\ModifierSyncs.cs" />
     <Compile Include="src\Modifiers\Specific\AudioModifier.cs" />
+    <Compile Include="src\Modifiers\Specific\EyesModifier.cs" />
     <Compile Include="src\Modifiers\Specific\LightModifier.cs" />
     <Compile Include="src\Modifiers\Specific\MorphModifier.cs" />
     <Compile Include="src\Modifiers\Specific\MorphProgressions.cs" />
@@ -81,6 +82,7 @@
     <Compile Include="src\UI\MainUI\StepUI.cs" />
     <Compile Include="src\UI\MonitorUI\DurationMonitorUI.cs" />
     <Compile Include="src\UI\MonitorUI\Modifiers\AudioModifierMonitorUI.cs" />
+    <Compile Include="src\UI\MonitorUI\Modifiers\EyesModifierMonitor.cs" />
     <Compile Include="src\UI\MonitorUI\Modifiers\LightModifierMonitorUI.cs" />
     <Compile Include="src\UI\MonitorUI\Modifiers\ModifierMonitorUI.cs" />
     <Compile Include="src\UI\MonitorUI\Modifiers\ModifierSyncsMonitorUI.cs" />

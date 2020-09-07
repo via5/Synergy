@@ -13,6 +13,7 @@ project\src\Modifiers\Modifier.cs
 project\src\Modifiers\ModifierContainer.cs
 project\src\Modifiers\ModifierSyncs.cs
 project\src\Modifiers\Specific\AudioModifier.cs
+project\src\Modifiers\Specific\EyesModifier.cs
 project\src\Modifiers\Specific\LightModifier.cs
 project\src\Modifiers\Specific\MorphModifier.cs
 project\src\Modifiers\Specific\MorphProgressions.cs
@@ -33,6 +34,7 @@ project\src\UI\MonitorUI\DurationMonitorUI.cs
 project\src\UI\MonitorUI\MonitorUI.cs
 project\src\UI\MonitorUI\MovementMonitorUI.cs
 project\src\UI\MonitorUI\Modifiers\AudioModifierMonitorUI.cs
+project\src\UI\MonitorUI\Modifiers\EyesModifierMonitor.cs
 project\src\UI\MonitorUI\Modifiers\LightModifierMonitorUI.cs
 project\src\UI\MonitorUI\Modifiers\ModifierMonitorUI.cs
 project\src\UI\MonitorUI\Modifiers\ModifierSyncsMonitorUI.cs

@@ -20,7 +20,7 @@ namespace Synergy
 		private readonly FloatSlider dirX_, dirY_, dirZ_;
 
 		public RigidbodyModifierUI(MainUI ui)
-			: base(ui, Utilities.AtomHasRigidbodies)
+			: base(ui, Utilities.AtomHasForceReceivers)
 		{
 			receiver_ = new RigidbodyList(
 				"Receiver", "", ReceiverChanged, Widget.Right);

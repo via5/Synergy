@@ -425,6 +425,27 @@ namespace Synergy
 				c_.Add(key, o.Impl);
 			}
 
+			public void AddFactoryObjects<T>(string key, List<T> list)
+				where T : IFactoryObject
+			{
+				if (list == null || c_ == null)
+					return;
+
+				if (list.Count > 0)
+				{
+					var array = new JSONArray();
+
+					foreach (var element in list)
+					{
+						var n = element.ToJSON();
+						if (n?.Impl != null)
+							array.Add(n.Impl);
+					}
+
+					c_?.Add(key, array);
+				}
+			}
+
 			public void Opt<Factory, T>(string key, ref T v)
 					where Factory : IFactory<T>, new()
 					where T : IFactoryObject
@@ -453,23 +474,72 @@ namespace Synergy
 				v = temp;
 			}
 
-
-			public void OptRigidbody(string key, Atom atom, ref Rigidbody v)
+			public void OptFactoryObjects<Factory, T>(string key, ref List<T> list)
+				where Factory : IFactory<T>, new()
+				where T : IFactoryObject
 			{
-				if (atom == null)
+				if (!HasKey(key))
+					return;
+
+				var node = c_[key];
+				if (node == null)
+					return;
+
+				var array = node as JSONArray;
+				if (array == null)
+				{
+					Synergy.LogError("key '" + key + "' is not an array");
+					return;
+				}
+
+				list.Clear();
+
+				int i = 0;
+				foreach (JSONNode n in array)
+				{
+					var o = n as JSONClass;
+					if (o == null)
+					{
+						Synergy.LogError(
+							"array element " + i.ToString() + " in key " +
+							key + " is not an object");
+
+						continue;
+					}
+
+					if (!o.HasKey("factoryTypeName"))
+						continue;
+
+					var typeName = o["factoryTypeName"].Value;
+
+					var temp = new Factory().Create(typeName);
+					if (temp == null)
+						continue;
+
+					if (!temp.FromJSON(Object.Wrap(o)))
+						continue;
+
+					list.Add(temp);
+				}
+			}
+
+
+			public void OptForceReceiver(string key, Atom a, ref Rigidbody v)
+			{
+				if (a == null)
 					return;
 
 				if (!HasKey(key))
 					return;
 
 				var name = c_[key].Value;
-				var rb = Utilities.FindRigidbody(atom, name);
+				var rb = Utilities.FindForceReceiver(a, name);
 
 				if (rb == null)
 				{
 					Synergy.LogError(
 						"receiver '" + name + "' not " +
-						"found in atom '" + atom.uid + "'");
+						"found in atom '" + a.uid + "'");
 
 					return;
 				}

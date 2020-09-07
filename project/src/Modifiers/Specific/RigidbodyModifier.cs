@@ -145,7 +145,7 @@ namespace Synergy
 
 		public RigidbodyModifier()
 		{
-			if (!Utilities.AtomHasRigidbodies(Atom))
+			if (!Utilities.AtomHasForceReceivers(Atom))
 				Atom = null;
 		}
 
@@ -158,7 +158,7 @@ namespace Synergy
 		public RigidbodyModifier(Atom atom, string rigidbodyName)
 		{
 			Atom = atom;
-			receiver_ = Utilities.FindRigidbody(atom, rigidbodyName);
+			receiver_ = Utilities.FindForceReceiver(atom, rigidbodyName);
 		}
 
 		public static string FactoryTypeName { get; } = "rigidbody";
@@ -267,7 +267,7 @@ namespace Synergy
 			else if (receiver_ != null)
 			{
 				var oldName = receiver_.name;
-				Receiver = Utilities.FindRigidbody(Atom, oldName);
+				Receiver = Utilities.FindForceReceiver(Atom, oldName);
 			}
 		}
 
@@ -327,7 +327,7 @@ namespace Synergy
 			o.Opt<RigidbodyMovementTypeFactory, IRigidbodyMovementType>(
 				"type", ref type_);
 
-			o.OptRigidbody("receiver", Atom, ref receiver_);
+			o.OptForceReceiver("receiver", Atom, ref receiver_);
 
 			if (o.HasKey("direction"))
 				J.Wrappers.FromJSON(o.Get("direction"), ref direction_);

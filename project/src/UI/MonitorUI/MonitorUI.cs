@@ -187,6 +187,8 @@ namespace Synergy
 				return new LightModifierMonitor();
 			else if (m is AudioModifier)
 				return new AudioModifierMonitor();
+			else if (m is EyesModifier)
+				return new EyesModifierMonitor();
 			else
 				return null;
 		}

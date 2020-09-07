@@ -136,12 +136,26 @@ namespace Synergy
 			return seconds.ToString("0.0") + "s";
 		}
 
-		public static Rigidbody FindRigidbody(Atom atom, string name)
+		public static Rigidbody FindForceReceiver(Atom atom, string name)
 		{
 			if (atom == null || name == null)
 				return null;
 
 			foreach (var fr in atom.forceReceivers)
+			{
+				if (fr.name == name)
+					return fr.GetComponent<Rigidbody>();
+			}
+
+			return null;
+		}
+
+		public static Rigidbody FindRigidbody(Atom atom, string name)
+		{
+			if (atom == null || name == null)
+				return null;
+
+			foreach (var fr in atom.rigidbodies)
 			{
 				if (fr.name == name)
 					return fr.GetComponent<Rigidbody>();
@@ -212,7 +226,7 @@ namespace Synergy
 			return list;
 		}
 
-		public static bool AtomHasRigidbodies(Atom a)
+		public static bool AtomHasForceReceivers(Atom a)
 		{
 			foreach (var fr in a.forceReceivers)
 			{
