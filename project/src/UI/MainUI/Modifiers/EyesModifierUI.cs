@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Net.NetworkInformation;
 using UnityEngine;
 
 namespace Synergy
@@ -13,13 +12,28 @@ namespace Synergy
 	{
 		protected readonly EyesModifierTargetUIContainer parent_;
 
-		public BasicEyesModifierTargetUI(EyesModifierTargetUIContainer parent)
+		private EyesTargetContainer target_ = null;
+		private readonly Checkbox enabled_;
+
+		public BasicEyesModifierTargetUI(
+			EyesModifierTargetUIContainer parent, EyesTargetContainer t)
 		{
 			parent_ = parent;
+			target_ = t;
+
+			enabled_ = new Checkbox(
+				"Enabled", t.Enabled, EnabledChanged, Widget.Right);
 		}
 
+		public virtual List<Widget> GetWidgets()
+		{
+			return new List<Widget>() { enabled_ };
+		}
 
-		public abstract List<Widget> GetWidgets();
+		private void EnabledChanged(bool b)
+		{
+			target_.Enabled = b;
+		}
 	}
 
 
@@ -31,10 +45,10 @@ namespace Synergy
 		private readonly ForceReceiverList receiver_;
 
 		public RigidbodyEyesTargetUI(
-			EyesModifierTargetUIContainer parent, RigidbodyEyesTarget t)
-				: base(parent)
+			EyesModifierTargetUIContainer parent, EyesTargetContainer tc)
+				: base(parent, tc)
 		{
-			target_ = t;
+			target_ = tc.Target as RigidbodyEyesTarget;
 
 			atom_ = new AtomList(
 				"Atom", target_?.Atom?.uid, AtomChanged,
@@ -47,10 +61,14 @@ namespace Synergy
 
 		public override List<Widget> GetWidgets()
 		{
-			return new List<Widget>()
+			var list = base.GetWidgets();
+
+			list.AddRange(new List<Widget>()
 			{
 				atom_, receiver_
-			};
+			});
+
+			return list;
 		}
 
 		private void AtomChanged(Atom a)
@@ -98,10 +116,10 @@ namespace Synergy
 		private readonly Vector3UI offset_;
 
 		public ConstantEyesTargetUI(
-			EyesModifierTargetUIContainer parent, ConstantEyesTarget t)
-				: base(parent)
+			EyesModifierTargetUIContainer parent, EyesTargetContainer tc)
+				: base(parent, tc)
 		{
-			target_ = t;
+			target_ = tc.Target as ConstantEyesTarget;
 
 			atom_ = new AtomList(
 				"Relative atom", target_?.Atom?.uid, AtomChanged,
@@ -122,8 +140,11 @@ namespace Synergy
 
 		public override List<Widget> GetWidgets()
 		{
-			var list = new List<Widget>() { atom_, receiver_ };
+			var list = base.GetWidgets();
+
+			list.AddRange(new List<Widget>() { atom_, receiver_ });
 			list.AddRange(offset_.GetWidgets());
+
 			return list;
 		}
 
@@ -185,10 +206,11 @@ namespace Synergy
 
 
 		public RandomEyesTargetUI(
-			EyesModifierTargetUIContainer parent, RandomEyesTarget t)
-				: base(parent)
+			EyesModifierTargetUIContainer parent, EyesTargetContainer tc)
+				: base(parent, tc)
 		{
-			target_ = t;
+			target_ = tc.Target as RandomEyesTarget;
+
 			var r = new FloatRange(0, 10);
 
 			atom_ = new AtomList(
@@ -200,26 +222,26 @@ namespace Synergy
 				ReceiverChanged, Widget.Right);
 
 			distance_ = new FloatSlider(
-				"Distance", t.Distance, r, DistanceChanged, Widget.Right);
+				"Distance", target_.Distance, r, DistanceChanged, Widget.Right);
 
 			centerX_ = new FloatSlider(
-				"Offset X", t.CenterX, r, CenterXChanged, Widget.Right);
+				"Offset X", target_.CenterX, r, CenterXChanged, Widget.Right);
 
 			centerY_ = new FloatSlider(
-				"Offset Y", t.CenterY, r, CenterYChanged, Widget.Right);
+				"Offset Y", target_.CenterY, r, CenterYChanged, Widget.Right);
 
 			xRange_ = new FloatSlider(
-				"Range X", t.RangeX, r, RangeXChanged, Widget.Right);
+				"Range X", target_.RangeX, r, RangeXChanged, Widget.Right);
 
 			yRange_ = new FloatSlider(
-				"Range Y", t.RangeY, r, RangeYChanged, Widget.Right);
+				"Range Y", target_.RangeY, r, RangeYChanged, Widget.Right);
 
 			avoidXRange_ = new FloatSlider(
-				"Avoid range X", t.AvoidRangeX, r,
+				"Avoid range X", target_.AvoidRangeX, r,
 				AvoidRangeXChanged, Widget.Right);
 
 			avoidYRange_ = new FloatSlider(
-				"Avoid range Y", t.AvoidRangeY, r,
+				"Avoid range Y", target_.AvoidRangeY, r,
 				AvoidRangeYChanged, Widget.Right);
 
 			rel_.Atom = target_.Atom;
@@ -227,7 +249,9 @@ namespace Synergy
 
 		public override List<Widget> GetWidgets()
 		{
-			return new List<Widget>()
+			var list = base.GetWidgets();
+
+			list.AddRange(new List<Widget>()
 			{
 				atom_,
 				rel_,
@@ -238,7 +262,9 @@ namespace Synergy
 				yRange_,
 				avoidXRange_,
 				avoidYRange_
-			};
+			});
+
+			return list;
 		}
 
 		private void AtomChanged(Atom a)
@@ -378,11 +404,11 @@ namespace Synergy
 			types_.Value = t;
 
 			if (t is RigidbodyEyesTarget)
-				ui_ = new RigidbodyEyesTargetUI(this, t as RigidbodyEyesTarget);
+				ui_ = new RigidbodyEyesTargetUI(this, container_);
 			else if (t is ConstantEyesTarget)
-				ui_ = new ConstantEyesTargetUI(this, t as ConstantEyesTarget);
+				ui_ = new ConstantEyesTargetUI(this, container_);
 			else if (t is RandomEyesTarget)
-				ui_ = new RandomEyesTargetUI(this, t as RandomEyesTarget);
+				ui_ = new RandomEyesTargetUI(this, container_);
 			else
 				ui_ = null;
 
@@ -444,16 +470,17 @@ namespace Synergy
 
 			saccade_.Add(saccadeMin_);
 			saccade_.Add(saccadeMax_);
-
-			previews_.Enabled = true;
 		}
+
 
 		public override void AddToTopUI(IModifier m)
 		{
 			var changed = (m != modifier_);
 
 			modifier_ = m as EyesModifier;
+
 			previews_.Modifier = modifier_;
+			previews_.Create();
 
 			if (modifier_ == null)
 				return;
@@ -472,6 +499,7 @@ namespace Synergy
 			saccadeMin_.Parameter = modifier_.SaccadeMinParameter;
 			saccadeMax_.Parameter = modifier_.SaccadeMaxParameter;
 			minDistance_.Parameter = modifier_.MinDistanceParameter;
+			previewsEnabled_.Value = previews_.Enabled;
 
 			AddAtomWidgets(m);
 			widgets_.AddToUI(saccade_);
@@ -496,7 +524,7 @@ namespace Synergy
 		public override void RemoveFromUI()
 		{
 			base.RemoveFromUI();
-			previews_.Enabled = false;
+			previews_.Destroy();
 		}
 
 		public override void PluginEnabled(bool b)
@@ -632,7 +660,7 @@ namespace Synergy
 			Destroy();
 			Synergy.LogError("creating previews");
 
-			if (modifier_ == null)
+			if (modifier_ == null || !enabled_)
 				return;
 
 			foreach (var t in modifier_.Targets)
@@ -722,10 +750,15 @@ namespace Synergy
 				if (p.t?.Target == null)
 					continue;
 
+				p.sphere.SetActive(p.t.Enabled);
 				p.sphere.transform.localPosition = p.t.Target.Position;
 
 				if (p.t.Target is RandomEyesTarget)
+				{
+					p.plane.SetActive(p.t.Enabled);
+					p.planeAvoid.SetActive(p.t.Enabled);
 					UpdateRandomPlane(p, p.t.Target as RandomEyesTarget);
+				}
 			}
 		}
 

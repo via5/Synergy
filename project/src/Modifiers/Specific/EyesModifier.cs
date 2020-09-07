@@ -567,6 +567,7 @@ namespace Synergy
 
 	class EyesTargetContainer : IJsonable
 	{
+		private bool enabled_ = true;
 		private IEyesTarget target_ = null;
 
 		public EyesTargetContainer(IEyesTarget t = null)
@@ -582,6 +583,12 @@ namespace Synergy
 				t.target_ = target_.Clone(cloneFlags);
 
 			return t;
+		}
+
+		public bool Enabled
+		{
+			get { return enabled_; }
+			set { enabled_ = value; }
 		}
 
 		public IEyesTarget Target
@@ -807,11 +814,29 @@ namespace Synergy
 
 			lastProgress_ = progress;
 
-			float progressOnTarget = 1.0f / targets_.Count;
+
+			int enabledTargets = 0;
+			foreach (var tc in targets_)
+			{
+				if (tc.Enabled)
+					++enabledTargets;
+			}
+
+
+			if (enabledTargets == 0)
+			{
+				CurrentIndex = -1;
+				return;
+			}
+
+			float progressOnTarget = 1.0f / enabledTargets;
 			float p = 0;
 
 			for (int i = 0; i < targets_.Count; ++i)
 			{
+				if (!targets_[i].Enabled)
+					continue;
+
 				if (progress >= p && progress <= (p + progressOnTarget))
 				{
 					CurrentIndex = i;
