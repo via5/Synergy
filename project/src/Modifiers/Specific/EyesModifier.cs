@@ -4,35 +4,38 @@ using UnityEngine;
 
 namespace Synergy
 {
-	class EyeTargetFactory : BasicFactory<IEyeTarget>
+	class EyesTargetFactory : BasicFactory<IEyesTarget>
 	{
-		public override List<IEyeTarget> GetAllObjects()
+		public override List<IEyesTarget> GetAllObjects()
 		{
-			return new List<IEyeTarget>()
+			return new List<IEyesTarget>()
 			{
-				new RigidbodyEyeTarget(),
-				new ConstantEyeTarget(),
-				new RandomEyeTarget()
+				new RigidbodyEyesTarget(),
+				new ConstantEyesTarget(),
+				new RandomEyesTarget()
 			};
 		}
 	}
 
 
-	interface IEyeTarget : IFactoryObject
+	interface IEyesTarget : IFactoryObject
 	{
-		IEyeTarget Clone(int cloneFlags);
+		IEyesTarget Clone(int cloneFlags);
 		Vector3 Position { get; }
 		void Update(Rigidbody head);
+		string Name { get; }
 	}
 
-	abstract class BasicEyeTarget : IEyeTarget
+	abstract class BasicEyesTarget : IEyesTarget
 	{
 		public abstract string GetFactoryTypeName();
 		public abstract string GetDisplayName();
 
-		public abstract IEyeTarget Clone(int cloneFlags);
+		public abstract IEyesTarget Clone(int cloneFlags);
 		public abstract Vector3 Position { get; }
 		public abstract void Update(Rigidbody head);
+
+		public abstract string Name { get; }
 
 		public virtual J.Node ToJSON()
 		{
@@ -45,7 +48,7 @@ namespace Synergy
 		}
 	}
 
-	class RigidbodyEyeTarget : BasicEyeTarget
+	class RigidbodyEyesTarget : BasicEyesTarget
 	{
 		public override string GetFactoryTypeName() { return "rigidbody"; }
 		public override string GetDisplayName() { return "Rigidbody"; }
@@ -54,27 +57,67 @@ namespace Synergy
 		private Rigidbody receiver_ = null;
 		private Vector3 pos_ = new Vector3();
 
-		public RigidbodyEyeTarget()
+		public RigidbodyEyesTarget()
 			: this(null, null)
 		{
 		}
 
-		public RigidbodyEyeTarget(Atom a, Rigidbody rb)
+		public RigidbodyEyesTarget(Atom a, Rigidbody rb)
 		{
 			atom_ = a;
 			receiver_ = rb;
 		}
 
-		public override IEyeTarget Clone(int cloneFlags)
+		public override IEyesTarget Clone(int cloneFlags)
 		{
-			var t = new RigidbodyEyeTarget();
+			var t = new RigidbodyEyesTarget();
 			CopyTo(t, cloneFlags);
 			return t;
 		}
 
-		private void CopyTo(RigidbodyEyeTarget t, int cloneFlags)
+		private void CopyTo(RigidbodyEyesTarget t, int cloneFlags)
 		{
 			t.receiver_ = receiver_;
+		}
+
+		public override string Name
+		{
+			get
+			{
+				string s = "RB";
+
+				if (atom_ != null)
+					s += " " + atom_.uid;
+
+				if (receiver_ != null)
+					s += " " + receiver_.name;
+
+				return s;
+			}
+		}
+
+		public Atom Atom
+		{
+			get
+			{
+				return atom_;
+			}
+
+			set
+			{
+				if (value != null && receiver_ != null)
+					receiver_ = Utilities.FindRigidbody(value, receiver_.name);
+				else
+					receiver_ = null;
+
+				atom_ = value;
+			}
+		}
+
+		public Rigidbody Receiver
+		{
+			get { return receiver_; }
+			set { receiver_ = value; }
 		}
 
 		public override Vector3 Position
@@ -105,7 +148,7 @@ namespace Synergy
 			if (!base.FromJSON(n))
 				return false;
 
-			var o = n.AsObject("RigidbodyEyeTarget");
+			var o = n.AsObject("RigidbodyEyesTarget");
 			if (o == null)
 				return false;
 
@@ -115,7 +158,7 @@ namespace Synergy
 		}
 	}
 
-	class ConstantEyeTarget : BasicEyeTarget
+	class ConstantEyesTarget : BasicEyesTarget
 	{
 		public override string GetFactoryTypeName() { return "constant"; }
 		public override string GetDisplayName() { return "Constant"; }
@@ -127,28 +170,40 @@ namespace Synergy
 		private Vector3 pos_ = new Vector3();
 
 
-		public ConstantEyeTarget()
+		public ConstantEyesTarget()
 			: this(new Vector3(), null)
 		{
 		}
 
-		public ConstantEyeTarget(Vector3 offset, Rigidbody rel)
+		public ConstantEyesTarget(Vector3 offset, Rigidbody rel)
 		{
 			offset_ = offset;
 			rel_ = rel;
 		}
 
-		public override IEyeTarget Clone(int cloneFlags)
+		public override IEyesTarget Clone(int cloneFlags)
 		{
-			var t = new ConstantEyeTarget();
+			var t = new ConstantEyesTarget();
 			CopyTo(t, cloneFlags);
 			return t;
 		}
 
-		private void CopyTo(ConstantEyeTarget t, int cloneFlags)
+		private void CopyTo(ConstantEyesTarget t, int cloneFlags)
 		{
 			t.offset_ = offset_;
 			t.rel_ = rel_;
+		}
+
+		public override string Name
+		{
+			get
+			{
+				string s = "C " + offset_.ToString();
+				if (rel_ != null)
+					s += " " + rel_.name;
+
+				return s;
+			}
 		}
 
 		public override Vector3 Position
@@ -181,7 +236,7 @@ namespace Synergy
 			if (!base.FromJSON(n))
 				return false;
 
-			var o = n.AsObject("ConstantEyeTarget");
+			var o = n.AsObject("ConstantEyesTarget");
 			if (o == null)
 				return false;
 
@@ -194,7 +249,7 @@ namespace Synergy
 		}
 	}
 
-	class RandomEyeTarget : BasicEyeTarget
+	class RandomEyesTarget : BasicEyesTarget
 	{
 		public override string GetFactoryTypeName() { return "random"; }
 		public override string GetDisplayName() { return "Random"; }
@@ -210,14 +265,14 @@ namespace Synergy
 		private Vector3 pos_ = new Vector3();
 
 
-		public override IEyeTarget Clone(int cloneFlags)
+		public override IEyesTarget Clone(int cloneFlags)
 		{
-			var t = new RandomEyeTarget();
+			var t = new RandomEyesTarget();
 			CopyTo(t, cloneFlags);
 			return t;
 		}
 
-		private void CopyTo(RandomEyeTarget t, int cloneFlags)
+		private void CopyTo(RandomEyesTarget t, int cloneFlags)
 		{
 			t.distance_ = distance_;
 			t.centerX_ = centerX_;
@@ -226,6 +281,14 @@ namespace Synergy
 			t.yRange_ = yRange_;
 			t.avoidXRange_ = avoidXRange_;
 			t.avoidYRange_ = avoidYRange_;
+		}
+
+		public override string Name
+		{
+			get
+			{
+				return "R";
+			}
 		}
 
 		public override Vector3 Position
@@ -286,7 +349,7 @@ namespace Synergy
 			if (!base.FromJSON(n))
 				return false;
 
-			var o = n.AsObject("RandomEyeTarget");
+			var o = n.AsObject("RandomEyesTarget");
 			if (o == null)
 				return false;
 
@@ -297,6 +360,64 @@ namespace Synergy
 			o.Opt("yRange", ref yRange_);
 			o.Opt("avoidXRange_", ref avoidXRange_);
 			o.Opt("avoidYRange_", ref avoidYRange_);
+
+			return true;
+		}
+	}
+
+
+	class EyesTargetContainer : IJsonable
+	{
+		private IEyesTarget target_ = null;
+
+		public EyesTargetContainer Clone(int cloneFlags)
+		{
+			var t = new EyesTargetContainer();
+
+			if (target_ != null)
+				t.target_ = target_.Clone(cloneFlags);
+
+			return t;
+		}
+
+		public IEyesTarget Target
+		{
+			get
+			{
+				return target_;
+			}
+
+			set
+			{
+				target_ = value;
+			}
+		}
+
+		public string Name
+		{
+			get
+			{
+				if (target_ == null)
+					return "Target";
+				else
+					return target_.Name;
+			}
+		}
+
+		public J.Node ToJSON()
+		{
+			var o = new J.Object();
+			o.Add("target", target_);
+			return o;
+		}
+
+		public bool FromJSON(J.Node n)
+		{
+			var o = n.AsObject("EyesTargetContainer");
+			if (o == null)
+				return false;
+
+			o.Opt<EyesTargetFactory, IEyesTarget>("target", ref target_);
 
 			return true;
 		}
@@ -315,13 +436,18 @@ namespace Synergy
 		private Rigidbody head_ = null;
 		private Rigidbody eyes_ = null;
 
-		private List<IEyeTarget> targets_ = new List<IEyeTarget>();
+		private List<EyesTargetContainer> targets_ =
+			new List<EyesTargetContainer>();
 
-		private RandomizableTime saccadeTime_;
-		private float saccadeMin_ = 0.005f;
-		private float saccadeMax_ = 0.02f;
+		private RandomizableTime saccadeTime_ =
+			new RandomizableTime(1, 0.2f, 0);
+		private FloatParameter saccadeMin_ = new FloatParameter(
+			"SaccadeMin", 0.01f, 0.01f);
+		private FloatParameter saccadeMax_ = new FloatParameter(
+			"SaccadeMax", 0.02f, 0.01f);
 
-		private float minDistance_ = 0.5f;
+		private FloatParameter minDistance_ = new FloatParameter(
+			"MinDistance", 0.5f, 0.1f);
 
 		private int current_ = -1;
 		private float lastProgress_ = -1;
@@ -330,9 +456,73 @@ namespace Synergy
 
 		public EyesModifier()
 		{
-			saccadeTime_ = new RandomizableTime(1, 0.2f, 0);
+			if (!Utilities.AtomHasEyes(Atom))
+				Atom = null;
 
 			UpdateAtom();
+		}
+
+		public static Rigidbody GetPreferredTarget(Atom a)
+		{
+			var head = Utilities.FindRigidbody(a, "head");
+			if (head != null)
+				return head;
+
+			var o = Utilities.FindRigidbody(a, "object");
+			if (o != null)
+				return o;
+
+			var c = Utilities.FindRigidbody(a, "control");
+			if (c != null)
+				return c;
+
+			return null;
+		}
+
+		public RandomizableTime SaccadeTime
+		{
+			get
+			{
+				return saccadeTime_;
+			}
+		}
+
+		public float SaccadeMin
+		{
+			get { return saccadeMin_.Value; }
+			set { saccadeMin_.Value = value; }
+		}
+
+		public FloatParameter SaccadeMinParameter
+		{
+			get { return saccadeMin_; }
+		}
+
+		public float SaccadeMax
+		{
+			get { return saccadeMax_.Value; }
+			set { saccadeMax_.Value = value; }
+		}
+
+		public FloatParameter SaccadeMaxParameter
+		{
+			get { return saccadeMax_; }
+		}
+
+		public float MinDistance
+		{
+			get { return minDistance_.Value; }
+			set { minDistance_.Value = value; }
+		}
+
+		public FloatParameter MinDistanceParameter
+		{
+			get { return minDistance_; }
+		}
+
+		public List<EyesTargetContainer> Targets
+		{
+			get { return new List<EyesTargetContainer>(targets_); }
 		}
 
 		public override IModifier Clone(int cloneFlags = 0)
@@ -374,15 +564,19 @@ namespace Synergy
 			}
 		}
 
-		public void AddTarget(IEyeTarget t)
+		public EyesTargetContainer AddTarget(EyesTargetContainer t=null)
 		{
+			if (t == null)
+				t = new EyesTargetContainer();
+
 			targets_.Add(t);
+			return t;
 		}
 
 		public override void Reset()
 		{
 			base.Reset();
-			Current = -1;
+			CurrentIndex = -1;
 			saccadeTime_.Reset();
 		}
 
@@ -400,13 +594,13 @@ namespace Synergy
 				saccadeTime_.Reset();
 
 				saccadeOffset_.x = UnityEngine.Random.Range(
-					saccadeMin_, saccadeMax_);
+					SaccadeMin, SaccadeMax);
 
 				saccadeOffset_.y = UnityEngine.Random.Range(
-					saccadeMin_, saccadeMax_);
+					SaccadeMin, SaccadeMax);
 
 				saccadeOffset_.z = UnityEngine.Random.Range(
-					saccadeMin_, saccadeMax_);
+					SaccadeMin, SaccadeMax);
 			}
 
 
@@ -417,7 +611,7 @@ namespace Synergy
 
 
 			if (progress < lastProgress_ )
-				Current = -1;
+				CurrentIndex = -1;
 
 			lastProgress_ = progress;
 
@@ -428,7 +622,7 @@ namespace Synergy
 			{
 				if (progress >= p && progress <= (p + progressOnTarget))
 				{
-					Current = i;
+					CurrentIndex = i;
 					break;
 				}
 
@@ -436,7 +630,7 @@ namespace Synergy
 			}
 		}
 
-		public int Current
+		public int CurrentIndex
 		{
 			get
 			{
@@ -453,27 +647,43 @@ namespace Synergy
 			}
 		}
 
+		public IEyesTarget CurrentTarget
+		{
+			get
+			{
+				if (current_ >= 0 && current_ < targets_.Count)
+					return targets_[current_].Target;
+				else
+					return null;
+			}
+		}
+
 		private void TargetChanged()
 		{
-			if (current_ < 0 || current_ >= targets_.Count)
+			var t = CurrentTarget;
+			if (t == null)
 				return;
 
-			targets_[current_].Update(head_);
+			t.Update(head_);
 		}
 
 		protected override void DoSet(bool paused)
 		{
 			base.DoSet(paused);
 
-			if (eyes_ == null || head_ == null || current_ == -1)
+			if (eyes_ == null || head_ == null)
 				return;
 
-			var pos = targets_[current_].Position + saccadeOffset_;
+			var t = CurrentTarget;
+			if (t == null)
+				return;
+
+			var pos = t.Position + saccadeOffset_;
 
 			var distanceToTarget = Vector3.Distance(head_.position, pos);
-			if (distanceToTarget < minDistance_)
+			if (distanceToTarget < MinDistance)
 			{
-				var add = minDistance_ - distanceToTarget;
+				var add = MinDistance - distanceToTarget;
 				var dir = (pos - head_.position).normalized;
 
 				pos += (dir * add);
@@ -485,7 +695,10 @@ namespace Synergy
 
 		protected override string MakeName()
 		{
-			return "EY";
+			if (Atom == null)
+				return "EY";
+			else
+				return "EY " + Atom.uid;
 		}
 
 		protected override void AtomChanged()
@@ -498,8 +711,7 @@ namespace Synergy
 		{
 			var o = base.ToJSON().AsObject();
 
-			o.AddFactoryObjects("targets", targets_);
-
+			o.Add("targets", targets_);
 			o.Add("saccadeTime", saccadeTime_);
 			o.Add("saccadeMin", saccadeMin_);
 			o.Add("saccadeMax", saccadeMax_);
@@ -517,13 +729,23 @@ namespace Synergy
 			if (o == null)
 				return false;
 
-			o.OptFactoryObjects<EyeTargetFactory, IEyeTarget>(
-				"targets", ref targets_);
+			targets_.Clear();
+
+			var targetsArray = o.Get("targets").AsArray();
+			if (targetsArray != null)
+			{
+				targetsArray.ForEach((node) =>
+				{
+					var tc = new EyesTargetContainer();
+					if (tc.FromJSON(node))
+						targets_.Add(tc);
+				});
+			}
 
 			o.Opt("saccadeTime", ref saccadeTime_);
-			o.Opt("saccadeMin", ref saccadeMin_);
-			o.Opt("saccadeMax", ref saccadeMax_);
-			o.Opt("minDistance", ref minDistance_);
+			o.Opt("saccadeMin", saccadeMin_);
+			o.Opt("saccadeMax", saccadeMax_);
+			o.Opt("minDistance", minDistance_);
 
 			return true;
 		}

@@ -73,6 +73,7 @@
     <Compile Include="src\UI\MainUI\MainUI.cs" />
     <Compile Include="src\UI\MainUI\Modifiers\AudioModifierUI.cs" />
     <Compile Include="src\UI\MainUI\Modifiers\BaseModifierUI.cs" />
+    <Compile Include="src\UI\MainUI\Modifiers\EyesModifierUI.cs" />
     <Compile Include="src\UI\MainUI\Modifiers\LightModifierUI.cs" />
     <Compile Include="src\UI\MainUI\Modifiers\ModifierUI.cs" />
     <Compile Include="src\UI\MainUI\Modifiers\MorphModifierUI.cs" />

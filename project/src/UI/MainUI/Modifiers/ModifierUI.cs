@@ -150,6 +150,8 @@ namespace Synergy
 				return new LightModifierUI(ui_);
 			else if (m is AudioModifier)
 				return new AudioModifierUI(ui_);
+			else if (m is EyesModifier)
+				return new EyesModifierUI(ui_);
 			else
 				return null;
 		}

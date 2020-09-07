@@ -26,6 +26,7 @@ project\src\UI\MainUI\RandomizableValueUI.cs
 project\src\UI\MainUI\StepUI.cs
 project\src\UI\MainUI\Modifiers\AudioModifierUI.cs
 project\src\UI\MainUI\Modifiers\BaseModifierUI.cs
+project\src\UI\MainUI\Modifiers\EyesModifierUI.cs
 project\src\UI\MainUI\Modifiers\LightModifierUI.cs
 project\src\UI\MainUI\Modifiers\ModifierUI.cs
 project\src\UI\MainUI\Modifiers\MorphModifierUI.cs

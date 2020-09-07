@@ -14,7 +14,7 @@ namespace Synergy
 		}
 
 		private RigidbodyModifier modifier_ = null;
-		private readonly RigidbodyList receiver_;
+		private readonly ForceReceiverList receiver_;
 		private readonly RigidbodyMovementTypeStringList moveType_;
 		private readonly StringList dirType_;
 		private readonly FloatSlider dirX_, dirY_, dirZ_;
@@ -22,7 +22,7 @@ namespace Synergy
 		public RigidbodyModifierUI(MainUI ui)
 			: base(ui, Utilities.AtomHasForceReceivers)
 		{
-			receiver_ = new RigidbodyList(
+			receiver_ = new ForceReceiverList(
 				"Receiver", "", ReceiverChanged, Widget.Right);
 
 			moveType_ = new RigidbodyMovementTypeStringList(

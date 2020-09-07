@@ -243,6 +243,20 @@ namespace Synergy
 			return (a.GetComponentInChildren<T>() != null);
 		}
 
+		public static bool AtomHasEyes(Atom a)
+		{
+			if (a == null)
+				return false;
+
+			if (FindRigidbody(a, "headControl") == null)
+				return false;
+
+			if (FindRigidbody(a, "eyeTargetControl") == null)
+				return false;
+
+			return true;
+		}
+
 		public static bool AtomCanPlayAudio(Atom a)
 		{
 			return (AtomAudioSource(a) != null);
