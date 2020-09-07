@@ -546,6 +546,29 @@ namespace Synergy
 
 				v = rb;
 			}
+
+			public void OptRigidbody(string key, Atom a, ref Rigidbody v)
+			{
+				if (a == null)
+					return;
+
+				if (!HasKey(key))
+					return;
+
+				var name = c_[key].Value;
+				var rb = Utilities.FindRigidbody(a, name);
+
+				if (rb == null)
+				{
+					Synergy.LogError(
+						"receiver '" + name + "' not " +
+						"found in atom '" + a.uid + "'");
+
+					return;
+				}
+
+				v = rb;
+			}
 		}
 
 

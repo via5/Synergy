@@ -153,6 +153,14 @@ namespace Synergy
 		{
 			var o = base.ToJSON().AsObject();
 
+			if (atom_ != null)
+			{
+				if (J.Node.SaveType == SaveTypes.Preset)
+					o.Add("atom", Utilities.PresetAtomPlaceholder);
+				else
+					o.Add("atom", atom_.uid);
+			}
+
 			if (receiver_ != null)
 				o.Add("receiver", receiver_.name);
 
@@ -168,7 +176,22 @@ namespace Synergy
 			if (o == null)
 				return false;
 
-			o.OptForceReceiver("receiver", atom_, ref receiver_);
+			if (o.HasKey("atom"))
+			{
+				var atomUID = o.Get("atom").AsString();
+				if (atomUID != null)
+				{
+					if (atomUID == Utilities.PresetAtomPlaceholder)
+						atom_ = Synergy.Instance.DefaultAtom;
+					else
+						atom_ = SuperController.singleton.GetAtomByUid(atomUID);
+
+					if (atom_ == null)
+						Synergy.LogError("atom '" + atomUID + "' not found");
+				}
+			}
+
+			o.OptRigidbody("receiver", atom_, ref receiver_);
 
 			return true;
 		}
@@ -290,6 +313,14 @@ namespace Synergy
 
 			o.Add("offset", J.Wrappers.ToJSON(offset_));
 
+			if (atom_ != null)
+			{
+				if (J.Node.SaveType == SaveTypes.Preset)
+					o.Add("atom", Utilities.PresetAtomPlaceholder);
+				else
+					o.Add("atom", atom_.uid);
+			}
+
 			if (rel_ != null)
 				o.Add("relative", rel_.name);
 
@@ -308,7 +339,22 @@ namespace Synergy
 			if (o.HasKey("offset"))
 				J.Wrappers.FromJSON(o.Get("offset"), ref offset_);
 
-			o.OptForceReceiver("relative", atom_, ref rel_);
+			if (o.HasKey("atom"))
+			{
+				var atomUID = o.Get("atom").AsString();
+				if (atomUID != null)
+				{
+					if (atomUID == Utilities.PresetAtomPlaceholder)
+						atom_ = Synergy.Instance.DefaultAtom;
+					else
+						atom_ = SuperController.singleton.GetAtomByUid(atomUID);
+
+					if (atom_ == null)
+						Synergy.LogError("atom '" + atomUID + "' not found");
+				}
+			}
+
+			o.OptRigidbody("relative", atom_, ref rel_);
 
 			return true;
 		}
@@ -531,6 +577,17 @@ namespace Synergy
 		{
 			var o = base.ToJSON().AsObject();
 
+			if (atom_ != null)
+			{
+				if (J.Node.SaveType == SaveTypes.Preset)
+					o.Add("atom", Utilities.PresetAtomPlaceholder);
+				else
+					o.Add("atom", atom_.uid);
+			}
+
+			if (rel_ != null)
+				o.Add("relative", rel_.name);
+
 			o.Add("distance", distance_);
 			o.Add("xCenter", centerX_);
 			o.Add("yCenter", centerY_);
@@ -550,6 +607,23 @@ namespace Synergy
 			var o = n.AsObject("RandomEyesTarget");
 			if (o == null)
 				return false;
+
+			if (o.HasKey("atom"))
+			{
+				var atomUID = o.Get("atom").AsString();
+				if (atomUID != null)
+				{
+					if (atomUID == Utilities.PresetAtomPlaceholder)
+						atom_ = Synergy.Instance.DefaultAtom;
+					else
+						atom_ = SuperController.singleton.GetAtomByUid(atomUID);
+
+					if (atom_ == null)
+						Synergy.LogError("atom '" + atomUID + "' not found");
+				}
+			}
+
+			o.OptRigidbody("relative", atom_, ref rel_);
 
 			o.Opt("distance", ref distance_);
 			o.Opt("xCenter", ref centerX_);
@@ -617,7 +691,10 @@ namespace Synergy
 		public J.Node ToJSON()
 		{
 			var o = new J.Object();
+
+			o.Add("enabled", enabled_);
 			o.Add("target", target_);
+
 			return o;
 		}
 
@@ -627,6 +704,7 @@ namespace Synergy
 			if (o == null)
 				return false;
 
+			o.Opt("enabled", ref enabled_);
 			o.Opt<EyesTargetFactory, IEyesTarget>("target", ref target_);
 
 			return true;
