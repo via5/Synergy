@@ -171,12 +171,14 @@ namespace Synergy
 
 
 		public ConstantEyesTarget()
-			: this(new Vector3(), null)
+			: this(new Vector3(), null, null)
 		{
 		}
 
-		public ConstantEyesTarget(Vector3 offset, Rigidbody rel)
+		public ConstantEyesTarget(
+			Vector3 offset, Atom a, Rigidbody rel)
 		{
+			atom_ = a;
 			offset_ = offset;
 			rel_ = rel;
 		}
@@ -209,6 +211,11 @@ namespace Synergy
 		public override Vector3 Position
 		{
 			get { return pos_; }
+		}
+
+		public Rigidbody RelativeTo
+		{
+			get { return rel_; }
 		}
 
 		public override void Update(Rigidbody head)
@@ -262,8 +269,22 @@ namespace Synergy
 		private float avoidXRange_ = 1;
 		private float avoidYRange_ = 1;
 
+		private Atom atom_ = null;
+		private Rigidbody rel_ = null;
+
 		private Vector3 pos_ = new Vector3();
 
+
+		public RandomEyesTarget()
+			: this(null, null)
+		{
+		}
+
+		public RandomEyesTarget(Atom a, Rigidbody rel)
+		{
+			atom_ = a;
+			rel_ = rel;
+		}
 
 		public override IEyesTarget Clone(int cloneFlags)
 		{
@@ -296,11 +317,58 @@ namespace Synergy
 			get { return pos_; }
 		}
 
+		public Atom Atom
+		{
+			get { return atom_; }
+		}
+
+		public Rigidbody RelativeTo
+		{
+			get { return rel_; }
+		}
+
+		public float Distance
+		{
+			get { return distance_; }
+		}
+
+		public float CenterX
+		{
+			get { return centerX_; }
+		}
+
+		public float CenterY
+		{
+			get { return centerY_; }
+		}
+
+		public float RangeX
+		{
+			get { return xRange_; }
+		}
+
+		public float RangeY
+		{
+			get { return yRange_; }
+		}
+
+		public float AvoidRangeX
+		{
+			get { return avoidXRange_; }
+		}
+
+		public float AvoidRangeY
+		{
+			get { return avoidYRange_; }
+		}
+
 		public override void Update(Rigidbody head)
 		{
-			Vector3 fwd = head.rotation * Vector3.forward;
-			Vector3 ver = head.rotation * Vector3.up;
-			Vector3 hor = head.rotation * Vector3.right;
+			var rel = rel_ ?? head;
+
+			Vector3 fwd = rel.rotation * Vector3.forward;
+			Vector3 ver = rel.rotation * Vector3.up;
+			Vector3 hor = rel.rotation * Vector3.right;
 
 			var xRange = xRange_ - avoidXRange_;
 			var yRange = yRange_ - avoidYRange_;
@@ -324,9 +392,10 @@ namespace Synergy
 				y += avoidYRange_;
 
 
-			pos_ = head.position +
+			pos_ = rel.position +
 				fwd * distance_ +
-				ver * y + hor * x;
+				ver * y +
+				hor * x;
 		}
 
 		public override J.Node ToJSON()
@@ -369,6 +438,11 @@ namespace Synergy
 	class EyesTargetContainer : IJsonable
 	{
 		private IEyesTarget target_ = null;
+
+		public EyesTargetContainer(IEyesTarget t = null)
+		{
+			target_ = t;
+		}
 
 		public EyesTargetContainer Clone(int cloneFlags)
 		{
@@ -525,6 +599,11 @@ namespace Synergy
 			get { return new List<EyesTargetContainer>(targets_); }
 		}
 
+		public Rigidbody Head
+		{
+			get { return head_; }
+		}
+
 		public override IModifier Clone(int cloneFlags = 0)
 		{
 			var m = new EyesModifier();
@@ -678,7 +757,7 @@ namespace Synergy
 			if (t == null)
 				return;
 
-			var pos = t.Position + saccadeOffset_;
+			var pos = t.Position; + saccadeOffset_;
 
 			var distanceToTarget = Vector3.Distance(head_.position, pos);
 			if (distanceToTarget < MinDistance)

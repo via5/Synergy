@@ -87,9 +87,17 @@ namespace Synergy
 
 			if (inMonitor_)
 				monitor_.Update();
+			else if (modifier_ != null)
+				modifier_.Update();
 
 			//if (inOptions_)
 			//	options_.Update();
+		}
+
+		public void PluginEnabled(bool b)
+		{
+			if (modifier_ != null)
+				modifier_.PluginEnabled(b);
 		}
 
 		public void NeedsReset(string why)

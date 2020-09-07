@@ -54,6 +54,18 @@ namespace Synergy
 			ListenForModifierEvents(null);
 		}
 
+		public void PluginEnabled(bool b)
+		{
+			if (specificUI_ != null)
+				specificUI_.PluginEnabled(b);
+		}
+
+		public void Update()
+		{
+			if (specificUI_ != null)
+				specificUI_.Update();
+		}
+
 		public void AddToUI(ModifierContainer sm)
 		{
 			ListenForModifierEvents(sm?.Modifier);

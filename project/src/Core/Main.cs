@@ -69,6 +69,54 @@ namespace Synergy
 
 		private void CreateTestStuff(Atom a)
 		{
+			var s = new Step();
+			s.Duration = new RandomDuration(1);
+			var m = new EyesModifier();
+
+			m.Atom = DefaultAtom;
+
+			m.AddTarget(new EyesTargetContainer(new RigidbodyEyesTarget(
+				SuperController.singleton.GetAtomByUid("t1"),
+				Utilities.FindRigidbody(
+					SuperController.singleton.GetAtomByUid("t1"),
+					"control"))));
+
+			//m.AddTarget(new EyesTargetContainer(new RigidbodyEyesTarget(
+			//	SuperController.singleton.GetAtomByUid("t2"),
+			//	Utilities.FindRigidbody(
+			//		SuperController.singleton.GetAtomByUid("t2"),
+			//		"control"))));
+			//
+			//m.AddTarget(new EyesTargetContainer(new ConstantEyesTarget(
+			//	new Vector3(0, 0, 2),
+			//	a, Utilities.FindRigidbody(a, "chest"))));
+
+			//m.AddTarget(new EyesTargetContainer(new RandomEyesTarget(
+			//	a, Utilities.FindRigidbody(a, "chest"))));
+
+			//m.AddTarget(new ConstantEyeTarget(
+			//	new Vector3(0, 0, 1), Utilities.FindRigidbody(
+			//		m.Atom, "chestControl")));
+
+			s.AddModifier(new ModifierContainer(m));
+			manager_.AddStep(s);
+
+
+
+			//s = new Step();
+			//s.Duration = new RandomDuration(5);
+			//m = new EyesModifier();
+			//
+			//m.Atom = DefaultAtom;
+			//
+			////m.AddTarget(new RigidbodyEyeTarget(
+			////	Utilities.FindRigidbody(
+			////		SuperController.singleton.GetAtomByUid("t1"),
+			////		"control")));
+			//
+			//
+			//s.AddModifier(new ModifierContainer(m));
+			//manager_.AddStep(s);
 		}
 
 		public Timer CreateTimer(float seconds, Timer.Callback f)
@@ -217,6 +265,24 @@ namespace Synergy
 			{
 				timers_.CheckTimers();
 				ui_.Update();
+			});
+		}
+
+		public void OnEnable()
+		{
+			Utilities.Handler(() =>
+			{
+				if (ui_ != null)
+					ui_.PluginEnabled(true);
+			});
+		}
+
+		public void OnDisable()
+		{
+			Utilities.Handler(() =>
+			{
+				if (ui_ != null)
+					ui_.PluginEnabled(false);
 			});
 		}
 

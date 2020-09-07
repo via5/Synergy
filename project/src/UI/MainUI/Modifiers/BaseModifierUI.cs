@@ -9,6 +9,8 @@ namespace Synergy
 		void AddToBottomUI(IModifier m);
 		void RemoveFromUI();
 		string ModifierType { get; }
+		void PluginEnabled(bool b);
+		void Update();
 	}
 
 	abstract class BasicSpecificModifierUI : ISpecificModifierUI
@@ -36,6 +38,16 @@ namespace Synergy
 		public virtual void RemoveFromUI()
 		{
 			widgets_.RemoveFromUI();
+		}
+
+		public virtual void PluginEnabled(bool b)
+		{
+			// no-op
+		}
+
+		public virtual void Update()
+		{
+			// no-op
 		}
 	}
 
