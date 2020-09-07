@@ -234,7 +234,7 @@ namespace Synergy
 		{
 			get
 			{
-				string s = "C " + offset_.ToString();
+				string s = "Constant";
 				if (rel_ != null)
 					s += " " + rel_.name;
 
@@ -367,7 +367,7 @@ namespace Synergy
 		{
 			get
 			{
-				return "R";
+				return "Random";
 			}
 		}
 
@@ -378,47 +378,68 @@ namespace Synergy
 
 		public Atom Atom
 		{
-			get { return atom_; }
+			get
+			{
+				return atom_;
+			}
+
+			set
+			{
+				if (value != null && rel_ != null)
+					rel_ = Utilities.FindRigidbody(value, rel_.name);
+				else
+					rel_ = null;
+
+				atom_ = value;
+			}
 		}
 
 		public Rigidbody RelativeTo
 		{
 			get { return rel_; }
+			set { rel_ = value; }
 		}
 
 		public float Distance
 		{
 			get { return distance_; }
+			set { distance_ = value; }
 		}
 
 		public float CenterX
 		{
 			get { return centerX_; }
+			set { centerX_ = value; }
 		}
 
 		public float CenterY
 		{
 			get { return centerY_; }
+			set { centerY_ = value; }
 		}
 
 		public float RangeX
 		{
 			get { return xRange_; }
+			set { xRange_ = value; }
 		}
 
 		public float RangeY
 		{
 			get { return yRange_; }
+			set { yRange_ = value; }
 		}
 
 		public float AvoidRangeX
 		{
 			get { return avoidXRange_; }
+			set { avoidXRange_ = value; }
 		}
 
 		public float AvoidRangeY
 		{
 			get { return avoidYRange_; }
+			set { avoidYRange_ = value; }
 		}
 
 		public override void Update(Rigidbody head)
@@ -429,27 +450,77 @@ namespace Synergy
 			Vector3 ver = rel.rotation * Vector3.up;
 			Vector3 hor = rel.rotation * Vector3.right;
 
-			var xRange = xRange_ - avoidXRange_;
-			var yRange = yRange_ - avoidYRange_;
+			float x=0, y=0;
 
-			var x = UnityEngine.Random.Range(
-				centerX_ - xRange,
-				centerX_ + xRange);
+			if (avoidXRange_ == 0 && avoidYRange_ == 0)
+			{
+				x = UnityEngine.Random.Range(
+					centerX_ - xRange_,
+					centerX_ + xRange_);
 
-			var y = UnityEngine.Random.Range(
-				centerY_ - yRange,
-				centerY_ + yRange);
-
-			if (x < centerX_)
-				x -= avoidXRange_;
+				y = UnityEngine.Random.Range(
+					centerY_ - yRange_,
+					centerY_ + yRange_);
+			}
 			else
-				x += avoidXRange_;
+			{
+				var av = new List<int>();
 
-			if (y < centerY_)
-				y -= avoidYRange_;
-			else
-				y += avoidYRange_;
+				if (avoidXRange_ < xRange_)
+				{
+					av.Add(0);
+					av.Add(2);
+				}
 
+				if (avoidYRange_ < yRange_)
+				{
+					av.Add(1);
+					av.Add(3);
+				}
+
+				if (av.Count > 0)
+				{
+					int i = UnityEngine.Random.Range(0, av.Count);
+					i = av[i];
+
+					if (i == 0)
+					{
+						// left
+						x = UnityEngine.Random.Range(0, xRange_ - avoidXRange_);
+						x = centerX_ - avoidXRange_ - x;
+
+						y = UnityEngine.Random.Range(0, yRange_ * 2);
+						y = centerY_ - yRange_ + y;
+					}
+					else if (i == 1)
+					{
+						// top
+						x = UnityEngine.Random.Range(0, xRange_ * 2);
+						x = centerX_ - xRange_ + x;
+
+						y = UnityEngine.Random.Range(0, yRange_ - avoidYRange_);
+						y = centerY_ + avoidYRange_ + y;
+					}
+					else if (i == 2)
+					{
+						// right
+						x = UnityEngine.Random.Range(0, xRange_ - avoidXRange_);
+						x = centerX_ + avoidXRange_ + x;
+
+						y = UnityEngine.Random.Range(0, yRange_ * 2);
+						y = centerY_ - yRange_ + y;
+					}
+					else if (i == 3)
+					{
+						// bottom
+						x = UnityEngine.Random.Range(0, xRange_ * 2);
+						x = centerX_ - xRange_ + x;
+
+						y = UnityEngine.Random.Range(0, yRange_ - avoidYRange_);
+						y = centerY_ - avoidYRange_ - y;
+					}
+				}
+			}
 
 			pos_ = rel.position +
 				fwd * distance_ +

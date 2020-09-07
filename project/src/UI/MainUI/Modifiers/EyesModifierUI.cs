@@ -171,17 +171,143 @@ namespace Synergy
 
 	class RandomEyesTargetUI : BasicEyesModifierTargetUI
 	{
+		private RandomEyesTarget target_ = null;
+
+		private readonly AtomList atom_;
+		private readonly ForceReceiverList rel_;
+		private readonly FloatSlider distance_;
+		private readonly FloatSlider centerX_;
+		private readonly FloatSlider centerY_;
+		private readonly FloatSlider xRange_;
+		private readonly FloatSlider yRange_;
+		private readonly FloatSlider avoidXRange_;
+		private readonly FloatSlider avoidYRange_;
+
+
 		public RandomEyesTargetUI(
 			EyesModifierTargetUIContainer parent, RandomEyesTarget t)
 				: base(parent)
 		{
+			target_ = t;
+			var r = new FloatRange(0, 10);
+
+			atom_ = new AtomList(
+				"Relative atom", target_?.Atom?.uid, AtomChanged,
+				null, Widget.Right);
+
+			rel_ = new ForceReceiverList(
+				"Relative receiver", target_?.RelativeTo?.name,
+				ReceiverChanged, Widget.Right);
+
+			distance_ = new FloatSlider(
+				"Distance", t.Distance, r, DistanceChanged, Widget.Right);
+
+			centerX_ = new FloatSlider(
+				"Offset X", t.CenterX, r, CenterXChanged, Widget.Right);
+
+			centerY_ = new FloatSlider(
+				"Offset Y", t.CenterY, r, CenterYChanged, Widget.Right);
+
+			xRange_ = new FloatSlider(
+				"Range X", t.RangeX, r, RangeXChanged, Widget.Right);
+
+			yRange_ = new FloatSlider(
+				"Range Y", t.RangeY, r, RangeYChanged, Widget.Right);
+
+			avoidXRange_ = new FloatSlider(
+				"Avoid range X", t.AvoidRangeX, r,
+				AvoidRangeXChanged, Widget.Right);
+
+			avoidYRange_ = new FloatSlider(
+				"Avoid range Y", t.AvoidRangeY, r,
+				AvoidRangeYChanged, Widget.Right);
+
+			rel_.Atom = target_.Atom;
 		}
 
 		public override List<Widget> GetWidgets()
 		{
 			return new List<Widget>()
 			{
+				atom_,
+				rel_,
+				distance_,
+				centerX_,
+				centerY_,
+				xRange_,
+				yRange_,
+				avoidXRange_,
+				avoidYRange_
 			};
+		}
+
+		private void AtomChanged(Atom a)
+		{
+			target_.Atom = a;
+			rel_.Atom = a;
+
+			if (target_.RelativeTo == null)
+			{
+				var pt = ConstantEyesTarget.GetPreferredTarget(a);
+
+				if (pt == null)
+				{
+					rel_.Value = "";
+					target_.RelativeTo = null;
+				}
+				else
+				{
+					rel_.Value = pt.name;
+					target_.RelativeTo = pt;
+				}
+			}
+			else
+			{
+				rel_.Value = target_.RelativeTo.name;
+			}
+
+			parent_.NameChanged();
+		}
+
+		private void ReceiverChanged(Rigidbody rb)
+		{
+			target_.RelativeTo = rb;
+			parent_.NameChanged();
+		}
+
+		private void DistanceChanged(float f)
+		{
+			target_.Distance = f;
+		}
+
+		private void CenterXChanged(float f)
+		{
+			target_.CenterX = f;
+		}
+
+		private void CenterYChanged(float f)
+		{
+			target_.CenterY = f;
+		}
+
+		private void RangeXChanged(float f)
+		{
+			target_.RangeX = f;
+		}
+
+		private void RangeYChanged(float f)
+		{
+			target_.RangeY = f;
+		}
+
+		private void AvoidRangeXChanged(float f)
+		{
+			target_.AvoidRangeX = f;
+		}
+
+		private void AvoidRangeYChanged(float f)
+		{
+			target_.AvoidRangeY = f;
 		}
 	}
 
