@@ -38,10 +38,6 @@ namespace Synergy
 		private bool inFirstHalf_ = true;
 		private List<ModifierContainer> enabledModifiers_ = null;
 
-		private IModifier waitingFor_ = null;
-		private float gracePeriod_ = -1;
-		private bool useGracePeriod_ = true;
-
 
 		public Step()
 		{
@@ -71,8 +67,6 @@ namespace Synergy
 			inFirstHalf_ = true;
 			modifiers_ = new List<ModifierContainer>();
 			enabledModifiers_ = new List<ModifierContainer>();
-			waitingFor_ = null;
-			gracePeriod_ = -1;
 		}
 
 		public Step Clone(int cloneFlags = 0)
@@ -96,7 +90,6 @@ namespace Synergy
 			}
 
 			s.halfMove_.Value = halfMove_.Value;
-			s.useGracePeriod_ = useGracePeriod_;
 
 			foreach (var m in modifiers_)
 				s.AddModifier(m.Clone(cloneFlags));
@@ -216,12 +209,6 @@ namespace Synergy
 			set { halfMove_.Value = value; }
 		}
 
-		public bool UseGracePeriod
-		{
-			get { return useGracePeriod_; }
-			set { useGracePeriod_ = value; }
-		}
-
 		public BoolParameter HalfMoveParameter
 		{
 			get { return halfMove_; }
@@ -249,16 +236,6 @@ namespace Synergy
 			}
 		}
 
-		public IModifier WaitingFor
-		{
-			get { return waitingFor_; }
-		}
-
-		public float GracePeriod
-		{
-			get { return gracePeriod_; }
-		}
-
 
 		public J.Node ToJSON()
 		{
@@ -270,7 +247,6 @@ namespace Synergy
 			o.Add("repeat", Repeat);
 			o.Add("delay", Delay);
 			o.Add("halfMove", halfMove_);
-			o.Add("useGracePeriod", useGracePeriod_);
 			o.Add("modifiers", modifiers_);
 
 			return o;
@@ -287,7 +263,6 @@ namespace Synergy
 			o.Opt("enabled", enabled_);
 			o.Opt("name", ref name_);
 			o.Opt("halfMove", halfMove_);
-			o.Opt("useGracePeriod", ref useGracePeriod_);
 			o.Opt("modifiers", ref modifiers_);
 
 			{
@@ -557,11 +532,8 @@ namespace Synergy
 			}
 			else
 			{
-				if (Duration.Finished && !HasUnfinishedModifiers())
+				if (Duration.Finished)
 				{
-					waitingFor_ = null;
-					gracePeriod_ = -1;
-
 					if (Delay.EndBackwards)
 					{
 						Delay.ActiveType = Delay.EndBackwardsType;
@@ -617,23 +589,16 @@ namespace Synergy
 			{
 				if (Repeat.Finished && !HalfMove)
 				{
-					if (Synergy.Instance.Manager.IsOnlyEnabledStep(this) ||
-					    !HasUnfinishedModifiers())
+					if (Delay.EndForwards)
 					{
-						waitingFor_ = null;
-						gracePeriod_ = -1;
-
-						if (Delay.EndForwards)
-						{
-							Delay.ActiveType = Delay.EndForwardsType;
-							Delay.StopAfter = true;
-							Delay.ResetDurationAfter = true;
-						}
-						else
-						{
-							Reset();
-							return false;
-						}
+						Delay.ActiveType = Delay.EndForwardsType;
+						Delay.StopAfter = true;
+						Delay.ResetDurationAfter = true;
+					}
+					else
+					{
+						Reset();
+						return false;
 					}
 				}
 				else
@@ -675,46 +640,6 @@ namespace Synergy
 		{
 			foreach (var m in modifiers_)
 				m.Modifier?.TickDelayed(deltaTime, progress, forwards);
-		}
-
-		private bool HasUnfinishedModifiers()
-		{
-			if (useGracePeriod_)
-			{
-				float longestRemaining = -1;
-
-				foreach (var m in enabledModifiers_)
-				{
-					if (m.Modifier == null)
-						continue;
-
-					if (!m.Modifier.Finished)
-					{
-						if (m.Modifier.TimeRemaining > longestRemaining)
-						{
-							waitingFor_ = m.Modifier;
-							longestRemaining = m.Modifier.TimeRemaining;
-						}
-					}
-				}
-
-				if (longestRemaining <= 0)
-				{
-					waitingFor_ = null;
-					return false;
-				}
-
-				gracePeriod_ = longestRemaining;
-
-				foreach (var sm in enabledModifiers_)
-					sm.Modifier?.Stop(longestRemaining);
-
-				return true;
-			}
-			else
-			{
-				return false;
-			}
 		}
 
 		public void Set(bool paused)

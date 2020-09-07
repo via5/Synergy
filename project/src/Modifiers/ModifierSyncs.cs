@@ -10,7 +10,6 @@ namespace Synergy
 		void Removed();
 		void OtherModifierRemoved(IModifier m);
 
-		void StopWhenFinished(float timeRemaining);
 		void Resume();
 		bool Tick(float deltaTime);
 		void TickPaused(float deltaTime);
@@ -21,9 +20,6 @@ namespace Synergy
 		bool Finished { get; }
 		float TimeRemaining { get; }
 		void Reset();
-
-		bool MustStopWhenFinished { get; }
-		float StopGracePeriod { get; }
 	}
 
 	sealed class ModifierSyncFactory : BasicFactory<IModifierSync>
@@ -46,7 +42,6 @@ namespace Synergy
 		public abstract string GetDisplayName();
 
 		private IModifier parent_ = null;
-		private float gracePeriod_ = -1;
 
 		public IModifier ParentModifier
 		{
@@ -54,14 +49,14 @@ namespace Synergy
 			set { parent_ = value; }
 		}
 
-		public void StopWhenFinished(float gracePeriod)
+		public Step ParentStep
 		{
-			gracePeriod_ = gracePeriod;
+			get { return parent_?.ParentStep; }
 		}
 
 		public void Resume()
 		{
-			gracePeriod_ = -1;
+			// no-op
 		}
 
 		public abstract IModifierSync Clone(int cloneFlags = 0);
@@ -89,16 +84,6 @@ namespace Synergy
 
 		public abstract J.Node ToJSON();
 		public abstract bool FromJSON(J.Node n);
-
-		public bool MustStopWhenFinished
-		{
-			get { return gracePeriod_ > 0; }
-		}
-
-		public float StopGracePeriod
-		{
-			get { return gracePeriod_; }
-		}
 	}
 
 
@@ -310,6 +295,9 @@ namespace Synergy
 
 		public override void PostTick()
 		{
+			if (ParentStep == null)
+				return;
+
 			if (Duration.Finished)
 			{
 				if (wasFinished_)
@@ -323,11 +311,8 @@ namespace Synergy
 
 				if (Delay.EndForwards)
 				{
-					if (MustStopWhenFinished)
-					{
-						if (Delay.EndForwardsDuration.Current >= StopGracePeriod)
-							return;
-					}
+					if (Delay.EndForwardsDuration.Current > ParentStep.Duration.TimeRemaining)
+						return;
 
 					Delay.ActiveType = Delay.EndForwardsType;
 					Delay.StopAfter = true;
@@ -335,15 +320,8 @@ namespace Synergy
 				}
 				else
 				{
-					if (MustStopWhenFinished)
-					{
-						Duration.Reset(StopGracePeriod);
-						ConfirmDurationForStop();
-					}
-					else
-					{
-						Reset();
-					}
+					Duration.Reset(ParentStep.Duration.TimeRemaining + 0.05f);
+					ConfirmDurationForStop();
 
 					return;
 				}
@@ -434,15 +412,8 @@ namespace Synergy
 				{
 					Delay.ResetDurationAfter = false;
 
-					if (MustStopWhenFinished)
-					{
-						Duration.Reset(StopGracePeriod);
-						ConfirmDurationForStop();
-					}
-					else
-					{
-						Reset();
-					}
+					Duration.Reset(ParentStep.Duration.TimeRemaining + 0.05f);
+					ConfirmDurationForStop();
 				}
 
 				return false;
@@ -456,11 +427,11 @@ namespace Synergy
 			if (!Delay.Halfway)
 				return;
 
-			var graceForDelay = StopGracePeriod - Duration.Current;
+			var graceForDelay = ParentStep.Duration.TimeRemaining - Duration.Current;
 
 			if (graceForDelay < Delay.HalfwayDuration.Current)
 			{
-				// duration + delay would be longer than grace period,
+				// duration + delay would be longer than time remaining,
 				// cancel
 				Duration.Reset(-1);
 			}

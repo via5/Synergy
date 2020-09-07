@@ -348,15 +348,6 @@ namespace Synergy
 			}
 		}
 
-		public override void Stop(float timeRemaining)
-		{
-			base.Stop(timeRemaining);
-
-			if (Progression.HasOwnDuration)
-				Progression.Stop(timeRemaining);
-		}
-
-
 		public override IModifier Clone(int cloneFlags = 0)
 		{
 			var m = new MorphModifier();
@@ -542,6 +533,10 @@ namespace Synergy
 		protected override void DoTickPaused(float deltaTime)
 		{
 			base.DoTickPaused(deltaTime);
+
+			if (Progression.HasOwnDuration)
+				Progression.Stop();
+
 			Progression.TickPaused(deltaTime);
 		}
 

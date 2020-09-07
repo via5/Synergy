@@ -19,7 +19,7 @@ namespace Synergy
 		void Resume();
 		void Reset();
 		void Set(bool paused);
-		void Stop(float timeRemaining);
+		void Stop();
 
 		void MorphAdded(int i);
 		void MorphRemoved(int i);
@@ -95,7 +95,7 @@ namespace Synergy
 			}
 		}
 
-		public virtual void Stop(float timeRemaining)
+		public virtual void Stop()
 		{
 			// no-op
 		}
@@ -498,7 +498,7 @@ namespace Synergy
 			}
 		}
 
-		public override void Stop(float timeRemaining)
+		public override void Stop()
 		{
 			if (!stop_)
 				stop_ = true;

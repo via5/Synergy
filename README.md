@@ -197,7 +197,7 @@ The name of a modifier cannot currently be changed manually. It is automatically
 
 
 ### Synchronisation
-A modifier has a _duration_, which is used to drive its parameters. Typically, the parameters will be at 50% of their range when the duration is at 50% of its progress. By default, the duration of a modifier is the duration of its parent step. This allows for adding multiple modifiers to a step and have them synchronised. However, the _synchronisation_ option of a modifier can be changed so that it uses a different duration.
+A modifier has a _duration_, which is used to drive its parameters. Typically, the parameters will be at 100% of their range when the duration is at 50% of its progress. By default, the duration of a modifier is the duration of its parent step. This allows for adding multiple modifiers to a step and have them synchronised. However, the _synchronisation_ option of a modifier can be changed so that it uses a different duration.
 
 - _Step duration_: This is the default. Uses the duration of the step that contains this modifier.
 - _Step progress_: If the step uses a [random range duration](#random-range), this is the same as _step duration_. If it uses a ramp, the modifier will steadily move towards 100% during ramp up and move towards 0% during ramp down (that is, the duration is twice the ramp time plus the hold maximum time).
@@ -373,7 +373,7 @@ Once a parameter has been marked as animatable, it will be registered globally, 
 
 [<img src="doc/manage-animatables.png" height="400">](doc/manage-animatables.png)
 
-Parameter names can be customised. Clicking _Remove_ is equivalent to unchecking the _Animtable_ checkbox on the parameter. The button will change into _Add_
+Parameter names can be customised. Clicking _Remove_ is equivalent to unchecking the _Animtable_ checkbox on the parameter. The button will change into _Add_ when clicked, which will re-add the parameter. Removed parameters will disappear once the list is closed.
 
 
 Note that once a parameter is used by another plugin, its name cannot be changed without breaking the link between that plugin and Synergy. Therefore, it is recommended to rename parameters manually immediately after making them animatable, before using them in other plugins. Although Synergy will give default names to parameters, they're not always very useful.

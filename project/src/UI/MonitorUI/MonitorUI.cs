@@ -66,8 +66,6 @@ namespace Synergy
 		private IDurationMonitor duration_ = null;
 		private readonly RandomizableTimeMonitorWidgets repeat_;
 		private DelayMonitor delay_;
-		private readonly Label waitingFor_;
-		private readonly FloatSlider gracePeriod_;
 		private IModifierMonitor modifierMonitor_ = null;
 
 		private Step currentStep_ = null;
@@ -80,8 +78,6 @@ namespace Synergy
 			active_ = new Checkbox("Active");
 			repeat_ = new RandomizableTimeMonitorWidgets("Repeat");
 			delay_ = new DelayMonitor();
-			waitingFor_ = new Label();
-			gracePeriod_ = new FloatSlider("Grace period");
 		}
 
 		public void AddToUI(Step currentStep, IModifier currentModifier)
@@ -120,9 +116,6 @@ namespace Synergy
 			foreach (var w in delay_.GetWidgets(currentStep_?.Delay))
 				widgets_.AddToUI(w);
 
-			widgets_.AddToUI(waitingFor_);
-			widgets_.AddToUI(gracePeriod_);
-
 			if (modifierMonitor_ != null)
 				modifierMonitor_.AddToUI(currentModifier);
 		}
@@ -155,18 +148,6 @@ namespace Synergy
 				repeat_.SetValue(null);
 			else
 				repeat_.SetValue(currentStep_.Repeat);
-
-			var wf = currentStep_?.WaitingFor;
-			if (wf == null)
-				waitingFor_.Text = "Waiting for nothing";
-			else
-				waitingFor_.Text = "Waiting for " + wf.Name;
-
-			var gp = currentStep_?.GracePeriod;
-			if (gp.HasValue)
-				gracePeriod_.Value = gp.Value;
-			else
-				gracePeriod_.Value = 0;
 
 			if (duration_ != null)
 				duration_.Update();

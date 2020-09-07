@@ -23,7 +23,6 @@ namespace Synergy
 		void TickPaused(float deltaTime);
 		void TickDelayed(float deltaTime, float stepProgress, bool stepFirstHalf);
 		void Set(bool paused);
-		void Stop(float timeRemaining);
 		void Removed();
 		void PostLoad();
 	}
@@ -121,12 +120,6 @@ namespace Synergy
 
 				return ModifierSync.TimeRemaining;
 			}
-		}
-
-		public virtual void Stop(float timeRemaining)
-		{
-			if (ModifierSync != null)
-				ModifierSync.StopWhenFinished(timeRemaining);
 		}
 
 		protected void CopyTo(BasicModifier m, int cloneFlags)
