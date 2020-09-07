@@ -1,5 +1,4 @@
-﻿using LeapInternal;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace Synergy
@@ -661,7 +660,6 @@ namespace Synergy
 			"MinDistance", 0.5f, 0.1f);
 
 		private int current_ = -1;
-		private float lastProgress_ = -1;
 		private Vector3 saccadeOffset_ = new Vector3();
 
 
@@ -775,7 +773,6 @@ namespace Synergy
 		public override void Reset()
 		{
 			base.Reset();
-			CurrentIndex = -1;
 			saccadeTime_.Reset();
 		}
 
@@ -808,42 +805,36 @@ namespace Synergy
 			else
 				progress = progress / 2 + 0.5f;
 
+			if (CurrentIndex == -1 || progress == 1)
+				Next();
+		}
 
-			if (progress < lastProgress_ )
-				CurrentIndex = -1;
+		private void Next()
+		{
+			var i = CurrentIndex;
 
-			lastProgress_ = progress;
+			var start = i;
+			if (start < 0)
+				start = 0;
 
-
-			int enabledTargets = 0;
-			foreach (var tc in targets_)
+			for (; ;)
 			{
-				if (tc.Enabled)
-					++enabledTargets;
-			}
+				++i;
+				if (i >= targets_.Count)
+					i = 0;
 
-
-			if (enabledTargets == 0)
-			{
-				CurrentIndex = -1;
-				return;
-			}
-
-			float progressOnTarget = 1.0f / enabledTargets;
-			float p = 0;
-
-			for (int i = 0; i < targets_.Count; ++i)
-			{
-				if (!targets_[i].Enabled)
-					continue;
-
-				if (progress >= p && progress <= (p + progressOnTarget))
+				if (targets_[i].Enabled)
 				{
 					CurrentIndex = i;
 					break;
 				}
 
-				p += progressOnTarget;
+				if (i == start)
+				{
+					// nothing enabled
+					CurrentIndex = -1;
+					break;
+				}
 			}
 		}
 

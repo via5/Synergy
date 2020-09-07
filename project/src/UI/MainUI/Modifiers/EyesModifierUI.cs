@@ -658,7 +658,6 @@ namespace Synergy
 		public void Create()
 		{
 			Destroy();
-			Synergy.LogError("creating previews");
 
 			if (modifier_ == null || !enabled_)
 				return;
@@ -677,8 +676,6 @@ namespace Synergy
 
 			if (tc.Target == null)
 				return p;
-
-			Synergy.LogError("creating sphere");
 
 			p.sphere = CreateObject(
 				PrimitiveType.Sphere, GetColor(tc.Target, 0.5f));
@@ -735,8 +732,6 @@ namespace Synergy
 
 		public void Destroy()
 		{
-			Synergy.LogError("destroying previews");
-
 			foreach (var o in previews_)
 				o.Destroy();
 
