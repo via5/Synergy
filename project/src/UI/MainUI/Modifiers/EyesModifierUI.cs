@@ -60,7 +60,7 @@ namespace Synergy
 
 			if (target_.Receiver == null)
 			{
-				var pt = EyesModifier.GetPreferredTarget(a);
+				var pt = RigidbodyEyesTarget.GetPreferredTarget(a);
 
 				if (pt == null)
 				{
@@ -91,17 +91,80 @@ namespace Synergy
 
 	class ConstantEyesTargetUI : BasicEyesModifierTargetUI
 	{
+		private ConstantEyesTarget target_ = null;
+
+		private readonly AtomList atom_;
+		private readonly ForceReceiverList receiver_;
+		private readonly Vector3UI offset_;
+
 		public ConstantEyesTargetUI(
 			EyesModifierTargetUIContainer parent, ConstantEyesTarget t)
 				: base(parent)
 		{
+			target_ = t;
+
+			atom_ = new AtomList(
+				"Relative atom", target_?.Atom?.uid, AtomChanged,
+				null, Widget.Right);
+
+			receiver_ = new ForceReceiverList(
+				"Relative receiver", target_?.RelativeTo?.name,
+				ReceiverChanged, Widget.Right);
+
+			offset_ = new Vector3UI(
+				"Offset", Widget.Right,
+				new FloatRange(-10, 10), OffsetChanged);
+
+
+			receiver_.Atom = target_.Atom;
+			offset_.Value = target_.Offset;
 		}
 
 		public override List<Widget> GetWidgets()
 		{
-			return new List<Widget>()
+			var list = new List<Widget>() { atom_, receiver_ };
+			list.AddRange(offset_.GetWidgets());
+			return list;
+		}
+
+		private void AtomChanged(Atom a)
+		{
+			target_.Atom = a;
+			receiver_.Atom = a;
+
+			if (target_.RelativeTo == null)
 			{
-			};
+				var pt = ConstantEyesTarget.GetPreferredTarget(a);
+
+				if (pt == null)
+				{
+					receiver_.Value = "";
+					target_.RelativeTo = null;
+				}
+				else
+				{
+					receiver_.Value = pt.name;
+					target_.RelativeTo = pt;
+				}
+			}
+			else
+			{
+				receiver_.Value = target_.RelativeTo.name;
+			}
+
+			parent_.NameChanged();
+		}
+
+		private void ReceiverChanged(Rigidbody rb)
+		{
+			target_.RelativeTo = rb;
+			parent_.NameChanged();
+		}
+
+		private void OffsetChanged(Vector3 v)
+		{
+			target_.Offset = v;
+			parent_.NameChanged();
 		}
 	}
 

@@ -29,6 +29,12 @@ namespace Synergy
 			Maximum = max;
 		}
 
+		public FloatRange(FloatRange r)
+		{
+			Minimum = r.Minimum;
+			Maximum = r.Maximum;
+		}
+
 		public float Distance
 		{
 			get

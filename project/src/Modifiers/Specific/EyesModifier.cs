@@ -68,6 +68,23 @@ namespace Synergy
 			receiver_ = rb;
 		}
 
+		public static Rigidbody GetPreferredTarget(Atom a)
+		{
+			var head = Utilities.FindRigidbody(a, "head");
+			if (head != null)
+				return head;
+
+			var o = Utilities.FindRigidbody(a, "object");
+			if (o != null)
+				return o;
+
+			var c = Utilities.FindRigidbody(a, "control");
+			if (c != null)
+				return c;
+
+			return null;
+		}
+
 		public override IEyesTarget Clone(int cloneFlags)
 		{
 			var t = new RigidbodyEyesTarget();
@@ -183,6 +200,23 @@ namespace Synergy
 			rel_ = rel;
 		}
 
+		public static Rigidbody GetPreferredTarget(Atom a)
+		{
+			var chest = Utilities.FindRigidbody(a, "chest");
+			if (chest != null)
+				return chest;
+
+			var head = Utilities.FindRigidbody(a, "head");
+			if (head != null)
+				return head;
+
+			var c = Utilities.FindRigidbody(a, "control");
+			if (c != null)
+				return c;
+
+			return null;
+		}
+
 		public override IEyesTarget Clone(int cloneFlags)
 		{
 			var t = new ConstantEyesTarget();
@@ -213,9 +247,34 @@ namespace Synergy
 			get { return pos_; }
 		}
 
+		public Vector3 Offset
+		{
+			get { return offset_; }
+			set { offset_ = value; }
+		}
+
+		public Atom Atom
+		{
+			get
+			{
+				return atom_;
+			}
+
+			set
+			{
+				if (value != null && rel_ != null)
+					rel_ = Utilities.FindRigidbody(value, rel_.name);
+				else
+					rel_ = null;
+
+				atom_ = value;
+			}
+		}
+
 		public Rigidbody RelativeTo
 		{
 			get { return rel_; }
+			set { rel_ = value; }
 		}
 
 		public override void Update(Rigidbody head)
@@ -223,7 +282,7 @@ namespace Synergy
 			if (rel_ == null)
 				pos_ = head.position + offset_;
 			else
-				pos_ = head.position + rel_.rotation * offset_;
+				pos_ = rel_.position + rel_.rotation * offset_;
 		}
 
 		public override J.Node ToJSON()
@@ -536,23 +595,6 @@ namespace Synergy
 			UpdateAtom();
 		}
 
-		public static Rigidbody GetPreferredTarget(Atom a)
-		{
-			var head = Utilities.FindRigidbody(a, "head");
-			if (head != null)
-				return head;
-
-			var o = Utilities.FindRigidbody(a, "object");
-			if (o != null)
-				return o;
-
-			var c = Utilities.FindRigidbody(a, "control");
-			if (c != null)
-				return c;
-
-			return null;
-		}
-
 		public RandomizableTime SaccadeTime
 		{
 			get
@@ -757,7 +799,7 @@ namespace Synergy
 			if (t == null)
 				return;
 
-			var pos = t.Position; + saccadeOffset_;
+			var pos = t.Position + saccadeOffset_;
 
 			var distanceToTarget = Vector3.Distance(head_.position, pos);
 			if (distanceToTarget < MinDistance)

@@ -6,6 +6,69 @@ namespace Synergy
 	using RigidbodyMovementTypeStringList = FactoryStringList<
 		RigidbodyMovementTypeFactory, IRigidbodyMovementType>;
 
+
+	class Vector3UI
+	{
+		public delegate void Callback(Vector3 v);
+		public event Callback Changed;
+
+		private readonly FloatSlider x_, y_, z_;
+
+		public Vector3UI(string name, int flags, FloatRange range, Callback changed)
+		{
+			Changed = changed;
+
+			x_ = new FloatSlider(
+				MakeCaption(name, "X"), 0, new FloatRange(range),
+				OnChanged, flags);
+
+			y_ = new FloatSlider(
+				MakeCaption(name, "Y"), 0, new FloatRange(range),
+				OnChanged, flags);
+
+			z_ = new FloatSlider(
+				MakeCaption(name, "Z"), 0, new FloatRange(range),
+				OnChanged, flags);
+		}
+
+		private string MakeCaption(string name, string more)
+		{
+			if (name == "")
+				return more;
+			else
+				return name + " " + more;
+		}
+
+		public Vector3 Value
+		{
+			get
+			{
+				return new Vector3(x_.Value, y_.Value, z_.Value);
+			}
+
+			set
+			{
+				x_.Value = value.x;
+				y_.Value = value.y;
+				z_.Value = value.z;
+			}
+		}
+
+		public List<Widget> GetWidgets()
+		{
+			return new List<Widget>()
+			{
+				x_, y_, z_
+			};
+		}
+
+		private void OnChanged(float f)
+		{
+			Changed(Value);
+		}
+	}
+
+
 	class RigidbodyModifierUI : AtomWithMovementUI
 	{
 		public override string ModifierType
@@ -17,7 +80,7 @@ namespace Synergy
 		private readonly ForceReceiverList receiver_;
 		private readonly RigidbodyMovementTypeStringList moveType_;
 		private readonly StringList dirType_;
-		private readonly FloatSlider dirX_, dirY_, dirZ_;
+		private readonly Vector3UI dir_;
 
 		public RigidbodyModifierUI(MainUI ui)
 			: base(ui, Utilities.AtomHasForceReceivers)
@@ -33,20 +96,9 @@ namespace Synergy
 				new List<string>() { "X", "Y", "Z", "Custom" },
 				MoveDirectionChanged, Widget.Right);
 
-			dirX_ = new FloatSlider(
-				"X", 0, new FloatRange(-1, 1),
-				MoveCustomDirectionChanged,
-				Widget.Constrained | Widget.Right);
-
-			dirY_ = new FloatSlider(
-				"Y", 0, new FloatRange(-1, 1),
-				MoveCustomDirectionChanged,
-				Widget.Constrained | Widget.Right);
-
-			dirZ_ = new FloatSlider(
-				"Z", 0, new FloatRange(-1, 1),
-				MoveCustomDirectionChanged,
-				Widget.Constrained | Widget.Right);
+			dir_ = new Vector3UI(
+				"", Widget.Right | Widget.Constrained, new FloatRange(-1, 1),
+				MoveCustomDirectionChanged);
 		}
 
 		public override void AddToTopUI(IModifier m)
@@ -68,10 +120,7 @@ namespace Synergy
 				dirString = "Custom";
 
 			dirType_.Value = dirString;
-
-			dirX_.Value = modifier_.Direction.x;
-			dirY_.Value = modifier_.Direction.y;
-			dirZ_.Value = modifier_.Direction.z;
+			dir_.Value = modifier_.Direction;
 
 			AddAtomWidgets(m);
 
@@ -81,9 +130,8 @@ namespace Synergy
 
 			if (dirType_.Value == "Custom")
 			{
-				widgets_.AddToUI(dirX_);
-				widgets_.AddToUI(dirY_);
-				widgets_.AddToUI(dirZ_);
+				foreach (var w in dir_.GetWidgets())
+					widgets_.AddToUI(w);
 			}
 
 			AddAtomWithMovementWidgets(m);
@@ -119,13 +167,10 @@ namespace Synergy
 			ui_.NeedsReset("move direction changed");
 		}
 
-		void MoveCustomDirectionChanged(float dummy)
+		void MoveCustomDirectionChanged(Vector3 v)
 		{
 			if (modifier_ != null)
-			{
-				modifier_.Direction = new Vector3(
-					dirX_.Value, dirY_.Value, dirZ_.Value);
-			}
+				modifier_.Direction = v;
 		}
 
 		protected override void AtomChanged(Atom atom)
