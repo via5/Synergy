@@ -1033,6 +1033,8 @@ namespace Synergy
 			o.Opt("saccadeMax", saccadeMax_);
 			o.Opt("minDistance", minDistance_);
 
+			UpdateAtom();
+
 			return true;
 		}
 
