@@ -20,6 +20,8 @@ namespace Synergy
 		private readonly BoolParameter enabled_ =
 			new BoolParameter("Enabled", true);
 
+		private bool paused_ = false;
+
 		private string name_ = null;
 		private readonly ExplicitHolder<IDuration> duration_ =
 			new ExplicitHolder<IDuration>();
@@ -117,13 +119,31 @@ namespace Synergy
 
 		public bool Enabled
 		{
-			get { return enabled_.Value; }
-			set { enabled_.Value = value; }
+			get
+			{
+				return enabled_.Value;
+			}
+
+			set
+			{
+				if (value != enabled_.Value)
+				{
+					enabled_.Value = value;
+					if (!enabled_.Value)
+						Reset();
+				}
+			}
 		}
 
 		public BoolParameter EnabledParameter
 		{
 			get { return enabled_; }
+		}
+
+		public bool Paused
+		{
+			get { return paused_; }
+			set { paused_ = value; }
 		}
 
 		public string UserDefinedName
@@ -397,6 +417,9 @@ namespace Synergy
 
 		public bool Tick(float deltaTime, bool stepForwards)
 		{
+			if (paused_)
+				return false;
+
 			try
 			{
 				if (Delay.ActiveType != Delay.None)
@@ -440,6 +463,8 @@ namespace Synergy
 			// later step is currently executing) because the modifier must not
 			// be reset, since that would prevent the half move from working
 
+			if (paused_)
+				return false;
 
 			// if this is not a half move, always call TickPaused()
 			if (!HalfMove)

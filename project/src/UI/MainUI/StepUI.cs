@@ -7,6 +7,7 @@
 		private readonly Header header_;
 		private readonly ConfirmableButton delete_;
 		private readonly Checkbox enabled_;
+		private readonly Checkbox paused_;
 		private readonly Checkbox halfMove_;
 
 		private readonly Collapsible durationCollapsible_;
@@ -27,6 +28,9 @@
 
 			enabled_ = new Checkbox(
 				"Step enabled", true, StepEnabledChanged);
+
+			paused_ = new Checkbox(
+				"Step paused", false, StepPausedChanged);
 
 			halfMove_ = new Checkbox(
 				"Half move", false, StepHalfMoveChanged);
@@ -54,6 +58,7 @@
 
 			header_.Text = currentStep_.Name;
 			enabled_.Parameter = currentStep_.EnabledParameter;
+			paused_.Value = currentStep_.Paused;
 			halfMove_.Parameter = currentStep_.HalfMoveParameter;
 			durationWidgets_.SetValue(currentStep_?.Duration);
 			repeatWidgets_.SetValue(currentStep_.Repeat, new FloatRange(0, 10));
@@ -68,6 +73,7 @@
 			widgets_.AddToUI(header_);
 			widgets_.AddToUI(delete_);
 			widgets_.AddToUI(enabled_);
+			widgets_.AddToUI(paused_);
 			widgets_.AddToUI(halfMove_);
 
 			durationCollapsible_.AddToUI();
@@ -111,6 +117,12 @@
 		{
 			if (currentStep_ != null)
 				currentStep_.Enabled = b;
+		}
+
+		private void StepPausedChanged(bool b)
+		{
+			if (currentStep_ != null)
+				currentStep_.Paused = b;
 		}
 
 		private void DurationTypeChanged(IDuration d)

@@ -378,31 +378,35 @@ namespace Synergy
 			}
 		}
 
-		public void Shuffle(int count)
+		public static List<int> Shuffle(List<int> old, int count)
 		{
 			if (count == 0)
-			{
-				order_.Clear();
-				return;
-			}
+				return new List<int>();
 
 			var last = -1;
-			if (order_.Count > 0)
-				last = order_[order_.Count - 1];
+			if (old.Count > 0)
+				last = old[old.Count - 1];
 
-			order_.Clear();
+			var newList = new List<int>();
 
 			for (int i = 0; i < count; ++i)
-				order_.Add(i);
+				newList.Add(i);
 
-			order_.Shuffle();
+			newList.Shuffle();
 
-			if (order_[0] == last)
+			if (newList[0] == last)
 			{
-				var mid = order_.Count / 2;
-				order_[0] = order_[mid];
-				order_[mid] = last;
+				var mid = newList.Count / 2;
+				newList[0] = newList[mid];
+				newList[mid] = last;
 			}
+
+			return newList;
+		}
+
+		public void Shuffle(int count)
+		{
+			order_ = Shuffle(order_, count);
 		}
 	}
 }

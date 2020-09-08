@@ -63,6 +63,8 @@ namespace Synergy
 	{
 		private readonly Label runningStep_;
 		private readonly Checkbox active_;
+		private readonly Checkbox enabled_;
+		private readonly Checkbox paused_;
 		private IDurationMonitor duration_ = null;
 		private readonly RandomizableTimeMonitorWidgets repeat_;
 		private DelayMonitor delay_;
@@ -76,6 +78,8 @@ namespace Synergy
 		{
 			runningStep_ = new Label();
 			active_ = new Checkbox("Active");
+			enabled_ = new Checkbox("Step enabled");
+			paused_ = new Checkbox("Step paused");
 			repeat_ = new RandomizableTimeMonitorWidgets("Repeat");
 			delay_ = new DelayMonitor();
 		}
@@ -106,6 +110,8 @@ namespace Synergy
 
 			widgets_.AddToUI(runningStep_);
 			widgets_.AddToUI(active_);
+			widgets_.AddToUI(enabled_);
+			widgets_.AddToUI(paused_);
 
 			if (duration_ != null)
 				duration_.AddToUI(currentStep_.Duration);
@@ -140,9 +146,17 @@ namespace Synergy
 				runningStep_.Text = "Step running: " + runningStep.Name;
 
 			if (currentStep_ == null)
+			{
 				active_.Value = false;
+				enabled_.Value = false;
+				paused_.Value = false;
+			}
 			else
+			{
 				active_.Value = Synergy.Instance.Manager.IsStepActive(currentStep_);
+				enabled_.Value = currentStep_.Enabled;
+				paused_.Value = currentStep_.Paused;
+			}
 
 			if (currentStep_ == null)
 				repeat_.SetValue(null);

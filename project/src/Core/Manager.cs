@@ -91,6 +91,8 @@ namespace Synergy
 
 		private void DeleteStepNoCallback(Step s)
 		{
+			s.Enabled = false;
+
 			var i = steps_.IndexOf(s);
 
 			steps_.Remove(s);
