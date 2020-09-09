@@ -6,6 +6,7 @@
 		private bool resetCountersOnThaw_ = false;
 		private bool verboseLog_ = false;
 		private bool pickingAnimatable_ = false;
+		private float overlapTime_ = 1;
 
 		public bool ResetValuesOnFreeze
 		{
@@ -31,6 +32,12 @@
 			set { pickingAnimatable_ = value; }
 		}
 
+		public float OverlapTime
+		{
+			get { return overlapTime_; }
+			set { overlapTime_ = value; }
+		}
+
 		public J.Node ToJSON()
 		{
 			var o = new J.Object();
@@ -38,6 +45,7 @@
 			o.Add("resetValuesOnFreeze", resetValuesOnFreeze_);
 			o.Add("resetCountersOnThaw", resetCountersOnThaw_);
 			o.Add("verboseLog", verboseLog_);
+			o.Add("overlapTime", overlapTime_);
 
 			return o;
 		}
@@ -51,6 +59,7 @@
 			o.Opt("resetValuesOnFreeze", ref resetValuesOnFreeze_);
 			o.Opt("resetCountersOnThaw", ref resetCountersOnThaw_);
 			o.Opt("verboseLog", ref verboseLog_);
+			o.Opt("overlapTime", ref overlapTime_);
 
 			return true;
 		}

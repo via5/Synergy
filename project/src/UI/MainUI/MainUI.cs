@@ -538,6 +538,7 @@ namespace Synergy
 		private readonly Checkbox resetCountersOnThaw_;
 		private readonly Checkbox pickAnimatable_;
 		private readonly Button manageAnimatable_;
+		private readonly FloatSlider overlapTime_;
 
 		public OptionsUI(int flags = 0)
 		{
@@ -558,10 +559,15 @@ namespace Synergy
 			manageAnimatable_ = new Button(
 				"Manage animatables", ManageAnimatables, flags);
 
+			overlapTime_ = new FloatSlider(
+				"Overlap time", options_.OverlapTime,
+				new FloatRange(0, 1), OverlapTimeChanged, flags);
+
 			collapsible_.Add(resetValuesOnFreeze_);
 			collapsible_.Add(resetCountersOnThaw_);
 			collapsible_.Add(pickAnimatable_);
 			collapsible_.Add(manageAnimatable_);
+			collapsible_.Add(overlapTime_);
 			collapsible_.Add(new SmallSpacer(flags));
 
 
@@ -771,13 +777,18 @@ namespace Synergy
 
 		private void PickAnimatableChanged(bool b)
 		{
-			Synergy.Instance.Options.PickAnimatable = b;
+			options_.PickAnimatable = b;
 			Synergy.Instance.UI.NeedsReset("pick animatable changed");
 		}
 
 		private void ManageAnimatables()
 		{
 			Synergy.Instance.UI.ToggleManageAnimatables();
+		}
+
+		private void OverlapTimeChanged(float f)
+		{
+			options_.OverlapTime = f;
 		}
 	}
 }

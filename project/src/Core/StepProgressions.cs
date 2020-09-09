@@ -161,29 +161,30 @@ namespace Synergy
 
 		public override void Tick(float deltaTime)
 		{
-			const float OverlapTime = 1;
+			float OverlapTime = Synergy.Instance.Options.OverlapTime;
+
 
 			if (order1_.Count == 0)
 			{
-				Synergy.LogError("Tick: generating order1");
+				Synergy.LogOverlap("Tick: generating order1");
 				order1_ = Regenerate(order1_, Steps.Count);
 			}
 
 			if (order1_.Count == 0)
 			{
-				Synergy.LogError("Tick: no steps");
+				Synergy.LogOverlap("Tick: no steps");
 				return;
 			}
 
 			if (order2_.Count == 0)
 			{
-				Synergy.LogError("Tick: generating order2");
+				Synergy.LogOverlap("Tick: generating order2");
 				order2_ = Regenerate(order1_, Steps.Count);
 			}
 
 			if (active_.orderIndex == -1)
 			{
-				Synergy.LogError(
+				Synergy.LogOverlap(
 					"active is -1, starting from 0, " +
 					$"order count={order1_.Count}");
 
@@ -199,7 +200,7 @@ namespace Synergy
 
 				if (s == null)
 				{
-					Synergy.LogError(
+					Synergy.LogOverlap(
 						$"Tick: in loop, GetStep failed, i={i} count={order1_.Count}");
 
 					continue;
@@ -215,7 +216,7 @@ namespace Synergy
 							OverlapTime > 0 &&
 						    s.TimeRemainingInDirection < OverlapTime)
 						{
-							Synergy.LogError(
+							Synergy.LogOverlap(
 								$"Tick: remaining {s.TimeRemainingInDirection}, " +
 								"starting overlap");
 
@@ -225,7 +226,7 @@ namespace Synergy
 					}
 					else
 					{
-						Synergy.LogError("step tick finished, next");
+						Synergy.LogOverlap("step tick finished, next");
 
 						// next
 						NextActive();
@@ -247,7 +248,7 @@ namespace Synergy
 
 				if (s == null)
 				{
-					Synergy.LogError(
+					Synergy.LogOverlap(
 						$"step not found for overlap " +
 						$"index={overlap_.orderIndex} in " +
 						(overlap_.order1 ? "order1" : "order2"));
@@ -256,7 +257,7 @@ namespace Synergy
 				{
 					if (!s.Enabled || !s.Tick(deltaTime, overlap_.forwards))
 					{
-						Synergy.LogError(
+						Synergy.LogOverlap(
 							$"overlap: step tick finished, getting next");
 
 						// next
@@ -268,18 +269,18 @@ namespace Synergy
 
 		private void NextActive()
 		{
-			Synergy.LogError("\nin NextActive");
+			Synergy.LogOverlap("\nin NextActive");
 
 			if (order1_.Count == 0)
 			{
-				Synergy.LogError("NextActive: no steps");
+				Synergy.LogOverlap("NextActive: no steps");
 				active_.orderIndex = -1;
 				return;
 			}
 
 			if (overlap_.orderIndex == -1)
 			{
-				Synergy.LogError(
+				Synergy.LogOverlap(
 					$"NextActive: initial fwd={active_.forwards} i={active_.orderIndex}");
 
 				int initial = active_.orderIndex;
@@ -292,7 +293,7 @@ namespace Synergy
 				{
 					if (active_.orderIndex == initial && reversedDir)
 					{
-						Synergy.LogError("NextActive: looped around, no valid step, bailing out");
+						Synergy.LogOverlap("NextActive: looped around, no valid step, bailing out");
 						active_.orderIndex = -1;
 						break;
 					}
@@ -300,11 +301,11 @@ namespace Synergy
 					if (active_.forwards)
 					{
 						++active_.orderIndex;
-						Synergy.LogError($"NextActive: checking {active_.orderIndex}");
+						Synergy.LogOverlap($"NextActive: checking {active_.orderIndex}");
 
 						if (active_.orderIndex >= order1_.Count)
 						{
-							Synergy.LogError(
+							Synergy.LogOverlap(
 								$"NextActive: {active_.orderIndex} past end, reversing");
 
 							active_.forwards = false;
@@ -312,14 +313,14 @@ namespace Synergy
 							reversedDir = true;
 						}
 
-						Synergy.LogError(
+						Synergy.LogOverlap(
 							$"NextActive: i now {active_.orderIndex}");
 					}
 					else
 					{
 						if (active_.orderIndex == 0)
 						{
-							Synergy.LogError($"NextActive: at beginning, going forwards");
+							Synergy.LogOverlap($"NextActive: at beginning, going forwards");
 
 							active_.forwards = true;
 							order1_ = new List<int>(order2_);
@@ -330,7 +331,7 @@ namespace Synergy
 						{
 							--active_.orderIndex;
 
-							Synergy.LogError(
+							Synergy.LogOverlap(
 								$"NextActive: i now {active_.orderIndex}");
 						}
 					}
@@ -338,33 +339,33 @@ namespace Synergy
 					var s = GetStep(active_.orderIndex, true);
 					if (s == null)
 					{
-						Synergy.LogError("NextActive: GetStep says it's empty, continuing");
+						Synergy.LogOverlap("NextActive: GetStep says it's empty, continuing");
 					}
 					else if (!s.Enabled)
 					{
-						Synergy.LogError("NextActive: but it's disabled, continuing");
+						Synergy.LogOverlap("NextActive: but it's disabled, continuing");
 					}
 					else
 					{
-						Synergy.LogError("NextActive: looks good, taking it");
+						Synergy.LogOverlap("NextActive: looks good, taking it");
 						break;
 					}
 				}
 			}
 			else
 			{
-				Synergy.LogError("NextActive: overlap already active, taking over");
+				Synergy.LogOverlap("NextActive: overlap already active, taking over");
 
 				// already an overlap, take it over
 				active_ = new TickInfo(overlap_);
 				active_.mustWait = false;
 
-				Synergy.LogError(
+				Synergy.LogOverlap(
 					$"NextActive: i={active_.orderIndex}");
 
 				if (!active_.order1)
 				{
-					Synergy.LogError($"NextActive: was in order2, swapping");
+					Synergy.LogOverlap($"NextActive: was in order2, swapping");
 					order1_ = new List<int>(order2_);
 					order2_ = Regenerate(order2_, Steps.Count);
 					active_.order1 = true;
@@ -381,7 +382,7 @@ namespace Synergy
 			{
 				overlap_.mustWait = false;
 
-				Synergy.LogError(
+				Synergy.LogOverlap(
 					$"NextActive: resuming {active_.orderIndex}");
 
 				ns.Resume();
@@ -390,18 +391,18 @@ namespace Synergy
 
 		private void NextOverlap()
 		{
-			Synergy.LogError("\nin NextOverlap");
+			Synergy.LogOverlap("\nin NextOverlap");
 
 			if (overlap_.mustWait)
 			{
-				Synergy.LogError("\nNextOverlap: must wait");
+				Synergy.LogOverlap("\nNextOverlap: must wait");
 				return;
 			}
 
 
 			if (overlap_.orderIndex == -1)
 			{
-				Synergy.LogError(
+				Synergy.LogOverlap(
 					"NextOverlap: no current overlap, starting from active " +
 					$"i={active_.orderIndex} fwd={active_.forwards}");
 
@@ -411,7 +412,7 @@ namespace Synergy
 			{
 				if (GetStep(active_.orderIndex, true).HalfMove)
 				{
-					Synergy.LogError(
+					Synergy.LogOverlap(
 						"NextOverlap: current overlap finished but active is " +
 						"half move, must wait");
 
@@ -422,7 +423,7 @@ namespace Synergy
 
 			if (overlap_.orderIndex == -1)
 			{
-				Synergy.LogError("NextOverlap: no current active, bailing out");
+				Synergy.LogOverlap("NextOverlap: no current active, bailing out");
 				return;
 			}
 
@@ -435,21 +436,21 @@ namespace Synergy
 			{
 				if (overlap_.forwards)
 				{
-					Synergy.LogError("NextOverlap: checking forwards");
+					Synergy.LogOverlap("NextOverlap: checking forwards");
 
 					++overlap_.orderIndex;
-					Synergy.LogError($"NextOverlap: i now {overlap_.orderIndex}");
+					Synergy.LogOverlap($"NextOverlap: i now {overlap_.orderIndex}");
 
 					if (overlap_.orderIndex >= (order1 ? order1_ : order2_).Count)
 					{
-						Synergy.LogError("NextOverlap: past end, reversing");
+						Synergy.LogOverlap("NextOverlap: past end, reversing");
 						overlap_.orderIndex = order1_.Count;
 						overlap_.forwards = false;
 						reversedDir = true;
 					}
 					else if (overlap_.orderIndex == active_.orderIndex && !order1)
 					{
-						Synergy.LogError(
+						Synergy.LogOverlap(
 							"NextOverlap: went around, reached active " +
 							$"i={active_.orderIndex}, must wait (fw)");
 
@@ -462,32 +463,32 @@ namespace Synergy
 
 						if (s == null)
 						{
-							Synergy.LogError("NextOverlap: GetStep says it's empty, continuing");
+							Synergy.LogOverlap("NextOverlap: GetStep says it's empty, continuing");
 						}
 						else if (!s.Enabled)
 						{
-							Synergy.LogError("NextOverlap: but it's disabled, continuing");
+							Synergy.LogOverlap("NextOverlap: but it's disabled, continuing");
 						}
 						else
 						{
-							Synergy.LogError("NextOverlap: looks good, taking it");
+							Synergy.LogOverlap("NextOverlap: looks good, taking it");
 							break;
 						}
 					}
 				}
 				else
 				{
-					Synergy.LogError("NextOverlap: checking backwards");
+					Synergy.LogOverlap("NextOverlap: checking backwards");
 
 					if (overlap_.orderIndex == 0)
 					{
-						Synergy.LogError("NextOverlap: past end, reversing");
+						Synergy.LogOverlap("NextOverlap: past end, reversing");
 						overlap_.forwards = true;
 						overlap_.orderIndex = -1;
 
 						if (reversedDir)
 						{
-							Synergy.LogError(
+							Synergy.LogOverlap(
 								"NextOverlap: already reversed dir before, " +
 								"switching to order2");
 
@@ -496,7 +497,7 @@ namespace Synergy
 					}
 					else if (overlap_.orderIndex == active_.orderIndex && !order1)
 					{
-						Synergy.LogError(
+						Synergy.LogOverlap(
 							"NextOverlap: went around, reached active " +
 							$"i={active_.orderIndex}, must wait (bw)");
 
@@ -510,13 +511,13 @@ namespace Synergy
 
 						if (s == null)
 						{
-							Synergy.LogError(
+							Synergy.LogOverlap(
 								$"NextOverlap: no step for {overlap_.orderIndex}, " +
 								"continuing");
 						}
 						else if (!s.Enabled)
 						{
-							Synergy.LogError(
+							Synergy.LogOverlap(
 								$"NextOverlap: step {overlap_.orderIndex} disabled, " +
 								"continuing");
 						}
@@ -524,7 +525,7 @@ namespace Synergy
 						{
 							if (overlap_.orderIndex == active_.orderIndex)
 							{
-								Synergy.LogError(
+								Synergy.LogOverlap(
 									$"NextOverlap: step {overlap_.orderIndex} enabled " +
 									"but half move and is same as active; must wait");
 
@@ -532,7 +533,7 @@ namespace Synergy
 							}
 							else
 							{
-								Synergy.LogError(
+								Synergy.LogOverlap(
 									$"NextOverlap: step {overlap_.orderIndex} enabled " +
 									"and half move, taking it");
 							}
@@ -540,7 +541,7 @@ namespace Synergy
 							break;
 						}
 
-						Synergy.LogError(
+						Synergy.LogOverlap(
 							$"NextOverlap: step {overlap_.orderIndex} enabled " +
 							"but not half move, so doesn't need ticking; continuing");
 					}
@@ -554,7 +555,7 @@ namespace Synergy
 			var ns = GetStep(overlap_.orderIndex, order1);
 			if (ns != null)
 			{
-				Synergy.LogError(
+				Synergy.LogOverlap(
 					$"NextOverlap: resuming {overlap_.orderIndex}");
 
 				ns.Resume();

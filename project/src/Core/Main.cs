@@ -51,7 +51,7 @@ namespace Synergy
 		{
 			Utilities.Handler(() =>
 			{
-				LogVerbose("starting");
+				LogError("===starting===");
 
 				RegisterString(new JSONStorableString("dummy", ""));
 				SetStringParamValue("dummy", "dummy");
@@ -70,53 +70,52 @@ namespace Synergy
 		private void CreateTestStuff(Atom a)
 		{
 			var s = new Step();
-			s.Duration = new RandomDuration(1);
-			var m = new EyesModifier();
+			s.Duration = new RandomDuration(3);
 
-			m.Atom = DefaultAtom;
+			var m = new RigidbodyModifier(a, "head");
+			m.Movement.Maximum = new RandomizableFloat(100, 0);
+			s.HalfMove = true;
+			s.AddModifier(new ModifierContainer(m));//, new UnsyncedModifier(new RandomDuration(1))));
 
-			m.AddTarget(new EyesTargetContainer(new RigidbodyEyesTarget(
-				SuperController.singleton.GetAtomByUid("t1"),
-				Utilities.FindRigidbody(
-					SuperController.singleton.GetAtomByUid("t1"),
-					"control"))));
+			manager_.AddStep(s);
 
-			//m.AddTarget(new EyesTargetContainer(new RigidbodyEyesTarget(
-			//	SuperController.singleton.GetAtomByUid("t2"),
-			//	Utilities.FindRigidbody(
-			//		SuperController.singleton.GetAtomByUid("t2"),
-			//		"control"))));
-			//
-			//m.AddTarget(new EyesTargetContainer(new ConstantEyesTarget(
-			//	new Vector3(0, 0, 2),
-			//	a, Utilities.FindRigidbody(a, "chest"))));
 
-			//m.AddTarget(new EyesTargetContainer(new RandomEyesTarget(
-			//	a, Utilities.FindRigidbody(a, "chest"))));
+			s = new Step();
+			s.Duration = new RandomDuration(3);
 
-			//m.AddTarget(new ConstantEyeTarget(
-			//	new Vector3(0, 0, 1), Utilities.FindRigidbody(
-			//		m.Atom, "chestControl")));
+			m = new RigidbodyModifier(a, "rHand");
+			m.Direction = new Vector3(0, 1, 0);
+			m.Movement.Maximum = new RandomizableFloat(100, 0);
 
 			s.AddModifier(new ModifierContainer(m));
+
 			manager_.AddStep(s);
 
 
 
-			//s = new Step();
-			//s.Duration = new RandomDuration(5);
-			//m = new EyesModifier();
-			//
-			//m.Atom = DefaultAtom;
-			//
-			////m.AddTarget(new RigidbodyEyeTarget(
-			////	Utilities.FindRigidbody(
-			////		SuperController.singleton.GetAtomByUid("t1"),
-			////		"control")));
-			//
-			//
-			//s.AddModifier(new ModifierContainer(m));
-			//manager_.AddStep(s);
+			s = new Step();
+			s.Duration = new RandomDuration(3);
+
+			m = new RigidbodyModifier(a, "lHand");
+			m.Direction = new Vector3(0, 1, 0);
+			m.Movement.Maximum = new RandomizableFloat(100, 0);
+
+			s.AddModifier(new ModifierContainer(m));
+
+			manager_.AddStep(s);
+
+
+
+			s = new Step();
+			s.Duration = new RandomDuration(3);
+
+			m = new RigidbodyModifier(a, "hip");
+			m.Direction = new Vector3(0, 0, 1);
+			m.Movement.Maximum = new RandomizableFloat(100, 0);
+
+			s.AddModifier(new ModifierContainer(m));
+
+			manager_.AddStep(s);
 		}
 
 		public Timer CreateTimer(float seconds, Timer.Callback f)
@@ -354,6 +353,11 @@ namespace Synergy
 		{
 		    if (instance_ == null || instance_.options_.VerboseLog)
 		        SuperController.LogError(s);
+		}
+
+		static public void LogOverlap(string s)
+		{
+			//SuperController.LogError(s);
 		}
 	}
 }
