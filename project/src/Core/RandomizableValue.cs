@@ -409,6 +409,17 @@ namespace Synergy
 			}
 		}
 
+		public float TimeRemainingInHalf
+		{
+			get
+			{
+				if (InFirstHalf)
+					return (current_ / 2) - elapsed_;
+				else
+					return current_ - elapsed_;
+			}
+		}
+
 		public override J.Node ToJSON()
 		{
 			var o = new J.Object();

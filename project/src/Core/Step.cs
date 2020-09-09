@@ -256,6 +256,17 @@ namespace Synergy
 			}
 		}
 
+		public float TimeRemainingInDirection
+		{
+			get
+			{
+				if (HalfMove)
+					return Duration.TimeRemainingInHalf;
+				else
+					return Duration.TimeRemaining;
+			}
+		}
+
 
 		public J.Node ToJSON()
 		{

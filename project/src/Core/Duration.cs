@@ -13,6 +13,7 @@ namespace Synergy
 		bool FirstHalfFinished { get; }
 		bool Finished { get; }
 		float TimeRemaining { get; }
+		float TimeRemainingInHalf { get; }
 		float Current { get; }
 
 		IDuration Clone(int cloneFlags = 0);
@@ -50,6 +51,7 @@ namespace Synergy
 		public abstract bool FirstHalfFinished { get; }
 		public abstract bool Finished { get; }
 		public abstract float TimeRemaining { get; }
+		public abstract float TimeRemainingInHalf { get; }
 		public abstract float Current { get; }
 
 		public abstract IDuration Clone(int cloneFlags = 0);
@@ -137,6 +139,14 @@ namespace Synergy
 			get
 			{
 				return Time.TimeRemaining;
+			}
+		}
+
+		public override float TimeRemainingInHalf
+		{
+			get
+			{
+				return Time.TimeRemainingInHalf;
 			}
 		}
 
@@ -349,6 +359,33 @@ namespace Synergy
 				else
 				{
 					t += totalElapsed_;
+				}
+
+				return Math.Max(t, 0);
+			}
+		}
+
+		public override float TimeRemainingInHalf
+		{
+			get
+			{
+				float t = 0;
+
+				if (goingUp_)
+				{
+					t += TimeUp - totalElapsed_;
+					t += Hold;
+				}
+				else if (holding_)
+				{
+					t += Hold - holdingElapsed_;
+				}
+				else
+				{
+					t += TimeUp;
+					t += Hold;
+					t += TimeDown;
+					t -= totalElapsed_;
 				}
 
 				return Math.Max(t, 0);
