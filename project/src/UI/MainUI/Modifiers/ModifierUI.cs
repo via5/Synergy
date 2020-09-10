@@ -45,6 +45,8 @@ namespace Synergy
 			type_ = new ModifierStringList(
 				"Type", "", TypeChanged, Widget.Right);
 
+			type_.PopupHeight = 400;
+
 			modifierSync_  = new ModifierSyncStringList(
 				"Sync", ModifierSyncChanged, Widget.Right);
 		}
@@ -164,6 +166,8 @@ namespace Synergy
 				return new AudioModifierUI(ui_);
 			else if (m is EyesModifier)
 				return new EyesModifierUI(ui_);
+			else if (m is StorableModifier)
+				return new StorableModifierUI(ui_);
 			else
 				return null;
 		}

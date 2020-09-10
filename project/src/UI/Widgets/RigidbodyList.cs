@@ -16,14 +16,12 @@ namespace Synergy
 		{
 			callback_ = callback;
 			CreateStorable(name, def, new List<string>(), null, Changed);
+			OnOpen += UpdateList;
 		}
 
 		protected override void DoAddToUI()
 		{
 			base.DoAddToUI();
-
-			if (element_)
-				element_.popup.onOpenPopupHandlers += UpdateList;
 		}
 
 		private void UpdateList()
@@ -40,7 +38,7 @@ namespace Synergy
 				}
 			}
 
-			names.Sort();
+			Utilities.NatSort(names);
 			Choices = names;
 		}
 
@@ -74,14 +72,7 @@ namespace Synergy
 		{
 			callback_ = callback;
 			CreateStorable(name, def, new List<string>(), null, Changed);
-		}
-
-		protected override void DoAddToUI()
-		{
-			base.DoAddToUI();
-
-			if (element_)
-				element_.popup.onOpenPopupHandlers += UpdateList;
+			OnOpen += UpdateList;
 		}
 
 		private void UpdateList()
@@ -98,7 +89,7 @@ namespace Synergy
 				}
 			}
 
-			names.Sort();
+			Utilities.NatSort(names);
 			Choices = names;
 		}
 

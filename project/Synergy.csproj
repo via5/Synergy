@@ -79,6 +79,7 @@
     <Compile Include="src\UI\MainUI\Modifiers\MorphModifierUI.cs" />
     <Compile Include="src\UI\MainUI\Modifiers\RigidbodyModifierUI.cs" />
     <Compile Include="src\Modifiers\Specific\StorableModifier.cs" />
+    <Compile Include="src\UI\MainUI\Modifiers\StorableModifierUI.cs" />
     <Compile Include="src\UI\MainUI\MovementUI.cs" />
     <Compile Include="src\UI\MainUI\RandomizableValueUI.cs" />
     <Compile Include="src\UI\MainUI\StepUI.cs" />

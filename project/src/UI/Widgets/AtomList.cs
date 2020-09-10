@@ -21,6 +21,8 @@ namespace Synergy
 
 			CreateStorable(name, def, new List<string>(), null, Changed);
 
+			OnOpen += UpdateList;
+
 			SuperController.singleton.onAtomUIDRenameHandlers +=
 				OnAtomUIDChanged;
 		}
@@ -36,10 +38,7 @@ namespace Synergy
 			base.DoAddToUI();
 
 			if (element_)
-			{
 				UpdateList();
-				element_.popup.onOpenPopupHandlers += UpdateList;
-			}
 		}
 
 		private void UpdateList()
@@ -68,7 +67,7 @@ namespace Synergy
 				names.Add(a.name);
 			}
 
-			names.Sort();
+			Utilities.NatSort(names);
 
 			Choices = names;
 		}

@@ -697,8 +697,18 @@ namespace Synergy
 		BasicWidget<JSONStorableStringChooser, UIDynamicPopup>
 	{
 		public delegate void Callback(string value);
+		public delegate void OpenCallback();
+
+		public event OpenCallback OnOpen;
 
 		private readonly Callback callback_;
+		private float popupHeight_ = -1;
+
+
+		public StringList(string name, Callback callback = null, int flags = 0)
+			: this(name, "", new List<string>(), callback, flags)
+		{
+		}
 
 		public StringList(
 			string name, string def, List<string> entries,
@@ -746,6 +756,14 @@ namespace Synergy
 
 			element_ = sc_.CreateScrollablePopup(
 				storable_, Bits.IsSet(flags_, Right));
+
+			if (popupHeight_ >= 0)
+				element_.popupPanelHeight = popupHeight_;
+
+			element_.popup.onOpenPopupHandlers += () =>
+			{
+				OnOpen?.Invoke();
+			};
 
 			if (Bits.IsSet(flags_, NavButtons))
 			{
@@ -819,6 +837,25 @@ namespace Synergy
 		{
 			get { return storable_.val; }
 			set { storable_.valNoCallback = value; }
+		}
+
+		public float PopupHeight
+		{
+			get
+			{
+				if (element_ == null)
+					return popupHeight_;
+				else
+					return element_.popupPanelHeight;
+			}
+
+			set
+			{
+				popupHeight_ = value;
+
+				if (element_ != null)
+					element_.popupPanelHeight = value;
+			}
 		}
 
 		public List<string> Choices

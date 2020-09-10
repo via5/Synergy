@@ -10,6 +10,8 @@ namespace Synergy
 	{
 		IStorableParameter Clone(int cloneFlags = 0);
 		FloatRange PreferredRange { get; }
+		string Name { get; }
+
 		void Set(float magnitude);
 		void Reset();
 	}
@@ -30,70 +32,35 @@ namespace Synergy
 			};
 		}
 
-		static public IStorableParameter Create(
-			Atom a, JSONStorable st, JSONStorableParam p)
+		static public IStorableParameter Create(JSONStorableParam p)
 		{
 			if (p is JSONStorableFloat)
-				return new FloatStorableParameter(a, st, p as JSONStorableFloat);
+				return new FloatStorableParameter(p as JSONStorableFloat);
 			else if (p is JSONStorableBool)
-				return new BoolStorableParameter(a, st, p as JSONStorableBool);
+				return new BoolStorableParameter(p as JSONStorableBool);
 			else if (p is JSONStorableColor)
-				return new ColorStorableParameter(a, st, p as JSONStorableColor);
+				return new ColorStorableParameter(p as JSONStorableColor);
 			else if (p is JSONStorableUrl)
-				return new UrlStorableParameter(a, st, p as JSONStorableUrl);
+				return new UrlStorableParameter(p as JSONStorableUrl);
 			else if (p is JSONStorableString)
-				return new StringStorableParameter(a, st, p as JSONStorableString);
+				return new StringStorableParameter(p as JSONStorableString);
 			else
 				return null;
-		}
-
-		static public IStorableParameter Create(
-			Atom a, string stName, string paramName)
-		{
-			var st = a.GetStorableByID(stName);
-
-			var param = st.GetParam(paramName);
-			if (param != null)
-				return Create(a, st, param);
-
-			var action = st.GetAction(paramName);
-			if (action != null)
-				return new ActionStorableParameter(a, st, action);
-
-			return null;
 		}
 	}
 
 
 	abstract class BasicStorableParameter : IStorableParameter
 	{
-		private Atom atom_ = null;
-		private JSONStorable storable_ = null;
-
-
-		protected BasicStorableParameter(Atom a, JSONStorable st)
+		protected BasicStorableParameter()
 		{
-			atom_ = a;
-			storable_ = st;
 		}
 
 		public abstract IStorableParameter Clone(int cloneFlags = 0);
 
 		protected virtual void CopyTo(BasicStorableParameter p, int cloneFlags)
 		{
-			p.atom_ = atom_;
-			p.storable_ = storable_;
-		}
-
-		public Atom Atom
-		{
-			get { return atom_; }
-		}
-
-		public JSONStorable Storable
-		{
-			get { return storable_; }
-			set { storable_ = value; }
+			// no-op
 		}
 
 		public virtual FloatRange PreferredRange
@@ -103,6 +70,8 @@ namespace Synergy
 				return new FloatRange(0, 1);
 			}
 		}
+
+		public abstract string Name { get; }
 
 		public J.Node ToJSON()
 		{
@@ -122,23 +91,43 @@ namespace Synergy
 	}
 
 
-	class FloatStorableParameter : BasicStorableParameter
+	abstract class ParamDerivedStorableParameter<T> : BasicStorableParameter
+		where T : JSONStorableParam
+	{
+		private T param_ = null;
+
+		protected ParamDerivedStorableParameter(JSONStorableParam p = null)
+		{
+			param_ = (T)p;
+		}
+
+		protected void CopyTo(ParamDerivedStorableParameter<T> p, int cloneFlags)
+		{
+			base.CopyTo(p, cloneFlags);
+			p.param_ = param_;
+		}
+
+		public override string Name
+		{
+			get { return param_?.name ?? ""; }
+		}
+
+		public T Parameter
+		{
+			get { return param_; }
+		}
+	}
+
+
+	class FloatStorableParameter
+		: ParamDerivedStorableParameter<JSONStorableFloat>
 	{
 		public override string GetFactoryTypeName() { return "float"; }
 		public override string GetDisplayName() { return "Float"; }
 
-
-		private JSONStorableFloat param_ = null;
-
-		public FloatStorableParameter()
-			: this(null, null, null)
+		public FloatStorableParameter(JSONStorableFloat p = null)
+			: base(p)
 		{
-		}
-
-		public FloatStorableParameter(Atom a, JSONStorable s, JSONStorableFloat p)
-			: base(a, s)
-		{
-			param_ = p;
 		}
 
 		public override IStorableParameter Clone(int cloneFlags = 0)
@@ -148,43 +137,29 @@ namespace Synergy
 			return p;
 		}
 
-		protected void CopyTo(FloatStorableParameter p, int cloneFlags)
-		{
-			base.CopyTo(p, cloneFlags);
-			p.param_ = param_;
-		}
-
 		public override void Set(float magnitude)
 		{
-			if (param_ != null)
-				param_.valNoCallback = magnitude;
+			if (Parameter != null)
+				Parameter.valNoCallback = magnitude;
 		}
 
 		public override void Reset()
 		{
-			if (param_ != null)
-				param_.valNoCallback = param_.defaultVal;
+			if (Parameter != null)
+				Parameter.valNoCallback = Parameter.defaultVal;
 		}
 	}
 
 
-	class BoolStorableParameter : BasicStorableParameter
+	class BoolStorableParameter
+		: ParamDerivedStorableParameter<JSONStorableBool>
 	{
 		public override string GetFactoryTypeName() { return "bool"; }
 		public override string GetDisplayName() { return "Bool"; }
 
-
-		private JSONStorableBool param_ = null;
-
-		public BoolStorableParameter()
-			: this(null, null, null)
+		public BoolStorableParameter(JSONStorableBool p = null)
+			: base(p)
 		{
-		}
-
-		public BoolStorableParameter(Atom a, JSONStorable s, JSONStorableBool p)
-			: base(a, s)
-		{
-			param_ = p;
 		}
 
 		public override IStorableParameter Clone(int cloneFlags = 0)
@@ -194,44 +169,31 @@ namespace Synergy
 			return p;
 		}
 
-		protected void CopyTo(BoolStorableParameter p, int cloneFlags)
-		{
-			base.CopyTo(p, cloneFlags);
-			p.param_ = param_;
-		}
-
 		public override void Set(float magnitude)
 		{
-			if (param_ != null)
-				param_.valNoCallback = (magnitude > 0.5f);
+			if (Parameter != null)
+				Parameter.valNoCallback = (magnitude > 0.5f);
 		}
 
 		public override void Reset()
 		{
-			if (param_ != null)
-				param_.valNoCallback = param_.defaultVal;
+			if (Parameter != null)
+				Parameter.valNoCallback = Parameter.defaultVal;
 		}
 	}
 
 
-	class ColorStorableParameter : BasicStorableParameter
+	class ColorStorableParameter
+		: ParamDerivedStorableParameter<JSONStorableColor>
 	{
 		public override string GetFactoryTypeName() { return "color"; }
 		public override string GetDisplayName() { return "Color"; }
 
-
-		private JSONStorableColor param_ = null;
 		private Color c1_, c2_;
 
-		public ColorStorableParameter()
-			: this(null, null, null)
+		public ColorStorableParameter(JSONStorableColor p = null)
+			: base(p)
 		{
-		}
-
-		public ColorStorableParameter(Atom a, JSONStorable s, JSONStorableColor p)
-			: base(a, s)
-		{
-			param_ = p;
 			c1_ = new Color(1, 0, 0);
 			c2_ = new Color(0, 1, 0);
 		}
@@ -246,19 +208,20 @@ namespace Synergy
 		protected void CopyTo(ColorStorableParameter p, int cloneFlags)
 		{
 			base.CopyTo(p, cloneFlags);
-			p.param_ = param_;
+			p.c1_ = c1_;
+			p.c2_ = c2_;
 		}
 
 		public override void Set(float magnitude)
 		{
-			if (param_ != null)
+			if (Parameter != null)
 			{
 				var c = new Color(
 					Interpolate(c1_.r, c2_.r, magnitude),
 					Interpolate(c1_.g, c2_.g, magnitude),
 					Interpolate(c1_.b, c2_.b, magnitude));
 
-				param_.SetColor(c);
+				Parameter.SetColor(c);
 			}
 		}
 
@@ -269,31 +232,24 @@ namespace Synergy
 
 		public override void Reset()
 		{
-			if (param_ != null)
-				param_.valNoCallback = param_.defaultVal;
+			if (Parameter != null)
+				Parameter.valNoCallback = Parameter.defaultVal;
 		}
 	}
 
 
-	class StringStorableParameter : BasicStorableParameter
+	class StringStorableParameter
+		: ParamDerivedStorableParameter<JSONStorableString>
 	{
 		public override string GetFactoryTypeName() { return "string"; }
 		public override string GetDisplayName() { return "String"; }
 
-
-		private JSONStorableString param_ = null;
 		private List<string> strings_ = new List<string>();
 		private string last_ = null;
 
-		public StringStorableParameter()
-			: this(null, null, null)
+		public StringStorableParameter(JSONStorableString p = null)
+			: base(p)
 		{
-		}
-
-		public StringStorableParameter(Atom a, JSONStorable s, JSONStorableString p)
-			: base(a, s)
-		{
-			param_ = p;
 		}
 
 		public override IStorableParameter Clone(int cloneFlags = 0)
@@ -306,7 +262,6 @@ namespace Synergy
 		protected void CopyTo(StringStorableParameter p, int cloneFlags)
 		{
 			base.CopyTo(p, cloneFlags);
-			p.param_ = param_;
 			p.strings_ = new List<string>(strings_);
 		}
 
@@ -315,10 +270,9 @@ namespace Synergy
 			get { return strings_; }
 		}
 
-
 		public override void Set(float magnitude)
 		{
-			if (param_ != null)
+			if (Parameter != null)
 			{
 				if (strings_.Count == 0)
 					return;
@@ -331,7 +285,7 @@ namespace Synergy
 				if (next != last_)
 				{
 					last_ = next;
-					param_.val = next;
+					Parameter.val = next;
 					Synergy.LogError(next);
 				}
 			}
@@ -339,8 +293,8 @@ namespace Synergy
 
 		public override void Reset()
 		{
-			if (param_ != null)
-				param_.val = param_.defaultVal;
+			if (Parameter != null)
+				Parameter.val = Parameter.defaultVal;
 		}
 	}
 
@@ -350,18 +304,9 @@ namespace Synergy
 		public override string GetFactoryTypeName() { return "url"; }
 		public override string GetDisplayName() { return "URL"; }
 
-
-		private JSONStorableUrl param_ = null;
-
-		public UrlStorableParameter()
-			: this(null, null, null)
+		public UrlStorableParameter(JSONStorableUrl p = null)
+			: base(p)
 		{
-		}
-
-		public UrlStorableParameter(Atom a, JSONStorable s, JSONStorableUrl p)
-			: base(a, s, p)
-		{
-			param_ = p;
 		}
 
 		public override IStorableParameter Clone(int cloneFlags = 0)
@@ -369,12 +314,6 @@ namespace Synergy
 			var p = new UrlStorableParameter();
 			CopyTo(p, cloneFlags);
 			return p;
-		}
-
-		protected void CopyTo(UrlStorableParameter p, int cloneFlags)
-		{
-			base.CopyTo(p, cloneFlags);
-			p.param_ = param_;
 		}
 	}
 
@@ -388,23 +327,9 @@ namespace Synergy
 		private JSONStorableAction param_ = null;
 		private bool active_ = false;
 
-		public ActionStorableParameter()
-			: this(null, (JSONStorable)null, null)
-		{
-		}
-
-		public ActionStorableParameter(Atom a, JSONStorable s, JSONStorableAction p)
-			: base(a, s)
+		public ActionStorableParameter(JSONStorableAction p = null)
 		{
 			param_ = p;
-		}
-
-		public ActionStorableParameter(Atom a, string stName, string actionName)
-			: base(a, null)
-		{
-			Storable = Atom.GetStorableByID(stName);
-			if (Storable != null)
-				param_ = Storable.GetAction(actionName);
 		}
 
 		public override IStorableParameter Clone(int cloneFlags = 0)
@@ -420,6 +345,11 @@ namespace Synergy
 			p.param_ = param_;
 		}
 
+		public override string Name
+		{
+			get { return param_?.name ?? ""; }
+		}
+
 		public override void Set(float magnitude)
 		{
 			if (param_ != null)
@@ -427,16 +357,12 @@ namespace Synergy
 				if (magnitude > 0.5f && !active_)
 				{
 					active_ = true;
-
-					if (param_.actionCallback != null)
-						param_.actionCallback();
+					param_.actionCallback?.Invoke();
 				}
 				else if (magnitude <= 0.5f && active_)
 				{
 					active_ = false;
-
-					if (param_.actionCallback != null)
-						param_.actionCallback();
+					param_.actionCallback?.Invoke();
 				}
 			}
 		}
@@ -457,12 +383,19 @@ namespace Synergy
 		public override string GetDisplayName() { return DisplayName; }
 
 
-		private IStorableParameter property_ = null;
+		private JSONStorable storable_ = null;
+		private IStorableParameter parameter_ = null;
 
 
-		public StorableModifier(IStorableParameter property = null)
+		public StorableModifier()
+			: this(null, null)
 		{
-			Property = property;
+		}
+
+		public StorableModifier(JSONStorable s, IStorableParameter p)
+		{
+			storable_ = s;
+			parameter_ = p;
 		}
 
 		public override IModifier Clone(int cloneFlags = 0)
@@ -475,44 +408,123 @@ namespace Synergy
 		private void CopyTo(StorableModifier m, int cloneFlags)
 		{
 			base.CopyTo(m, cloneFlags);
-			m.Property = Property?.Clone(cloneFlags);
+			m.storable_ = storable_;
+			m.parameter_ = parameter_?.Clone(cloneFlags);
 		}
 
 		public override void Removed()
 		{
 			base.Removed();
-			ResetProperty();
+			ResetParameter();
 		}
 
-		public IStorableParameter Property
+		public IStorableParameter Parameter
 		{
 			get
 			{
-				return property_;
+				return parameter_;
 			}
 
 			set
 			{
-				ResetProperty();
-				property_ = value;
+				ResetParameter();
+				parameter_ = value;
 				FirePreferredRangeChanged();
 			}
 		}
 
-
-		private void ResetProperty()
+		public JSONStorable Storable
 		{
-			property_?.Reset();
+			get { return storable_; }
+		}
+
+		public void SetStorable(string id)
+		{
+			if (Atom == null || string.IsNullOrEmpty(id))
+				return;
+
+			var s = Atom.GetStorableByID(id);
+			if (s == null)
+			{
+				Synergy.LogError(
+					$"storable id '{id}' not found in atom '{Atom.uid}'");
+
+				return;
+			}
+
+			storable_ = s;
+
+			if (parameter_ != null)
+			{
+				if (!SetParameterImpl(parameter_.Name))
+					parameter_ = null;
+			}
+		}
+
+		public void SetParameter(string name)
+		{
+			if (!SetParameterImpl(name))
+			{
+				parameter_ = null;
+
+				Synergy.LogError(
+					$"parameter '{name}' not found in storable " +
+					$"'{storable_.name}' from atom '{Atom.uid}'");
+			}
+		}
+
+		private bool SetParameterImpl(string name)
+		{
+			if (Atom == null || storable_ == null || string.IsNullOrEmpty(name))
+				return true;
+
+			var p = storable_.GetParam(name);
+			if (p != null)
+			{
+				SetParameter(p);
+				return true;
+			}
+
+			var a = storable_.GetAction(name);
+			if (a != null)
+			{
+				SetParameter(a);
+				return true;
+			}
+
+			return false;
+		}
+
+		public void SetParameter(JSONStorableParam sp)
+		{
+			var p = StorableParameterFactory.Create(sp);
+			if (p == null)
+			{
+				Synergy.LogError("unknown parameter type");
+				return;
+			}
+
+			Parameter = p;
+		}
+
+		public void SetParameter(JSONStorableAction a)
+		{
+			Parameter = new ActionStorableParameter(a);
+		}
+
+		private void ResetParameter()
+		{
+			parameter_?.Reset();
 		}
 
 		public override FloatRange PreferredRange
 		{
 			get
 			{
-				if (property_ == null)
+				if (parameter_ == null)
 					return new FloatRange(0, 1);
 				else
-					return property_.PreferredRange;
+					return parameter_.PreferredRange;
 			}
 		}
 
@@ -531,18 +543,18 @@ namespace Synergy
 		{
 			base.DoSet(paused);
 
-			if (property_ != null)
-				property_.Set(Movement.Magnitude);
+			if (parameter_ != null)
+				parameter_.Set(Movement.Magnitude);
 		}
 
 		protected override string MakeName()
 		{
 			string s = "S ";
 
-			if (property_ == null)
+			if (parameter_ == null)
 				s += "none";
 			else
-				s += property_.GetDisplayName();
+				s += parameter_.GetDisplayName();
 
 			return s;
 		}
@@ -551,7 +563,7 @@ namespace Synergy
 		{
 			var o = base.ToJSON().AsObject();
 
-			o.Add("property", property_);
+			o.Add("parameter", parameter_);
 
 			return o;
 		}
@@ -566,9 +578,32 @@ namespace Synergy
 				return false;
 
 			o.Opt<StorableParameterFactory, IStorableParameter>(
-				"property", ref property_);
+				"parameter", ref parameter_);
 
 			return true;
+		}
+
+		protected override void AtomChanged()
+		{
+			string oldStorable = storable_?.name ?? "";
+			string oldParameter = parameter_?.Name ?? "";
+
+
+			if (oldStorable == "")
+				storable_ = null;
+			else
+				storable_ = Atom.GetStorableByID(oldStorable);
+
+
+			if (storable_ == null || oldParameter == "")
+			{
+				parameter_ = null;
+			}
+			else
+			{
+				if (!SetParameterImpl(oldParameter))
+					parameter_ = null;
+			}
 		}
 	}
 }

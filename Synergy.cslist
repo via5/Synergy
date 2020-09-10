@@ -32,6 +32,7 @@ project\src\UI\MainUI\Modifiers\LightModifierUI.cs
 project\src\UI\MainUI\Modifiers\ModifierUI.cs
 project\src\UI\MainUI\Modifiers\MorphModifierUI.cs
 project\src\UI\MainUI\Modifiers\RigidbodyModifierUI.cs
+project\src\UI\MainUI\Modifiers\StorableModifierUI.cs
 project\src\UI\MonitorUI\DurationMonitorUI.cs
 project\src\UI\MonitorUI\MonitorUI.cs
 project\src\UI\MonitorUI\MovementMonitorUI.cs
