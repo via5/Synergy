@@ -14,6 +14,8 @@ namespace Synergy
 
 		void Set(float magnitude, float normalizedMagnitude);
 		void Reset();
+		IEnumerable<string> GetStorableNames(Atom a);
+		IEnumerable<string> GetParameterNames(JSONStorable s);
 	}
 
 
@@ -88,6 +90,9 @@ namespace Synergy
 
 		public abstract void Set(float magnitude, float normalizedMagnitude);
 		public abstract void Reset();
+
+		public abstract IEnumerable<string> GetStorableNames(Atom a);
+		public abstract IEnumerable<string> GetParameterNames(JSONStorable s);
 	}
 
 
@@ -162,6 +167,25 @@ namespace Synergy
 			if (Parameter != null)
 				Parameter.valNoCallback = Parameter.defaultVal;
 		}
+
+		public override IEnumerable<string> GetStorableNames(Atom a)
+		{
+			if (a != null)
+			{
+				foreach (var id in a.GetStorableIDs())
+				{
+					var s = a.GetStorableByID(id);
+					if (s.GetFloatParamNames().Count > 0)
+						yield return id;
+				}
+			}
+		}
+
+		public override IEnumerable<string> GetParameterNames(JSONStorable s)
+		{
+			foreach (var n in s.GetFloatParamNames())
+				yield return n;
+		}
 	}
 
 
@@ -196,6 +220,25 @@ namespace Synergy
 		{
 			if (Parameter != null)
 				Parameter.valNoCallback = Parameter.defaultVal;
+		}
+
+		public override IEnumerable<string> GetStorableNames(Atom a)
+		{
+			if (a != null)
+			{
+				foreach (var id in a.GetStorableIDs())
+				{
+					var s = a.GetStorableByID(id);
+					if (s.GetBoolParamNames().Count > 0)
+						yield return id;
+				}
+			}
+		}
+
+		public override IEnumerable<string> GetParameterNames(JSONStorable s)
+		{
+			foreach (var n in s.GetBoolParamNames())
+				yield return n;
 		}
 	}
 
@@ -267,6 +310,25 @@ namespace Synergy
 			if (Parameter != null)
 				Parameter.SetValToDefault();
 		}
+
+		public override IEnumerable<string> GetStorableNames(Atom a)
+		{
+			if (a != null)
+			{
+				foreach (var id in a.GetStorableIDs())
+				{
+					var s = a.GetStorableByID(id);
+					if (s.GetColorParamNames().Count > 0)
+						yield return id;
+				}
+			}
+		}
+
+		public override IEnumerable<string> GetParameterNames(JSONStorable s)
+		{
+			foreach (var n in s.GetColorParamNames())
+				yield return n;
+		}
 	}
 
 
@@ -333,6 +395,25 @@ namespace Synergy
 		{
 			// no-op
 		}
+
+		public override IEnumerable<string> GetStorableNames(Atom a)
+		{
+			if (a != null)
+			{
+				foreach (var id in a.GetStorableIDs())
+				{
+					var s = a.GetStorableByID(id);
+					if (s.GetStringParamNames().Count > 0)
+						yield return id;
+				}
+			}
+		}
+
+		public override IEnumerable<string> GetParameterNames(JSONStorable s)
+		{
+			foreach (var n in s.GetStringParamNames())
+				yield return n;
+		}
 	}
 
 
@@ -354,6 +435,25 @@ namespace Synergy
 			var p = new UrlStorableParameter();
 			CopyTo(p, cloneFlags);
 			return p;
+		}
+
+		public override IEnumerable<string> GetStorableNames(Atom a)
+		{
+			if (a != null)
+			{
+				foreach (var id in a.GetStorableIDs())
+				{
+					var s = a.GetStorableByID(id);
+					if (s.GetUrlParamNames().Count > 0)
+						yield return id;
+				}
+			}
+		}
+
+		public override IEnumerable<string> GetParameterNames(JSONStorable s)
+		{
+			foreach (var n in s.GetUrlParamNames())
+				yield return n;
 		}
 	}
 
@@ -413,6 +513,25 @@ namespace Synergy
 
 		public override void Reset()
 		{
+		}
+
+		public override IEnumerable<string> GetStorableNames(Atom a)
+		{
+			if (a != null)
+			{
+				foreach (var id in a.GetStorableIDs())
+				{
+					var s = a.GetStorableByID(id);
+					if (s.GetActionNames().Count > 0)
+						yield return id;
+				}
+			}
+		}
+
+		public override IEnumerable<string> GetParameterNames(JSONStorable s)
+		{
+			foreach (var n in s.GetActionNames())
+				yield return n;
 		}
 	}
 

@@ -566,9 +566,12 @@ namespace Synergy
 		{
 			base.StepInserted(at, s);
 
-			Synergy.LogOverlap("step inserted");
-			order1_.Insert(at, Steps.Count - 1);
-			order2_.Insert(at, Steps.Count - 1);
+			if (at >= 0 && at < order1_.Count)
+			{
+				Synergy.LogOverlap("step inserted");
+				order1_.Insert(at, Steps.Count - 1);
+				order2_.Insert(at, Steps.Count - 1);
+			}
 		}
 
 		public override void StepDeleted(int stepIndex)

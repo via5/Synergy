@@ -265,7 +265,7 @@ namespace Synergy
 		private void StringSelected(int i)
 		{
 			sel_ = i;
-			current_.Value = strings_.DisplayChoices[i];
+			current_.Value = strings_.Choices[i];
 			save_.Enabled = false;
 		}
 	}
@@ -308,14 +308,19 @@ namespace Synergy
 		}
 
 		private StorableModifier modifier_ = null;
+		private readonly StringList types_;
 		private readonly StringList storables_;
 		private readonly StringList parameters_;
 		private IStorableParameterUI parameterUI_ = null;
+		private bool storablesStale_ = true;
+		private bool parametersStale_ = true;
 
 
 		public StorableModifierUI(MainUI ui)
 			: base(ui)
 		{
+			types_ = new StringList("Show only", TypeChanged, Widget.Right);
+
 			storables_ = new StringList(
 				"Storable", StorableChanged, Widget.Right);
 
@@ -324,10 +329,27 @@ namespace Synergy
 
 			storables_.OnOpen += UpdateStorables;
 			parameters_.OnOpen += UpdateParameters;
+
+
+			var list = new StorableParameterFactory().GetAllDisplayNames();
+			list.Insert(0, "All (very slow)");
+			types_.DisplayChoices = list;
+
+			list = new StorableParameterFactory().GetAllFactoryTypeNames();
+			list.Insert(0, "");
+			types_.Choices = list;
+
+			types_.Value = "float";
 		}
 
 		public override void AddToTopUI(IModifier m)
 		{
+			if (modifier_ != m)
+			{
+				storablesStale_ = true;
+				parametersStale_ = true;
+			}
+
 			modifier_ = m as StorableModifier;
 			if (modifier_ == null)
 				return;
@@ -347,14 +369,12 @@ namespace Synergy
 			}
 
 
-			UpdateStorables();
-			UpdateParameters();
-
-			storables_.Value = modifier_?.Storable?.name ?? "";
+			storables_.Value = modifier_?.Storable?.storeId ?? "";
 			parameters_.Value = modifier_?.Parameter?.Name ?? "";
 
 			AddAtomWidgets(m);
 
+			widgets_.AddToUI(types_);
 			widgets_.AddToUI(storables_);
 			widgets_.AddToUI(parameters_);
 
@@ -398,30 +418,75 @@ namespace Synergy
 
 		private void UpdateStorables()
 		{
-			List<string> list;
+			if (!storablesStale_)
+				return;
+
+			List<string> list = null;
 
 			var a = modifier_?.Atom;
-			if (a == null)
+
+			if (a != null)
+			{
+				if (types_.Value == "")
+				{
+					list = a.GetStorableIDs();
+				}
+				else
+				{
+					var p = new StorableParameterFactory().Create(types_.Value);
+					if (p == null)
+						Synergy.LogError($"unknown type {types_.Value}");
+					else
+						list = new List<string>(p.GetStorableNames(a));
+				}
+			}
+
+			if (list == null)
 				list = new List<string>();
-			else
-				list = a.GetStorableIDs();
 
 			Utilities.NatSort(list);
 			storables_.Choices = list;
+
+			storablesStale_ = false;
 		}
 
 		private void UpdateParameters()
 		{
-			List<string> list;
+			if (!parametersStale_)
+				return;
+
+			List<string> list = null;
 
 			var s = modifier_?.Storable;
-			if (s == null)
+			if (s != null)
+			{
+				if (types_.Value == "")
+				{
+					list = s.GetAllParamAndActionNames();
+				}
+				else
+				{
+					var p = new StorableParameterFactory().Create(types_.Value);
+					if (p == null)
+						Synergy.LogError($"unknown type {types_.Value}");
+					else
+						list = new List<string>(p.GetParameterNames(s));
+				}
+			}
+
+			if (list == null)
 				list = new List<string>();
-			else
-				list = s.GetAllParamAndActionNames();
 
 			Utilities.NatSort(list);
 			parameters_.Choices = list;
+
+			parametersStale_ = false;
+		}
+
+		private void TypeChanged(string s)
+		{
+			storablesStale_ = true;
+			parametersStale_ = true;
 		}
 
 		private void StorableChanged(string s)
@@ -431,6 +496,7 @@ namespace Synergy
 
 			modifier_.SetStorable(s);
 			parameters_.Value = modifier_.Parameter?.Name ?? "";
+			parametersStale_ = true;
 			UpdateParameter();
 		}
 
@@ -449,6 +515,8 @@ namespace Synergy
 
 			storables_.Value = modifier_.Storable?.name ?? "";
 			parameters_.Value = modifier_.Parameter?.Name ?? "";
+			storablesStale_ = true;
+			parametersStale_ = true;
 			UpdateParameter();
 		}
 
