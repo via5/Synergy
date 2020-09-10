@@ -566,7 +566,7 @@ namespace Synergy
 		{
 			base.StepInserted(at, s);
 
-			Synergy.LogError("step inserted");
+			Synergy.LogOverlap("step inserted");
 			order1_.Insert(at, Steps.Count - 1);
 			order2_.Insert(at, Steps.Count - 1);
 		}
@@ -644,7 +644,7 @@ namespace Synergy
 		{
 			base.StepsChanged();
 
-			Synergy.LogError("steps changed, regenerating");
+			Synergy.LogOverlap("steps changed, regenerating");
 
 			active_ = new TickInfo();
 			overlap_ = new TickInfo();

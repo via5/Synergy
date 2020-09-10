@@ -37,7 +37,8 @@ namespace Synergy
 				new MorphModifier(),
 				new LightModifier(),
 				new AudioModifier(),
-				new EyesModifier()
+				new EyesModifier(),
+				new StorableModifier()
 			};
 		}
 	}
