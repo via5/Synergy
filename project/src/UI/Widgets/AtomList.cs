@@ -68,7 +68,6 @@ namespace Synergy
 			}
 
 			Utilities.NatSort(names);
-
 			Choices = names;
 		}
 

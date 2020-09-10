@@ -12,7 +12,7 @@ namespace Synergy
 		FloatRange PreferredRange { get; }
 		string Name { get; }
 
-		void Set(float magnitude);
+		void Set(float magnitude, float normalizedMagnitude);
 		void Reset();
 	}
 
@@ -86,7 +86,7 @@ namespace Synergy
 		public abstract string GetFactoryTypeName();
 		public abstract string GetDisplayName();
 
-		public abstract void Set(float magnitude);
+		public abstract void Set(float magnitude, float normalizedMagnitude);
 		public abstract void Reset();
 	}
 
@@ -122,8 +122,11 @@ namespace Synergy
 	class FloatStorableParameter
 		: ParamDerivedStorableParameter<JSONStorableFloat>
 	{
-		public override string GetFactoryTypeName() { return "float"; }
-		public override string GetDisplayName() { return "Float"; }
+		public static string FactoryTypeName { get; } = "float";
+		public override string GetFactoryTypeName() { return FactoryTypeName; }
+
+		public static string DisplayName { get; } = "Float";
+		public override string GetDisplayName() { return DisplayName; }
 
 		public FloatStorableParameter(JSONStorableFloat p = null)
 			: base(p)
@@ -137,7 +140,18 @@ namespace Synergy
 			return p;
 		}
 
-		public override void Set(float magnitude)
+		public override FloatRange PreferredRange
+		{
+			get
+			{
+				if (Parameter == null)
+					return base.PreferredRange;
+				else
+					return new FloatRange(Parameter.min, Parameter.max);
+			}
+		}
+
+		public override void Set(float magnitude, float normalizedMagnitude)
 		{
 			if (Parameter != null)
 				Parameter.valNoCallback = magnitude;
@@ -154,8 +168,11 @@ namespace Synergy
 	class BoolStorableParameter
 		: ParamDerivedStorableParameter<JSONStorableBool>
 	{
-		public override string GetFactoryTypeName() { return "bool"; }
-		public override string GetDisplayName() { return "Bool"; }
+		public static string FactoryTypeName { get; } = "bool";
+		public override string GetFactoryTypeName() { return FactoryTypeName; }
+
+		public static string DisplayName { get; } = "Bool";
+		public override string GetDisplayName() { return DisplayName; }
 
 		public BoolStorableParameter(JSONStorableBool p = null)
 			: base(p)
@@ -169,10 +186,10 @@ namespace Synergy
 			return p;
 		}
 
-		public override void Set(float magnitude)
+		public override void Set(float magnitude, float normalizedMagnitude)
 		{
 			if (Parameter != null)
-				Parameter.valNoCallback = (magnitude > 0.5f);
+				Parameter.valNoCallback = (normalizedMagnitude > 0.5f);
 		}
 
 		public override void Reset()
@@ -186,8 +203,11 @@ namespace Synergy
 	class ColorStorableParameter
 		: ParamDerivedStorableParameter<JSONStorableColor>
 	{
-		public override string GetFactoryTypeName() { return "color"; }
-		public override string GetDisplayName() { return "Color"; }
+		public static string FactoryTypeName { get; } = "color";
+		public override string GetFactoryTypeName() { return FactoryTypeName; }
+
+		public static string DisplayName { get; } = "Color";
+		public override string GetDisplayName() { return DisplayName; }
 
 		private Color c1_, c2_;
 
@@ -212,14 +232,26 @@ namespace Synergy
 			p.c2_ = c2_;
 		}
 
-		public override void Set(float magnitude)
+		public Color Color1
+		{
+			get { return c1_; }
+			set { c1_ = value; }
+		}
+
+		public Color Color2
+		{
+			get { return c2_; }
+			set { c2_ = value; }
+		}
+
+		public override void Set(float magnitude, float normalizedMagnitude)
 		{
 			if (Parameter != null)
 			{
 				var c = new Color(
-					Interpolate(c1_.r, c2_.r, magnitude),
-					Interpolate(c1_.g, c2_.g, magnitude),
-					Interpolate(c1_.b, c2_.b, magnitude));
+					Interpolate(c1_.r, c2_.r, normalizedMagnitude),
+					Interpolate(c1_.g, c2_.g, normalizedMagnitude),
+					Interpolate(c1_.b, c2_.b, normalizedMagnitude));
 
 				Parameter.SetColor(c);
 			}
@@ -233,7 +265,7 @@ namespace Synergy
 		public override void Reset()
 		{
 			if (Parameter != null)
-				Parameter.valNoCallback = Parameter.defaultVal;
+				Parameter.SetValToDefault();
 		}
 	}
 
@@ -241,8 +273,11 @@ namespace Synergy
 	class StringStorableParameter
 		: ParamDerivedStorableParameter<JSONStorableString>
 	{
-		public override string GetFactoryTypeName() { return "string"; }
-		public override string GetDisplayName() { return "String"; }
+		public static string FactoryTypeName { get; } = "string";
+		public override string GetFactoryTypeName() { return FactoryTypeName; }
+
+		public static string DisplayName { get; } = "String";
+		public override string GetDisplayName() { return DisplayName; }
 
 		private List<string> strings_ = new List<string>();
 		private string last_ = null;
@@ -268,9 +303,10 @@ namespace Synergy
 		public List<string> Strings
 		{
 			get { return strings_; }
+			set { strings_ = new List<string>(value); }
 		}
 
-		public override void Set(float magnitude)
+		public override void Set(float magnitude, float normalizedMagnitude)
 		{
 			if (Parameter != null)
 			{
@@ -278,7 +314,10 @@ namespace Synergy
 					return;
 
 				var magPer = 1.0f / strings_.Count;
-				var i = Math.Min((int)Math.Floor(magnitude / magPer), strings_.Count - 1);
+
+				var i = Math.Min(
+					(int)Math.Floor(normalizedMagnitude / magPer),
+					strings_.Count - 1);
 
 				var next = strings_[i];
 
@@ -286,23 +325,24 @@ namespace Synergy
 				{
 					last_ = next;
 					Parameter.val = next;
-					Synergy.LogError(next);
 				}
 			}
 		}
 
 		public override void Reset()
 		{
-			if (Parameter != null)
-				Parameter.val = Parameter.defaultVal;
+			// no-op
 		}
 	}
 
 
 	class UrlStorableParameter : StringStorableParameter
 	{
-		public override string GetFactoryTypeName() { return "url"; }
-		public override string GetDisplayName() { return "URL"; }
+		public static new string FactoryTypeName { get; } = "url";
+		public override string GetFactoryTypeName() { return FactoryTypeName; }
+
+		public static new string DisplayName { get; } = "URL";
+		public override string GetDisplayName() { return DisplayName; }
 
 		public UrlStorableParameter(JSONStorableUrl p = null)
 			: base(p)
@@ -320,9 +360,11 @@ namespace Synergy
 
 	class ActionStorableParameter : BasicStorableParameter
 	{
-		public override string GetFactoryTypeName() { return "action"; }
-		public override string GetDisplayName() { return "Action"; }
+		public static string FactoryTypeName { get; } = "action";
+		public override string GetFactoryTypeName() { return FactoryTypeName; }
 
+		public static string DisplayName { get; } = "Action";
+		public override string GetDisplayName() { return DisplayName; }
 
 		private JSONStorableAction param_ = null;
 		private bool active_ = false;
@@ -350,16 +392,16 @@ namespace Synergy
 			get { return param_?.name ?? ""; }
 		}
 
-		public override void Set(float magnitude)
+		public override void Set(float magnitude, float normalizedMagnitude)
 		{
 			if (param_ != null)
 			{
-				if (magnitude > 0.5f && !active_)
+				if (normalizedMagnitude > 0.5f && !active_)
 				{
 					active_ = true;
 					param_.actionCallback?.Invoke();
 				}
-				else if (magnitude <= 0.5f && active_)
+				else if (normalizedMagnitude <= 0.5f && active_)
 				{
 					active_ = false;
 					param_.actionCallback?.Invoke();
@@ -371,7 +413,6 @@ namespace Synergy
 		{
 		}
 	}
-
 
 
 	sealed class StorableModifier : AtomWithMovementModifier
@@ -388,14 +429,16 @@ namespace Synergy
 
 
 		public StorableModifier()
-			: this(null, null)
+			: this(null, null, null)
 		{
 		}
 
-		public StorableModifier(JSONStorable s, IStorableParameter p)
+		public StorableModifier(Atom a, string storable, string parameter)
 		{
-			storable_ = s;
-			parameter_ = p;
+			Atom = a;
+			SetStorable(storable);
+			SetParameter(parameter);
+			Movement = new Movement(0, 1);
 		}
 
 		public override IModifier Clone(int cloneFlags = 0)
@@ -454,10 +497,10 @@ namespace Synergy
 
 			storable_ = s;
 
-			if (parameter_ != null)
+			if (Parameter != null)
 			{
 				if (!SetParameterImpl(parameter_.Name))
-					parameter_ = null;
+					Parameter = null;
 			}
 		}
 
@@ -465,7 +508,7 @@ namespace Synergy
 		{
 			if (!SetParameterImpl(name))
 			{
-				parameter_ = null;
+				Parameter = null;
 
 				Synergy.LogError(
 					$"parameter '{name}' not found in storable " +
@@ -514,17 +557,17 @@ namespace Synergy
 
 		private void ResetParameter()
 		{
-			parameter_?.Reset();
+			Parameter?.Reset();
 		}
 
 		public override FloatRange PreferredRange
 		{
 			get
 			{
-				if (parameter_ == null)
+				if (Parameter == null)
 					return new FloatRange(0, 1);
 				else
-					return parameter_.PreferredRange;
+					return Parameter.PreferredRange;
 			}
 		}
 
@@ -543,18 +586,18 @@ namespace Synergy
 		{
 			base.DoSet(paused);
 
-			if (parameter_ != null)
-				parameter_.Set(Movement.Magnitude);
+			if (Parameter != null)
+				Parameter.Set(Movement.Magnitude, Movement.NormalizedMagnitude);
 		}
 
 		protected override string MakeName()
 		{
 			string s = "S ";
 
-			if (parameter_ == null)
+			if (Parameter == null)
 				s += "none";
 			else
-				s += parameter_.GetDisplayName();
+				s += Parameter.GetDisplayName();
 
 			return s;
 		}
@@ -586,7 +629,7 @@ namespace Synergy
 		protected override void AtomChanged()
 		{
 			string oldStorable = storable_?.name ?? "";
-			string oldParameter = parameter_?.Name ?? "";
+			string oldParameter = Parameter?.Name ?? "";
 
 
 			if (oldStorable == "")
@@ -597,12 +640,12 @@ namespace Synergy
 
 			if (storable_ == null || oldParameter == "")
 			{
-				parameter_ = null;
+				Parameter = null;
 			}
 			else
 			{
 				if (!SetParameterImpl(oldParameter))
-					parameter_ = null;
+					Parameter = null;
 			}
 		}
 	}

@@ -120,7 +120,7 @@ namespace Synergy
 				widgets_.AddToUI(w);
 		}
 
-		private void PreferredRangeChanged()
+		protected void PreferredRangeChanged()
 		{
 			if (currentModifier_ != null)
 				movementUI_.SetPreferredRange(currentModifier_.PreferredRange);

@@ -546,6 +546,8 @@ namespace Synergy
 
 		private bool inCallback_ = false;
 		private bool ignore_ = false;
+		private string placeholder_ = "";
+
 
 		public Textbox(string name, string def="", Callback callback=null, int flags=0)
 			: base(flags)
@@ -582,6 +584,30 @@ namespace Synergy
 			var ly = element_.GetComponent<LayoutElement>();
 			ly.minHeight = 50;
 			element_.height = 50;
+
+
+			var go = new GameObject();
+			go.transform.SetParent(input_.transform, false);
+
+			var text = go.AddComponent<Text>();
+			text.supportRichText = false;
+			text.horizontalOverflow = HorizontalWrapMode.Overflow;
+			text.raycastTarget = false;
+
+			var rt = text.rectTransform;
+			rt.anchorMin = new Vector2(0, 0);
+			rt.anchorMax = new Vector2(1, 1);
+			rt.offsetMin = new Vector2(6, 0);
+			rt.offsetMax = new Vector2(0, -6);
+
+
+			text.color = new Color(0.5f, 0.5f, 0.5f);
+			text.font = input_.textComponent.font;
+			text.fontSize = input_.textComponent.fontSize;
+			text.fontStyle = input_.textComponent.fontStyle;
+
+			input_.placeholder = text;
+			input_.placeholder.GetComponent<Text>().text = placeholder_;
 		}
 
 		protected override void DoRemoveFromUI()
@@ -626,6 +652,25 @@ namespace Synergy
 				{
 					ignore_ = false;
 				}
+			}
+		}
+
+		public string Placeholder
+		{
+			get
+			{
+				if (input_ == null)
+					return placeholder_;
+				else
+					return input_.placeholder.GetComponent<Text>().text;
+			}
+
+			set
+			{
+				placeholder_ = value;
+
+				if (input_ != null)
+					input_.placeholder.GetComponent<Text>().text = value;
 			}
 		}
 
@@ -697,11 +742,13 @@ namespace Synergy
 		BasicWidget<JSONStorableStringChooser, UIDynamicPopup>
 	{
 		public delegate void Callback(string value);
+		public delegate void IndexCallback(int i);
 		public delegate void OpenCallback();
 
 		public event OpenCallback OnOpen;
+		public event Callback SelectionChanged;
+		public event IndexCallback SelectionIndexChanged;
 
-		private readonly Callback callback_;
 		private float popupHeight_ = -1;
 
 
@@ -715,7 +762,7 @@ namespace Synergy
 			Callback callback=null, int flags = 0)
 				: base(flags)
 		{
-			callback_ = callback;
+			SelectionChanged += callback;
 			CreateStorable(name, def, entries, null, Changed);
 		}
 
@@ -724,14 +771,13 @@ namespace Synergy
 			Callback callback = null, int flags = 0)
 				: base(flags)
 		{
-			callback_ = callback;
+			SelectionChanged += callback;
 			CreateStorable(name, def, entries, tags, Changed);
 		}
 
 		protected StringList(int flags)
 			: base(flags)
 		{
-			callback_ = null;
 		}
 
 		protected void CreateStorable(
@@ -867,7 +913,20 @@ namespace Synergy
 
 			set
 			{
-				storable_.choices = value;
+				storable_.choices = new List<string>(value);
+			}
+		}
+
+		public List<string> DisplayChoices
+		{
+			get
+			{
+				return storable_.displayChoices;
+			}
+
+			set
+			{
+				storable_.displayChoices = new List<string>(value);
 			}
 		}
 
@@ -875,7 +934,10 @@ namespace Synergy
 		{
 			Utilities.Handler(() =>
 			{
-				callback_?.Invoke(v);
+				SelectionChanged?.Invoke(v);
+
+				if (SelectionIndexChanged != null)
+					SelectionIndexChanged(storable_.choices.IndexOf(v));
 			});
 		}
 	}
@@ -1197,7 +1259,7 @@ namespace Synergy
 					++newLines;
 			}
 
-			Height = 30 + (30 * newLines);
+			Height = 30 + (LineHeight * newLines);
 		}
 
 		private bool IsRightAligned

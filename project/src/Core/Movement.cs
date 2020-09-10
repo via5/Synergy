@@ -123,6 +123,20 @@
 			get { return magnitude_; }
 		}
 
+		public float NormalizedMagnitude
+		{
+			get
+			{
+				var r = CurrentRange;
+				var d = r.Distance;
+
+				if (d == 0)
+					return magnitude_;
+				else
+					return (magnitude_ - r.Minimum) / d;
+			}
+		}
+
 		public void Reset()
 		{
 			magnitude_ = CalculateMagnitude(0, true);
