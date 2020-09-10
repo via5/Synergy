@@ -396,15 +396,17 @@ namespace Synergy
 		{
 			if (param_ != null)
 			{
-				if (normalizedMagnitude > 0.5f && !active_)
+				if (Math.Abs(1.0f - magnitude) < 0.01f)
 				{
-					active_ = true;
-					param_.actionCallback?.Invoke();
+					if (!active_)
+					{
+						active_ = true;
+						param_.actionCallback?.Invoke();
+					}
 				}
-				else if (normalizedMagnitude <= 0.5f && active_)
+				else
 				{
 					active_ = false;
-					param_.actionCallback?.Invoke();
 				}
 			}
 		}

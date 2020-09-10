@@ -294,8 +294,7 @@ namespace Synergy
 			widgets_.AddToUI(new Label(
 				"This is an action parameter. The\n" +
 				"action will trigger when the\n" +
-				"movement passes 0.5 both up and\n" +
-				"down (value is normalized).",
+				"movement is at ~1.0.",
 				Widget.Right));
 		}
 	}
