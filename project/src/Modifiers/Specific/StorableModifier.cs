@@ -1000,6 +1000,9 @@ namespace Synergy
 		{
 			base.DoSet(paused);
 
+			if (paused)
+				return;
+
 			if (Parameter != null)
 				Parameter.Set(Movement.Magnitude, Movement.NormalizedMagnitude);
 		}

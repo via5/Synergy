@@ -738,6 +738,7 @@ namespace Synergy
 			"MinDistance", 0.5f, 0.1f);
 
 		private int current_ = -1;
+		private float lastProgress_ = -1;
 		private Vector3 saccadeOffset_ = new Vector3();
 
 
@@ -798,6 +799,16 @@ namespace Synergy
 		public Rigidbody Head
 		{
 			get { return head_; }
+		}
+
+		public Rigidbody EyeTarget
+		{
+			get { return eyes_; }
+		}
+
+		public Vector3 CurrentSaccadeOffset
+		{
+			get { return saccadeOffset_; }
 		}
 
 		public override IModifier Clone(int cloneFlags = 0)
@@ -878,17 +889,29 @@ namespace Synergy
 			}
 
 
-			if (firstHalf)
-				progress /= 2;
-			else
-				progress = progress / 2 + 0.5f;
+			if (progress != lastProgress_)
+			{
+				lastProgress_ = progress;
+				float halfProgress = progress;
 
-			if (CurrentIndex == -1 || progress == 1)
-				Next();
+				if (firstHalf)
+					halfProgress /= 2;
+				else
+					halfProgress = halfProgress / 2 + 0.5f;
+
+				if (CurrentIndex == -1 || halfProgress == 1)
+					Next();
+			}
 		}
 
 		private void Next()
 		{
+			if (targets_.Count == 0)
+			{
+				CurrentIndex = -1;
+				return;
+			}
+
 			var i = CurrentIndex;
 
 			var start = i;
@@ -956,6 +979,9 @@ namespace Synergy
 		protected override void DoSet(bool paused)
 		{
 			base.DoSet(paused);
+
+			if (paused)
+				return;
 
 			if (eyes_ == null || head_ == null)
 				return;

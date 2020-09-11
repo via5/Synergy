@@ -175,7 +175,6 @@ namespace Synergy
 			new ExplicitHolder<Delay>();
 
 		private bool inFirstHalf_ = true;
-		private bool wasFinished_ = false;
 
 
 		public UnsyncedModifier()
@@ -253,7 +252,6 @@ namespace Synergy
 			{
 				duration_.HeldValue?.Removed();
 				duration_.Set(value);
-				wasFinished_ = false;
 			}
 		}
 
@@ -300,15 +298,6 @@ namespace Synergy
 
 			if (Duration.Finished)
 			{
-				if (wasFinished_)
-				{
-					// the duration was finished before and hasn't restarted
-					// since, don't keep delaying, just do it the one time
-					return;
-				}
-
-				wasFinished_ = true;
-
 				if (Delay.EndForwards)
 				{
 					if (Delay.EndForwardsDuration.Current > ParentStep.Duration.TimeRemaining)
@@ -328,8 +317,6 @@ namespace Synergy
 			}
 			else
 			{
-				wasFinished_ = false;
-
 				var firstHalf = Duration.InFirstHalf;
 
 				if ((inFirstHalf_ && !firstHalf) && Delay.Halfway)
@@ -360,7 +347,6 @@ namespace Synergy
 		public override void Reset()
 		{
 			Duration.Reset();
-			wasFinished_ = false;
 		}
 
 		public override J.Node ToJSON()

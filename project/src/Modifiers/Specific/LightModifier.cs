@@ -350,6 +350,9 @@ namespace Synergy
 		{
 			base.DoSet(paused);
 
+			if (paused)
+				return;
+
 			if (property_ != null && Atom != null)
 			{
 				Light light = Atom.GetComponentInChildren<Light>();

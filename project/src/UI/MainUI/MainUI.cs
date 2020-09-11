@@ -32,7 +32,6 @@ namespace Synergy
 		OptionsUI options_;
 
 		private bool inMonitor_ = false;
-		private bool inOptions_ = false;
 		private bool inManageAnimatables_ = false;
 		private readonly WidgetList widgets_ = new WidgetList();
 		private readonly List<Action> handlerRemovers_ = new List<Action>();
@@ -90,9 +89,6 @@ namespace Synergy
 				monitor_.Update();
 			else if (modifier_ != null)
 				modifier_.Update();
-
-			//if (inOptions_)
-			//	options_.Update();
 		}
 
 		public void PluginEnabled(bool b)
@@ -117,12 +113,6 @@ namespace Synergy
 		{
 			inMonitor_ = !inMonitor_;
 			NeedsReset("toggling monitor");
-		}
-
-		public void ToggleOptions()
-		{
-			inOptions_ = !inOptions_;
-			NeedsReset("toggling options");
 		}
 
 		public void ToggleManageAnimatables()
@@ -165,12 +155,9 @@ namespace Synergy
 			step_.RemoveFromUI();
 			modifier_.RemoveFromUI();
 			monitor_.RemoveFromUI();
-			//options_.RemoveFromUI();
 
 			if (inMonitor_)
 				AddMonitorToUI();
-			else if (inOptions_)
-				AddOptionsToUI();
 			else if (inManageAnimatables_)
 				AddManageAnimatablesToUI();
 			else
@@ -189,12 +176,6 @@ namespace Synergy
 			AddModifierSelector();
 
 			monitor_.AddToUI(CurrentStep, CurrentModifier?.Modifier);
-		}
-
-		private void AddOptionsToUI()
-		{
-			//AddOptionsToggle();
-			//options_.AddToUI();
 		}
 
 		private void AddManageAnimatablesToUI()
@@ -545,6 +526,8 @@ namespace Synergy
 		private readonly Checkbox pickAnimatable_;
 		private readonly Button manageAnimatable_;
 		private readonly FloatSlider overlapTime_;
+		private readonly StringList logLevel_;
+		private readonly Checkbox logOverlap_;
 
 		public OptionsUI(int flags = 0)
 		{
@@ -569,11 +552,20 @@ namespace Synergy
 				"Overlap time", options_.OverlapTime,
 				new FloatRange(0, 1), OverlapTimeChanged, flags);
 
+			logLevel_ = new StringList(
+				"Log level", Options.LogLevelToString(options_.LogLevel),
+				Options.GetLogLevelNames(), LogLevelChanged, flags);
+
+			logOverlap_ = new Checkbox(
+				"Log overlap", LogOverlapChanged, flags);
+
 			collapsible_.Add(resetValuesOnFreeze_);
 			collapsible_.Add(resetCountersOnThaw_);
 			collapsible_.Add(pickAnimatable_);
 			collapsible_.Add(manageAnimatable_);
 			collapsible_.Add(overlapTime_);
+			collapsible_.Add(logLevel_);
+			collapsible_.Add(logOverlap_);
 			collapsible_.Add(new SmallSpacer(flags));
 
 
@@ -795,6 +787,20 @@ namespace Synergy
 		private void OverlapTimeChanged(float f)
 		{
 			options_.OverlapTime = f;
+		}
+
+		private void LogLevelChanged(string s)
+		{
+			var i = Options.LogLevelFromString(s);
+			if (i == -1)
+				return;
+
+			options_.LogLevel = i;
+		}
+
+		private void LogOverlapChanged(bool b)
+		{
+			options_.LogOverlap = b;
 		}
 	}
 }

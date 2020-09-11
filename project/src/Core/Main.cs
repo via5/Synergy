@@ -9,14 +9,14 @@ namespace Synergy
 	sealed class Synergy : MVRScript
 	{
 		private static Synergy instance_ = null;
-		private readonly SuperController sc_ = SuperController.singleton;
+		private SuperController sc_ = null;
 		private bool enabled_ = false;
 		private bool frozen_ = false;
-		private Manager manager_ = new Manager();
-		private Options options_ = new Options();
-		private readonly TimerManager timers_ = new TimerManager();
+		private Manager manager_ = null;
+		private Options options_ = null;
+		private TimerManager timers_ = null;
 		private MainUI ui_ = null;
-		private List<IParameter> parameters_ = new List<IParameter>();
+		private List<IParameter> parameters_ = null;
 
 		private bool deferredInitDone_ = false;
 		private bool deferredUIDone_ = false;
@@ -52,6 +52,44 @@ namespace Synergy
 			get { return options_; }
 		}
 
+		public override void Init()
+		{
+			base.Init();
+
+			instance_ = this;
+			sc_ = SuperController.singleton;
+			enabled_ = false;
+			frozen_ = false;
+			options_ = new Options();
+			timers_ = new TimerManager();
+			ui_ = null;
+			parameters_ = new List<IParameter>();
+			manager_ = new Manager();
+
+			deferredInitDone_ = false;
+			deferredUIDone_ = false;
+
+			SuperController.singleton.StartCoroutine(DeferredInit());
+		}
+
+		private IEnumerator DeferredInit()
+		{
+			yield return new WaitForEndOfFrame();
+
+			if (this == null)
+				yield break;
+
+			while (SuperController.singleton.isLoading)
+			{
+				yield return 0;
+				if (this == null)
+					yield break;
+			}
+
+			manager_.DeferredInit();
+			deferredInitDone_ = true;
+		}
+
 		public void Start()
 		{
 			deferredInitDone_ = false;
@@ -75,65 +113,45 @@ namespace Synergy
 			});
 		}
 
-		public override void Init()
-		{
-			base.Init();
-			SuperController.singleton.StartCoroutine(DeferredInit());
-		}
-
-		private IEnumerator DeferredInit()
-		{
-			yield return new WaitForEndOfFrame();
-
-			if (this == null)
-				yield break;
-
-			while (SuperController.singleton.isLoading)
-			{
-				yield return 0;
-				if (this == null)
-					yield break;
-			}
-
-			manager_.DeferredInit();
-			deferredInitDone_ = true;
-		}
-
 		private void CreateTestStuff(Atom a)
 		{
 			//options_.OverlapTime = 0;
-			/*
-			var s = new Step();
-			s.Duration = new RampDuration(1, 0.3f, 10, 5);
 
+			{
+				var s = new Step();
+				s.Duration = new RandomDuration(3);
 
-			var sm = new StorableModifier(
-				a, "plugin#2_MacGruber.Breathing", "QueueOrgasm");
+				var m = new RigidbodyModifier(a, "hip");
+				m.Movement = new Movement(0, 150);
+				m.Direction = new Vector3(0, 0, 1);
+				s.AddModifier(new ModifierContainer(m));
 
-			sm.Movement = new Movement(0, 1);
+				manager_.AddStep(s);
+			}
 
-			((ActionStorableParameter)sm.Parameter).TriggerType =
-				ActionStorableParameter.TriggerDown;
+			{
+				var s = new Step();
+				s.Duration = new RandomDuration(3);
 
-			s.AddModifier(new ModifierContainer(
-				sm, new StepProgressSyncedModifier()));
+				var m = new RigidbodyModifier(a, "head");
+				m.Movement = new Movement(0, 150);
+				m.Direction = new Vector3(1, 0, 0);
+				s.AddModifier(new ModifierContainer(m));
 
+				manager_.AddStep(s);
+			}
 
-			sm = new StorableModifier(
-				a, "plugin#2_MacGruber.Breathing", "Intensity");
+			{
+				var s = new Step();
+				s.Duration = new RandomDuration(3);
 
-			sm.Movement = new Movement(0.5f, 1);
+				var m = new RigidbodyModifier(a, "lHand");
+				m.Movement = new Movement(0, 150);
+				m.Direction = new Vector3(0, 1, 0);
+				s.AddModifier(new ModifierContainer(m));
 
-			s.AddModifier(new ModifierContainer(
-				sm, new StepProgressSyncedModifier()));
-
-
-			var m = new RigidbodyModifier(a, "hip");
-			m.Movement = new Movement(0, 150);
-			m.Direction = new Vector3(0, 0, 1);
-			s.AddModifier(new ModifierContainer(m));
-
-			manager_.AddStep(s);*/
+				manager_.AddStep(s);
+			}
 		}
 
 		public Timer CreateTimer(float seconds, Timer.Callback f)
@@ -357,31 +375,41 @@ namespace Synergy
 		}
 
 
+		static public void Log(int level, string s)
+		{
+			if (instance_ != null && level > instance_.options_.LogLevel)
+				return;
+
+			if (level <= Options.LogLevelWarn)
+				SuperController.LogError(s);
+			else
+				SuperController.LogMessage(s);
+		}
 
 		static public void LogError(string s)
 		{
-			SuperController.LogError(s);
+			Log(Options.LogLevelError, s);
 		}
 
 		static public void LogWarning(string s)
 		{
-			SuperController.LogError(s);
+			Log(Options.LogLevelWarn, s);
 		}
 
 		static public void LogInfo(string s)
 		{
-			SuperController.LogError(s);
+			Log(Options.LogLevelInfo, s);
 		}
 
 		static public void LogVerbose(string s)
 		{
-		    if (instance_ == null || instance_.options_.VerboseLog)
-		        SuperController.LogError(s);
+			Log(Options.LogLevelVerbose, s);
 		}
 
 		static public void LogOverlap(string s)
 		{
-			//SuperController.LogError(s);
+			if (Instance.options_.LogOverlap)
+				SuperController.LogMessage(s);
 		}
 	}
 }

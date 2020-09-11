@@ -1,12 +1,66 @@
-﻿namespace Synergy
+﻿using System.Collections.Generic;
+
+namespace Synergy
 {
 	class Options : IJsonable
 	{
+		public const int LogLevelError = 0;
+		public const int LogLevelWarn = 1;
+		public const int LogLevelInfo = 2;
+		public const int LogLevelVerbose = 3;
+
 		private bool resetValuesOnFreeze_ = false;
 		private bool resetCountersOnThaw_ = false;
-		private bool verboseLog_ = false;
 		private bool pickingAnimatable_ = false;
 		private float overlapTime_ = 1;
+		private int logLevel_ = LogLevelInfo;
+		private bool logOverlap_ = false;
+
+		public static List<string> GetLogLevelNames()
+		{
+			var list = new List<string>();
+
+			foreach (var i in GetLogLevels())
+				list.Add(LogLevelToString(i));
+
+			return list;
+		}
+
+		public static List<int> GetLogLevels()
+		{
+			return new List<int>()
+			{
+				LogLevelError,
+				LogLevelWarn,
+				LogLevelInfo,
+				LogLevelVerbose
+			};
+		}
+
+		public static string LogLevelToString(int i)
+		{
+			switch (i)
+			{
+				case LogLevelError:   return "Error";
+				case LogLevelWarn:    return "Warning";
+				case LogLevelInfo:    return "Info";
+				case LogLevelVerbose: return "Verbose";
+				default:              return "?";
+			}
+		}
+
+		public static int LogLevelFromString(string s)
+		{
+			var names = GetLogLevelNames();
+			for (int i = 0; i < names.Count; ++i)
+			{
+				if (names[i] == s)
+					return i;
+			}
+
+			return -1;
+		}
+
 
 		public bool ResetValuesOnFreeze
 		{
@@ -18,12 +72,6 @@
 		{
 			get { return resetCountersOnThaw_; }
 			set { resetCountersOnThaw_ = value; }
-		}
-
-		public bool VerboseLog
-		{
-			get { return verboseLog_; }
-			set { verboseLog_ = value; }
 		}
 
 		public bool PickAnimatable
@@ -38,13 +86,24 @@
 			set { overlapTime_ = value; }
 		}
 
+		public int LogLevel
+		{
+			get { return logLevel_; }
+			set { logLevel_ = value; }
+		}
+
+		public bool LogOverlap
+		{
+			get { return logOverlap_; }
+			set { logOverlap_ = value; }
+		}
+
 		public J.Node ToJSON()
 		{
 			var o = new J.Object();
 
 			o.Add("resetValuesOnFreeze", resetValuesOnFreeze_);
 			o.Add("resetCountersOnThaw", resetCountersOnThaw_);
-			o.Add("verboseLog", verboseLog_);
 			o.Add("overlapTime", overlapTime_);
 
 			return o;
@@ -58,7 +117,6 @@
 
 			o.Opt("resetValuesOnFreeze", ref resetValuesOnFreeze_);
 			o.Opt("resetCountersOnThaw", ref resetCountersOnThaw_);
-			o.Opt("verboseLog", ref verboseLog_);
 			o.Opt("overlapTime", ref overlapTime_);
 
 			return true;

@@ -187,6 +187,12 @@ namespace Synergy
 			get { return modifiers_; }
 		}
 
+		public List<ModifierContainer> EnabledModifiers
+		{
+			get { return enabledModifiers_; }
+		}
+
+
 		public IDuration Duration
 		{
 			get
@@ -408,7 +414,12 @@ namespace Synergy
 			}
 		}
 
-		private void GatherEnabledModifiers()
+		public void ForceGatherEnabledModifiers()
+		{
+			GatherEnabledModifiers(false);
+		}
+
+		private void GatherEnabledModifiers(bool resetDisabled=true)
 		{
 			enabledModifiers_.Clear();
 
@@ -419,7 +430,7 @@ namespace Synergy
 
 				if (m.Enabled)
 					enabledModifiers_.Add(m);
-				else
+				else if (resetDisabled)
 					m.Modifier.Reset();
 			}
 		}

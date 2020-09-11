@@ -65,6 +65,8 @@ namespace Synergy
 		private readonly Checkbox active_;
 		private readonly Checkbox enabled_;
 		private readonly Checkbox paused_;
+		private readonly Button forceCheckEnabled_;
+		private readonly Button forceRun_;
 		private IDurationMonitor duration_ = null;
 		private readonly RandomizableTimeMonitorWidgets repeat_;
 		private DelayMonitor delay_;
@@ -84,6 +86,9 @@ namespace Synergy
 			active_ = new Checkbox("Active");
 			enabled_ = new Checkbox("Step enabled");
 			paused_ = new Checkbox("Step paused");
+			forceCheckEnabled_ = new Button(
+				"Force recheck modifiers", ForceCheckEnabled);
+			forceRun_ = new Button("Force run this step", ForceRunThis);
 			repeat_ = new RandomizableTimeMonitorWidgets("Repeat");
 			delay_ = new DelayMonitor();
 			osActive_ = new Label();
@@ -118,6 +123,8 @@ namespace Synergy
 			widgets_.AddToUI(active_);
 			widgets_.AddToUI(enabled_);
 			widgets_.AddToUI(paused_);
+			widgets_.AddToUI(forceCheckEnabled_);
+			widgets_.AddToUI(forceRun_);
 
 			if (duration_ != null)
 				duration_.AddToUI(currentStep_.Duration);
@@ -149,10 +156,18 @@ namespace Synergy
 		public void Update()
 		{
 			var runningStep = Synergy.Instance.Manager.CurrentStep;
+
 			if (runningStep == null)
-				runningStep_.Text = "Step running: (none)";
+			{
+				runningStep_.Text = "(Step running: none)";
+			}
 			else
-				runningStep_.Text = "Step running: " + runningStep.Name;
+			{
+				runningStep_.Text =
+					"(Step running: " + runningStep.Name + ", " +
+					runningStep.EnabledModifiers.Count.ToString() + "/" +
+					runningStep.Modifiers.Count.ToString() + " m)";
+			}
 
 			if (currentStep_ == null)
 			{
@@ -189,21 +204,37 @@ namespace Synergy
 
 				osActive_.Text = "Active: " +
 					"i=" + t.orderIndex.ToString() + " " +
-					"fwd=" + t.forwards.ToString() + " " +
-					"o1=" + t.order1.ToString() + " " +
-					"wait=" + t.mustWait.ToString();
+					(t.forwards ? "fw" : "bw") + " " +
+					(t.order1 ? "o1" : "o2") + " " +
+					(t.mustWait ? "wait" : "");
 
 				t = os.OverlapTick;
 
 				osOverlap_.Text = "Overlap: " +
 					"i=" + t.orderIndex.ToString() + " " +
-					"fwd=" + t.forwards.ToString() + " " +
-					"o1=" + t.order1.ToString() + " " +
-					"wait=" + t.mustWait.ToString();
+					(t.forwards ? "fw" : "bw") + " " +
+					(t.order1 ? "o1" : "o2") + " " +
+					(t.mustWait ? "wait" : "");
 			}
 
 			if (modifierMonitor_ != null)
 				modifierMonitor_.Update();
+		}
+
+		public void ForceCheckEnabled()
+		{
+			if (currentStep_ == null)
+				return;
+
+			currentStep_.ForceGatherEnabledModifiers();
+		}
+
+		public void ForceRunThis()
+		{
+			if (currentStep_ == null)
+				return;
+
+			Synergy.Instance.Manager.StepProgression.ForceRun(currentStep_);
 		}
 
 		private IModifierMonitor CreateModifierMonitor(IModifier m)

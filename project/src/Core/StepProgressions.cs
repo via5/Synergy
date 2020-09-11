@@ -13,6 +13,7 @@ namespace Synergy
 		void StepInserted(int at, Step s);
 		void StepDeleted(int at);
 		bool IsStepActive(Step s);
+		void ForceRun(Step s);
 	}
 
 	sealed class StepProgressionFactory : BasicFactory<IStepProgression>
@@ -77,6 +78,11 @@ namespace Synergy
 				s.Reset();
 		}
 
+		public virtual void ForceRun(Step s)
+		{
+			// no-op
+		}
+
 		protected List<Step> Steps
 		{
 			get { return manager_.Steps; }
@@ -89,9 +95,6 @@ namespace Synergy
 
 	abstract class OrderedStepProgression : BasicStepProgression
 	{
-		private List<int> order1_ = new List<int>();
-		private List<int> order2_ = new List<int>();
-
 		public class TickInfo
 		{
 			public int orderIndex;
@@ -116,8 +119,12 @@ namespace Synergy
 			}
 		}
 
+
+		private List<int> order1_ = new List<int>();
+		private List<int> order2_ = new List<int>();
 		private TickInfo active_ = new TickInfo();
 		private TickInfo overlap_ = new TickInfo();
+
 
 		public override Step Current
 		{
@@ -169,6 +176,31 @@ namespace Synergy
 			return Steps[stepIndex];
 		}
 
+		public override void ForceRun(Step s)
+		{
+			order1_ = Regenerate(null, Steps.Count);
+			order2_ = new List<int>();
+
+			active_ = new TickInfo();
+			overlap_ = new TickInfo();
+
+			for (int i = 0; i < order1_.Count; ++i)
+			{
+				var ss = GetStep(i, true);
+				ss.Reset();
+
+				if (ss == s)
+					active_.orderIndex = i;
+			}
+
+			if (active_.orderIndex == -1)
+			{
+				Synergy.LogError($"step {s.Name} not found");
+				return;
+			}
+
+			s.Resume();
+		}
 
 		public override void Tick(float deltaTime)
 		{
@@ -513,6 +545,7 @@ namespace Synergy
 							$"i={active_.orderIndex}, must wait (bw)");
 
 						overlap_.mustWait = true;
+						break;
 					}
 					else
 					{

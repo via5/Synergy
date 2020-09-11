@@ -14,6 +14,8 @@ namespace Synergy
 		string Name { get; }
 		FloatRange PreferredRange { get; }
 		IModifierSync ModifierSync { get; }
+		int TickCalls { get; }
+		int SetCalls { get; }
 
 		IModifier Clone(int cloneFlags = 0);
 
@@ -65,6 +67,8 @@ namespace Synergy
 
 		private string loadedUdn_ = null;
 		private IModifierSync loadedSync_ = null;
+		private int tickCalls_ = 0;
+		private int setCalls_ = 0;
 
 		public ModifierContainer ParentContainer
 		{
@@ -105,6 +109,16 @@ namespace Synergy
 					return (i + 1).ToString() + ") " + MakeName();
 				}
 			}
+		}
+
+		public int TickCalls
+		{
+			get { return tickCalls_; }
+		}
+
+		public int SetCalls
+		{
+			get { return setCalls_; }
 		}
 
 		public virtual bool Finished
@@ -150,6 +164,8 @@ namespace Synergy
 
 		public void Tick(float deltaTime, float stepProgress, bool stepFirstHalf)
 		{
+			++tickCalls_;
+
 			if (ModifierSync == null)
 				return;
 
@@ -186,6 +202,7 @@ namespace Synergy
 
 		public void Set(bool paused)
 		{
+			++setCalls_;
 			DoSet(paused);
 		}
 

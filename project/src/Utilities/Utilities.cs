@@ -96,6 +96,8 @@ namespace Synergy
 			return new FloatRange(min, max);
 		}
 
+		private static float lastErrorTime_ = 0;
+		private static int errorCount_ = 0;
 
 		public static void Handler(Action a)
 		{
@@ -105,7 +107,28 @@ namespace Synergy
 			}
 			catch (Exception e)
 			{
-				Synergy.LogError(e.ToString());
+				SuperController.LogError(e.ToString());
+
+				var now = Time.realtimeSinceStartup;
+
+				if (now - lastErrorTime_ < 1)
+				{
+					++errorCount_;
+					if (errorCount_ > 5)
+					{
+						SuperController.LogError(
+							"more than 5 errors in the last second, " +
+							"disabling plugin");
+
+						Synergy.Instance.enabledJSON.val = false;
+					}
+				}
+				else
+				{
+					errorCount_ = 0;
+				}
+
+				lastErrorTime_ = now;
 			}
 		}
 

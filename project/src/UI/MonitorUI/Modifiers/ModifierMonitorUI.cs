@@ -12,12 +12,14 @@
 	abstract class BasicModifierMonitor : IModifierMonitor
 	{
 		protected readonly WidgetList widgets_ = new WidgetList();
+		private readonly Label calls_;
 		private IModifierSyncMonitor syncMonitor_ = null;
 
 		private IModifier modifier_ = null;
 
 		public BasicModifierMonitor()
 		{
+			calls_ = new Label("", Widget.Right);
 		}
 
 		public abstract string ModifierType { get; }
@@ -25,6 +27,8 @@
 		public virtual void AddToUI(IModifier m)
 		{
 			modifier_ = m;
+
+			widgets_.AddToUI(calls_);
 
 			if (m?.ModifierSync == null)
 			{
@@ -54,6 +58,12 @@
 
 		public virtual void Update()
 		{
+			calls_.Text =
+				"Ticks: " +
+				(modifier_?.TickCalls.ToString() ?? "-") + " " +
+				"Sets: " +
+				(modifier_?.SetCalls.ToString() ?? "-");
+
 			if (syncMonitor_ != null)
 				syncMonitor_.Update();
 		}
