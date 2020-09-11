@@ -369,10 +369,12 @@ namespace Synergy
 
 
 			var list = new StorableParameterFactory().GetAllDisplayNames();
+			list.Insert(0, "Plugin actions");
 			list.Insert(0, "All (very slow)");
 			types_.DisplayChoices = list;
 
 			list = new StorableParameterFactory().GetAllFactoryTypeNames();
+			list.Insert(0, "plugin_action");
 			list.Insert(0, "");
 			types_.Choices = list;
 
@@ -467,6 +469,16 @@ namespace Synergy
 				{
 					list = a.GetStorableIDs();
 				}
+				else if (types_.Value == "plugin_action")
+				{
+					list = new List<string>();
+
+					foreach (var id in a.GetStorableIDs())
+					{
+						if (id.StartsWith("plugin#"))
+							list.Add(id);
+					}
+				}
 				else
 				{
 					var p = new StorableParameterFactory().Create(types_.Value);
@@ -499,6 +511,11 @@ namespace Synergy
 				if (types_.Value == "")
 				{
 					list = s.GetAllParamAndActionNames();
+				}
+				else if (types_.Value == "plugin_action")
+				{
+					list = new List<string>(
+						new ActionStorableParameter().GetParameterNames(s));
 				}
 				else
 				{
