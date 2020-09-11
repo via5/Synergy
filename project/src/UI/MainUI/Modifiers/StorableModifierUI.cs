@@ -344,6 +344,8 @@ namespace Synergy
 			get { return StorableModifier.FactoryTypeName; }
 		}
 
+		private const string PluginSuffix = "_plugins";
+
 		private StorableModifier modifier_ = null;
 		private readonly StringList types_;
 		private readonly StringList storables_;
@@ -369,16 +371,36 @@ namespace Synergy
 
 
 			var list = new StorableParameterFactory().GetAllDisplayNames();
-			list.Insert(0, "Plugin actions");
-			list.Insert(0, "All (very slow)");
-			types_.DisplayChoices = list;
+
+			var names = new List<string>();
+
+			names.Add("All (plugins only)");
+			foreach (var s in list)
+				names.Add(s + " (plugins only)");
+
+			foreach (var s in list)
+				names.Add(s);
+
+			names.Add("All (very slow)");
+			types_.DisplayChoices = names;
+
+
 
 			list = new StorableParameterFactory().GetAllFactoryTypeNames();
-			list.Insert(0, "plugin_action");
-			list.Insert(0, "");
-			types_.Choices = list;
 
-			types_.Value = "float";
+			var types = new List<string>();
+
+			types.Add(PluginSuffix);
+			foreach (var s in list)
+				types.Add(s + PluginSuffix);
+
+			foreach (var s in list)
+				types.Add(s);
+
+			types.Add("");
+			types_.Choices = types;
+
+			types_.Value = "float" + PluginSuffix;
 		}
 
 		public override void DeferredInit()
@@ -471,27 +493,32 @@ namespace Synergy
 
 			if (a != null)
 			{
-				if (types_.Value == "")
-				{
-					list = a.GetStorableIDs();
-				}
-				else if (types_.Value == "plugin_action")
-				{
-					list = new List<string>();
+				string type = types_.Value;
+				bool pluginsOnly = false;
 
+				if (type.EndsWith(PluginSuffix))
+				{
+					type = type.Substring(0, type.Length - PluginSuffix.Length);
+					pluginsOnly = true;
+				}
+
+				list = new List<string>();
+
+				if (type == "")
+				{
 					foreach (var id in a.GetStorableIDs())
 					{
-						if (id.StartsWith("plugin#"))
+						if (!pluginsOnly || Utilities.StorableIsPlugin(id))
 							list.Add(id);
 					}
 				}
 				else
 				{
-					var p = new StorableParameterFactory().Create(types_.Value);
+					var p = new StorableParameterFactory().Create(type);
 					if (p == null)
-						Synergy.LogError($"unknown type {types_.Value}");
+						Synergy.LogError($"unknown type {type}");
 					else
-						list = new List<string>(p.GetStorableNames(a));
+						list = new List<string>(p.GetStorableNames(a, pluginsOnly));
 				}
 			}
 
@@ -514,18 +541,18 @@ namespace Synergy
 			var s = modifier_?.Storable;
 			if (s != null)
 			{
-				if (types_.Value == "")
+				string type = types_.Value;
+
+				if (type.EndsWith(PluginSuffix))
+					type = type.Substring(0, type.Length - PluginSuffix.Length);
+
+				if (type == "")
 				{
 					list = s.GetAllParamAndActionNames();
 				}
-				else if (types_.Value == "plugin_action")
-				{
-					list = new List<string>(
-						new ActionStorableParameter().GetParameterNames(s));
-				}
 				else
 				{
-					var p = new StorableParameterFactory().Create(types_.Value);
+					var p = new StorableParameterFactory().Create(type);
 					if (p == null)
 						Synergy.LogError($"unknown type {types_.Value}");
 					else

@@ -12,6 +12,7 @@ namespace Synergy
 		void Removed();
 		void StepInserted(int at, Step s);
 		void StepDeleted(int at);
+		bool IsStepRunning(Step s);
 		bool IsStepActive(Step s);
 		void ForceRun(Step s);
 	}
@@ -55,6 +56,8 @@ namespace Synergy
 
 		public abstract Step Current { get; }
 		public abstract void Tick(float deltaTime);
+
+		public abstract bool IsStepRunning(Step s);
 		public abstract bool IsStepActive(Step s);
 
 		public virtual void Removed()
@@ -676,6 +679,23 @@ namespace Synergy
 				$"removed from list, now has {list.Count} elements");
 		}
 
+		public override bool IsStepRunning(Step s)
+		{
+			if (active_.orderIndex != -1)
+			{
+				if (GetStep(active_.orderIndex, true) == s)
+					return true;
+			}
+
+			if (overlap_.orderIndex != -1)
+			{
+				if (GetStep(overlap_.orderIndex, overlap_.order1) == s)
+					return true;
+			}
+
+			return false;
+		}
+
 		public override bool IsStepActive(Step s)
 		{
 			for (int i=0; i<=active_.orderIndex; ++i)
@@ -784,6 +804,11 @@ namespace Synergy
 
 			foreach (var s in Steps)
 				s.Resume();
+		}
+
+		public override bool IsStepRunning(Step s)
+		{
+			return true;
 		}
 
 		public override bool IsStepActive(Step s)

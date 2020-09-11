@@ -135,6 +135,16 @@ namespace Synergy
 			return true;
 		}
 
+		// whether `s` is currently running, including overlap
+		//
+		public bool IsStepRunning(Step s)
+		{
+			if (StepProgression == null)
+				return false;
+			else
+				return StepProgression.IsStepRunning(s);
+		}
+
 		// whether `s` or a step later in the order is currently executing
 		//
 		public bool IsStepActive(Step s)
@@ -164,8 +174,8 @@ namespace Synergy
 			{
 				bool paused = false;
 
-				if (current != null && current != s)
-					paused = true;
+				if (StepProgression != null)
+					paused = !StepProgression.IsStepRunning(s);
 
 				s.Set(paused);
 			}

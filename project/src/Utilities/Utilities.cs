@@ -351,6 +351,21 @@ namespace Synergy
 			return cm.GetClip(uid);
 		}
 
+		public static void NatSort(List<string> list)
+		{
+			list.Sort(new NaturalStringComparer());
+		}
+
+		public static bool StorableIsPlugin(string storableId)
+		{
+			return storableId.StartsWith("plugin#");
+		}
+
+		public static bool StorableIsPlugin(JSONStorable s)
+		{
+			return StorableIsPlugin(s.storeId);
+		}
+
 		private static GenerateDAZMorphsControlUI GetMUI(Atom atom)
 		{
 			if (atom == null)
@@ -361,11 +376,6 @@ namespace Synergy
 				return null;
 
 			return cs.morphsControlUI;
-		}
-
-		public static void NatSort(List<string> list)
-		{
-			list.Sort(new NaturalStringComparer());
 		}
 	}
 

@@ -472,21 +472,52 @@ namespace Synergy
 
 		public override float GetProgress(IModifier m, float stepProgress, bool stepForwards)
 		{
-			if (m?.ParentStep == null)
+			var d = m?.ParentStep?.Duration;
+			if (d == null)
 				return 1.0f;
 
-			if (m.ParentStep.InFirstHalfTotal)
-				return m.ParentStep.TotalProgress;
+			if (d is RandomDuration)
+			{
+				var rd = d as RandomDuration;
+
+				if (rd.Time.Current == 0)
+					return 0;
+
+				return rd.Time.Elapsed /rd.Time.Current;
+			}
+			else if (d is RampDuration)
+			{
+				if (m.ParentStep.InFirstHalfTotal)
+					return m.ParentStep.TotalProgress;
+				else
+					return 1 - m.ParentStep.TotalProgress;
+			}
 			else
-				return 1 - m.ParentStep.TotalProgress;
+			{
+				Synergy.LogError("GetProgress: unknown duration type");
+				return 1.0f;
+			}
 		}
 
 		public override bool IsInFirstHalf(IModifier m, float stepProgress, bool stepForwards)
 		{
-			if (m?.ParentStep == null)
+			var d = m?.ParentStep?.Duration;
+			if (d == null)
 				return false;
 
-			return m.ParentStep.InFirstHalfTotal;
+			if (d is RandomDuration)
+			{
+				return true;
+			}
+			else if (d is RampDuration)
+			{
+				return m.ParentStep.InFirstHalfTotal;
+			}
+			else
+			{
+				Synergy.LogError("IsInFirstHalf: unknown duration type");
+				return true;
+			}
 		}
 
 		public override void Reset()

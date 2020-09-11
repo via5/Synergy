@@ -15,7 +15,7 @@ namespace Synergy
 		void Tick(float deltaTime, float progress, bool firstHalf);
 		void Set(float magnitude, float normalizedMagnitude);
 		void Reset();
-		IEnumerable<string> GetStorableNames(Atom a);
+		IEnumerable<string> GetStorableNames(Atom a, bool pluginsOnly);
 		IEnumerable<string> GetParameterNames(JSONStorable s);
 		void PostLoad(JSONStorable s);
 	}
@@ -99,7 +99,7 @@ namespace Synergy
 		public abstract void Set(float magnitude, float normalizedMagnitude);
 		public abstract void Reset();
 
-		public abstract IEnumerable<string> GetStorableNames(Atom a);
+		public abstract IEnumerable<string> GetStorableNames(Atom a, bool pluginsOnly);
 		public abstract IEnumerable<string> GetParameterNames(JSONStorable s);
 
 		public abstract void PostLoad(JSONStorable s);
@@ -208,24 +208,27 @@ namespace Synergy
 		public override void Set(float magnitude, float normalizedMagnitude)
 		{
 			if (Parameter != null)
-				Parameter.valNoCallback = magnitude;
+				Parameter.val = magnitude;
 		}
 
 		public override void Reset()
 		{
 			if (Parameter != null)
-				Parameter.valNoCallback = Parameter.defaultVal;
+				Parameter.val = Parameter.defaultVal;
 		}
 
-		public override IEnumerable<string> GetStorableNames(Atom a)
+		public override IEnumerable<string> GetStorableNames(Atom a, bool pluginsOnly)
 		{
 			if (a != null)
 			{
 				foreach (var id in a.GetStorableIDs())
 				{
-					var s = a.GetStorableByID(id);
-					if (s.GetFloatParamNames().Count > 0)
-						yield return id;
+					if (!pluginsOnly || Utilities.StorableIsPlugin(id))
+					{
+						var s = a.GetStorableByID(id);
+						if (s.GetFloatParamNames().Count > 0)
+							yield return id;
+					}
 				}
 			}
 		}
@@ -271,15 +274,18 @@ namespace Synergy
 				Parameter.valNoCallback = Parameter.defaultVal;
 		}
 
-		public override IEnumerable<string> GetStorableNames(Atom a)
+		public override IEnumerable<string> GetStorableNames(Atom a, bool pluginsOnly)
 		{
 			if (a != null)
 			{
 				foreach (var id in a.GetStorableIDs())
 				{
-					var s = a.GetStorableByID(id);
-					if (s.GetBoolParamNames().Count > 0)
-						yield return id;
+					if (!pluginsOnly || Utilities.StorableIsPlugin(id))
+					{
+						var s = a.GetStorableByID(id);
+						if (s.GetBoolParamNames().Count > 0)
+							yield return id;
+					}
 				}
 			}
 		}
@@ -360,15 +366,18 @@ namespace Synergy
 				Parameter.SetValToDefault();
 		}
 
-		public override IEnumerable<string> GetStorableNames(Atom a)
+		public override IEnumerable<string> GetStorableNames(Atom a, bool pluginsOnly)
 		{
 			if (a != null)
 			{
 				foreach (var id in a.GetStorableIDs())
 				{
-					var s = a.GetStorableByID(id);
-					if (s.GetColorParamNames().Count > 0)
-						yield return id;
+					if (!pluginsOnly || Utilities.StorableIsPlugin(id))
+					{
+						var s = a.GetStorableByID(id);
+						if (s.GetColorParamNames().Count > 0)
+							yield return id;
+					}
 				}
 			}
 		}
@@ -475,15 +484,18 @@ namespace Synergy
 			// no-op
 		}
 
-		public override IEnumerable<string> GetStorableNames(Atom a)
+		public override IEnumerable<string> GetStorableNames(Atom a, bool pluginsOnly)
 		{
 			if (a != null)
 			{
 				foreach (var id in a.GetStorableIDs())
 				{
-					var s = a.GetStorableByID(id);
-					if (s.GetStringParamNames().Count > 0)
-						yield return id;
+					if (!pluginsOnly || Utilities.StorableIsPlugin(id))
+					{
+						var s = a.GetStorableByID(id);
+						if (s.GetStringParamNames().Count > 0)
+							yield return id;
+					}
 				}
 			}
 		}
@@ -539,15 +551,18 @@ namespace Synergy
 			return p;
 		}
 
-		public override IEnumerable<string> GetStorableNames(Atom a)
+		public override IEnumerable<string> GetStorableNames(Atom a, bool pluginsOnly)
 		{
 			if (a != null)
 			{
 				foreach (var id in a.GetStorableIDs())
 				{
-					var s = a.GetStorableByID(id);
-					if (s.GetUrlParamNames().Count > 0)
-						yield return id;
+					if (!pluginsOnly || Utilities.StorableIsPlugin(id))
+					{
+						var s = a.GetStorableByID(id);
+						if (s.GetUrlParamNames().Count > 0)
+							yield return id;
+					}
 				}
 			}
 		}
@@ -732,15 +747,18 @@ namespace Synergy
 		{
 		}
 
-		public override IEnumerable<string> GetStorableNames(Atom a)
+		public override IEnumerable<string> GetStorableNames(Atom a, bool pluginsOnly)
 		{
 			if (a != null)
 			{
 				foreach (var id in a.GetStorableIDs())
 				{
-					var s = a.GetStorableByID(id);
-					if (s.GetActionNames().Count > 0)
-						yield return id;
+					if (!pluginsOnly || Utilities.StorableIsPlugin(id))
+					{
+						var s = a.GetStorableByID(id);
+						if (s.GetActionNames().Count > 0)
+							yield return id;
+					}
 				}
 			}
 		}
@@ -823,7 +841,6 @@ namespace Synergy
 
 
 		public StorableModifier()
-			: this(null, null, null)
 		{
 		}
 
