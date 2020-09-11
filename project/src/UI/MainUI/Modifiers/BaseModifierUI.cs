@@ -11,6 +11,7 @@ namespace Synergy
 		string ModifierType { get; }
 		void PluginEnabled(bool b);
 		void Update();
+		void DeferredInit();
 	}
 
 	abstract class BasicSpecificModifierUI : ISpecificModifierUI
@@ -46,6 +47,11 @@ namespace Synergy
 		}
 
 		public virtual void Update()
+		{
+			// no-op
+		}
+
+		public virtual void DeferredInit()
 		{
 			// no-op
 		}

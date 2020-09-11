@@ -381,6 +381,12 @@ namespace Synergy
 			types_.Value = "float";
 		}
 
+		public override void DeferredInit()
+		{
+			storables_.Value = modifier_?.Storable?.storeId ?? "";
+			parameters_.Value = modifier_?.Parameter?.Name ?? "";
+		}
+
 		public override void AddToTopUI(IModifier m)
 		{
 			if (modifier_ != m)

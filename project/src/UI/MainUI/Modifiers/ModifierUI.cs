@@ -68,6 +68,12 @@ namespace Synergy
 				specificUI_.Update();
 		}
 
+		public void DeferredInit()
+		{
+			if (specificUI_ != null)
+				specificUI_.DeferredInit();
+		}
+
 		public void AddToUI(ModifierContainer sm)
 		{
 			ListenForModifierEvents(sm?.Modifier);

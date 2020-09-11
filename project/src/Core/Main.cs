@@ -1,5 +1,6 @@
 using SimpleJSON;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -16,6 +17,10 @@ namespace Synergy
 		private readonly TimerManager timers_ = new TimerManager();
 		private MainUI ui_ = null;
 		private List<IParameter> parameters_ = new List<IParameter>();
+
+		private bool deferredInitDone_ = false;
+		private bool deferredUIDone_ = false;
+
 
 		public Synergy()
 		{
@@ -49,9 +54,12 @@ namespace Synergy
 
 		public void Start()
 		{
+			deferredInitDone_ = false;
+			deferredUIDone_ = false;
+
 			Utilities.Handler(() =>
 			{
-				LogError("===starting===");
+				//LogError("===starting===");
 
 				RegisterString(new JSONStorableString("dummy", ""));
 				SetStringParamValue("dummy", "dummy");
@@ -67,55 +75,65 @@ namespace Synergy
 			});
 		}
 
+		public override void Init()
+		{
+			base.Init();
+			SuperController.singleton.StartCoroutine(DeferredInit());
+		}
+
+		private IEnumerator DeferredInit()
+		{
+			yield return new WaitForEndOfFrame();
+
+			if (this == null)
+				yield break;
+
+			while (SuperController.singleton.isLoading)
+			{
+				yield return 0;
+				if (this == null)
+					yield break;
+			}
+
+			manager_.DeferredInit();
+			deferredInitDone_ = true;
+		}
+
 		private void CreateTestStuff(Atom a)
 		{
+			//options_.OverlapTime = 0;
+			/*
 			var s = new Step();
-			s.Duration = new RandomDuration(3);
-
-			var m = new RigidbodyModifier(a, "head");
-			m.Movement.Maximum = new RandomizableFloat(100, 0);
-			s.HalfMove = true;
-			s.AddModifier(new ModifierContainer(m));//, new UnsyncedModifier(new RandomDuration(1))));
-
-			manager_.AddStep(s);
+			s.Duration = new RampDuration(1, 0.3f, 10, 5);
 
 
-			s = new Step();
-			s.Duration = new RandomDuration(3);
+			var sm = new StorableModifier(
+				a, "plugin#2_MacGruber.Breathing", "QueueOrgasm");
 
-			m = new RigidbodyModifier(a, "rHand");
-			m.Direction = new Vector3(0, 1, 0);
-			m.Movement.Maximum = new RandomizableFloat(100, 0);
+			sm.Movement = new Movement(0, 1);
 
-			s.AddModifier(new ModifierContainer(m));
+			((ActionStorableParameter)sm.Parameter).TriggerType =
+				ActionStorableParameter.TriggerDown;
 
-			manager_.AddStep(s);
-
-
-
-			s = new Step();
-			s.Duration = new RandomDuration(3);
-
-			m = new RigidbodyModifier(a, "lHand");
-			m.Direction = new Vector3(0, 1, 0);
-			m.Movement.Maximum = new RandomizableFloat(100, 0);
-
-			s.AddModifier(new ModifierContainer(m));
-
-			manager_.AddStep(s);
+			s.AddModifier(new ModifierContainer(
+				sm, new StepProgressSyncedModifier()));
 
 
+			sm = new StorableModifier(
+				a, "plugin#2_MacGruber.Breathing", "Intensity");
 
-			s = new Step();
-			s.Duration = new RandomDuration(3);
+			sm.Movement = new Movement(0.5f, 1);
 
-			m = new RigidbodyModifier(a, "hip");
+			s.AddModifier(new ModifierContainer(
+				sm, new StepProgressSyncedModifier()));
+
+
+			var m = new RigidbodyModifier(a, "hip");
+			m.Movement = new Movement(0, 150);
 			m.Direction = new Vector3(0, 0, 1);
-			m.Movement.Maximum = new RandomizableFloat(100, 0);
-
 			s.AddModifier(new ModifierContainer(m));
 
-			manager_.AddStep(s);
+			manager_.AddStep(s);*/
 		}
 
 		public Timer CreateTimer(float seconds, Timer.Callback f)
@@ -262,6 +280,12 @@ namespace Synergy
 
 			Utilities.Handler(() =>
 			{
+				if (deferredInitDone_ && !deferredUIDone_)
+				{
+					ui_.DeferredInit();
+					deferredUIDone_ = true;
+				}
+
 				timers_.CheckTimers();
 				ui_.Update();
 			});

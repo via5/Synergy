@@ -17,6 +17,7 @@ namespace Synergy
 		void Reset();
 		IEnumerable<string> GetStorableNames(Atom a);
 		IEnumerable<string> GetParameterNames(JSONStorable s);
+		void PostLoad(JSONStorable s);
 	}
 
 
@@ -76,12 +77,12 @@ namespace Synergy
 
 		public abstract string Name { get; }
 
-		public J.Node ToJSON()
+		public virtual J.Node ToJSON()
 		{
 			return new J.Object();
 		}
 
-		public bool FromJSON(J.Node n)
+		public virtual bool FromJSON(J.Node n)
 		{
 			return true;
 		}
@@ -100,6 +101,8 @@ namespace Synergy
 
 		public abstract IEnumerable<string> GetStorableNames(Atom a);
 		public abstract IEnumerable<string> GetParameterNames(JSONStorable s);
+
+		public abstract void PostLoad(JSONStorable s);
 	}
 
 
@@ -107,6 +110,7 @@ namespace Synergy
 		where T : JSONStorableParam
 	{
 		private T param_ = null;
+		private string paramName_ = null;
 
 		protected ParamDerivedStorableParameter(JSONStorableParam p = null)
 		{
@@ -127,6 +131,44 @@ namespace Synergy
 		public T Parameter
 		{
 			get { return param_; }
+		}
+
+		public override J.Node ToJSON()
+		{
+			var o = base.ToJSON().AsObject();
+
+			if (param_ != null)
+				o.Add("param", param_.name);
+
+			return o;
+		}
+
+		public override bool FromJSON(J.Node n)
+		{
+			if (!base.FromJSON(n))
+				return false;
+
+			var o = n.AsObject("ParamDerivedStorableParameter");
+			if (o == null)
+				return false;
+
+			o.Opt("param", ref paramName_);
+
+			return true;
+		}
+
+		public override void PostLoad(JSONStorable s)
+		{
+			param_ = s.GetParam(paramName_) as T;
+
+			if (param_ == null)
+			{
+				Synergy.LogError(
+					$"PostLoad: param name {paramName_} not in " +
+					$"storable {s.storeId}");
+			}
+
+			paramName_ = null;
 		}
 	}
 
@@ -336,6 +378,31 @@ namespace Synergy
 			foreach (var n in s.GetColorParamNames())
 				yield return n;
 		}
+
+		public override J.Node ToJSON()
+		{
+			var o = base.ToJSON().AsObject();
+
+			o.Add("color1", c1_);
+			o.Add("color2", c2_);
+
+			return o;
+		}
+
+		public override bool FromJSON(J.Node n)
+		{
+			if (!base.FromJSON(n))
+				return false;
+
+			var o = n.AsObject("ColorStorableParameter");
+			if (o == null)
+				return false;
+
+			o.Opt("color1", ref c1_);
+			o.Opt("color2", ref c2_);
+
+			return true;
+		}
 	}
 
 
@@ -425,6 +492,29 @@ namespace Synergy
 		{
 			foreach (var n in s.GetStringParamNames())
 				yield return n;
+		}
+
+		public override J.Node ToJSON()
+		{
+			var o = base.ToJSON().AsObject();
+
+			o.Add("strings", strings_);
+
+			return o;
+		}
+
+		public override bool FromJSON(J.Node n)
+		{
+			if (!base.FromJSON(n))
+				return false;
+
+			var o = n.AsObject("StringStorableParameter");
+			if (o == null)
+				return false;
+
+			o.Opt("strings", ref strings_);
+
+			return true;
 		}
 	}
 
@@ -527,6 +617,8 @@ namespace Synergy
 		private int triggerType_ = TriggerUp;
 
 		private JSONStorableAction param_ = null;
+		private string paramName_ = null;
+
 		private bool active_ = false;
 		private bool goingUp_ = true;
 		private int currentState_ = StateNone;
@@ -667,6 +759,52 @@ namespace Synergy
 				currentState_ = i;
 			}
 		}
+
+		public override void PostLoad(JSONStorable s)
+		{
+			if (!string.IsNullOrEmpty(paramName_))
+			{
+				param_ = s.GetAction(paramName_);
+
+				if (param_ == null)
+				{
+					Synergy.LogError(
+						$"PostLoad: action name {paramName_} not in " +
+						$"storable {s.storeId}");
+				}
+
+				paramName_ = null;
+			}
+		}
+
+		public override J.Node ToJSON()
+		{
+			var o = base.ToJSON().AsObject();
+
+			o.Add("triggerMag", triggerMag_);
+			o.Add("triggerType", triggerType_);
+
+			if (param_ != null)
+				o.Add("param", param_.name);
+
+			return o;
+		}
+
+		public override bool FromJSON(J.Node n)
+		{
+			if (!base.FromJSON(n))
+				return false;
+
+			var o = n.AsObject("ActionStorableParameter");
+			if (o == null)
+				return false;
+
+			o.Opt("triggerMag", ref triggerMag_);
+			o.Opt("triggerType", ref triggerType_);
+			o.Opt("param", ref paramName_);
+
+			return true;
+		}
 	}
 
 
@@ -680,6 +818,7 @@ namespace Synergy
 
 
 		private JSONStorable storable_ = null;
+		private string storableId_ = null;
 		private IStorableParameter parameter_ = null;
 
 
@@ -860,9 +999,24 @@ namespace Synergy
 			return s;
 		}
 
+		public override void DeferredInit()
+		{
+			if (storableId_ != null)
+			{
+				SetStorable(storableId_);
+				storableId_ = null;
+			}
+
+			if (parameter_ != null && storable_ != null)
+				parameter_.PostLoad(storable_);
+		}
+
 		public override J.Node ToJSON()
 		{
 			var o = base.ToJSON().AsObject();
+
+			if (storable_ != null)
+				o.Add("storable", storable_.storeId);
 
 			o.Add("parameter", parameter_);
 
@@ -878,8 +1032,31 @@ namespace Synergy
 			if (o == null)
 				return false;
 
+			if (Atom != null)
+			{
+				if (o.HasKey("storable"))
+				{
+					string id = "";
+					o.Opt("storable", ref id);
+
+					if (id != "")
+					{
+						if (J.Node.SaveType == SaveTypes.Preset)
+							SetStorable(id);
+						else
+							storableId_ = id;
+					}
+				}
+			}
+
 			o.Opt<StorableParameterFactory, IStorableParameter>(
 				"parameter", ref parameter_);
+
+			if (parameter_ != null && storable_ != null)
+			{
+				if (J.Node.SaveType == SaveTypes.Preset)
+					parameter_.PostLoad(storable_);
+			}
 
 			return true;
 		}

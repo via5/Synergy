@@ -17,6 +17,7 @@ namespace Synergy
 
 		IModifier Clone(int cloneFlags = 0);
 
+		void DeferredInit();
 		void Resume();
 		void Reset();
 		void Tick(float deltaTime, float progress, bool firstHalf);
@@ -49,6 +50,11 @@ namespace Synergy
 
 		protected BasicModifier()
 		{
+		}
+
+		public virtual void DeferredInit()
+		{
+			// no-op
 		}
 
 		public abstract IModifier Clone(int cloneFlags = 0);

@@ -44,6 +44,11 @@
 			m.enabled_.Value = enabled_.Value;
 		}
 
+		public void DeferredInit()
+		{
+			Modifier?.DeferredInit();
+		}
+
 
 		public Step ParentStep
 		{

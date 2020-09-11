@@ -46,6 +46,12 @@ namespace Synergy
 			Clear();
 		}
 
+		public void DeferredInit()
+		{
+			foreach (var m in modifiers_)
+				m.DeferredInit();
+		}
+
 		public void RelinquishModifiers()
 		{
 			modifiers_ = new List<ModifierContainer>();

@@ -101,6 +101,12 @@ namespace Synergy
 				modifier_.PluginEnabled(b);
 		}
 
+		public void DeferredInit()
+		{
+			if (!inMonitor_)
+				modifier_.DeferredInit();
+		}
+
 		public void NeedsReset(string why)
 		{
 			Synergy.LogVerbose("NeedsReset: " + why);

@@ -170,6 +170,19 @@ namespace Synergy
 				}
 			}
 
+			public void Add(string key, List<string> list)
+			{
+				if (list.Count > 0)
+				{
+					var array = new JSONArray();
+
+					foreach (var s in list)
+						array.Add(s);
+
+					c_?.Add(key, array);
+				}
+			}
+
 			public void Add(string key, string v)
 			{
 				if (!string.IsNullOrEmpty(v))
@@ -237,6 +250,17 @@ namespace Synergy
 				c_?.Add(key, n.Impl);
 			}
 
+			public void Add(string key, Color c)
+			{
+				var o = new J.Object();
+
+				o.Add("r", c.r);
+				o.Add("g", c.g);
+				o.Add("b", c.b);
+				o.Add("a", c.a);
+
+				c_?.Add(key, o.Impl);
+			}
 
 
 			public void Opt<T>(string key, ref List<T> list)
@@ -261,6 +285,24 @@ namespace Synergy
 					if (v.FromJSON(Node.Wrap(n)))
 						list.Add(v);
 				}
+			}
+
+			public void Opt(string key, ref List<string> list)
+			{
+				if (!HasKey(key))
+					return;
+
+				var array = c_[key] as JSONArray;
+				if (array == null)
+				{
+					Synergy.LogError("key '" + key + "' is not an array");
+					return;
+				}
+
+				list.Clear();
+
+				foreach (JSONNode n in array)
+					list.Add(n.ToString());
 			}
 
 			public void Opt(string key, ref bool v)
@@ -350,6 +392,26 @@ namespace Synergy
 						v.Register();
 					}
 				}
+			}
+
+			public void Opt(string key, ref Color c)
+			{
+				if (!HasKey(key))
+					return;
+
+				var node = c_[key] as JSONClass;
+				if (node == null)
+					return;
+
+				var o = Wrap(node);
+				float r = 0, g = 0, b = 0, a = 0;
+
+				o.Opt("r", ref r);
+				o.Opt("g", ref g);
+				o.Opt("b", ref b);
+				o.Opt("a", ref a);
+
+				c = new Color(r, g, b, a);
 			}
 
 			public void Opt(string key, ref float v)

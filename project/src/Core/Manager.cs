@@ -21,6 +21,12 @@ namespace Synergy
 			StepProgression = new SequentialStepProgression();
 		}
 
+		public void DeferredInit()
+		{
+			foreach (var s in steps_)
+				s.DeferredInit();
+		}
+
 		public List<Step> Steps
 		{
 			get
