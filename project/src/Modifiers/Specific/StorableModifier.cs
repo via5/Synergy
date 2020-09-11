@@ -872,7 +872,24 @@ namespace Synergy
 
 		public JSONStorable Storable
 		{
-			get { return storable_; }
+			get
+			{
+				if (storable_ == null)
+					return null;
+
+				try
+				{
+					var s = storable_.name;
+				}
+				catch (NullReferenceException)
+				{
+					Synergy.LogError("storable died");
+					storable_ = null;
+					parameter_ = null;
+				}
+
+				return storable_;
+			}
 		}
 
 		public void SetStorable(string id)
