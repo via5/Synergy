@@ -68,6 +68,10 @@ namespace Synergy
 		private IDurationMonitor duration_ = null;
 		private readonly RandomizableTimeMonitorWidgets repeat_;
 		private DelayMonitor delay_;
+
+		private readonly Label osActive_;
+		private readonly Label osOverlap_;
+
 		private IModifierMonitor modifierMonitor_ = null;
 
 		private Step currentStep_ = null;
@@ -82,6 +86,8 @@ namespace Synergy
 			paused_ = new Checkbox("Step paused");
 			repeat_ = new RandomizableTimeMonitorWidgets("Repeat");
 			delay_ = new DelayMonitor();
+			osActive_ = new Label();
+			osOverlap_ = new Label();
 		}
 
 		public void AddToUI(Step currentStep, IModifier currentModifier)
@@ -121,6 +127,9 @@ namespace Synergy
 
 			foreach (var w in delay_.GetWidgets(currentStep_?.Delay))
 				widgets_.AddToUI(w);
+
+			widgets_.AddToUI(osActive_);
+			widgets_.AddToUI(osOverlap_);
 
 			if (modifierMonitor_ != null)
 				modifierMonitor_.AddToUI(currentModifier);
@@ -167,6 +176,31 @@ namespace Synergy
 				duration_.Update();
 
 			delay_.Update();
+
+			var os = Synergy.Instance.Manager.StepProgression as OrderedStepProgression;
+			if (os == null)
+			{
+				osActive_.Text = "Overlap: n/a";
+				osOverlap_.Text = "Overlap: n/a";
+			}
+			else
+			{
+				var t = os.ActiveTick;
+
+				osActive_.Text = "Active: " +
+					"i=" + t.orderIndex.ToString() + " " +
+					"fwd=" + t.forwards.ToString() + " " +
+					"o1=" + t.order1.ToString() + " " +
+					"wait=" + t.mustWait.ToString();
+
+				t = os.OverlapTick;
+
+				osOverlap_.Text = "Overlap: " +
+					"i=" + t.orderIndex.ToString() + " " +
+					"fwd=" + t.forwards.ToString() + " " +
+					"o1=" + t.order1.ToString() + " " +
+					"wait=" + t.mustWait.ToString();
+			}
 
 			if (modifierMonitor_ != null)
 				modifierMonitor_.Update();

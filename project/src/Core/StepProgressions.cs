@@ -92,7 +92,7 @@ namespace Synergy
 		private List<int> order1_ = new List<int>();
 		private List<int> order2_ = new List<int>();
 
-		class TickInfo
+		public class TickInfo
 		{
 			public int orderIndex;
 			public bool forwards;
@@ -129,6 +129,17 @@ namespace Synergy
 					return GetStep(active_.orderIndex, true);
 			}
 		}
+
+		public TickInfo ActiveTick
+		{
+			get { return new TickInfo(active_); }
+		}
+
+		public TickInfo OverlapTick
+		{
+			get { return new TickInfo(overlap_); }
+		}
+
 
 		protected Step GetStep(int orderIndex, bool order1)
 		{
