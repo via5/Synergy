@@ -12,6 +12,7 @@ namespace Synergy
 		FloatRange PreferredRange { get; }
 		string Name { get; }
 
+		void Tick(float deltaTime, float progress, bool firstHalf);
 		void Set(float magnitude, float normalizedMagnitude);
 		void Reset();
 		IEnumerable<string> GetStorableNames(Atom a);
@@ -87,6 +88,12 @@ namespace Synergy
 
 		public abstract string GetFactoryTypeName();
 		public abstract string GetDisplayName();
+
+		public virtual void Tick(
+			float deltaTime, float progress, bool firstHalf)
+		{
+			// no-op
+		}
 
 		public abstract void Set(float magnitude, float normalizedMagnitude);
 		public abstract void Reset();
@@ -342,7 +349,7 @@ namespace Synergy
 		public override string GetDisplayName() { return DisplayName; }
 
 		private List<string> strings_ = new List<string>();
-		private string last_ = null;
+		private string current_ = null;
 
 		public StringStorableParameter(JSONStorableString p = null)
 			: base(p)
@@ -368,6 +375,11 @@ namespace Synergy
 			set { strings_ = new List<string>(value); }
 		}
 
+		public string Current
+		{
+			get { return current_; }
+		}
+
 		public override void Set(float magnitude, float normalizedMagnitude)
 		{
 			if (Parameter != null)
@@ -383,9 +395,9 @@ namespace Synergy
 
 				var next = strings_[i];
 
-				if (next != last_)
+				if (next != current_)
 				{
-					last_ = next;
+					current_ = next;
 					Parameter.val = next;
 				}
 			}
@@ -466,8 +478,60 @@ namespace Synergy
 		public static string DisplayName { get; } = "Action";
 		public override string GetDisplayName() { return DisplayName; }
 
+
+		public const int TriggerUp = 0x01;
+		public const int TriggerDown = 0x02;
+		public const int TriggerBoth = TriggerUp | TriggerDown;
+
+		public const int StateNone = 0;
+		public const int StateGoingUp = 1;
+		public const int StateGoingDown = 2;
+		public const int StateGoingUpTriggered = 3;
+		public const int StateGoingUpIgnored = 4;
+		public const int StateGoingDownTriggered = 5;
+		public const int StateGoingDownIgnored = 6;
+
+
+		public static List<int> TriggerTypes()
+		{
+			return new List<int>()
+			{
+				TriggerUp, TriggerDown, TriggerBoth
+			};
+		}
+
+		public static List<string> TriggerTypeNames()
+		{
+			var list = new List<string>();
+
+			foreach (var i in TriggerTypes())
+				list.Add(TriggerTypeToString(i));
+
+			return list;
+		}
+
+		public static string TriggerTypeToString(int i)
+		{
+			if (i == TriggerBoth)
+				return "Both";
+			else if (i == TriggerUp)
+				return "Reaching";
+			else if (i == TriggerDown)
+				return "Leaving";
+			else
+				return "None";
+		}
+
+
+		private float triggerMag_ = 1;
+		private int triggerType_ = TriggerUp;
+
 		private JSONStorableAction param_ = null;
 		private bool active_ = false;
+		private bool goingUp_ = true;
+		private int currentState_ = StateNone;
+		private int lastState_ = StateNone;
+
 
 		public ActionStorableParameter(JSONStorableAction p = null)
 		{
@@ -492,21 +556,82 @@ namespace Synergy
 			get { return param_?.name ?? ""; }
 		}
 
+		public float TriggerMagnitude
+		{
+			get { return triggerMag_; }
+			set { triggerMag_ = value; }
+		}
+
+		public int TriggerType
+		{
+			get { return triggerType_; }
+			set { triggerType_ = value; }
+		}
+
+		public int CurrentState
+		{
+			get { return currentState_; }
+		}
+
+		public int LastState
+		{
+			get { return lastState_; }
+		}
+
+		public override void Tick(
+			float deltaTime, float progress, bool firstHalf)
+		{
+			base.Tick(deltaTime, progress, firstHalf);
+			goingUp_ = firstHalf;
+		}
+
 		public override void Set(float magnitude, float normalizedMagnitude)
 		{
-			if (param_ != null)
+			if (param_ == null)
+				return;
+
+			if (Math.Abs(triggerMag_ - magnitude) < 0.01f)
 			{
-				if (Math.Abs(1.0f - magnitude) < 0.01f)
+				if (!active_)
 				{
-					if (!active_)
-					{
-						active_ = true;
-						param_.actionCallback?.Invoke();
-					}
+					active_ = true;
+					MagnitudeReached();
+				}
+			}
+			else
+			{
+				if (active_ && !goingUp_)
+					MagnitudeReached();
+
+				active_ = false;
+				SetState(goingUp_ ? StateGoingUp : StateGoingDown);
+			}
+		}
+
+		private void MagnitudeReached()
+		{
+			if (goingUp_)
+			{
+				if (Bits.IsSet(triggerType_, TriggerUp))
+				{
+					param_.actionCallback?.Invoke();
+					SetState(StateGoingUpTriggered);
 				}
 				else
 				{
-					active_ = false;
+					SetState(StateGoingUpIgnored);
+				}
+			}
+			else
+			{
+				if (Bits.IsSet(triggerType_, TriggerDown))
+				{
+					param_.actionCallback?.Invoke();
+					SetState(StateGoingDownTriggered);
+				}
+				else
+				{
+					SetState(StateGoingDownIgnored);
 				}
 			}
 		}
@@ -532,6 +657,15 @@ namespace Synergy
 		{
 			foreach (var n in s.GetActionNames())
 				yield return n;
+		}
+
+		private void SetState(int i)
+		{
+			if (currentState_ != i)
+			{
+				lastState_ = currentState_;
+				currentState_ = i;
+			}
 		}
 	}
 
@@ -701,6 +835,9 @@ namespace Synergy
 			float deltaTime, float progress, bool firstHalf)
 		{
 			base.DoTick(deltaTime, progress, firstHalf);
+
+			if (Parameter != null)
+				Parameter.Tick(deltaTime, progress, firstHalf);
 		}
 
 		protected override void DoSet(bool paused)

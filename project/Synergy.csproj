@@ -91,6 +91,7 @@
     <Compile Include="src\UI\MonitorUI\Modifiers\ModifierSyncsMonitorUI.cs" />
     <Compile Include="src\UI\MonitorUI\Modifiers\MorphModifierMonitorUI.cs" />
     <Compile Include="src\UI\MonitorUI\Modifiers\RigidbodyModifierMonitorUI.cs" />
+    <Compile Include="src\UI\MonitorUI\Modifiers\StorableModifierMonitorUI.cs" />
     <Compile Include="src\UI\MonitorUI\MonitorUI.cs" />
     <Compile Include="src\UI\MonitorUI\MovementMonitorUI.cs" />
     <Compile Include="src\UI\Widgets\AtomList.cs" />

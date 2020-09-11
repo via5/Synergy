@@ -43,6 +43,7 @@ project\src\UI\MonitorUI\Modifiers\ModifierMonitorUI.cs
 project\src\UI\MonitorUI\Modifiers\ModifierSyncsMonitorUI.cs
 project\src\UI\MonitorUI\Modifiers\MorphModifierMonitorUI.cs
 project\src\UI\MonitorUI\Modifiers\RigidbodyModifierMonitorUI.cs
+project\src\UI\MonitorUI\Modifiers\StorableModifierMonitorUI.cs
 project\src\UI\Widgets\AtomList.cs
 project\src\UI\Widgets\AudioClipsCheckboxes.cs
 project\src\UI\Widgets\Collapsible.cs

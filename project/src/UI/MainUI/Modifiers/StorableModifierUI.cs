@@ -178,16 +178,6 @@ namespace Synergy
 			widgets_.AddToUI(delete_);
 
 			save_.Enabled = false;
-
-			//param_ = p as ColorStorableParameter;
-			//if (param_ == null)
-			//	return;
-			//
-			//color1_.Value = param_.Color1;
-			//color2_.Value = param_.Color2;
-			//
-			//widgets_.AddToUI(color1_);
-			//widgets_.AddToUI(color2_);
 		}
 
 		public void SaveChanges()
@@ -287,15 +277,62 @@ namespace Synergy
 			get { return ActionStorableParameter.FactoryTypeName; }
 		}
 
+		private ActionStorableParameter param_ = null;
+		private readonly FloatSlider triggerMag_;
+		private readonly StringList triggerType_;
+
+		public ActionStorableParameterUI()
+		{
+			triggerMag_ = new FloatSlider(
+				"Trigger at", TriggerMagChanged, Widget.Right);
+
+			triggerType_ = new StringList(
+				"Trigger type", TriggerTypeChanged, Widget.Right);
+
+
+			triggerType_.DisplayChoices =
+				ActionStorableParameter.TriggerTypeNames();
+
+
+			var list = new List<string>();
+			foreach (var i in ActionStorableParameter.TriggerTypes())
+				list.Add(i.ToString());
+
+			triggerType_.Choices = list;
+		}
+
 		public override void AddToUI(IStorableParameter p)
 		{
 			base.AddToUI(p);
 
-			widgets_.AddToUI(new Label(
-				"This is an action parameter. The\n" +
-				"action will trigger when the\n" +
-				"movement is at ~1.0.",
-				Widget.Right));
+			param_ = p as ActionStorableParameter;
+			if (param_ == null)
+				return;
+
+			triggerMag_.Value = param_.TriggerMagnitude;
+			triggerType_.Value = param_.TriggerType.ToString();
+
+			widgets_.AddToUI(triggerMag_);
+			widgets_.AddToUI(triggerType_);
+		}
+
+		private void TriggerMagChanged(float f)
+		{
+			if (param_ != null)
+				param_.TriggerMagnitude = f;
+		}
+
+		private void TriggerTypeChanged(string s)
+		{
+			int i = 0;
+			if (!int.TryParse(s, out i))
+			{
+				Synergy.LogError($"can't parse trigger type '{s}'");
+				return;
+			}
+
+			if (param_ != null)
+				param_.TriggerType = i;
 		}
 	}
 
@@ -380,9 +417,8 @@ namespace Synergy
 
 			if (parameterUI_ != null)
 			{
-				//widgets_.AddToUI(new SmallSpacer(Widget.Right));
+				widgets_.AddToUI(new SmallSpacer(Widget.Right));
 				parameterUI_.AddToUI(p);
-				//widgets_.AddToUI(new SmallSpacer(Widget.Right));
 			}
 
 			AddAtomWithMovementWidgets(m);
