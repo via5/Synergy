@@ -17,11 +17,21 @@ namespace Synergy
 	{
 		protected WidgetList widgets_ = new WidgetList();
 
+		private readonly Label paramName_;
+		private BasicStorableParameter parameter_ = null;
+
+
+		public BasicStorableParameterMonitorUI()
+		{
+			paramName_ = new Label("", Widget.Right);
+		}
+
 		public abstract string ParameterType { get; }
 
 		public virtual void AddToUI(IStorableParameter p)
 		{
-			// no-op
+			parameter_ = p as BasicStorableParameter;
+			widgets_.AddToUI(paramName_);
 		}
 
 		public virtual void RemoveFromUI()
@@ -29,7 +39,13 @@ namespace Synergy
 			widgets_.RemoveFromUI();
 		}
 
-		public abstract void Update();
+		public virtual void Update()
+		{
+			if (parameter_ == null)
+				paramName_.Text = "Parameter: none";
+			else
+				paramName_.Text = "Parameter: " + parameter_.Name;
+		}
 	}
 
 
@@ -40,13 +56,11 @@ namespace Synergy
 			get { return FloatStorableParameter.FactoryTypeName; }
 		}
 
-		private FloatStorableParameter parameter_;
-		private Label paramName_;
-		private FloatSlider paramValue_;
+		private FloatStorableParameter parameter_ = null;
+		private readonly FloatSlider paramValue_;
 
 		public FloatStorableParameterMonitorUI()
 		{
-			paramName_ = new Label("", Widget.Right);
 			paramValue_ = new FloatSlider(
 				"Parameter value", null, Widget.Right | Widget.Disabled);
 		}
@@ -59,27 +73,58 @@ namespace Synergy
 			if (parameter_ == null)
 				return;
 
-			widgets_.AddToUI(paramName_);
 			widgets_.AddToUI(paramValue_);
 		}
 
 		public override void Update()
 		{
+			base.Update();
+
+			var p = parameter_?.Parameter;
+
+			if (p == null)
+				paramValue_.Value = 0;
+			else
+				paramValue_.Set(p.min, p.max, p.val);
+		}
+	}
+
+
+	class BoolStorableParameterMonitorUI : BasicStorableParameterMonitorUI
+	{
+		public override string ParameterType
+		{
+			get { return BoolStorableParameter.FactoryTypeName; }
+		}
+
+		private BoolStorableParameter parameter_ = null;
+		private readonly Checkbox paramValue_;
+
+		public BoolStorableParameterMonitorUI()
+		{
+			paramValue_ = new Checkbox(
+				"Parameter value", null, Widget.Right | Widget.Disabled);
+		}
+
+		public override void AddToUI(IStorableParameter p)
+		{
+			base.AddToUI(p);
+
+			parameter_ = p as BoolStorableParameter;
 			if (parameter_ == null)
 				return;
 
-			var p = parameter_.Parameter;
+			widgets_.AddToUI(paramValue_);
+		}
+
+		public override void Update()
+		{
+			var p = parameter_?.Parameter;
 
 			if (p == null)
-			{
-				paramName_.Text = "Parameter: none";
-				paramValue_.Value = 0;
-			}
+				paramValue_.Value = false;
 			else
-			{
-				paramName_.Text = "Parameter: " + p.name;
-				paramValue_.Set(p.min, p.max, p.val);
-			}
+				paramValue_.Value = p.val;
 		}
 	}
 
@@ -88,7 +133,7 @@ namespace Synergy
 	{
 		public override string ParameterType
 		{
-			get { return FloatStorableParameter.FactoryTypeName; }
+			get { return StringStorableParameter.FactoryTypeName; }
 		}
 
 		private StringStorableParameter parameter_;
@@ -112,10 +157,8 @@ namespace Synergy
 
 		public override void Update()
 		{
-			if (parameter_ == null)
-				return;
-
-			currentString_.Text = "Current: " + (parameter_.Current ?? " (none)");
+			base.Update();
+			currentString_.Text = "Current: " + (parameter_?.Current ?? " (none)");
 		}
 	}
 
@@ -124,7 +167,7 @@ namespace Synergy
 	{
 		public override string ParameterType
 		{
-			get { return FloatStorableParameter.FactoryTypeName; }
+			get { return ActionStorableParameter.FactoryTypeName; }
 		}
 
 		private ActionStorableParameter parameter_;
@@ -241,12 +284,19 @@ namespace Synergy
 
 			if (parameterUI_ != null)
 			{
-				widgets_.AddToUI(new SmallSpacer(Widget.Right));
 				parameterUI_.AddToUI(p);
 				widgets_.AddToUI(new SmallSpacer(Widget.Right));
 			}
 
 			base.AddToUI(m);
+		}
+
+		public override void RemoveFromUI()
+		{
+			base.RemoveFromUI();
+
+			if (parameterUI_ != null)
+				parameterUI_.RemoveFromUI();
 		}
 
 		private IStorableParameterMonitorUI CreateParameterMonitorUI(
@@ -255,11 +305,11 @@ namespace Synergy
 			if (p is FloatStorableParameter)
 				return new FloatStorableParameterMonitorUI();
 			else if (p is BoolStorableParameter)
-				return null;// new BoolStorableParameterUI();
+				return new BoolStorableParameterMonitorUI();
 			else if (p is ColorStorableParameter)
 				return null;// new ColorStorableParameterUI();
 			else if (p is UrlStorableParameter)
-				return null;// new UrlStorableParameterUI();
+				return new StringStorableParameterMonitorUI();
 			else if (p is StringStorableParameter)
 				return new StringStorableParameterMonitorUI();
 			else if (p is ActionStorableParameter)
