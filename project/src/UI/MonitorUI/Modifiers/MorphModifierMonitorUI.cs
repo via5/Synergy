@@ -14,6 +14,8 @@ namespace Synergy
 			public SelectedMorph sm;
 			public Collapsible collapsible;
 			public MovementMonitorWidgets movement;
+			public FloatSlider timeRemaining;
+			public FloatSlider progress;
 			public DurationMonitorWidgets duration;
 			public DelayMonitor delay;
 			public Checkbox stopping;
@@ -22,9 +24,20 @@ namespace Synergy
 			public FloatSlider customTargetMovePerTick;
 			public FloatSlider customTargetValue;
 
-			public void Update(MorphModifier m)
+			public MorphMonitor()
+			{
+			}
+
+			public void Update(MorphModifier m, int morphIndex)
 			{
 				movement.Update(sm.Movement);
+
+				if (m.Progression is OrderedMorphProgression)
+				{
+					var omp = m.Progression as OrderedMorphProgression;
+					timeRemaining.Value = omp.GetTimeRemainingForMorph(morphIndex);
+					progress.Value = omp.GetProgressForMorph(morphIndex);
+				}
 
 				// todo
 				var natpro = m.Progression as NaturalMorphProgression;
@@ -61,10 +74,12 @@ namespace Synergy
 
 		private MorphModifier modifier_ = null;
 		private Checkbox natProStop_ = null;
+		private readonly OverlapMonitorUI overlap_;
 		private readonly List<MorphMonitor> morphs_ = new List<MorphMonitor>();
 
 		public MorphModifierMonitor()
 		{
+			overlap_ = new OverlapMonitorUI(Widget.Right);
 		}
 
 		public override void AddToUI(IModifier m)
@@ -84,6 +99,12 @@ namespace Synergy
 			else
 				natProStop_ = new Checkbox("Natural progression stop", null, Widget.Right);
 
+			if (modifier_.Progression is OrderedMorphProgression)
+			{
+				foreach (var w in overlap_.GetWidgets())
+					widgets_.AddToUI(w);
+			}
+
 			if (natProStop_ != null)
 				widgets_.AddToUI(natProStop_);
 
@@ -95,8 +116,8 @@ namespace Synergy
 			{
 				morphs_.Clear();
 
-				foreach (var morph in modifier_.Morphs)
-					morphs_.Add(CreateMorphMonitor(morph));
+				for (int i=0; i<modifier_.Morphs.Count; ++i)
+					morphs_.Add(CreateMorphMonitor(i));
 			}
 
 			foreach (var mm in morphs_)
@@ -115,12 +136,24 @@ namespace Synergy
 			if (natpro != null)
 				natProStop_.Value = natpro.Stopping;
 
+			overlap_.Update(
+				(modifier_.Progression as OrderedMorphProgression)
+					?.Overlapper);
+
+			int morphIndex = 0;
 			foreach (var mm in morphs_)
-				mm.Update(modifier_);
+			{
+				if (mm.sm.Enabled)
+				{
+					mm.Update(modifier_, morphIndex);
+					++morphIndex;
+				}
+			}
 		}
 
-		private MorphMonitor CreateMorphMonitor(SelectedMorph sm)
+		private MorphMonitor CreateMorphMonitor(int morphIndex)
 		{
+			SelectedMorph sm = modifier_.Morphs[morphIndex];
 			var mm = new MorphMonitor();
 
 			mm.sm = sm;
@@ -156,6 +189,20 @@ namespace Synergy
 					mm.collapsible.Add(mm.customTargetMovePerTick);
 					mm.collapsible.Add(mm.customTargetValue);
 				}
+			}
+
+			if (modifier_.Progression is OrderedMorphProgression)
+			{
+				var omp = modifier_.Progression as OrderedMorphProgression;
+
+				mm.timeRemaining = new FloatSlider(
+					"Time remaining", null, Widget.Right | Widget.Disabled);
+
+				mm.progress = new FloatSlider(
+					"Progress", null, Widget.Right | Widget.Disabled);
+
+				mm.collapsible.Add(mm.timeRemaining);
+				mm.collapsible.Add(mm.progress);
 			}
 
 			return mm;

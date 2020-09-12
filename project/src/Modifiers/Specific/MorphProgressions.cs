@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Synergy
 {
 	interface IMorphProgression : IFactoryObject
 	{
+		MorphModifier ParentModifier { get; set; }
 		List<SelectedMorph> Morphs { set; }
 
 		bool HasOwnDuration { get; }
@@ -48,6 +50,13 @@ namespace Synergy
 		public abstract string GetDisplayName();
 
 		protected List<SelectedMorph> morphs_ = null;
+		private MorphModifier parent_ = null;
+
+		public MorphModifier ParentModifier
+		{
+			get { return parent_; }
+			set { parent_ = value; }
+		}
 
 		public List<SelectedMorph> Morphs
 		{
@@ -638,10 +647,23 @@ namespace Synergy
 		private readonly BoolParameter holdHalfway_ =
 			new BoolParameter("HoldHalfway", false);
 
+		private Overlapper o_ = new Overlapper("morph");
+		private List<SelectedMorph> enabledMorphs_ = new List<SelectedMorph>();
+
 
 		public OrderedMorphProgression(bool holdHalfway = false)
 		{
 			HoldHalfway = holdHalfway;
+
+			o_.CanRun += i => true;
+			o_.Resume += (i) => { enabledMorphs_[i].Resume(); return true; };
+			o_.CanRunBackwards += i => holdHalfway_.Value;
+			o_.Reset += (i) => { enabledMorphs_[i].Reset(); return true; };
+			o_.Ticker += TickMorph;
+			o_.TimeRemaining += i => GetTimeRemainingForMorph(i);
+			o_.Regenerate += (old) => Regenerate(old, enabledMorphs_.Count);
+			o_.ItemCount += () => enabledMorphs_.Count;
+			o_.GetOverlapTime += () => Synergy.Instance.Options.OverlapTime;
 		}
 
 		public bool HoldHalfway
@@ -653,6 +675,107 @@ namespace Synergy
 		public BoolParameter HoldHalfwayParameter
 		{
 			get { return holdHalfway_; }
+		}
+
+		public Overlapper Overlapper
+		{
+			get { return o_; }
+		}
+
+
+		public float GetTimeRemainingForMorph(int i)
+		{
+			if (enabledMorphs_.Count == 0)
+				return 0;
+
+			float overlapTime = Synergy.Instance.Options.OverlapTime;
+
+			float duration = ParentModifier.CurrentDuration;
+			float remaining = ParentModifier.TimeRemaining;
+			float timePerMorph = duration / enabledMorphs_.Count;
+			float passed = duration - ParentModifier.TimeRemaining;
+			float startTime = timePerMorph * (enabledMorphs_.Count - i - 1);
+
+			if (i == 0 && (passed >= (timePerMorph * (enabledMorphs_.Count - 1))))
+				return (timePerMorph + overlapTime) - (overlapTime - remaining);
+			else
+				return Utilities.Clamp(remaining - startTime, 0, timePerMorph);
+		}
+
+
+		private float GetStrictProgressForMorph(int i)
+		{
+			if (enabledMorphs_.Count == 0)
+				return 0;
+
+			float overlapTime = Synergy.Instance.Options.OverlapTime;
+
+			float duration = ParentModifier.CurrentDuration;
+			float timePerMorph = (duration / enabledMorphs_.Count);
+			float passed = duration - ParentModifier.TimeRemaining;
+			float startTime = timePerMorph * i;
+			float morphPassed = Utilities.Clamp(passed - startTime, 0, timePerMorph);
+			float p = morphPassed / timePerMorph;
+
+			return p;
+		}
+
+		public float GetProgressForMorph(int i)
+		{
+			if (enabledMorphs_.Count == 0)
+				return 0;
+
+			float overlapTime = Synergy.Instance.Options.OverlapTime;
+
+			float duration = ParentModifier.CurrentDuration;
+			float timePerMorph = (duration / enabledMorphs_.Count);
+			float remaining = ParentModifier.TimeRemaining;
+			float passed = duration - ParentModifier.TimeRemaining;
+			float startTime = timePerMorph * i;
+
+			float morphPassed;
+
+			if (i == 0 && (passed >= (timePerMorph * (enabledMorphs_.Count - 1))))
+				morphPassed = Utilities.Clamp((overlapTime - remaining), 0, timePerMorph + overlapTime);
+			else
+				morphPassed = Utilities.Clamp(passed - startTime + overlapTime, 0, timePerMorph + overlapTime);
+
+			float p = morphPassed / (timePerMorph + overlapTime);
+
+			return p;
+		}
+
+		private bool TickMorph(int i, float deltaTime, bool stepForwards, bool paused)
+		{
+			if (paused)
+			{
+				enabledMorphs_[i].TickPaused(deltaTime);
+				return true;
+			}
+			else
+			{
+				float lp = GetStrictProgressForMorph(i);
+				float p = GetProgressForMorph(i);
+
+				bool fwd;
+				if (p <= 0.5f)
+				{
+					fwd = true;
+					p = p / 0.5f;
+				}
+				else
+				{
+					fwd = false;
+					p = (p - 0.5f) / 0.5f;
+				}
+
+				enabledMorphs_[i].Tick(deltaTime, p, fwd);
+
+				if (!fwd && lp >= 0.95f)
+					return false;
+
+				return true;
+			}
 		}
 
 
@@ -667,75 +790,18 @@ namespace Synergy
 			holdHalfway_.Unregister();
 		}
 
+		public override void Resume()
+		{
+			base.Resume();
+
+			if (GatherEnabledMorphs())
+				o_.ItemsChanged();
+		}
+
 		public override void Tick(
 			float deltaTime, float progress, bool firstHalf)
 		{
-			float singleMorph = 1.0f / morphs_.Count;
-			float p = progress;
-
-			if (HoldHalfway)
-			{
-				if (firstHalf)
-				{
-					for (int i = 0; i < morphs_.Count; ++i)
-					{
-						float singleMorphProgress = Utilities.Clamp(
-							p / singleMorph, 0.0f, 1.0f);
-
-						p -= singleMorph;
-
-						var m = morphs_[GetMorphIndex(i)];
-						m.Tick(deltaTime, singleMorphProgress, true);
-					}
-				}
-				else
-				{
-					p = 1.0f - p;
-
-					for (int i = 0; i < morphs_.Count; ++i)
-					{
-						float singleMorphProgress = Utilities.Clamp(
-							p / singleMorph, 0.0f, 1.0f);
-
-						p -= singleMorph;
-
-						var m = morphs_[GetMorphIndex(i)];
-						m.Tick(deltaTime, 1.0f - singleMorphProgress, false);
-					}
-				}
-			}
-			else
-			{
-				if (firstHalf)
-					p /= 2;
-				else
-					p = 0.5f + (p / 2);
-
-				for (int i = 0; i < morphs_.Count; ++i)
-				{
-					float singleMorphProgress = Utilities.Clamp(
-						p / singleMorph, 0.0f, 1.0f);
-
-					p -= singleMorph;
-
-					if (singleMorphProgress <= 0.5f)
-					{
-						firstHalf = true;
-						singleMorphProgress = singleMorphProgress / 0.5f;
-					}
-					else
-					{
-						firstHalf = false;
-						singleMorphProgress = (singleMorphProgress - 0.5f) / 0.5f;
-					}
-
-					var m = morphs_[GetMorphIndex(i)];
-					m.Tick(deltaTime, singleMorphProgress, firstHalf);
-				}
-			}
-
-			if (!firstHalf && progress >= 1.0f)
-				Reorder();
+			o_.Tick(deltaTime);
 		}
 
 		public override void Set(bool paused)
@@ -743,8 +809,52 @@ namespace Synergy
 			if (paused && !HoldHalfway)
 				return;
 
-			foreach (var sm in morphs_)
+			foreach (var sm in enabledMorphs_)
 				sm.Set();
+		}
+
+		public override void MorphAdded(int i)
+		{
+			GatherEnabledMorphs();
+			o_.ItemInserted(i);
+		}
+
+		public override void MorphRemoved(int i)
+		{
+			GatherEnabledMorphs();
+			o_.ItemDeleted(i);
+		}
+
+		public override void MorphsChanged()
+		{
+			GatherEnabledMorphs();
+			o_.ItemsChanged();
+		}
+
+		private bool GatherEnabledMorphs()
+		{
+			var newList = new List<SelectedMorph>();
+
+			foreach (var sm in morphs_)
+			{
+				if (sm.Enabled)
+				{
+					newList.Add(sm);
+				}
+				else
+				{
+					sm.Reset();
+					sm.ResetMorphValue();
+				}
+			}
+
+			if (!newList.SequenceEqual(enabledMorphs_))
+			{
+				enabledMorphs_ = newList;
+				return true;
+			}
+
+			return false;
 		}
 
 		public override J.Node ToJSON()
@@ -767,12 +877,7 @@ namespace Synergy
 			return true;
 		}
 
-		protected abstract int GetMorphIndex(int i);
-
-		protected virtual void Reorder()
-		{
-			// no-op
-		}
+		protected abstract List<int> Regenerate(List<int> old, int count);
 	}
 
 
@@ -801,9 +906,14 @@ namespace Synergy
 			base.CopyTo(m, cloneFlags);
 		}
 
-		protected override int GetMorphIndex(int i)
+		protected override List<int> Regenerate(List<int> old, int count)
 		{
-			return i;
+			var list = new List<int>();
+
+			for (int i = 0; i < count; ++i)
+				list.Add(i);
+
+			return list;
 		}
 	}
 
@@ -835,29 +945,9 @@ namespace Synergy
 			base.CopyTo(m, cloneFlags);
 		}
 
-		protected override int GetMorphIndex(int i)
+		protected override List<int> Regenerate(List<int> old, int count)
 		{
-			return order_.Get(i);
-		}
-
-		public override void MorphAdded(int i)
-		{
-			order_.Add(i);
-		}
-
-		public override void MorphRemoved(int i)
-		{
-			order_.Remove(i);
-		}
-
-		public override void MorphsChanged()
-		{
-			Reorder();
-		}
-
-		protected override void Reorder()
-		{
-			order_.Shuffle(morphs_.Count);
+			return ShuffledOrder.Shuffle(old, count);
 		}
 	}
 }

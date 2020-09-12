@@ -19,6 +19,7 @@ namespace Synergy
 		bool IsInFirstHalf(IModifier m, float stepProgress, bool stepForwards);
 		bool Finished { get; }
 		float TimeRemaining { get; }
+		float CurrentDuration { get; }
 		void Reset();
 	}
 
@@ -73,6 +74,7 @@ namespace Synergy
 
 		public abstract bool Finished { get; }
 		public abstract float TimeRemaining { get; }
+		public abstract float CurrentDuration { get; }
 
 		public abstract bool Tick(float deltaTime);
 		public abstract void TickPaused(float deltaTime);
@@ -107,7 +109,12 @@ namespace Synergy
 
 		public override float TimeRemaining
 		{
-			get { return 0; }
+			get { return ParentStep?.Duration?.TimeRemaining ?? 0; }
+		}
+
+		public override float CurrentDuration
+		{
+			get { return ParentStep?.Duration?.Current ?? 0; }
 		}
 
 		public override bool Tick(float deltaTime)
@@ -218,6 +225,14 @@ namespace Synergy
 					return Delay.ActiveDuration.TimeRemaining;
 
 				return t;
+			}
+		}
+
+		public override float CurrentDuration
+		{
+			get
+			{
+				return Duration?.Current ?? 0;
 			}
 		}
 
@@ -445,7 +460,12 @@ namespace Synergy
 
 		public override float TimeRemaining
 		{
-			get { return 0; }
+			get { return ParentStep?.Duration?.TimeRemaining ?? 0; }
+		}
+
+		public override float CurrentDuration
+		{
+			get { return ParentStep?.Duration?.Current ?? 0; }
 		}
 
 		public override bool Tick(float deltaTime)
@@ -609,6 +629,17 @@ namespace Synergy
 					return 0;
 				else
 					return modifier_.TimeRemaining;
+			}
+		}
+
+		public override float CurrentDuration
+		{
+			get
+			{
+				if (modifier_ == null)
+					return 0;
+				else
+					return modifier_.CurrentDuration;
 			}
 		}
 

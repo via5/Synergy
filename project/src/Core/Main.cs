@@ -2,6 +2,7 @@ using SimpleJSON;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 
 namespace Synergy
@@ -121,17 +122,28 @@ namespace Synergy
 				var s = new Step();
 				s.Duration = new RandomDuration(3);
 
-				var m = new RigidbodyModifier(a, "hip");
-				m.Movement = new Movement(0, 150);
-				m.Direction = new Vector3(0, 0, 1);
+				//var m = new RigidbodyModifier(a, "hip");
+				//m.Movement = new Movement(0, 150);
+				//m.Direction = new Vector3(0, 0, 1);
+				//s.AddModifier(new ModifierContainer(m));
+
+				//var m = new StorableModifier(
+				//	a, "plugin#1_VamTimeline.AtomPlugin", "Set Time");
+				//
+				//m.Movement = new Movement(0, 2);
+				//s.AddModifier(new ModifierContainer(m, new StepProgressSyncedModifier()));
+
+				var m = new MorphModifier(a);
+				m.AddMorph("Right Fingers Fist", new Movement(0, 1));
+				m.AddMorph("Smile Open Full Face", new Movement(0, 0.6f));
 				s.AddModifier(new ModifierContainer(m));
 
 				manager_.AddStep(s);
 			}
-
+			/*
 			{
 				var s = new Step();
-				s.Duration = new RandomDuration(3);
+				s.Duration = new RandomDuration(1);
 
 				var m = new RigidbodyModifier(a, "head");
 				m.Movement = new Movement(0, 150);
@@ -151,7 +163,7 @@ namespace Synergy
 				s.AddModifier(new ModifierContainer(m));
 
 				manager_.AddStep(s);
-			}
+			}*/
 		}
 
 		public Timer CreateTimer(float seconds, Timer.Callback f)
@@ -389,6 +401,13 @@ namespace Synergy
 		static public void LogError(string s)
 		{
 			Log(Options.LogLevelError, s);
+		}
+
+		static public void LogErrorST(string s)
+		{
+			Log(
+				Options.LogLevelError,
+				s + "\n" + new StackTrace(1).ToString());
 		}
 
 		static public void LogWarning(string s)

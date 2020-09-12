@@ -76,7 +76,10 @@ namespace Synergy
 				enabled_.Value = value;
 
 				if (!value)
+				{
+					ResetMorphValue();
 					Reset();
+				}
 			}
 		}
 
@@ -144,7 +147,7 @@ namespace Synergy
 			if (morph_ == null)
 				return;
 
-			morph_.morphValue = morph_.startValue;
+			SetInternal(morph_.startValue);
 		}
 
 		public void Reset()
@@ -156,7 +159,7 @@ namespace Synergy
 				var d = morph_.morphValue - morph_.startValue;
 
 				if (Math.Abs(d) < 0.05f)
-					morph_.morphValue = morph_.startValue;
+					SetInternal(morph_.startValue);
 				else
 					moveToStart_ = true;
 			}
@@ -178,7 +181,7 @@ namespace Synergy
 			{
 				if (morph_.morphValue < morph_.startValue)
 				{
-					morph_.morphValue += deltaTime;
+					SetInternal(morph_.morphValue + deltaTime);
 					if (morph_.morphValue >= (morph_.startValue - 0.01f))
 					{
 						morph_.morphValue = morph_.startValue;
@@ -187,7 +190,7 @@ namespace Synergy
 				}
 				else
 				{
-					morph_.morphValue -= deltaTime;
+					SetInternal(morph_.morphValue - deltaTime);
 					if (morph_.morphValue <= (morph_.startValue + 0.01f))
 					{
 						morph_.morphValue = morph_.startValue;
@@ -205,7 +208,12 @@ namespace Synergy
 			if (magnitude_ == NoMagnitude)
 				Reset();
 			else if (morph_ != null)
-				morph_.morphValue = magnitude_;
+				SetInternal(magnitude_);
+		}
+
+		private void SetInternal(float f)
+		{
+			morph_.morphValue = f;
 		}
 
 
@@ -280,11 +288,13 @@ namespace Synergy
 			Progression = new SequentialMorphProgression();
 		}
 
-		public MorphModifier(Atom a, DAZMorph m)
+		public MorphModifier(Atom a, DAZMorph m = null)
 		{
 			Atom = a;
 			Progression = new SequentialMorphProgression();
-			AddMorph(m);
+
+			if (m != null)
+				AddMorph(m);
 		}
 
 		public override FloatRange PreferredRange
@@ -315,11 +325,17 @@ namespace Synergy
 
 			set
 			{
-				progression_.HeldValue?.Removed();
+				if (progression_.HeldValue != null)
+				{
+					progression_.HeldValue.ParentModifier = null;
+					progression_.HeldValue.Removed();
+				}
+
 				progression_.Set(value);
 
 				if (progression_.HeldValue != null)
 				{
+					progression_.HeldValue.ParentModifier = this;
 					progression_.HeldValue.Morphs = morphs_;
 					progression_.HeldValue.MorphsChanged();
 				}
@@ -375,6 +391,27 @@ namespace Synergy
 				m.Removed();
 		}
 
+		public SelectedMorph AddMorph(string id, Movement mv = null)
+		{
+			if (Atom == null)
+			{
+				Synergy.LogError("AddMorph: no atom");
+				return null;
+			}
+
+			var m = Utilities.GetAtomMorph(Atom, id);
+			if (m == null)
+			{
+				Synergy.LogError(
+					$"AddMorph: morph '{id}' not found in " +
+					"atom '{Atom.name}'");
+
+				return null;
+			}
+
+			return AddMorph(m, mv);
+		}
+
 		public SelectedMorph AddMorph(DAZMorph m)
 		{
 			return AddMorph(m, new Movement(0, 1));
@@ -382,7 +419,10 @@ namespace Synergy
 
 		public SelectedMorph AddMorph(DAZMorph m, FloatRange r)
 		{
-			return AddMorph(m, new Movement(r));
+			if (r == null)
+				return AddMorph(m, new Movement());
+			else
+				return AddMorph(m, new Movement(r));
 		}
 
 		public SelectedMorph AddMorph(DAZMorph m, Movement mv)

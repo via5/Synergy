@@ -9,6 +9,7 @@ namespace Synergy
 	{
 		bool Finished { get; }
 		float TimeRemaining { get; }
+		float CurrentDuration { get; }
 		Step ParentStep { get; }
 		ModifierContainer ParentContainer { get; set; }
 		string Name { get; }
@@ -140,6 +141,17 @@ namespace Synergy
 					return 0;
 
 				return ModifierSync.TimeRemaining;
+			}
+		}
+
+		public float CurrentDuration
+		{
+			get
+			{
+				if (ModifierSync == null)
+					return 0;
+
+				return ModifierSync.CurrentDuration;
 			}
 		}
 
