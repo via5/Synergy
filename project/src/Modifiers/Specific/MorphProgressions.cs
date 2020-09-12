@@ -649,6 +649,7 @@ namespace Synergy
 
 		private Overlapper o_ = new Overlapper("morph");
 		private List<SelectedMorph> enabledMorphs_ = new List<SelectedMorph>();
+		private float overlapTime_ = -1;
 
 
 		public OrderedMorphProgression(bool holdHalfway = false)
@@ -663,7 +664,7 @@ namespace Synergy
 			o_.TimeRemaining += i => GetTimeRemainingForMorph(i);
 			o_.Regenerate += (old) => Regenerate(old, enabledMorphs_.Count);
 			o_.ItemCount += () => enabledMorphs_.Count;
-			o_.GetOverlapTime += () => Synergy.Instance.Options.OverlapTime;
+			o_.GetOverlapTime += () => OverlapTime;
 		}
 
 		public bool HoldHalfway
@@ -682,13 +683,34 @@ namespace Synergy
 			get { return o_; }
 		}
 
+		public float OverlapTime
+		{
+			get
+			{
+				if (OverrideOverlapTime)
+					return overlapTime_;
+				else
+					return Synergy.Instance.Options.OverlapTime;
+			}
+
+			set
+			{
+				overlapTime_ = value;
+			}
+		}
+
+		public bool OverrideOverlapTime
+		{
+			get { return overlapTime_ >= 0; }
+		}
+
 
 		public float GetTimeRemainingForMorph(int i)
 		{
 			if (enabledMorphs_.Count == 0)
 				return 0;
 
-			float overlapTime = Synergy.Instance.Options.OverlapTime;
+			float overlapTime = OverlapTime;
 
 			float duration = ParentModifier.CurrentDuration;
 			float remaining = ParentModifier.TimeRemaining;
@@ -708,7 +730,7 @@ namespace Synergy
 			if (enabledMorphs_.Count == 0)
 				return 0;
 
-			float overlapTime = Synergy.Instance.Options.OverlapTime;
+			float overlapTime = OverlapTime;
 
 			float duration = ParentModifier.CurrentDuration;
 			float timePerMorph = (duration / enabledMorphs_.Count);
@@ -725,7 +747,7 @@ namespace Synergy
 			if (enabledMorphs_.Count == 0)
 				return 0;
 
-			float overlapTime = Synergy.Instance.Options.OverlapTime;
+			float overlapTime = OverlapTime;
 
 			float duration = ParentModifier.CurrentDuration;
 			float timePerMorph = (duration / enabledMorphs_.Count);
@@ -756,8 +778,8 @@ namespace Synergy
 			{
 				float lp = GetStrictProgressForMorph(i);
 				float p = GetProgressForMorph(i);
-
 				bool fwd;
+
 				if (p <= 0.5f)
 				{
 					fwd = true;
@@ -862,6 +884,7 @@ namespace Synergy
 			var o = new J.Object();
 
 			o.Add("holdHalfway", HoldHalfway);
+			o.Add("overlapTime", overlapTime_);
 
 			return o;
 		}
@@ -872,7 +895,10 @@ namespace Synergy
 			if (o == null)
 				return false;
 
+			overlapTime_ = -1;
+
 			o.Opt("holdHalfway", holdHalfway_);
+			o.Opt("overlapTime", ref overlapTime_);
 
 			return true;
 		}

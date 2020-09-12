@@ -549,7 +549,7 @@ namespace Synergy
 				"Manage animatables", ManageAnimatables, flags);
 
 			overlapTime_ = new FloatSlider(
-				"Overlap time", options_.OverlapTime,
+				"Global overlap time", options_.OverlapTime,
 				new FloatRange(0, 1), OverlapTimeChanged, flags);
 
 			logLevel_ = new StringList(

@@ -270,14 +270,22 @@ namespace Synergy
 		public abstract string ProgressionType { get; }
 
 		protected readonly int flags_;
+		protected readonly WidgetList widgets_ = new WidgetList();
 
 		protected BasicMorphProgressionUI(int flags)
 		{
 			flags_ = flags;
 		}
 
-		public abstract void AddToUI(IMorphProgression m);
-		public abstract void RemoveFromUI();
+		public virtual void AddToUI(IMorphProgression m)
+		{
+			// no-op
+		}
+
+		public virtual void RemoveFromUI()
+		{
+			widgets_.RemoveFromUI();
+		}
 	}
 
 
@@ -313,6 +321,8 @@ namespace Synergy
 
 		public override void AddToUI(IMorphProgression p)
 		{
+			base.AddToUI(p);
+
 			progression_ = p as NaturalMorphProgression;
 			if (progression_ == null)
 				return;
@@ -326,14 +336,8 @@ namespace Synergy
 			delayCollapsible_.Clear();
 			delayCollapsible_.Add(delayWidgets_.GetWidgets());
 
-			durationCollapsible_.AddToUI();
-			delayCollapsible_.AddToUI();
-		}
-
-		public override void RemoveFromUI()
-		{
-			durationCollapsible_.RemoveFromUI();
-			delayCollapsible_.RemoveFromUI();
+			widgets_.AddToUI(durationCollapsible_);
+			widgets_.AddToUI(delayCollapsible_);
 		}
 
 		private void DurationTypeChanged(IDuration d)
@@ -350,6 +354,8 @@ namespace Synergy
 	abstract class OrderedMorphProgressionUI : BasicMorphProgressionUI
 	{
 		private OrderedMorphProgression progression_ = null;
+		private readonly Checkbox overrideOverlapTime_;
+		private readonly FloatSlider overlapTime_;
 		private readonly Checkbox holdHalfway_;
 
 
@@ -358,21 +364,32 @@ namespace Synergy
 		{
 			holdHalfway_ = new Checkbox(
 				"Hold halfway", HoldHalfwayChanged, flags);
+
+			overrideOverlapTime_ = new Checkbox(
+				"Override global overlap time",
+				OverrideOverlapTimeChanged, flags);
+
+			overlapTime_ = new FloatSlider(
+				"Overlap time", OverlapTimeChanged, flags);
 		}
 
 		public override void AddToUI(IMorphProgression p)
 		{
+			base.AddToUI(p);
+
 			progression_ = p as OrderedMorphProgression;
 			if (progression_ == null)
 				return;
 
 			holdHalfway_.Parameter = progression_.HoldHalfwayParameter;
-			holdHalfway_.AddToUI();
-		}
 
-		public override void RemoveFromUI()
-		{
-			holdHalfway_.RemoveFromUI();
+			overrideOverlapTime_.Value = progression_.OverrideOverlapTime;
+			overlapTime_.Value = progression_.OverlapTime;
+			overlapTime_.Enabled = progression_.OverrideOverlapTime;
+
+			widgets_.AddToUI(holdHalfway_);
+			widgets_.AddToUI(overrideOverlapTime_);
+			widgets_.AddToUI(overlapTime_);
 		}
 
 		private void HoldHalfwayChanged(bool b)
@@ -381,6 +398,27 @@ namespace Synergy
 				return;
 
 			progression_.HoldHalfway = b;
+		}
+
+		private void OverrideOverlapTimeChanged(bool b)
+		{
+			if (progression_ == null)
+				return;
+
+			if (b)
+				progression_.OverlapTime = Synergy.Instance.Options.OverlapTime;
+			else
+				progression_.OverlapTime = -1;
+
+			overlapTime_.Enabled = b;
+		}
+
+		private void OverlapTimeChanged(float f)
+		{
+			if (progression_ == null)
+				return;
+
+			progression_.OverlapTime = f;
 		}
 	}
 

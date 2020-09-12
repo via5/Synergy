@@ -62,6 +62,7 @@ namespace Synergy
 		protected readonly int flags_ = 0;
 
 		private float height_ = -1;
+		private bool enabled_ = true;
 
 		protected BasicWidget(int flags)
 		{
@@ -95,6 +96,10 @@ namespace Synergy
 
 			if (height_ >= 0 && element_ != null)
 				element_.height = height_;
+
+			var s = GetSelectable();
+			if (s != null)
+				s.interactable = enabled_;
 		}
 
 		public override void RemoveFromUI()
@@ -118,11 +123,13 @@ namespace Synergy
 				if (s != null)
 					return s.interactable;
 				else
-					return false;
+					return enabled_;
 			}
 
 			set
 			{
+				enabled_ = value;
+
 				var s = GetSelectable();
 				if (s != null)
 					s.interactable = value;

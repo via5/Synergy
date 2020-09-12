@@ -134,6 +134,7 @@ namespace Synergy
 				//s.AddModifier(new ModifierContainer(m, new StepProgressSyncedModifier()));
 
 				var m = new MorphModifier(a);
+//				((OrderedMorphProgression)m.Progression).HoldHalfway = true;
 				m.AddMorph("Right Fingers Fist", new Movement(0, 1));
 				m.AddMorph("Smile Open Full Face", new Movement(0, 0.6f));
 				s.AddModifier(new ModifierContainer(m));
