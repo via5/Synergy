@@ -315,8 +315,11 @@ namespace Synergy
 			{
 				if (Delay.EndForwards)
 				{
-					if (Delay.EndForwardsDuration.Current > ParentStep.Duration.TimeRemaining)
-						return;
+					if (ParentStep.MustStopEventually)
+					{
+						if (Delay.EndForwardsDuration.Current > ParentStep.Duration.TimeRemaining)
+							return;
+					}
 
 					Delay.ActiveType = Delay.EndForwardsType;
 					Delay.StopAfter = true;
@@ -324,8 +327,15 @@ namespace Synergy
 				}
 				else
 				{
-					Duration.Reset(ParentStep.Duration.TimeRemaining + 0.05f);
-					ConfirmDurationForStop();
+					if (ParentStep.MustStopEventually)
+					{
+						Duration.Reset(ParentStep.Duration.TimeRemaining + 0.05f);
+						ConfirmDurationForStop();
+					}
+					else
+					{
+						Reset();
+					}
 
 					return;
 				}
@@ -413,8 +423,15 @@ namespace Synergy
 				{
 					Delay.ResetDurationAfter = false;
 
-					Duration.Reset(ParentStep.Duration.TimeRemaining + 0.05f);
-					ConfirmDurationForStop();
+					if (ParentStep.MustStopEventually)
+					{
+						Duration.Reset(ParentStep.Duration.TimeRemaining + 0.05f);
+						ConfirmDurationForStop();
+					}
+					else
+					{
+						Reset();
+					}
 				}
 
 				return false;

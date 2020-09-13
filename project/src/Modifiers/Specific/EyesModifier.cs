@@ -907,8 +907,6 @@ namespace Synergy
 
 		private void Next()
 		{
-			Synergy.LogError("next");
-
 			if (targets_.Count == 0)
 			{
 				CurrentIndex = -1;

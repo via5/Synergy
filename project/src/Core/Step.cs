@@ -279,6 +279,14 @@ namespace Synergy
 			}
 		}
 
+		public bool MustStopEventually
+		{
+			get
+			{
+				return !Synergy.Instance.Manager.IsOnlyEnabledStep(this);
+			}
+		}
+
 
 		public J.Node ToJSON()
 		{
