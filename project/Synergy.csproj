@@ -102,6 +102,7 @@
     <Compile Include="src\UI\Widgets\Widgets.cs" />
     <Compile Include="src\Utilities\Factory.cs" />
     <Compile Include="src\Utilities\JsonUtilities.cs" />
+    <Compile Include="src\Utilities\Overlapper.cs" />
     <Compile Include="src\Utilities\Parameters.cs" />
     <Compile Include="src\Utilities\Range.cs" />
     <Compile Include="src\Utilities\Timer.cs" />

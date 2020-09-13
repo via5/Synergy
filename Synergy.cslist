@@ -52,6 +52,7 @@ project\src\UI\Widgets\RigidbodyList.cs
 project\src\UI\Widgets\Widgets.cs
 project\src\Utilities\Factory.cs
 project\src\Utilities\JsonUtilities.cs
+project\src\Utilities\Overlapper.cs
 project\src\Utilities\Parameters.cs
 project\src\Utilities\Range.cs
 project\src\Utilities\Timer.cs
