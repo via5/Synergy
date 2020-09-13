@@ -21,7 +21,7 @@ namespace Synergy
 	{
 		IEyesTarget Clone(int cloneFlags);
 		Vector3 Position { get; }
-		void Update(Rigidbody head);
+		void Update(Rigidbody head, Rigidbody chest);
 		string Name { get; }
 	}
 
@@ -32,7 +32,7 @@ namespace Synergy
 
 		public abstract IEyesTarget Clone(int cloneFlags);
 		public abstract Vector3 Position { get; }
-		public abstract void Update(Rigidbody head);
+		public abstract void Update(Rigidbody head, Rigidbody chest);
 
 		public abstract string Name { get; }
 
@@ -141,7 +141,7 @@ namespace Synergy
 			get { return pos_; }
 		}
 
-		public override void Update(Rigidbody head)
+		public override void Update(Rigidbody head, Rigidbody chest)
 		{
 			if (receiver_ == null)
 				return;
@@ -299,7 +299,7 @@ namespace Synergy
 			set { rel_ = value; }
 		}
 
-		public override void Update(Rigidbody head)
+		public override void Update(Rigidbody head, Rigidbody chest)
 		{
 			if (rel_ == null)
 				pos_ = head.position + offset_;
@@ -487,9 +487,9 @@ namespace Synergy
 			set { avoidYRange_ = value; }
 		}
 
-		public override void Update(Rigidbody head)
+		public override void Update(Rigidbody head, Rigidbody chest)
 		{
-			var rel = rel_ ?? head;
+			var rel = rel_ ?? chest ?? head;
 
 			Vector3 fwd = rel.rotation * Vector3.forward;
 			Vector3 ver = rel.rotation * Vector3.up;
@@ -723,6 +723,7 @@ namespace Synergy
 
 		private Rigidbody head_ = null;
 		private Rigidbody eyes_ = null;
+		private Rigidbody chest_ = null;
 
 		private List<EyesTargetContainer> targets_ =
 			new List<EyesTargetContainer>();
@@ -739,6 +740,7 @@ namespace Synergy
 
 		private int current_ = -1;
 		private float lastProgress_ = -1;
+		private bool lastFirstHalf_ = false;
 		private Vector3 saccadeOffset_ = new Vector3();
 
 
@@ -824,6 +826,7 @@ namespace Synergy
 
 			m.head_ = head_;
 			m.eyes_ = eyes_;
+			m.chest_ = chest_;
 
 			m.targets_.Clear();
 			foreach (var t in targets_)
@@ -862,6 +865,7 @@ namespace Synergy
 		public override void Reset()
 		{
 			base.Reset();
+			lastFirstHalf_ = false;
 			saccadeTime_.Reset();
 		}
 
@@ -892,20 +896,19 @@ namespace Synergy
 			if (progress != lastProgress_)
 			{
 				lastProgress_ = progress;
-				float halfProgress = progress;
 
-				if (firstHalf)
-					halfProgress /= 2;
-				else
-					halfProgress = halfProgress / 2 + 0.5f;
-
-				if (CurrentIndex == -1 || halfProgress == 1)
+				if (CurrentIndex == -1 || progress == 1)
+				{
+					lastFirstHalf_ = firstHalf;
 					Next();
+				}
 			}
 		}
 
 		private void Next()
 		{
+			Synergy.LogError("next");
+
 			if (targets_.Count == 0)
 			{
 				CurrentIndex = -1;
@@ -913,6 +916,7 @@ namespace Synergy
 			}
 
 			var i = CurrentIndex;
+			current_ = -1;
 
 			var start = i;
 			if (start < 0)
@@ -973,7 +977,7 @@ namespace Synergy
 			if (t == null)
 				return;
 
-			t.Update(head_);
+			t.Update(head_, chest_);
 		}
 
 		protected override void DoSet(bool paused)
@@ -1070,11 +1074,16 @@ namespace Synergy
 			{
 				head_ = null;
 				eyes_ = null;
+				chest_ = null;
 				return;
 			}
 
 			head_ = Utilities.FindRigidbody(Atom, "headControl");
 			eyes_ = Utilities.FindRigidbody(Atom, "eyeTargetControl");
+			chest_ = Utilities.FindRigidbody(Atom, "chestControl");
+
+			if (chest_ == null)
+				Synergy.LogError("atom " + Atom.uid + " has no chest");
 
 			if (head_ != null && eyes_ != null)
 				return;

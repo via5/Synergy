@@ -819,7 +819,7 @@ namespace Synergy
 
 				enabledMorphs_[i].Tick(deltaTime, p, fwd);
 
-				if (!fwd && lp >= 0.95f)
+				if (!fwd && lp == 1)
 					return false;
 
 				return true;

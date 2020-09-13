@@ -25,6 +25,9 @@ namespace Synergy
 		{
 			delay_ = d;
 
+			if (delay_ == null)
+				return new List<IWidget>();
+
 			if (delay_.SameDelay)
 			{
 				return singleDuration_.GetWidgets(d.SingleDuration);
@@ -145,6 +148,9 @@ namespace Synergy
 		{
 			currentStep_ = currentStep;
 			currentModifier_ = currentModifier;
+
+			if (currentStep_ == null)
+				return;
 
 			if (currentModifier_ != null)
 			{
