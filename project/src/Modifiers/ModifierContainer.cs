@@ -77,6 +77,9 @@
 
 				if (modifier_.HeldValue != null)
 					modifier_.HeldValue.ParentContainer = this;
+
+				if (ModifierSync != null)
+					ModifierSync.ParentModifier = modifier_.HeldValue;
 			}
 		}
 

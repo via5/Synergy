@@ -687,10 +687,17 @@ namespace Synergy
 		{
 			get
 			{
+				float t = 0;
+
 				if (OverrideOverlapTime)
-					return overlapTime_;
+					t = overlapTime_;
 				else
-					return Synergy.Instance.Options.OverlapTime;
+					t = Synergy.Instance.Options.OverlapTime;
+
+				if (enabledMorphs_.Count > 0)
+					t = Math.Min(t, ParentModifier.CurrentDuration / enabledMorphs_.Count);
+
+				return t;
 			}
 
 			set
@@ -718,10 +725,14 @@ namespace Synergy
 			float passed = duration - ParentModifier.TimeRemaining;
 			float startTime = timePerMorph * (enabledMorphs_.Count - i - 1);
 
-			if (i == 0 && (passed >= (timePerMorph * (enabledMorphs_.Count - 1))))
-				return (timePerMorph + overlapTime) - (overlapTime - remaining);
+			float f = 0;
+
+			if (enabledMorphs_.Count > 1 && overlapTime > 0 && i == 0 && (passed >= (timePerMorph * (enabledMorphs_.Count - 1))))
+				f = Utilities.Clamp((timePerMorph + overlapTime) - (overlapTime - remaining), 0, timePerMorph + overlapTime);
 			else
-				return Utilities.Clamp(remaining - startTime, 0, timePerMorph);
+				f = Utilities.Clamp(remaining - startTime, 0, timePerMorph);
+
+			return f;
 		}
 
 
@@ -755,14 +766,29 @@ namespace Synergy
 			float passed = duration - ParentModifier.TimeRemaining;
 			float startTime = timePerMorph * i;
 
-			float morphPassed;
+			float p = 0;
 
-			if (i == 0 && (passed >= (timePerMorph * (enabledMorphs_.Count - 1))))
-				morphPassed = Utilities.Clamp((overlapTime - remaining), 0, timePerMorph + overlapTime);
+			if (timePerMorph == 0)
+				return 0;
+
+			if (enabledMorphs_.Count > 1 && overlapTime > 0 && i == 0 && (passed >= (timePerMorph * (enabledMorphs_.Count - 1))))
+			{
+				float morphPassed = Utilities.Clamp((overlapTime - remaining), 0, timePerMorph + overlapTime);
+				p = morphPassed / (timePerMorph + overlapTime);
+			}
 			else
-				morphPassed = Utilities.Clamp(passed - startTime + overlapTime, 0, timePerMorph + overlapTime);
-
-			float p = morphPassed / (timePerMorph + overlapTime);
+			{
+				if (enabledMorphs_.Count > 1 && overlapTime > 0)
+				{
+					float morphPassed = Utilities.Clamp(passed - startTime + overlapTime, 0, timePerMorph + overlapTime);
+					p = morphPassed / (timePerMorph + overlapTime);
+				}
+				else
+				{
+					float morphPassed = Utilities.Clamp(passed - startTime, 0, timePerMorph);
+					p = morphPassed / timePerMorph;
+				}
+			}
 
 			return p;
 		}
