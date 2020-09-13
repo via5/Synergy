@@ -499,11 +499,11 @@ namespace Synergy
 
 			if (avoidXRange_ == 0 && avoidYRange_ == 0)
 			{
-				x = UnityEngine.Random.Range(
+				x = Utilities.RandomFloat(
 					centerX_ - xRange_,
 					centerX_ + xRange_);
 
-				y = UnityEngine.Random.Range(
+				y = Utilities.RandomFloat(
 					centerY_ - yRange_,
 					centerY_ + yRange_);
 			}
@@ -525,43 +525,43 @@ namespace Synergy
 
 				if (av.Count > 0)
 				{
-					int i = UnityEngine.Random.Range(0, av.Count);
+					int i = Utilities.RandomInt(0, av.Count);
 					i = av[i];
 
 					if (i == 0)
 					{
 						// left
-						x = UnityEngine.Random.Range(0, xRange_ - avoidXRange_);
+						x = Utilities.RandomFloat(0, xRange_ - avoidXRange_);
 						x = centerX_ - avoidXRange_ - x;
 
-						y = UnityEngine.Random.Range(0, yRange_ * 2);
+						y = Utilities.RandomFloat(0, yRange_ * 2);
 						y = centerY_ - yRange_ + y;
 					}
 					else if (i == 1)
 					{
 						// top
-						x = UnityEngine.Random.Range(0, xRange_ * 2);
+						x = Utilities.RandomFloat(0, xRange_ * 2);
 						x = centerX_ - xRange_ + x;
 
-						y = UnityEngine.Random.Range(0, yRange_ - avoidYRange_);
+						y = Utilities.RandomFloat(0, yRange_ - avoidYRange_);
 						y = centerY_ + avoidYRange_ + y;
 					}
 					else if (i == 2)
 					{
 						// right
-						x = UnityEngine.Random.Range(0, xRange_ - avoidXRange_);
+						x = Utilities.RandomFloat(0, xRange_ - avoidXRange_);
 						x = centerX_ + avoidXRange_ + x;
 
-						y = UnityEngine.Random.Range(0, yRange_ * 2);
+						y = Utilities.RandomFloat(0, yRange_ * 2);
 						y = centerY_ - yRange_ + y;
 					}
 					else if (i == 3)
 					{
 						// bottom
-						x = UnityEngine.Random.Range(0, xRange_ * 2);
+						x = Utilities.RandomFloat(0, xRange_ * 2);
 						x = centerX_ - xRange_ + x;
 
-						y = UnityEngine.Random.Range(0, yRange_ - avoidYRange_);
+						y = Utilities.RandomFloat(0, yRange_ - avoidYRange_);
 						y = centerY_ - avoidYRange_ - y;
 					}
 				}
@@ -882,13 +882,13 @@ namespace Synergy
 			{
 				saccadeTime_.Reset();
 
-				saccadeOffset_.x = UnityEngine.Random.Range(
+				saccadeOffset_.x = Utilities.RandomFloat(
 					SaccadeMin, SaccadeMax);
 
-				saccadeOffset_.y = UnityEngine.Random.Range(
+				saccadeOffset_.y = Utilities.RandomFloat(
 					SaccadeMin, SaccadeMax);
 
-				saccadeOffset_.z = UnityEngine.Random.Range(
+				saccadeOffset_.z = Utilities.RandomFloat(
 					SaccadeMin, SaccadeMax);
 			}
 

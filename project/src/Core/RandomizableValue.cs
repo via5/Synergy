@@ -117,10 +117,10 @@ namespace Synergy
 			}
 		}
 
-		public virtual void Tick(float delta)
+		public virtual void Tick(float deltaTime)
 		{
-			elapsed_ += delta;
-			totalElapsed_ += delta;
+			elapsed_ += deltaTime;
+			totalElapsed_ += deltaTime;
 		}
 
 
@@ -181,7 +181,7 @@ namespace Synergy
 
 		protected override void Next()
 		{
-			current_ = UnityEngine.Random.Range(
+			current_ = Utilities.RandomFloat(
 				initial_.Value - range_.Value,
 				initial_.Value + range_.Value);
 		}
@@ -238,7 +238,7 @@ namespace Synergy
 
 		protected override void Next()
 		{
-			current_ = UnityEngine.Random.Range(
+			current_ = Utilities.RandomInt(
 				initial_.Value - range_.Value,
 				initial_.Value + range_.Value);
 		}
@@ -355,10 +355,7 @@ namespace Synergy
 					return 1;
 
 				float p = (elapsed_ - (current_ / 2)) / (current_ / 2);
-				if (p > 1.0f)
-					p = 1.0f;
-
-				return p;
+				return Utilities.Clamp(p, 0, 1);
 			}
 		}
 
@@ -415,10 +412,14 @@ namespace Synergy
 		{
 			get
 			{
+				float f;
+
 				if (InFirstHalf)
-					return (current_ / 2) - elapsed_;
+					f = (current_ / 2) - elapsed_;
 				else
-					return current_ - elapsed_;
+					f = current_ - elapsed_;
+
+				return Utilities.Clamp(f, 0, 1);
 			}
 		}
 
@@ -469,7 +470,7 @@ namespace Synergy
 
 		protected override void Next()
 		{
-			current_ = UnityEngine.Random.Range(
+			current_ = Utilities.RandomFloat(
 				initial_.Value - range_.Value,
 				initial_.Value + range_.Value);
 		}

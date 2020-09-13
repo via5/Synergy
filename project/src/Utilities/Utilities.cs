@@ -30,8 +30,38 @@ namespace Synergy
 		}
 	}
 
-	class Utilities
+
+	public interface IRandomProvider
 	{
+		// returns a float in [min, max[
+		//
+		float RandomFloat(float min, float max);
+
+		// returns an int in [min, max[
+		//
+		int RandomInt(int min, int max);
+	}
+
+
+	public class UnityRandomProvider : IRandomProvider
+	{
+		public float RandomFloat(float min, float max)
+		{
+			return UnityEngine.Random.Range(min, max);
+		}
+
+		public int RandomInt(int min, int max)
+		{
+			return UnityEngine.Random.Range(min, max);
+		}
+	}
+
+
+
+	public class Utilities
+	{
+		private static IRandomProvider rng_ = null;
+
 		public const int CloneZero = 1;
 		public const string PresetAtomPlaceholder = "$ATOM";
 
@@ -69,6 +99,25 @@ namespace Synergy
 			{
 				return new Color(0.84f, 0.84f, 0.84f);
 			}
+		}
+
+		public static IRandomProvider RandomProvider
+		{
+			set { rng_ = value; }
+		}
+
+		// returns a float in [min, max[
+		//
+		public static float RandomFloat(float min, float max)
+		{
+			return rng_.RandomFloat(min, max);
+		}
+
+		// returns an int in [min, max[
+		//
+		public static int RandomInt(int min, int max)
+		{
+			return rng_.RandomInt(min, max);
 		}
 
 		public static FloatRange MakeFloatRange(
@@ -482,6 +531,40 @@ namespace Synergy
 		public void Shuffle(int count)
 		{
 			order_ = Shuffle(order_, count);
+		}
+	}
+
+
+	public static class HashHelper
+	{
+		public static int GetHashCode<T1, T2>(T1 arg1, T2 arg2)
+		{
+			unchecked
+			{
+				return 31 * arg1.GetHashCode() + arg2.GetHashCode();
+			}
+		}
+
+		public static int GetHashCode<T1, T2, T3>(T1 arg1, T2 arg2, T3 arg3)
+		{
+			unchecked
+			{
+				int hash = arg1.GetHashCode();
+				hash = 31 * hash + arg2.GetHashCode();
+				return 31 * hash + arg3.GetHashCode();
+			}
+		}
+
+		public static int GetHashCode<T1, T2, T3, T4>(T1 arg1, T2 arg2, T3 arg3,
+			T4 arg4)
+		{
+			unchecked
+			{
+				int hash = arg1.GetHashCode();
+				hash = 31 * hash + arg2.GetHashCode();
+				hash = 31 * hash + arg3.GetHashCode();
+				return 31 * hash + arg4.GetHashCode();
+			}
 		}
 	}
 }

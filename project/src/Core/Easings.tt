@@ -76,7 +76,7 @@ using static System.Math;
 
 namespace Synergy
 {
-	class EasingFactory : BasicFactory<IEasing>
+	public class EasingFactory : BasicFactory<IEasing>
 	{
 		public override List<IEasing> GetAllObjects()
 		{
@@ -95,14 +95,14 @@ namespace Synergy
 	}
 
 
-	interface IEasing : IFactoryObject
+	public interface IEasing : IFactoryObject
 	{
 		IEasing Clone(int cloneFlags = 0);
 		float Magnitude(float f);
 	}
 
 
-	abstract class BasicEasing : IEasing
+	public abstract class BasicEasing : IEasing
 	{
 		public abstract string GetFactoryTypeName();
 		public abstract string GetDisplayName();
@@ -147,7 +147,7 @@ foreach (var e in easings)
 	var equation = e.Item2;
 #>
 
-	class <#= className #> : BasicEasing
+	public class <#= className #> : BasicEasing
 	{
 		public static string FactoryTypeName
 		{

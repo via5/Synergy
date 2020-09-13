@@ -5,7 +5,7 @@ using static System.Math;
 
 namespace Synergy
 {
-	class EasingFactory : BasicFactory<IEasing>
+	public class EasingFactory : BasicFactory<IEasing>
 	{
 		public override List<IEasing> GetAllObjects()
 		{
@@ -48,14 +48,14 @@ namespace Synergy
 	}
 
 
-	interface IEasing : IFactoryObject
+	public interface IEasing : IFactoryObject
 	{
 		IEasing Clone(int cloneFlags = 0);
 		float Magnitude(float f);
 	}
 
 
-	abstract class BasicEasing : IEasing
+	public abstract class BasicEasing : IEasing
 	{
 		public abstract string GetFactoryTypeName();
 		public abstract string GetDisplayName();
@@ -92,7 +92,7 @@ namespace Synergy
 	}
 
 
-	class LinearEasing : BasicEasing
+	public class LinearEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -133,7 +133,7 @@ namespace Synergy
 		}
 	}
 
-	class SinusoidalEasing : BasicEasing
+	public class SinusoidalEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -174,7 +174,7 @@ namespace Synergy
 		}
 	}
 
-	class QuadInEasing : BasicEasing
+	public class QuadInEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -215,7 +215,7 @@ namespace Synergy
 		}
 	}
 
-	class QuadOutEasing : BasicEasing
+	public class QuadOutEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -256,7 +256,7 @@ namespace Synergy
 		}
 	}
 
-	class QuadInOutEasing : BasicEasing
+	public class QuadInOutEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -297,7 +297,7 @@ namespace Synergy
 		}
 	}
 
-	class CubicInEasing : BasicEasing
+	public class CubicInEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -338,7 +338,7 @@ namespace Synergy
 		}
 	}
 
-	class CubicOutEasing : BasicEasing
+	public class CubicOutEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -379,7 +379,7 @@ namespace Synergy
 		}
 	}
 
-	class CubicInOutEasing : BasicEasing
+	public class CubicInOutEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -420,7 +420,7 @@ namespace Synergy
 		}
 	}
 
-	class QuartInEasing : BasicEasing
+	public class QuartInEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -461,7 +461,7 @@ namespace Synergy
 		}
 	}
 
-	class QuartOutEasing : BasicEasing
+	public class QuartOutEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -502,7 +502,7 @@ namespace Synergy
 		}
 	}
 
-	class QuartInOutEasing : BasicEasing
+	public class QuartInOutEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -543,7 +543,7 @@ namespace Synergy
 		}
 	}
 
-	class QuintInEasing : BasicEasing
+	public class QuintInEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -584,7 +584,7 @@ namespace Synergy
 		}
 	}
 
-	class QuintOutEasing : BasicEasing
+	public class QuintOutEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -625,7 +625,7 @@ namespace Synergy
 		}
 	}
 
-	class QuintInOutEasing : BasicEasing
+	public class QuintInOutEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -666,7 +666,7 @@ namespace Synergy
 		}
 	}
 
-	class SineInEasing : BasicEasing
+	public class SineInEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -707,7 +707,7 @@ namespace Synergy
 		}
 	}
 
-	class SineOutEasing : BasicEasing
+	public class SineOutEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -748,7 +748,7 @@ namespace Synergy
 		}
 	}
 
-	class SineInOutEasing : BasicEasing
+	public class SineInOutEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -789,7 +789,7 @@ namespace Synergy
 		}
 	}
 
-	class ExpoInEasing : BasicEasing
+	public class ExpoInEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -830,7 +830,7 @@ namespace Synergy
 		}
 	}
 
-	class ExpoOutEasing : BasicEasing
+	public class ExpoOutEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -871,7 +871,7 @@ namespace Synergy
 		}
 	}
 
-	class ExpoInOutEasing : BasicEasing
+	public class ExpoInOutEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -912,7 +912,7 @@ namespace Synergy
 		}
 	}
 
-	class CircInEasing : BasicEasing
+	public class CircInEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -953,7 +953,7 @@ namespace Synergy
 		}
 	}
 
-	class CircOutEasing : BasicEasing
+	public class CircOutEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -994,7 +994,7 @@ namespace Synergy
 		}
 	}
 
-	class CircInOutEasing : BasicEasing
+	public class CircInOutEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -1035,7 +1035,7 @@ namespace Synergy
 		}
 	}
 
-	class BackInEasing : BasicEasing
+	public class BackInEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -1076,7 +1076,7 @@ namespace Synergy
 		}
 	}
 
-	class BackOutEasing : BasicEasing
+	public class BackOutEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -1117,7 +1117,7 @@ namespace Synergy
 		}
 	}
 
-	class BackInOutEasing : BasicEasing
+	public class BackInOutEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -1158,7 +1158,7 @@ namespace Synergy
 		}
 	}
 
-	class ElasticInEasing : BasicEasing
+	public class ElasticInEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -1199,7 +1199,7 @@ namespace Synergy
 		}
 	}
 
-	class ElasticOutEasing : BasicEasing
+	public class ElasticOutEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -1240,7 +1240,7 @@ namespace Synergy
 		}
 	}
 
-	class ElasticInOutEasing : BasicEasing
+	public class ElasticInOutEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -1281,7 +1281,7 @@ namespace Synergy
 		}
 	}
 
-	class BounceInEasing : BasicEasing
+	public class BounceInEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -1322,7 +1322,7 @@ namespace Synergy
 		}
 	}
 
-	class BounceOutEasing : BasicEasing
+	public class BounceOutEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{
@@ -1363,7 +1363,7 @@ namespace Synergy
 		}
 	}
 
-	class BounceInOutEasing : BasicEasing
+	public class BounceInOutEasing : BasicEasing
 	{
 		public static string FactoryTypeName
 		{

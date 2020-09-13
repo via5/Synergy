@@ -92,27 +92,37 @@ namespace Synergy
 			Time = new RandomizableTime(s, r, 0);
 		}
 
+
+		// [0-1] for first the first half
+		//
 		public override float FirstHalfProgress
 		{
 			get { return Time.FirstHalfProgress; }
 		}
 
+		// [0-1] for the second half
+		//
 		public override float SecondHalfProgress
 		{
 			get { return Time.SecondHalfProgress; }
 		}
 
+		// whether overall progress is <= 0.5
+		//
 		public override bool InFirstHalf
 		{
 			get { return Time.InFirstHalf; }
 		}
 
+		// whether overall progress is > 0.5
+		//
 		public override bool FirstHalfFinished
 		{
-			get { return TotalProgress >= 1.0f; }
+			get { return !Time.InFirstHalf; }
 		}
 
-
+		// [0-1] for the current half
+		//
 		public override float TotalProgress
 		{
 			get
@@ -120,20 +130,33 @@ namespace Synergy
 				if (Time.Current <= 0)
 					return 1;
 
-				return Time.Elapsed / (Time.Current / 2);
+				float f;
+
+				if (InFirstHalf)
+					f = Time.Elapsed / (Time.Current / 2);
+				else
+					f = (Time.Elapsed - 0.5f) / (Time.Current / 2);
+
+				return Utilities.Clamp(f, 0, 1);
 			}
 		}
 
+		// same as InFirstHalf
+		//
 		public override bool InFirstHalfTotal
 		{
 			get { return Time.InFirstHalf; }
 		}
 
+		// whether the duration has elapsed completely
+		//
 		public override bool Finished
 		{
 			get { return Time.Finished; }
 		}
 
+		// remaining time in the duration
+		//
 		public override float TimeRemaining
 		{
 			get
@@ -142,6 +165,8 @@ namespace Synergy
 			}
 		}
 
+		// remaining time in the current half
+		//
 		public override float TimeRemainingInHalf
 		{
 			get
@@ -150,11 +175,15 @@ namespace Synergy
 			}
 		}
 
+		// current duration
+		//
 		public override float Current
 		{
 			get { return Time.Current; }
 		}
 
+		// underlying random time
+		//
 		public RandomizableTime Time
 		{
 			get
@@ -170,6 +199,7 @@ namespace Synergy
 				time_.Set(value);
 			}
 		}
+
 
 		public override IDuration Clone(int cloneFlags = 0)
 		{
@@ -189,9 +219,9 @@ namespace Synergy
 			Time = null;
 		}
 
-		public override void Tick(float delta)
+		public override void Tick(float deltaTime)
 		{
-			Time.Tick(delta);
+			Time.Tick(deltaTime);
 		}
 
 		public override void Reset()
@@ -228,7 +258,7 @@ namespace Synergy
 	}
 
 
-	sealed class RampDuration : BasicDuration
+	public sealed class RampDuration : BasicDuration
 	{
 		public static string FactoryTypeName { get; } = "ramp";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }
@@ -268,6 +298,7 @@ namespace Synergy
 		private bool finished_ = false;
 
 		public RampDuration()
+			: this(1, 1, 1, 0)
 		{
 		}
 
@@ -278,6 +309,7 @@ namespace Synergy
 			timeUp_.Value = over;
 			timeDown_.Value = over;
 			hold_.Value = hold;
+			current_ = min;
 		}
 
 		public override float FirstHalfProgress

@@ -2,13 +2,13 @@
 
 namespace Synergy
 {
-	interface IRange
+	public interface IRange
 	{
 		bool IsEmpty();
 	}
 
 
-	abstract class Range<T> : IRange
+	public abstract class Range<T> : IRange
 	{
 		public T Minimum, Maximum;
 
@@ -16,7 +16,7 @@ namespace Synergy
 	}
 
 
-	class FloatRange : Range<float>
+	public class FloatRange : Range<float>
 	{
 		public FloatRange()
 			: this(0, 0)
@@ -51,6 +51,33 @@ namespace Synergy
 		public override string ToString()
 		{
 			return Minimum.ToString() + "-" + Maximum.ToString();
+		}
+
+
+
+		public override int GetHashCode()
+		{
+			return HashHelper.GetHashCode(Minimum, Maximum);
+		}
+
+		public override bool Equals(Object o)
+		{
+			var r = o as FloatRange;
+			if (r == null)
+				return false;
+
+			return Equals(r);
+		}
+
+		public bool Equals(FloatRange r)
+		{
+			if (r == null)
+				return false;
+
+			if (ReferenceEquals(this, r))
+				return true;
+
+			return (Minimum == r.Minimum) && (Maximum == r.Maximum);
 		}
 	}
 
