@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace Synergy
 {
-	abstract class BasicRandomizableValue<T, Parameter> : IJsonable
+	public abstract class BasicRandomizableValue<T, Parameter> : IJsonable
 		where Parameter : BasicParameter<T>
 	{
 		protected readonly Parameter initial_;
@@ -130,7 +130,8 @@ namespace Synergy
 	}
 
 
-	class RandomizableFloat : BasicRandomizableValue<float, FloatParameter>
+	public class RandomizableFloat
+		: BasicRandomizableValue<float, FloatParameter>
 	{
 		public RandomizableFloat()
 			: this(0, 0, 0)
@@ -187,7 +188,7 @@ namespace Synergy
 	}
 
 
-	class RandomizableInt : BasicRandomizableValue<int, IntParameter>
+	public class RandomizableInt : BasicRandomizableValue<int, IntParameter>
 	{
 		public RandomizableInt(int initial=0)
 			: this(initial, 0, 0)
@@ -244,7 +245,8 @@ namespace Synergy
 	}
 
 
-	class RandomizableTime : BasicRandomizableValue<float, FloatParameter>
+	public class RandomizableTime
+		: BasicRandomizableValue<float, FloatParameter>
 	{
 		public const int CutoffClosest = 0;
 		public const int CutoffFloor = 1;

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Synergy
 {
-	interface IDuration : IFactoryObject
+	public interface IDuration : IFactoryObject
 	{
 		float FirstHalfProgress { get; }
 		float SecondHalfProgress { get; }
@@ -25,7 +25,7 @@ namespace Synergy
 	}
 
 
-	sealed class DurationFactory : BasicFactory<IDuration>
+	public sealed class DurationFactory : BasicFactory<IDuration>
 	{
 		public override List<IDuration> GetAllObjects()
 		{
@@ -38,7 +38,7 @@ namespace Synergy
 	}
 
 
-	abstract class BasicDuration : IDuration
+	public abstract class BasicDuration : IDuration
 	{
 		public abstract string GetFactoryTypeName();
 		public abstract string GetDisplayName();
@@ -70,7 +70,7 @@ namespace Synergy
 	}
 
 
-	sealed class RandomDuration : BasicDuration
+	public sealed class RandomDuration : BasicDuration
 	{
 		public static string FactoryTypeName { get; } = "randomRange";
 		public override string GetFactoryTypeName() { return FactoryTypeName; }

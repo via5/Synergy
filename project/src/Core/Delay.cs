@@ -2,7 +2,7 @@
 
 namespace Synergy
 {
-	sealed class Delay : IJsonable
+	sealed public class Delay : IJsonable
 	{
 		public const int None = 0;
 		public const int HalfwayType = 1;
@@ -78,12 +78,6 @@ namespace Synergy
 		}
 
 
-		public IDuration SingleDuration
-		{
-			get { return HalfwayDuration; }
-			set { HalfwayDuration = value; }
-		}
-
 		public IDuration ActiveDuration
 		{
 			get
@@ -104,6 +98,18 @@ namespace Synergy
 						return null;
 				}
 			}
+		}
+
+		public int ActiveType
+		{
+			get { return activeType_; }
+			set { activeType_ = value; }
+		}
+
+		public IDuration SingleDuration
+		{
+			get { return HalfwayDuration; }
+			set { HalfwayDuration = value; }
 		}
 
 		public IDuration HalfwayDuration
@@ -191,12 +197,6 @@ namespace Synergy
 		public BoolParameter EndBackwardsParameter
 		{
 			get { return endBackwards_; }
-		}
-
-		public int ActiveType
-		{
-			get { return activeType_; }
-			set { activeType_ = value; }
 		}
 
 		public bool StopAfter { get; set; } = false;

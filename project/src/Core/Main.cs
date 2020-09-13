@@ -116,55 +116,6 @@ namespace Synergy
 
 		private void CreateTestStuff(Atom a)
 		{
-			//options_.OverlapTime = 0;
-
-			{
-				var s = new Step();
-				s.Duration = new RandomDuration(3);
-
-				//var m = new RigidbodyModifier(a, "hip");
-				//m.Movement = new Movement(0, 150);
-				//m.Direction = new Vector3(0, 0, 1);
-				//s.AddModifier(new ModifierContainer(m));
-
-				//var m = new StorableModifier(
-				//	a, "plugin#1_VamTimeline.AtomPlugin", "Set Time");
-				//
-				//m.Movement = new Movement(0, 2);
-				//s.AddModifier(new ModifierContainer(m, new StepProgressSyncedModifier()));
-
-				var m = new MorphModifier(a);
-//				((OrderedMorphProgression)m.Progression).HoldHalfway = true;
-				m.AddMorph("Right Fingers Fist", new Movement(0, 1));
-				m.AddMorph("Smile Open Full Face", new Movement(0, 0.6f));
-				s.AddModifier(new ModifierContainer(m));
-
-				manager_.AddStep(s);
-			}
-			/*
-			{
-				var s = new Step();
-				s.Duration = new RandomDuration(1);
-
-				var m = new RigidbodyModifier(a, "head");
-				m.Movement = new Movement(0, 150);
-				m.Direction = new Vector3(1, 0, 0);
-				s.AddModifier(new ModifierContainer(m));
-
-				manager_.AddStep(s);
-			}
-
-			{
-				var s = new Step();
-				s.Duration = new RandomDuration(3);
-
-				var m = new RigidbodyModifier(a, "lHand");
-				m.Movement = new Movement(0, 150);
-				m.Direction = new Vector3(0, 1, 0);
-				s.AddModifier(new ModifierContainer(m));
-
-				manager_.AddStep(s);
-			}*/
 		}
 
 		public Timer CreateTimer(float seconds, Timer.Callback f)

@@ -12,7 +12,7 @@ namespace Synergy
 		public const int Preset = 2;
 	}
 
-	interface IJsonable
+	public interface IJsonable
 	{
 		J.Node ToJSON();
 		bool FromJSON(J.Node n);
@@ -21,7 +21,7 @@ namespace Synergy
 
 	namespace J
 	{
-		class Node
+		public class Node
 		{
 			protected JSONNode node_;
 
@@ -96,7 +96,7 @@ namespace Synergy
 			}
 		}
 
-		class Object : Node
+		public class Object : Node
 		{
 			private readonly JSONClass c_;
 
@@ -634,7 +634,7 @@ namespace Synergy
 		}
 
 
-		class Array : Node
+		public class Array : Node
 		{
 			private readonly JSONArray a_;
 

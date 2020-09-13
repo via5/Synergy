@@ -17,10 +17,12 @@ goto :eof
 	)
 
 	for /D %%d in (*) do (
-		set dir=%dir%%%d\
-		cd %%d
-		call :dodir
-		cd ..
+		if "%%d" neq "Tests" (
+			set dir=%dir%%%d\
+			cd %%d
+			call :dodir
+			cd ..
+		)
 	)
 	endlocal
 exit /b

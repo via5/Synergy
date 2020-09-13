@@ -2,7 +2,7 @@
 
 namespace Synergy
 {
-	interface IFactory<T>
+	public interface IFactory<T>
 	{
 		T Create(string typeName);
 		List<T> GetAllObjects();
@@ -10,7 +10,7 @@ namespace Synergy
 		List<string> GetAllFactoryTypeNames();
 	}
 
-	abstract class BasicFactory<T> : IFactory<T>
+	public abstract class BasicFactory<T> : IFactory<T>
 		where T : class, IFactoryObject
 	{
 		public abstract List<T> GetAllObjects();
@@ -48,7 +48,7 @@ namespace Synergy
 		}
 	}
 
-	interface IFactoryObject
+	public interface IFactoryObject
 	{
 		string GetFactoryTypeName();
 		string GetDisplayName();

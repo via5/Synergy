@@ -1,3 +1,6 @@
 /project/bin
 /project/obj
 /project/.vs
+/project/TestResults
+/project/Tests/obj
+/project/Tests/bin
