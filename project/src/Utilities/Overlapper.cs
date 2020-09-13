@@ -6,7 +6,7 @@ namespace Synergy
 	{
 		public delegate bool RealIndexCallback(int i);
 		public delegate bool TickCallback(
-			int realIndex, float deltaTime, bool stepForwards, bool paused);
+			int realIndex, float deltaTime, bool forwards, bool paused);
 		public delegate float TimeRemainingCallback(int realIndex);
 		public delegate List<int> Generator(List<int> old);
 		public delegate int CountCallback();
@@ -170,7 +170,7 @@ namespace Synergy
 
 			if (order1_.Count == 0)
 			{
-				Log("Tick: no steps");
+				Log("Tick: no elements");
 				return;
 			}
 
@@ -219,13 +219,13 @@ namespace Synergy
 								$"Tick: remaining {TimeRemaining(realIndex)}, " +
 								"starting overlap");
 
-							// step ending, start overlap
+							// element ending, start overlap
 							NextOverlap();
 						}
 					}
 					else
 					{
-						Log("step tick finished, next");
+						Log("tick finished, next");
 
 						// next
 						NextActive();
@@ -235,7 +235,7 @@ namespace Synergy
 				{
 					if (overlap_.order1 && orderIndex != overlap_.orderIndex)
 					{
-						// this step is not active nor the overlap
+						// this element is not active nor the overlap
 						Ticker(realIndex, deltaTime, false, true);
 					}
 				}
@@ -248,7 +248,7 @@ namespace Synergy
 				if (realIndex == -1)
 				{
 					Log(
-						$"step not found for overlap " +
+						$"element not found for overlap " +
 						$"index={overlap_.orderIndex} in " +
 						(overlap_.order1 ? "order1" : "order2"));
 				}
@@ -256,10 +256,7 @@ namespace Synergy
 				{
 					if (!CanRun(realIndex) || !Ticker(realIndex, deltaTime, overlap_.forwards, false))
 					{
-						Log(
-							$"overlap: step tick finished, getting next");
-
-						// next
+						Log($"overlap: element tick finished, getting next");
 						NextOverlap();
 					}
 				}
@@ -272,7 +269,7 @@ namespace Synergy
 
 			if (order1_.Count == 0)
 			{
-				Log("NextActive: no steps");
+				Log("NextActive: no elements");
 				active_.orderIndex = -1;
 				return;
 			}
@@ -292,7 +289,10 @@ namespace Synergy
 				{
 					if (active_.orderIndex == initial && reversedDir)
 					{
-						Log("NextActive: looped around, no valid step, bailing out");
+						Log(
+							"NextActive: looped around, no valid " +
+							"element, bailing out");
+
 						active_.orderIndex = -1;
 						break;
 					}
@@ -515,38 +515,42 @@ namespace Synergy
 						if (realIndex == -1)
 						{
 							Log(
-								$"NextOverlap: no step for {overlap_.orderIndex}, " +
-								"continuing");
+								$"NextOverlap: no element for " +
+								$"{overlap_.orderIndex}, continuing");
 						}
 						else if (!CanRun(realIndex))
 						{
 							Log(
-								$"NextOverlap: step {overlap_.orderIndex} disabled, " +
-								"continuing");
+								$"NextOverlap: index {overlap_.orderIndex} " +
+								$"disabled, continuing");
 						}
 						else if (CanRunBackwards(realIndex))
 						{
 							if (overlap_.orderIndex == active_.orderIndex)
 							{
 								Log(
-									$"NextOverlap: step {overlap_.orderIndex} enabled " +
-									"but half move and is same as active; must wait");
+									$"NextOverlap: index " +
+									$"{overlap_.orderIndex} enabled but " +
+									$"half move and is same as active; must " +
+									$"wait");
 
 								overlap_.mustWait = true;
 							}
 							else
 							{
 								Log(
-									$"NextOverlap: step {overlap_.orderIndex} enabled " +
-									"and half move, taking it");
+									$"NextOverlap: index " +
+									$"{overlap_.orderIndex} enabled and " +
+									$"half move, taking it");
 							}
 
 							break;
 						}
 
 						Log(
-							$"NextOverlap: step {overlap_.orderIndex} enabled " +
-							"but not half move, so doesn't need ticking; continuing");
+							$"NextOverlap: index {overlap_.orderIndex} " +
+							$"enabled but not half move, so doesn't need " +
+							$"ticking; continuing");
 					}
 				}
 			}
@@ -581,12 +585,12 @@ namespace Synergy
 
 			if (active_.orderIndex != -1 && order1_[active_.orderIndex] == realIndex)
 			{
-				Log("this is the active step, regenerating");
+				Log("this is the active element, regenerating");
 				ItemsChanged();
 			}
 			else
 			{
-				Log("not the active step");
+				Log("not the active element");
 				RemoveFromOrder(realIndex, true);
 				RemoveFromOrder(realIndex, false);
 			}
@@ -601,8 +605,8 @@ namespace Synergy
 			if (orderIndex == -1)
 			{
 				LogError(
-					$"StepDeleted: step index {realIndex} not found in " +
-						"order list");
+					$"RemoveFromOrder: index {realIndex} not found in " +
+					$"order list");
 
 				return;
 			}
