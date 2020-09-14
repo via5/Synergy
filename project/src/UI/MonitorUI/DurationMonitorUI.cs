@@ -124,10 +124,22 @@ namespace Synergy
 		private readonly FloatSlider timeUp_;
 		private readonly FloatSlider timeDown_;
 		private readonly FloatSlider hold_;
+
+		private readonly FloatSlider firstHalfProgress_;
+		private readonly FloatSlider secondHalfProgress_;
+		private readonly Checkbox inFirstHalf_;
+		private readonly FloatSlider totalProgress_;
+		private readonly Checkbox inFirstHalfTotal_;
+		private readonly Checkbox firstHalfFinished_;
+		private readonly Checkbox finished_;
+		private readonly FloatSlider timeRemaining_;
+		private readonly FloatSlider timeRemainingInHalf_;
+		private readonly FloatSlider current_;
 		private readonly FloatSlider elapsed_;
 		private readonly FloatSlider totalElapsed_;
-		private readonly FloatSlider current_;
+		private readonly FloatSlider progress_;
 		private readonly FloatSlider holdingProgress_;
+		private readonly FloatSlider holdingElapsed_;
 
 		public override string DurationType
 		{
@@ -157,6 +169,43 @@ namespace Synergy
 				name + " hold maximum", 0, new FloatRange(0, 0), null,
 				flags_ | FloatSlider.Disabled);
 
+			firstHalfProgress_ = new FloatSlider(
+				name + " first half progress", 0, new FloatRange(0, 0), null,
+				flags_ | FloatSlider.Disabled);
+
+			secondHalfProgress_ = new FloatSlider(
+				name + " second half progress", 0, new FloatRange(0, 0), null,
+				flags_ | FloatSlider.Disabled);
+
+			inFirstHalf_ = new Checkbox(
+				name + " in first half", null, flags_ | Widget.Disabled);
+
+			totalProgress_ = new FloatSlider(
+				name + " total progress", 0, new FloatRange(0, 0), null,
+				flags_ | FloatSlider.Disabled);
+
+			inFirstHalfTotal_ = new Checkbox(
+				name + " in first half total", null, flags_ | Widget.Disabled);
+
+			firstHalfFinished_ = new Checkbox(
+				name + " first half finished", null, flags_ | Widget.Disabled);
+
+			finished_ = new Checkbox(
+				name + " finished", null, flags_ | Widget.Disabled);
+
+			timeRemaining_ = new FloatSlider(
+				name + " time remaining", 0, new FloatRange(0, 0), null,
+				flags_ | FloatSlider.Disabled);
+
+			timeRemainingInHalf_ = new FloatSlider(
+				name + " time remaining in half", 0, new FloatRange(0, 0), null,
+				flags_ | FloatSlider.Disabled);
+
+
+			current_ = new FloatSlider(
+				name + " current", 0, new FloatRange(0, 0), null,
+				flags_ | FloatSlider.Disabled);
+
 			elapsed_ = new FloatSlider(
 				name + " elapsed", 0, new FloatRange(0, 0), null,
 				flags_ | FloatSlider.Disabled);
@@ -165,12 +214,16 @@ namespace Synergy
 				name + " total elapsed", 0, new FloatRange(0, 0), null,
 				flags_ | FloatSlider.Disabled);
 
-			current_ = new FloatSlider(
-				name + " current", 0, new FloatRange(0, 0), null,
+			progress_ = new FloatSlider(
+				name + " progress", 0, new FloatRange(0, 0), null,
 				flags_ | FloatSlider.Disabled);
 
 			holdingProgress_ = new FloatSlider(
 				name + " hold progress", 0, new FloatRange(0, 0), null,
+				flags_ | FloatSlider.Disabled);
+
+			holdingElapsed_ = new FloatSlider(
+				name + " holding elapsed", 0, new FloatRange(0, 0), null,
 				flags_ | FloatSlider.Disabled);
 		}
 
@@ -180,16 +233,8 @@ namespace Synergy
 			if (duration_ == null)
 				return;
 
-			widgets_.AddToUI(start_);
-			widgets_.AddToUI(end_);
-			widgets_.AddToUI(timeUp_);
-			widgets_.AddToUI(timeDown_);
-			widgets_.AddToUI(hold_);
-
-			widgets_.AddToUI(elapsed_);
-			widgets_.AddToUI(totalElapsed_);
-			widgets_.AddToUI(current_);
-			widgets_.AddToUI(holdingProgress_);
+			foreach (var w in GetWidgets(d))
+				widgets_.AddToUI(w);
 		}
 
 		public override List<IWidget> GetWidgets(IDuration d)
@@ -202,10 +247,23 @@ namespace Synergy
 				timeDown_,
 				hold_,
 
+				firstHalfProgress_,
+				secondHalfProgress_,
+				inFirstHalf_,
+				totalProgress_,
+				inFirstHalfTotal_,
+				firstHalfFinished_,
+				finished_,
+				timeRemaining_,
+				timeRemainingInHalf_,
+
+				current_,
 				elapsed_,
 				totalElapsed_,
-				current_,
+				progress_,
+
 				holdingProgress_,
+				holdingElapsed_
 			};
 		}
 
@@ -219,10 +277,22 @@ namespace Synergy
 				timeDown_.Value = 0;
 				hold_.Value = 0;
 
+				firstHalfProgress_.Value = 0;
+				secondHalfProgress_.Value = 0;
+				inFirstHalf_.Value = false;
+				totalProgress_.Value = 0;
+				inFirstHalfTotal_.Value = false;
+				firstHalfFinished_.Value = false;
+				finished_.Value = false;
+				timeRemaining_.Value = 0;
+				timeRemainingInHalf_.Value = 0;
+
+				current_.Value = 0;
 				elapsed_.Value = 0;
 				totalElapsed_.Value = 0;
-				current_.Value = 0;
+				progress_.Value = 0;
 				holdingProgress_.Value = 0;
+				holdingElapsed_.Value = 0;
 			}
 			else
 			{
@@ -232,10 +302,22 @@ namespace Synergy
 				timeDown_.Value = duration_.TimeDown;
 				hold_.Value = duration_.Hold;
 
+				firstHalfProgress_.Value = duration_.FirstHalfProgress;
+				secondHalfProgress_.Value = duration_.SecondHalfProgress;
+				inFirstHalf_.Value = duration_.InFirstHalf;
+				totalProgress_.Value = duration_.TotalProgress;
+				inFirstHalfTotal_.Value = duration_.InFirstHalfTotal;
+				firstHalfFinished_.Value = duration_.FirstHalfFinished;
+				finished_.Value = duration_.Finished;
+				timeRemaining_.Value = duration_.TimeRemaining;
+				timeRemainingInHalf_.Value = duration_.TimeRemainingInHalf;
+
+				current_.Value = duration_.Current;
 				elapsed_.Value = duration_.Elapsed;
 				totalElapsed_.Value = duration_.TotalElapsed;
-				current_.Value = duration_.Current;
+				progress_.Value = duration_.Progress;
 				holdingProgress_.Set(0, duration_.Hold, duration_.HoldingElapsed);
+				holdingElapsed_.Value = duration_.HoldingElapsed;
 			}
 		}
 	}

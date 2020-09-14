@@ -358,7 +358,26 @@ namespace Synergy
 
 				// already an overlap, take it over
 				active_ = new TickInfo(overlap_);
-				active_.mustWait = false;
+
+				if (active_.mustWait)
+				{
+					Log("NextActive: overlap was waiting, resuming");
+
+					var ri = GetRealIndex(active_.orderIndex, true);
+					if (ri == -1)
+					{
+						LogError(
+							$"NextActive: element {active_.orderIndex} not " +
+							$"found while trying to resume a mustWait " +
+							$"overlap");
+					}
+					else
+					{
+						Resume(ri);
+					}
+
+					active_.mustWait = false;
+				}
 
 				Log(
 					$"NextActive: i={active_.orderIndex}");
@@ -571,7 +590,7 @@ namespace Synergy
 
 		public void ItemInserted(int at)
 		{
-			if (at >= 0 && at < order1_.Count)
+			if (at >= 0 && at <= order1_.Count)
 			{
 				Log("item inserted");
 				order1_.Insert(at, ItemCount() - 1);
@@ -586,6 +605,13 @@ namespace Synergy
 			if (active_.orderIndex != -1 && order1_[active_.orderIndex] == realIndex)
 			{
 				Log("this is the active element, regenerating");
+				ItemsChanged();
+			}
+			else if (overlap_.orderIndex != -1 && (
+				(overlap_.order1 && order1_[overlap_.orderIndex] == realIndex) ||
+				(!overlap_.order1 && order2_[overlap_.orderIndex] == realIndex)))
+			{
+				Log("this is the overlap element, regenerating");
 				ItemsChanged();
 			}
 			else
@@ -604,9 +630,9 @@ namespace Synergy
 
 			if (orderIndex == -1)
 			{
-				LogError(
+				LogErrorST(
 					$"RemoveFromOrder: index {realIndex} not found in " +
-					$"order list");
+					$"order list, has {list.Count} items");
 
 				return;
 			}

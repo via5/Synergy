@@ -75,6 +75,7 @@ namespace Synergy
 			d.halfway_.Value = halfway_.Value;
 			d.endForwards_.Value = endForwards_.Value;
 			d.endBackwards_.Value = endBackwards_.Value;
+			d.sameDelay_ = sameDelay_;
 		}
 
 

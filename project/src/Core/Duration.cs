@@ -303,11 +303,17 @@ namespace Synergy
 		}
 
 		public RampDuration(float min, float max, float over, float hold)
+			: this(min, max, over, over, hold)
+		{
+		}
+
+		public RampDuration(
+			float min, float max, float timeUp, float timeDown, float hold)
 		{
 			min_.Value = min;
 			max_.Value = max;
-			timeUp_.Value = over;
-			timeDown_.Value = over;
+			timeUp_.Value = timeUp;
+			timeDown_.Value = timeDown;
 			hold_.Value = hold;
 			current_ = min;
 		}
@@ -617,8 +623,8 @@ namespace Synergy
 					{
 						totalElapsed_ = TimeDown;
 						goingUp_ = false;
-						holding_ = true;
 						Next();
+						holding_ = true;
 					}
 				}
 				else
@@ -646,19 +652,24 @@ namespace Synergy
 				}
 			}
 
+			bool wasInFirstHalf = (elapsed_ <= (current_ / 2));
 			elapsed_ += delta;
+			bool isInSecondHalf = (elapsed_ > (current_ / 2));
 
 			if (holding_)
 			{
 				holdingElapsed_ += delta;
-				if (holdingElapsed_ >= Hold)
+
+				if ((holdingElapsed_ >= Hold) && wasInFirstHalf && isInSecondHalf)
 				{
+					elapsed_ = current_ / 2;
 					holding_ = false;
 					holdingElapsed_ = 0;
 				}
-
-				if (elapsed_ >= current_)
+				else if (elapsed_ >= current_)
+				{
 					elapsed_ = 0;
+				}
 			}
 			else
 			{

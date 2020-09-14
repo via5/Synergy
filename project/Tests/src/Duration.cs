@@ -77,6 +77,9 @@ namespace Synergy.Tests
 			Assert.IsFalse(d.Finished);
 			Assert.AreEqual(1.0f - progress, d.TimeRemaining, D);
 			Assert.AreEqual(0.5f - progress, d.TimeRemainingInHalf, D);
+
+			// constant
+			Assert.AreEqual(1, d.Current);
 		}
 
 		private void TickSecondHalfTest(RandomDuration d, float progress)
@@ -90,6 +93,9 @@ namespace Synergy.Tests
 			Assert.IsFalse(d.Finished);
 			Assert.AreEqual(1.0f - progress, d.TimeRemaining, D);
 			Assert.AreEqual(1.0f - progress, d.TimeRemainingInHalf, D);
+
+			// constant
+			Assert.AreEqual(1, d.Current);
 		}
 
 		private void TickFinishedTest(RandomDuration d)
@@ -103,6 +109,9 @@ namespace Synergy.Tests
 			Assert.IsTrue(d.Finished);
 			Assert.AreEqual(0, d.TimeRemaining);
 			Assert.AreEqual(0, d.TimeRemainingInHalf);
+
+			// constant
+			Assert.AreEqual(1, d.Current);
 		}
 
 
@@ -110,8 +119,6 @@ namespace Synergy.Tests
 		public void Tick1()
 		{
 			var d = new RandomDuration(1);
-			Assert.AreEqual(1, d.Current);
-
 			TickFirstHalfTest(d, 0);
 
 			d.Tick(0.1f);
@@ -150,8 +157,6 @@ namespace Synergy.Tests
 		public void Tick2()
 		{
 			var d = new RandomDuration(1);
-			Assert.AreEqual(1, d.Current);
-
 			TickFirstHalfTest(d, 0);
 
 			d.Tick(0.2f);
@@ -176,8 +181,6 @@ namespace Synergy.Tests
 		public void TickAndReset()
 		{
 			var d = new RandomDuration(1);
-			Assert.AreEqual(1, d.Current);
-
 			TickFirstHalfTest(d, 0);
 
 			d.Tick(0.2f);
@@ -254,6 +257,46 @@ namespace Synergy.Tests
 			Assert.AreEqual(0, d.Progress);
 			Assert.AreEqual(1, d.HoldingProgress);
 			Assert.AreEqual(0, d.HoldingElapsed);
+		}
+
+		private void TickUpTest(RampDuration d, float progress, float current)
+		{
+			Assert.AreEqual(progress, d.FirstHalfProgress);
+			Assert.AreEqual(0, d.SecondHalfProgress);
+			Assert.IsTrue(d.InFirstHalf);
+			Assert.IsFalse(d.FirstHalfFinished);
+			Assert.AreEqual(progress, d.TotalProgress);
+			Assert.IsTrue(d.InFirstHalfTotal);
+			Assert.IsFalse(d.Finished);
+			Assert.AreEqual(2 + 1 - progress, d.TimeRemaining);
+			Assert.AreEqual(1 - progress + 1, d.TimeRemainingInHalf);
+			Assert.AreEqual(current, d.Current);
+			Assert.AreEqual(progress, d.Elapsed);
+			Assert.AreEqual(progress, d.TotalElapsed);
+			Assert.AreEqual(progress, d.Progress);
+			Assert.AreEqual(0, d.HoldingProgress);
+			Assert.AreEqual(0, d.HoldingElapsed);
+
+			// constant
+			Assert.AreEqual(1, d.TimeUp);
+			Assert.AreEqual(1, d.TimeDown);
+			Assert.AreEqual(new FloatRange(1.2f, 0.5f), d.Range);
+			Assert.AreEqual(1.2f, d.Minimum);
+			Assert.AreEqual(0.5f, d.Maximum);
+			Assert.AreEqual(1, d.Hold);
+			Assert.IsTrue(d.RampUp);
+			Assert.IsTrue(d.RampDown);
+			Assert.IsInstanceOfType(d.Easing, typeof(LinearEasing));
+		}
+
+		[TestMethod]
+		public void Tick()
+		{
+			var d = new RampDuration(1.2f, 0.5f, 1, 1);
+			TickUpTest(d, 0, 1.2f);
+
+			d.Tick(0.1f);
+			TickUpTest(d, 0.05f, 1.2f);
 		}
 	}
 }

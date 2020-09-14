@@ -57,6 +57,7 @@ namespace Synergy
 		{
 			base.Init();
 
+			Utilities.RandomProvider = new UnityRandomProvider();
 			instance_ = this;
 			sc_ = SuperController.singleton;
 			enabled_ = false;

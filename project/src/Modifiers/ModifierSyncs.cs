@@ -623,7 +623,7 @@ namespace Synergy
 
 		private void CopyTo(OtherModifierSyncedModifier m, int cloneFlags)
 		{
-			m.modifier_ = null;
+			m.modifier_ = modifier_;
 			m.modifierIndex_ = modifierIndex_;
 		}
 
