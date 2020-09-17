@@ -259,31 +259,43 @@ namespace Synergy.Tests
 			Assert.AreEqual(0, d.HoldingElapsed);
 		}
 
-		private void TickUpTest(RampDuration d, float progress, float current)
+		private const float TimeUp = 2.1f;
+		private const float TimeDown = 1.9f;
+		private const float Hold = 0.5f;
+		private const float Start = 0.5f;
+		private const float End = 0.2f;
+
+		private const float FirstHalfTime = TimeUp + Hold;
+		private const float SecondHalfTime = TimeDown;
+		private const float TotalTime = FirstHalfTime + SecondHalfTime;
+
+		private void TickUpTest(RampDuration d, float elapsed, float current)
 		{
+			float progress = elapsed / (current / 2);
+
 			Assert.AreEqual(progress, d.FirstHalfProgress);
 			Assert.AreEqual(0, d.SecondHalfProgress);
 			Assert.IsTrue(d.InFirstHalf);
 			Assert.IsFalse(d.FirstHalfFinished);
+			Assert.AreEqual(current, d.Current);
 			Assert.AreEqual(progress, d.TotalProgress);
 			Assert.IsTrue(d.InFirstHalfTotal);
 			Assert.IsFalse(d.Finished);
-			Assert.AreEqual(2 + 1 - progress, d.TimeRemaining);
-			Assert.AreEqual(1 - progress + 1, d.TimeRemainingInHalf);
-			Assert.AreEqual(current, d.Current);
-			Assert.AreEqual(progress, d.Elapsed);
-			Assert.AreEqual(progress, d.TotalElapsed);
+			Assert.AreEqual(TotalTime - elapsed, d.TimeRemaining, D);
+			Assert.AreEqual(FirstHalfTime - elapsed, d.TimeRemainingInHalf);
+			Assert.AreEqual(elapsed, d.Elapsed);
+			Assert.AreEqual(elapsed, d.TotalElapsed);
 			Assert.AreEqual(progress, d.Progress);
 			Assert.AreEqual(0, d.HoldingProgress);
 			Assert.AreEqual(0, d.HoldingElapsed);
 
 			// constant
-			Assert.AreEqual(1, d.TimeUp);
-			Assert.AreEqual(1, d.TimeDown);
-			Assert.AreEqual(new FloatRange(1.2f, 0.5f), d.Range);
-			Assert.AreEqual(1.2f, d.Minimum);
-			Assert.AreEqual(0.5f, d.Maximum);
-			Assert.AreEqual(1, d.Hold);
+			Assert.AreEqual(TimeUp, d.TimeUp);
+			Assert.AreEqual(TimeDown, d.TimeDown);
+			Assert.AreEqual(new FloatRange(Start, End), d.Range);
+			Assert.AreEqual(Start, d.Minimum);
+			Assert.AreEqual(End, d.Maximum);
+			Assert.AreEqual(Hold, d.Hold);
 			Assert.IsTrue(d.RampUp);
 			Assert.IsTrue(d.RampDown);
 			Assert.IsInstanceOfType(d.Easing, typeof(LinearEasing));
@@ -292,11 +304,15 @@ namespace Synergy.Tests
 		[TestMethod]
 		public void Tick()
 		{
-			var d = new RampDuration(1.2f, 0.5f, 1, 1);
-			TickUpTest(d, 0, 1.2f);
+
+			var d = new RampDuration(Start, End, TimeUp, TimeDown, Hold);
+			TickUpTest(d, 0, Start); // 0, Start, FirstHalfTime, TotalTime);
 
 			d.Tick(0.1f);
-			TickUpTest(d, 0.05f, 1.2f);
+			TickUpTest(d, 0.1f, Start);
+
+			d.Tick(0.1f);
+			TickUpTest(d, 0.2f, Start);
 		}
 	}
 }

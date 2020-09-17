@@ -659,9 +659,23 @@ namespace Synergy
 			if (holding_)
 			{
 				holdingElapsed_ += delta;
+				bool cancel = false;
 
-				if ((holdingElapsed_ >= Hold) && wasInFirstHalf && isInSecondHalf)
+				if (holdingElapsed_ >= (Hold + current_ * 3))
+					cancel = true;
+
+				if (cancel || ((holdingElapsed_ >= Hold) && wasInFirstHalf && isInSecondHalf))
 				{
+					if (cancel)
+					{
+						Synergy.LogError(
+							$"ramp: cancelling wait for hold, now at " +
+							$"{holdingElapsed_}/{Hold}, " +
+							$"wasInFirstHalf={wasInFirstHalf}, " +
+							$"isInSecondHalf={isInSecondHalf}, " +
+							$"current={current_} elapsed={elapsed_}");
+					}
+
 					elapsed_ = current_ / 2;
 					holding_ = false;
 					holdingElapsed_ = 0;

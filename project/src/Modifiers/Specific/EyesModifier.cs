@@ -651,11 +651,14 @@ namespace Synergy
 		public EyesTargetContainer Clone(int cloneFlags)
 		{
 			var t = new EyesTargetContainer();
-
-			if (target_ != null)
-				t.target_ = target_.Clone(cloneFlags);
-
+			CopyTo(t, cloneFlags);
 			return t;
+		}
+
+		private void CopyTo(EyesTargetContainer c, int cloneFlags)
+		{
+			c.target_ = target_?.Clone(cloneFlags);
+			c.enabled_ = enabled_;
 		}
 
 		public bool Enabled

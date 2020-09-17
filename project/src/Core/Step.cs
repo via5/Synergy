@@ -40,6 +40,9 @@ namespace Synergy
 		private bool inFirstHalf_ = true;
 		private List<ModifierContainer> enabledModifiers_ = null;
 
+		private const float EnabledCheckInterval = 1000;
+		private float nextEnabledCheck_ = 0;
+
 
 		public Step()
 		{
@@ -441,6 +444,8 @@ namespace Synergy
 				else if (resetDisabled)
 					m.Modifier.Reset();
 			}
+
+			nextEnabledCheck_ = 0;
 		}
 
 		public void Resume()
@@ -455,6 +460,10 @@ namespace Synergy
 		{
 			if (paused_)
 				return false;
+
+			nextEnabledCheck_ += deltaTime;
+			if (nextEnabledCheck_ >= EnabledCheckInterval)
+				GatherEnabledModifiers();
 
 			try
 			{
