@@ -223,6 +223,11 @@ namespace Synergy
 			return null;
 		}
 
+		public static string FullName(Rigidbody rb)
+		{
+			return rb.transform.parent.name + "." + rb.name;
+		}
+
 		public static Rigidbody FindRigidbody(Atom atom, string name)
 		{
 			if (atom == null || name == null)

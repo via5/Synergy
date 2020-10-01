@@ -414,7 +414,7 @@ namespace Synergy
 
 		public SelectedMorph AddMorph(DAZMorph m)
 		{
-			return AddMorph(m, new Movement(0, 1));
+			return AddMorph(m, new Movement());
 		}
 
 		public SelectedMorph AddMorph(DAZMorph m, FloatRange r)

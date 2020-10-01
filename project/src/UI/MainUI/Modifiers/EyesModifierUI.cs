@@ -43,6 +43,7 @@ namespace Synergy
 
 		private readonly AtomList atom_;
 		private readonly ForceReceiverList receiver_;
+		private readonly Vector3UI offset_;
 
 		public RigidbodyEyesTargetUI(
 			EyesModifierTargetUIContainer parent, EyesTargetContainer tc)
@@ -57,6 +58,13 @@ namespace Synergy
 			receiver_ = new ForceReceiverList(
 				"Receiver", target_?.Receiver?.name,
 				ReceiverChanged, Widget.Right);
+
+			offset_ = new Vector3UI(
+				"Offset", Widget.Right,
+				new FloatRange(-10, 10), OffsetChanged);
+
+			offset_.Value = target_.Offset;
+			receiver_.Atom = target_.Atom;
 		}
 
 		public override List<Widget> GetWidgets()
@@ -67,6 +75,8 @@ namespace Synergy
 			{
 				atom_, receiver_
 			});
+
+			list.AddRange(offset_.GetWidgets());
 
 			return list;
 		}
@@ -102,6 +112,12 @@ namespace Synergy
 		private void ReceiverChanged(Rigidbody rb)
 		{
 			target_.Receiver = rb;
+			parent_.NameChanged();
+		}
+
+		private void OffsetChanged(Vector3 v)
+		{
+			target_.Offset = v;
 			parent_.NameChanged();
 		}
 	}

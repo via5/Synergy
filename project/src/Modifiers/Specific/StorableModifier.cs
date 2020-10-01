@@ -655,6 +655,8 @@ namespace Synergy
 		protected void CopyTo(ActionStorableParameter p, int cloneFlags)
 		{
 			base.CopyTo(p, cloneFlags);
+			p.triggerMag_ = triggerMag_;
+			p.triggerType_ = triggerType_;
 			p.param_ = param_;
 		}
 
@@ -689,7 +691,12 @@ namespace Synergy
 			float deltaTime, float progress, bool firstHalf)
 		{
 			base.Tick(deltaTime, progress, firstHalf);
-			goingUp_ = firstHalf;
+
+			if (goingUp_ != firstHalf)
+			{
+				goingUp_ = firstHalf;
+				active_ = false;
+			}
 		}
 
 		public override void Set(float magnitude, float normalizedMagnitude)
@@ -697,7 +704,7 @@ namespace Synergy
 			if (param_ == null)
 				return;
 
-			if (Math.Abs(triggerMag_ - magnitude) < 0.01f)
+			if (Math.Abs(triggerMag_ - magnitude) < 0.05f)
 			{
 				if (!active_)
 				{

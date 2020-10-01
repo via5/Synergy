@@ -54,6 +54,7 @@ namespace Synergy
 
 		private Atom atom_ = null;
 		private Rigidbody receiver_ = null;
+		private Vector3 offset_ = new Vector3();
 		private Vector3 pos_ = new Vector3();
 
 		public RigidbodyEyesTarget()
@@ -94,6 +95,7 @@ namespace Synergy
 		private void CopyTo(RigidbodyEyesTarget t, int cloneFlags)
 		{
 			t.receiver_ = receiver_;
+			t.offset_ = offset_;
 		}
 
 		public override string Name
@@ -136,6 +138,12 @@ namespace Synergy
 			set { receiver_ = value; }
 		}
 
+		public Vector3 Offset
+		{
+			get { return offset_; }
+			set { offset_ = value; }
+		}
+
 		public override Vector3 Position
 		{
 			get { return pos_; }
@@ -146,7 +154,7 @@ namespace Synergy
 			if (receiver_ == null)
 				return;
 
-			pos_ = receiver_.position;
+			pos_ = receiver_.position + offset_;
 		}
 
 		public override J.Node ToJSON()
@@ -163,6 +171,8 @@ namespace Synergy
 
 			if (receiver_ != null)
 				o.Add("receiver", receiver_.name);
+
+			o.Add("offset", J.Wrappers.ToJSON(offset_));
 
 			return o;
 		}
@@ -193,6 +203,9 @@ namespace Synergy
 
 			o.OptRigidbody("receiver", atom_, ref receiver_);
 
+			if (o.HasKey("offset"))
+				J.Wrappers.FromJSON(o.Get("offset"), ref offset_);
+
 			return true;
 		}
 	}
@@ -202,7 +215,7 @@ namespace Synergy
 		public override string GetFactoryTypeName() { return "constant"; }
 		public override string GetDisplayName() { return "Constant"; }
 
-		private Vector3 offset_ = new Vector2();
+		private Vector3 offset_ = new Vector3();
 		private Atom atom_ = null;
 		private Rigidbody rel_ = null;
 
@@ -836,11 +849,15 @@ namespace Synergy
 				m.targets_.Add(t.Clone(cloneFlags));
 
 			m.saccadeTime_ = saccadeTime_.Clone(cloneFlags);
-			m.saccadeMin_ = saccadeMin_;
-			m.saccadeMax_ = saccadeMax_;
-			m.saccadeOffset_ = saccadeOffset_;
 
-			m.minDistance_ = minDistance_;
+			if (!Bits.IsSet(cloneFlags, Utilities.CloneZero))
+			{
+				m.saccadeMin_.Value = saccadeMin_.Value;
+				m.saccadeMax_.Value = saccadeMax_.Value;
+				m.saccadeOffset_ = saccadeOffset_;
+			}
+
+			m.minDistance_.Value = minDistance_.Value;
 		}
 
 		public override void Removed()

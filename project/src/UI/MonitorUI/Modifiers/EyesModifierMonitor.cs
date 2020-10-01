@@ -85,12 +85,12 @@ namespace Synergy
 			if (modifier_?.Head == null)
 				head_.Text = "Head: (none)";
 			else
-				head_.Text = "Head: " + modifier_.Head.name;
+				head_.Text = "Head: " + Utilities.FullName(modifier_.Head);
 
 			if (modifier_?.EyeTarget == null)
 				eyes_.Text = "Eye target: (none)";
 			else
-				eyes_.Text = "Eye target: " + modifier_.EyeTarget.name;
+				eyes_.Text = "Eye target: " + Utilities.FullName(modifier_.EyeTarget);
 
 			saccade_.Text =
 				"Saccade offset: " +

@@ -117,6 +117,19 @@ namespace Synergy
 
 		private void CreateTestStuff(Atom a)
 		{
+			var s = new Step();
+
+			var m = new ModifierContainer();
+			var rm1 = new RigidbodyModifier();
+			m.Modifier = rm1;
+			s.AddModifier(m);
+
+			m = new ModifierContainer();
+			m.Modifier = new RigidbodyModifier();
+			m.ModifierSync = new OtherModifierSyncedModifier(rm1);
+			s.AddModifier(m);
+
+			manager_.AddStep(s);
 		}
 
 		public Timer CreateTimer(float seconds, Timer.Callback f)

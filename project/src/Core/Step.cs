@@ -296,6 +296,7 @@ namespace Synergy
 			var o = new J.Object();
 
 			o.Add("enabled", enabled_);
+			o.Add("paused", paused_);
 			o.Add("name", name_);
 			o.Add("duration", Duration);
 			o.Add("repeat", Repeat);
@@ -315,6 +316,7 @@ namespace Synergy
 				return false;
 
 			o.Opt("enabled", enabled_);
+			o.Opt("paused", ref paused_);
 			o.Opt("name", ref name_);
 			o.Opt("halfMove", halfMove_);
 			o.Opt("modifiers", ref modifiers_);

@@ -329,7 +329,7 @@ namespace Synergy
 				{
 					if (ParentStep.MustStopEventually)
 					{
-						Duration.Reset(ParentStep.Duration.TimeRemaining + 0.05f);
+						Duration.Reset(ParentStep.Duration.TimeRemaining);
 						ConfirmDurationForStop();
 					}
 					else
@@ -347,6 +347,13 @@ namespace Synergy
 				if ((inFirstHalf_ && !firstHalf) && Delay.Halfway)
 				{
 					inFirstHalf_ = firstHalf;
+
+					if (ParentStep.MustStopEventually)
+					{
+						if ((Delay.HalfwayDuration.Current + Duration.TimeRemaining) > ParentStep.Duration.TimeRemaining)
+							return;
+					}
+
 					Delay.ActiveType = Delay.HalfwayType;
 				}
 				else
@@ -425,7 +432,7 @@ namespace Synergy
 
 					if (ParentStep.MustStopEventually)
 					{
-						Duration.Reset(ParentStep.Duration.TimeRemaining + 0.05f);
+						Duration.Reset(ParentStep.Duration.TimeRemaining);
 						ConfirmDurationForStop();
 					}
 					else
@@ -451,7 +458,7 @@ namespace Synergy
 			{
 				// duration + delay would be longer than time remaining,
 				// cancel
-				Duration.Reset(-1);
+				//Duration.Reset(-1);
 			}
 		}
 	}
@@ -600,6 +607,7 @@ namespace Synergy
 		{
 			get
 			{
+				ResolveModifier();
 				return modifier_;
 			}
 
@@ -623,7 +631,7 @@ namespace Synergy
 
 		private void CopyTo(OtherModifierSyncedModifier m, int cloneFlags)
 		{
-			m.modifier_ = modifier_;
+			m.modifier_ = null;
 			m.modifierIndex_ = modifierIndex_;
 		}
 
@@ -684,7 +692,7 @@ namespace Synergy
 
 		public override float GetProgress(IModifier m, float stepProgress, bool stepForwards)
 		{
-			ResolveModifier(m);
+			ResolveModifier();
 
 			if (modifier_?.ModifierSync == null)
 			{
@@ -699,7 +707,7 @@ namespace Synergy
 
 		public override bool IsInFirstHalf(IModifier m, float stepProgress, bool stepForwards)
 		{
-			ResolveModifier(m);
+			ResolveModifier();
 
 			if (modifier_?.ModifierSync == null)
 			{
@@ -745,23 +753,23 @@ namespace Synergy
 			return true;
 		}
 
-		private void ResolveModifier(IModifier m)
+		private void ResolveModifier()
 		{
-			if (m?.ParentStep == null)
+			if (ParentModifier?.ParentStep == null)
 				return;
 
 			if (modifierIndex_ == -1 && modifier_ != null)
 			{
-				modifierIndex_ = m.ParentStep.IndexOfModifier(modifier_);
+				modifierIndex_ = ParentModifier.ParentStep.IndexOfModifier(modifier_);
 			}
 			else if (modifierIndex_ >= 0 && modifier_ == null)
 			{
-				var mods = m.ParentStep.Modifiers;
+				var mods = ParentModifier.ParentStep.Modifiers;
 				if (modifierIndex_ >= 0 && modifierIndex_ < mods.Count)
 					modifier_ = mods[modifierIndex_].Modifier;
 			}
 
-			if (modifier_ == m)
+			if (modifier_ == ParentModifier)
 			{
 				Synergy.LogError("OtherModifierSyncedModifier: same modifiers");
 				modifier_ = null;

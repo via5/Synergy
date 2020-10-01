@@ -450,7 +450,7 @@ namespace Synergy
 
 
 			bool order1 = true;
-			bool reversedDir = false;
+			bool reversedDir = (overlap_.forwards != active_.forwards);
 
 
 			for (; ; )
@@ -469,7 +469,7 @@ namespace Synergy
 						overlap_.forwards = false;
 						reversedDir = true;
 					}
-					else if (overlap_.orderIndex == active_.orderIndex && !order1)
+					else if (overlap_.orderIndex == active_.orderIndex && reversedDir)
 					{
 						Log(
 							"NextOverlap: went around, reached active " +
@@ -516,7 +516,7 @@ namespace Synergy
 							order1 = false;
 						}
 					}
-					else if (overlap_.orderIndex == active_.orderIndex && !order1)
+					else if (overlap_.orderIndex == active_.orderIndex && reversedDir)
 					{
 						Log(
 							"NextOverlap: went around, reached active " +
@@ -565,11 +565,13 @@ namespace Synergy
 
 							break;
 						}
-
-						Log(
-							$"NextOverlap: index {overlap_.orderIndex} " +
-							$"enabled but not half move, so doesn't need " +
-							$"ticking; continuing");
+						else
+						{
+							Log(
+								$"NextOverlap: index {overlap_.orderIndex} " +
+								$"enabled but not half move, so doesn't need " +
+								$"ticking; continuing");
+						}
 					}
 				}
 			}
