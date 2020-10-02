@@ -94,7 +94,7 @@ namespace Synergy
 
 			saccade_.Text =
 				"Saccade offset: " +
-				modifier_.CurrentSaccadeOffset.ToString("F3");
+				modifier_?.CurrentSaccadeOffset.ToString("F3") ?? "?";
 
 			saccadeTime_.SetValue(modifier_?.SaccadeTime);
 			saccadeMin_.Value = modifier_?.SaccadeMin ?? 0;
