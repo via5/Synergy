@@ -29,6 +29,7 @@ namespace Synergy
 		void Set(bool paused);
 		void Removed();
 		void PostLoad();
+		void PluginEnabled(bool b);
 	}
 
 	sealed class ModifierFactory : BasicFactory<IModifier>
@@ -172,6 +173,11 @@ namespace Synergy
 				ModifierSync.Resume();
 				ModifierSync.Reset();
 			}
+		}
+
+		public virtual void PluginEnabled(bool b)
+		{
+			// no-op
 		}
 
 		public void Tick(float deltaTime, float stepProgress, bool stepFirstHalf)

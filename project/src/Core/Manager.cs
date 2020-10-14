@@ -61,6 +61,12 @@ namespace Synergy
 			StepProgression = new SequentialStepProgression();
 		}
 
+		public void PluginEnabled(bool b)
+		{
+			foreach (var s in steps_)
+				s.PluginEnabled(b);
+		}
+
 		public Step CurrentStep
 		{
 			get

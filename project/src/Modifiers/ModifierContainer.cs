@@ -162,6 +162,11 @@
 			}
 		}
 
+		public void PluginEnabled(bool b)
+		{
+			Modifier?.PluginEnabled(b);
+		}
+
 		public void Added()
 		{
 			enabled_.BaseName = Name;

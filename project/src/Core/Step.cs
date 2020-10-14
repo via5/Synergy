@@ -80,6 +80,12 @@ namespace Synergy
 			enabledModifiers_ = new List<ModifierContainer>();
 		}
 
+		public void PluginEnabled(bool b)
+		{
+			foreach (var m in enabledModifiers_)
+				m.PluginEnabled(b);
+		}
+
 		public Step Clone(int cloneFlags = 0)
 		{
 			var s = new Step();

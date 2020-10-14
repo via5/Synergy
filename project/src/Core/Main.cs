@@ -291,8 +291,7 @@ namespace Synergy
 		{
 			Utilities.Handler(() =>
 			{
-				if (ui_ != null)
-					ui_.PluginEnabled(true);
+				DoPluginEnabled(true);
 			});
 		}
 
@@ -300,9 +299,14 @@ namespace Synergy
 		{
 			Utilities.Handler(() =>
 			{
-				if (ui_ != null)
-					ui_.PluginEnabled(false);
+				DoPluginEnabled(false);
 			});
+		}
+
+		private void DoPluginEnabled(bool b)
+		{
+			ui_?.PluginEnabled(b);
+			manager_?.PluginEnabled(b);
 		}
 
 		public override JSONClass GetJSON(

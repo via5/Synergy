@@ -381,6 +381,15 @@ namespace Synergy
 			m.Progression = Progression.Clone(cloneFlags);
 		}
 
+		public override void PluginEnabled(bool b)
+		{
+			if (!b)
+			{
+				foreach (var m in morphs_)
+					m.ResetMorphValue();
+			}
+		}
+
 		public override void Removed()
 		{
 			base.Removed();
