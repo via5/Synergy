@@ -12,7 +12,7 @@ namespace Synergy
 
 		public ForceReceiverList(
 			string name, string def, RigidbodyCallback callback, int flags = 0)
-				: base(flags)
+				: base(flags | Filterable)
 		{
 			callback_ = callback;
 			CreateStorable(name, def, new List<string>(), null, Changed);
@@ -68,7 +68,7 @@ namespace Synergy
 
 		public RigidBodyList(
 			string name, string def, RigidbodyCallback callback, int flags = 0)
-				: base(flags)
+				: base(flags | Filterable)
 		{
 			callback_ = callback;
 			CreateStorable(name, def, new List<string>(), null, Changed);

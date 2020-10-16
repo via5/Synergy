@@ -860,11 +860,6 @@ namespace Synergy
 			m.minDistance_.Value = minDistance_.Value;
 		}
 
-		public override void Removed()
-		{
-			base.Removed();
-		}
-
 		public override FloatRange PreferredRange
 		{
 			get
@@ -880,6 +875,11 @@ namespace Synergy
 
 			targets_.Add(t);
 			return t;
+		}
+
+		public void RemoveTarget(EyesTargetContainer t)
+		{
+			targets_.Remove(t);
 		}
 
 		public override void Reset()

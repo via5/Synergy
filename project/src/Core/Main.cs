@@ -120,13 +120,8 @@ namespace Synergy
 			var s = new Step();
 
 			var m = new ModifierContainer();
-			var rm1 = new RigidbodyModifier();
-			m.Modifier = rm1;
-			s.AddModifier(m);
-
-			m = new ModifierContainer();
-			m.Modifier = new RigidbodyModifier();
-			m.ModifierSync = new OtherModifierSyncedModifier(rm1);
+			var em = new EyesModifier();
+			m.Modifier = em;
 			s.AddModifier(m);
 
 			manager_.AddStep(s);

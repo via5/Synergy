@@ -42,7 +42,7 @@ namespace Synergy
 		private RigidbodyEyesTarget target_ = null;
 
 		private readonly AtomList atom_;
-		private readonly ForceReceiverList receiver_;
+		private readonly RigidBodyList receiver_;
 		private readonly Vector3UI offset_;
 
 		public RigidbodyEyesTargetUI(
@@ -55,7 +55,7 @@ namespace Synergy
 				"Atom", target_?.Atom?.uid, AtomChanged,
 				null, Widget.Right);
 
-			receiver_ = new ForceReceiverList(
+			receiver_ = new RigidBodyList(
 				"Receiver", target_?.Receiver?.name,
 				ReceiverChanged, Widget.Right);
 
@@ -358,7 +358,10 @@ namespace Synergy
 	{
 		private readonly Collapsible collapsible_;
 
+		private EyesModifier modifier_ = null;
 		private EyesTargetContainer container_ = null;
+
+		private readonly ConfirmableButton delete_ = null;
 		private readonly
 			FactoryStringList<EyesTargetFactory, IEyesTarget> types_;
 
@@ -366,9 +369,13 @@ namespace Synergy
 		private bool stale_ = true;
 
 
-		public EyesModifierTargetUIContainer(EyesTargetContainer t)
+		public EyesModifierTargetUIContainer(EyesModifier m, EyesTargetContainer t)
 		{
+			modifier_ = m;
 			container_ = t;
+
+			delete_ = new ConfirmableButton(
+				"Delete target", DeleteTarget, Widget.Right);
 
 			types_ = new FactoryStringList<EyesTargetFactory, IEyesTarget>(
 				"Type", TypeChanged, Widget.Right);
@@ -393,6 +400,15 @@ namespace Synergy
 			collapsible_.Text = container_.Name;
 		}
 
+		private void DeleteTarget()
+		{
+			if (container_ == null || modifier_ == null)
+				return;
+
+			modifier_.RemoveTarget(container_);
+			Synergy.Instance.UI.NeedsReset("eyes target removed");
+		}
+
 		private void TypeChanged(IEyesTarget t)
 		{
 			if (container_ == null)
@@ -413,6 +429,7 @@ namespace Synergy
 			stale_ = false;
 
 			collapsible_.Clear();
+			collapsible_.Add(delete_);
 			collapsible_.Add(types_);
 
 			var t = container_.Target;
@@ -501,12 +518,18 @@ namespace Synergy
 			if (modifier_ == null)
 				return;
 
+			if (modifier_.Targets.Count != targets_.Count)
+				changed = true;
+
 			if (changed)
 			{
 				targets_.Clear();
 
 				foreach (var t in modifier_.Targets)
-					targets_.Add(new EyesModifierTargetUIContainer(t));
+				{
+					targets_.Add(
+						new EyesModifierTargetUIContainer(modifier_, t));
+				}
 			}
 
 
@@ -590,7 +613,7 @@ namespace Synergy
 				return;
 
 			var t = modifier_.AddTarget();
-			targets_.Add(new EyesModifierTargetUIContainer(t));
+			targets_.Add(new EyesModifierTargetUIContainer(modifier_, t));
 
 			Synergy.Instance.UI.NeedsReset("eyes target added");
 		}

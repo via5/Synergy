@@ -41,6 +41,7 @@ namespace Synergy
 		public const int Constrained    = 0x04;  // slider
 		public const int Tall           = 0x08;  // button, checkbox
 		public const int NavButtons     = 0x10;  // string list
+		public const int Filterable     = 0x20;  // string list
 
 		public const int LineHeight = 60;
 
@@ -807,8 +808,16 @@ namespace Synergy
 		{
 			RemoveFromUI();
 
-			element_ = sc_.CreateScrollablePopup(
-				storable_, Bits.IsSet(flags_, Right));
+			if (Bits.IsSet(flags_, Filterable))
+			{
+				element_ = sc_.CreateFilterablePopup(
+					storable_, Bits.IsSet(flags_, Right));
+			}
+			else
+			{
+				element_ = sc_.CreateScrollablePopup(
+					storable_, Bits.IsSet(flags_, Right));
+			}
 
 			if (popupHeight_ >= 0)
 				element_.popupPanelHeight = popupHeight_;
