@@ -196,7 +196,7 @@ namespace Synergy
 				var omp = modifier_.Progression as OrderedMorphProgression;
 
 				mm.timeRemaining = new FloatSlider(
-					"Time remaining", null, Widget.Right | Widget.Disabled);
+					"Morph time remaining", null, Widget.Right | Widget.Disabled);
 
 				mm.progress = new FloatSlider(
 					"Progress", null, Widget.Right | Widget.Disabled);

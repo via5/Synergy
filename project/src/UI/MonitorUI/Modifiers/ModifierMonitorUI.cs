@@ -14,12 +14,15 @@
 		protected readonly WidgetList widgets_ = new WidgetList();
 		private readonly Label calls_;
 		private IModifierSyncMonitor syncMonitor_ = null;
+		private readonly FloatSlider timeRemaining_;
 
 		private IModifier modifier_ = null;
 
 		public BasicModifierMonitor()
 		{
 			calls_ = new Label("", Widget.Right);
+			timeRemaining_ = new FloatSlider(
+				"Time remaining", null, Widget.Right);
 		}
 
 		public abstract string ModifierType { get; }
@@ -46,6 +49,8 @@
 
 			if (syncMonitor_ != null)
 				syncMonitor_.AddToUI(m.ModifierSync);
+
+			widgets_.AddToUI(timeRemaining_);
 		}
 
 		public virtual void RemoveFromUI()
@@ -66,6 +71,8 @@
 
 			if (syncMonitor_ != null)
 				syncMonitor_.Update();
+
+			timeRemaining_.Value = modifier_?.TimeRemaining ?? 0;
 		}
 
 		private IModifierSyncMonitor CreateSyncMonitor(

@@ -281,10 +281,32 @@ namespace Synergy
 		{
 			get
 			{
+				float longestHardDuration = 0;
+				foreach (var m in modifiers_)
+				{
+					if (m.Modifier == null)
+						continue;
+
+					if (m.Modifier.HardDuration)
+					{
+						longestHardDuration = Math.Max(
+							longestHardDuration, m.Modifier.TimeRemaining);
+					}
+				}
+
+				float stepRemaining;
+
 				if (HalfMove)
-					return Duration.TimeRemainingInHalf;
+				{
+					stepRemaining = Duration.TimeRemainingInHalf;
+					longestHardDuration /= 2;
+				}
 				else
-					return Duration.TimeRemaining;
+				{
+					stepRemaining = Duration.TimeRemaining;
+				}
+
+				return Math.Max(stepRemaining, longestHardDuration);
 			}
 		}
 
@@ -615,13 +637,30 @@ namespace Synergy
 					}
 					else
 					{
-						Reset();
-						return false;
+						return ResetIfHardDurationsFinished();
 					}
 				}
 			}
 
 			return true;
+		}
+
+		private bool ResetIfHardDurationsFinished()
+		{
+			foreach (var m in modifiers_)
+			{
+				if (m.Modifier == null)
+					continue;
+
+				if (m.Modifier.HardDuration)
+				{
+					if (!m.Modifier.Finished)
+						return true;
+				}
+			}
+
+			Reset();
+			return false;
 		}
 
 		private bool DoFullMove(float deltaTime, bool stepForwards)
@@ -670,8 +709,7 @@ namespace Synergy
 					}
 					else
 					{
-						Reset();
-						return false;
+						return ResetIfHardDurationsFinished();
 					}
 				}
 				else

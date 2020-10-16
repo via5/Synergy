@@ -1,4 +1,5 @@
 using SimpleJSON;
+using Synergy.src.Modifiers.Specific;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -119,12 +120,27 @@ namespace Synergy
 		{
 			var s = new Step();
 
-			var m = new ModifierContainer();
-			var em = new EyesModifier();
-			m.Modifier = em;
-			s.AddModifier(m);
+			var mc = new ModifierContainer();
+			var m = new StepExtenderModifier();
+			mc.Modifier = m;
+			s.AddModifier(mc);
+
+			mc = new ModifierContainer();
+			var m2 = new RigidbodyModifier(a, "head");
+			m2.Movement = new Movement(0, 100);
+			mc.ModifierSync = new UnsyncedModifier(new RandomDuration(1));
+			mc.Modifier = m2;
+			s.AddModifier(mc);
+
+			mc = new ModifierContainer();
+			var m3 = new RigidbodyModifier(a, "lFoot");
+			m3.Movement = new Movement(0, 100);
+			mc.Modifier = m3;
+			s.AddModifier(mc);
 
 			manager_.AddStep(s);
+
+			manager_.AddStep();
 		}
 
 		public Timer CreateTimer(float seconds, Timer.Callback f)

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Synergy.src.Modifiers.Specific;
+using System;
 using System.Collections.Generic;
 
 namespace Synergy
@@ -75,7 +76,7 @@ namespace Synergy
 			osActive_ = new Label("", flags);
 			osOverlap_ = new Label("", flags);
 			timeRemaining_ = new FloatSlider(
-				"Time remaining", null, flags | Widget.Disabled);
+				"Time remaining (overlapper)", null, flags | Widget.Disabled);
 			overlapTime_ = new FloatSlider(
 				"Overlap time", null, flags | Widget.Disabled);
 		}
@@ -283,6 +284,8 @@ namespace Synergy
 				return new EyesModifierMonitor();
 			else if (m is StorableModifier)
 				return new StorableModifierMonitor();
+			else if (m is StepExtenderModifier)
+				return new StepExtenderModifierMonitor();
 			else
 				return null;
 		}
@@ -297,5 +300,15 @@ namespace Synergy
 			else
 				return null;
 		}
+	}
+
+
+	class StepExtenderModifierMonitor : BasicModifierMonitor
+	{
+		public override string ModifierType
+		{
+			get { return StepExtenderModifier.FactoryTypeName; }
+		}
+
 	}
 }

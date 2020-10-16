@@ -205,6 +205,14 @@ namespace Synergy
 			}
 		}
 
+		public float Value
+		{
+			get
+			{
+				return Parameter?.val ?? 0;
+			}
+		}
+
 		public override void Set(float magnitude, float normalizedMagnitude)
 		{
 			if (Parameter != null)

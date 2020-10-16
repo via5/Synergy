@@ -18,6 +18,7 @@ project\src\Modifiers\Specific\LightModifier.cs
 project\src\Modifiers\Specific\MorphModifier.cs
 project\src\Modifiers\Specific\MorphProgressions.cs
 project\src\Modifiers\Specific\RigidbodyModifier.cs
+project\src\Modifiers\Specific\StepExtenderModifier.cs
 project\src\Modifiers\Specific\StorableModifier.cs
 project\src\UI\MainUI\DelayUI.cs
 project\src\UI\MainUI\DurationUI.cs

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Synergy.src.Modifiers.Specific;
+using System;
 using System.Collections.Generic;
 
 namespace Synergy
@@ -17,6 +18,7 @@ namespace Synergy
 		IModifierSync ModifierSync { get; }
 		int TickCalls { get; }
 		int SetCalls { get; }
+		bool HardDuration { get; }
 
 		IModifier Clone(int cloneFlags = 0);
 
@@ -43,7 +45,8 @@ namespace Synergy
 				new LightModifier(),
 				new AudioModifier(),
 				new EyesModifier(),
-				new StorableModifier()
+				new StorableModifier(),
+				new StepExtenderModifier()
 			};
 		}
 	}
@@ -121,6 +124,11 @@ namespace Synergy
 		public int SetCalls
 		{
 			get { return setCalls_; }
+		}
+
+		public virtual bool HardDuration
+		{
+			get { return false; }
 		}
 
 		public virtual bool Finished

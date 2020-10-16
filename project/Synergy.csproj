@@ -68,6 +68,7 @@
     <Compile Include="src\Modifiers\Specific\MorphModifier.cs" />
     <Compile Include="src\Modifiers\Specific\MorphProgressions.cs" />
     <Compile Include="src\Modifiers\Specific\RigidbodyModifier.cs" />
+    <Compile Include="src\Modifiers\Specific\StepExtenderModifier.cs" />
     <Compile Include="src\UI\MainUI\DelayUI.cs" />
     <Compile Include="src\UI\MainUI\DurationUI.cs" />
     <Compile Include="src\UI\MainUI\MainUI.cs" />

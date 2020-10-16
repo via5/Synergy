@@ -317,7 +317,7 @@ namespace Synergy
 				{
 					if (ParentStep.MustStopEventually)
 					{
-						if (Delay.EndForwardsDuration.Current > ParentStep.Duration.TimeRemaining)
+						if (Delay.EndForwardsDuration.Current > ParentStep.TimeRemainingInDirection)
 							return;
 					}
 
@@ -329,7 +329,7 @@ namespace Synergy
 				{
 					if (ParentStep.MustStopEventually)
 					{
-						Duration.Reset(ParentStep.Duration.TimeRemaining);
+						Duration.Reset(ParentStep.TimeRemainingInDirection);
 						ConfirmDurationForStop();
 					}
 					else
@@ -350,7 +350,7 @@ namespace Synergy
 
 					if (ParentStep.MustStopEventually)
 					{
-						if ((Delay.HalfwayDuration.Current + Duration.TimeRemaining) > ParentStep.Duration.TimeRemaining)
+						if ((Delay.HalfwayDuration.Current + Duration.TimeRemaining) > ParentStep.TimeRemainingInDirection)
 							return;
 					}
 
@@ -432,7 +432,7 @@ namespace Synergy
 
 					if (ParentStep.MustStopEventually)
 					{
-						Duration.Reset(ParentStep.Duration.TimeRemaining);
+						Duration.Reset(ParentStep.TimeRemainingInDirection);
 						ConfirmDurationForStop();
 					}
 					else
@@ -452,7 +452,7 @@ namespace Synergy
 			if (!Delay.Halfway)
 				return;
 
-			var graceForDelay = ParentStep.Duration.TimeRemaining - Duration.Current;
+			var graceForDelay = ParentStep.TimeRemainingInDirection - Duration.Current;
 
 			if (graceForDelay < Delay.HalfwayDuration.Current)
 			{
@@ -484,7 +484,7 @@ namespace Synergy
 
 		public override float TimeRemaining
 		{
-			get { return ParentStep?.Duration?.TimeRemaining ?? 0; }
+			get { return ParentStep?.TimeRemainingInDirection ?? 0; }
 		}
 
 		public override float CurrentDuration
