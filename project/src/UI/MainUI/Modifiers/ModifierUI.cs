@@ -116,6 +116,8 @@ namespace Synergy
 			widgets_.AddToUI(enabled_);
 			widgets_.AddToUI(disableOthers_);
 			widgets_.AddToUI(enableAll_);
+			widgets_.AddToUI(new SmallSpacer(Widget.Right));
+
 			widgets_.AddToUI(type_);
 			widgets_.AddToUI(modifierSync_);
 

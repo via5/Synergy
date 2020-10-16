@@ -628,7 +628,7 @@ namespace Synergy
 		}
 
 
-		private float triggerMag_ = 1;
+		private float triggerMag_ = 0;
 		private int triggerType_ = TriggerUp;
 
 		private JSONStorableAction param_ = null;
@@ -1085,7 +1085,7 @@ namespace Synergy
 
 					if (id != "")
 					{
-						if (J.Node.SaveType == SaveTypes.Preset)
+						if (J.Node.SaveContext.ForPreset)
 							SetStorable(id);
 						else
 							storableId_ = id;
@@ -1098,7 +1098,7 @@ namespace Synergy
 
 			if (parameter_ != null && storable_ != null)
 			{
-				if (J.Node.SaveType == SaveTypes.Preset)
+				if (J.Node.SaveContext.ForPreset)
 					parameter_.PostLoad(storable_);
 			}
 

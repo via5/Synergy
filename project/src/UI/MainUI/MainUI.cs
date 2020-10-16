@@ -528,6 +528,7 @@ namespace Synergy
 		private readonly FloatSlider overlapTime_;
 		private readonly StringList logLevel_;
 		private readonly Checkbox logOverlap_;
+		private readonly Checkbox usePlaceholder_;
 
 		public OptionsUI(int flags = 0)
 		{
@@ -559,6 +560,9 @@ namespace Synergy
 			logOverlap_ = new Checkbox(
 				"Log overlap", LogOverlapChanged, flags);
 
+			usePlaceholder_ = new Checkbox(
+				"Save: use placeholder for atoms", null, flags);
+
 			collapsible_.Add(resetValuesOnFreeze_);
 			collapsible_.Add(resetCountersOnThaw_);
 			collapsible_.Add(pickAnimatable_);
@@ -568,6 +572,7 @@ namespace Synergy
 			collapsible_.Add(logOverlap_);
 			collapsible_.Add(new SmallSpacer(flags));
 
+			collapsible_.Add(usePlaceholder_);
 
 			collapsible_.Add(new Button(
 				"Full: save", SaveFull, flags));
@@ -633,6 +638,10 @@ namespace Synergy
 		{
 			FileManagerSecure.CreateDirectory(Utilities.PresetSavePath);
 
+			int flags = Utilities.FullPreset;
+			if (usePlaceholder_.Value)
+				flags |= Utilities.PresetUsePlaceholder;
+
 			SuperController.singleton.GetMediaPathDialog(
 				(string path) =>
 				{
@@ -642,8 +651,7 @@ namespace Synergy
 					if (!path.Contains("."))
 						path += "." + Utilities.CompletePresetExtension;
 
-					Synergy.Instance.Manager.SavePreset(
-						path, Utilities.FullPreset);
+					Synergy.Instance.Manager.SavePreset(path, flags);
 				},
 				Utilities.CompletePresetExtension,
 				Utilities.PresetSavePath);
@@ -678,6 +686,10 @@ namespace Synergy
 		{
 			FileManagerSecure.CreateDirectory(Utilities.PresetSavePath);
 
+			int flags = Utilities.StepPreset;
+			if (usePlaceholder_.Value)
+				flags |= Utilities.PresetUsePlaceholder;
+
 			SuperController.singleton.GetMediaPathDialog(
 				(string path) =>
 				{
@@ -687,8 +699,7 @@ namespace Synergy
 					if (!path.Contains("."))
 						path += "." + Utilities.StepPresetExtension;
 
-					Synergy.Instance.Manager.SavePreset(
-						path, Utilities.StepPreset);
+					Synergy.Instance.Manager.SavePreset(path, flags);
 				},
 				Utilities.StepPresetExtension, Utilities.PresetSavePath);
 
@@ -722,6 +733,10 @@ namespace Synergy
 		{
 			FileManagerSecure.CreateDirectory(Utilities.PresetSavePath);
 
+			int flags = Utilities.ModifierPreset;
+			if (usePlaceholder_.Value)
+				flags |= Utilities.PresetUsePlaceholder;
+
 			SuperController.singleton.GetMediaPathDialog(
 				(string path) =>
 				{
@@ -731,8 +746,7 @@ namespace Synergy
 					if (!path.Contains("."))
 						path += "." + Utilities.ModifierPresetExtension;
 
-					Synergy.Instance.Manager.SavePreset(
-						path, Utilities.ModifierPreset);
+					Synergy.Instance.Manager.SavePreset(path, flags);
 				},
 				Utilities.ModifierPresetExtension, Utilities.PresetSavePath);
 

@@ -167,6 +167,18 @@ namespace Synergy
 				s.Reset();
 		}
 
+		public void DisableAllExcept(Step except)
+		{
+			foreach (var s in steps_)
+				s.Enabled = (s == except);
+		}
+
+		public void EnableAllSteps()
+		{
+			foreach (var s in steps_)
+				s.Enabled = true;
+		}
+
 		public void Tick(float deltaTime)
 		{
 			StepProgression?.Tick(deltaTime);
@@ -189,7 +201,8 @@ namespace Synergy
 
 		public void LoadPreset(string path, int flags)
 		{
-			J.Node.SaveType = SaveTypes.Preset;
+			J.Node.SaveContext = SaveContext.CreateForPreset(
+				Bits.IsSet(flags, Utilities.PresetUsePlaceholder));
 
 			var node = J.Node.Wrap(SuperController.singleton.LoadJSON(path));
 
@@ -278,12 +291,13 @@ namespace Synergy
 				}
 			}
 
-			J.Node.SaveType = SaveTypes.None;
+			J.Node.SaveContext = SaveContext.CreateForScene();
 		}
 
 		public void SavePreset(string path, int flags)
 		{
-			J.Node.SaveType = SaveTypes.Preset;
+			J.Node.SaveContext = SaveContext.CreateForPreset(
+				Bits.IsSet(flags, Utilities.PresetUsePlaceholder));
 
 			if (Bits.IsSet(flags, Utilities.FullPreset))
 			{
@@ -312,7 +326,7 @@ namespace Synergy
 				o.Save(path);
 			}
 
-			J.Node.SaveType = SaveTypes.None;
+			J.Node.SaveContext = SaveContext.CreateForScene();
 		}
 
 		public J.Node ToJSON()

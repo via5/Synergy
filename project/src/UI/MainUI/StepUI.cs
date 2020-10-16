@@ -7,6 +7,8 @@
 		private readonly Header header_;
 		private readonly ConfirmableButton delete_;
 		private readonly Checkbox enabled_;
+		private readonly Button disableOthers_;
+		private readonly Button enableAll_;
 		private readonly Checkbox paused_;
 		private readonly Checkbox halfMove_;
 
@@ -28,6 +30,12 @@
 
 			enabled_ = new Checkbox(
 				"Step enabled", true, StepEnabledChanged);
+
+			disableOthers_ = new Button(
+				"Disable other steps", DisableOthers);
+
+			enableAll_ = new Button(
+				"Enable all steps", EnableAll);
 
 			paused_ = new Checkbox(
 				"Step paused", false, StepPausedChanged);
@@ -73,6 +81,10 @@
 			widgets_.AddToUI(header_);
 			widgets_.AddToUI(delete_);
 			widgets_.AddToUI(enabled_);
+			widgets_.AddToUI(disableOthers_);
+			widgets_.AddToUI(enableAll_);
+			widgets_.AddToUI(new SmallSpacer());
+
 			widgets_.AddToUI(paused_);
 			widgets_.AddToUI(halfMove_);
 
@@ -117,6 +129,18 @@
 		{
 			if (currentStep_ != null)
 				currentStep_.Enabled = b;
+		}
+
+		private void DisableOthers()
+		{
+			Synergy.Instance.Manager.DisableAllExcept(currentStep_);
+			enabled_.Value = currentStep_?.Enabled ?? false;
+		}
+
+		private void EnableAll()
+		{
+			Synergy.Instance.Manager.EnableAllSteps();
+			enabled_.Value = true;
 		}
 
 		private void StepPausedChanged(bool b)

@@ -321,7 +321,7 @@ namespace Synergy
 
 			if (Atom != null)
 			{
-				if (J.Node.SaveType == SaveTypes.Preset)
+				if (J.Node.SaveContext.UsePlaceholder)
 					o.Add("atom", Utilities.PresetAtomPlaceholder);
 				else
 					o.Add("atom", Atom.uid);

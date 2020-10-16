@@ -5,11 +5,39 @@ using UnityEngine;
 
 namespace Synergy
 {
-	class SaveTypes
+	public class SaveContext
 	{
-		public const int None = 0;
-		public const int Scene = 1;
-		public const int Preset = 2;
+		private bool preset_ = false;
+		private bool usePlaceholder_ = false;
+
+		private SaveContext()
+		{
+		}
+
+		public static SaveContext CreateForPreset(bool usePlaceholder)
+		{
+			var cx = new SaveContext();
+
+			cx.preset_ = true;
+			cx.usePlaceholder_ = usePlaceholder;
+
+			return cx;
+		}
+
+		public static SaveContext CreateForScene()
+		{
+			return new SaveContext();
+		}
+
+		public bool ForPreset
+		{
+			get { return preset_; }
+		}
+
+		public bool UsePlaceholder
+		{
+			get { return usePlaceholder_; }
+		}
 	}
 
 	public interface IJsonable
@@ -30,7 +58,10 @@ namespace Synergy
 				node_ = n;
 			}
 
-			public static int SaveType { get; set; } = SaveTypes.None;
+			public static SaveContext SaveContext
+			{
+				get; set;
+			} = SaveContext.CreateForScene();
 
 			public static Node Wrap(JSONNode n)
 			{

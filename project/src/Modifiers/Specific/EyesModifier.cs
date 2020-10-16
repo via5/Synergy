@@ -163,7 +163,7 @@ namespace Synergy
 
 			if (atom_ != null)
 			{
-				if (J.Node.SaveType == SaveTypes.Preset)
+				if (J.Node.SaveContext.UsePlaceholder)
 					o.Add("atom", Utilities.PresetAtomPlaceholder);
 				else
 					o.Add("atom", atom_.uid);
@@ -328,7 +328,7 @@ namespace Synergy
 
 			if (atom_ != null)
 			{
-				if (J.Node.SaveType == SaveTypes.Preset)
+				if (J.Node.SaveContext.UsePlaceholder)
 					o.Add("atom", Utilities.PresetAtomPlaceholder);
 				else
 					o.Add("atom", atom_.uid);
@@ -592,7 +592,7 @@ namespace Synergy
 
 			if (atom_ != null)
 			{
-				if (J.Node.SaveType == SaveTypes.Preset)
+				if (J.Node.SaveContext.ForPreset)
 					o.Add("atom", Utilities.PresetAtomPlaceholder);
 				else
 					o.Add("atom", atom_.uid);

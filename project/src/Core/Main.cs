@@ -321,13 +321,11 @@ namespace Synergy
 				c = base.GetJSON(includePhysical, includeAppearance);
 
 				var o = J.Object.Wrap(c);
-				J.Node.SaveType = SaveTypes.Scene;
 
+				J.Node.SaveContext = SaveContext.CreateForScene();
 				o.Add("version", Version.String);
 				o.Add("options", options_);
 				o.Add("manager", manager_);
-
-				J.Node.SaveType = SaveTypes.None;
 			});
 
 			return c;
@@ -347,12 +345,10 @@ namespace Synergy
 					presetAtoms, setMissingToDefault);
 
 				var o = J.Object.Wrap(c);
-				J.Node.SaveType = SaveTypes.Scene;
 
+				J.Node.SaveContext = SaveContext.CreateForScene();
 				o.Opt("options", ref options_);
 				o.Opt("manager", ref manager_);
-
-				J.Node.SaveType = SaveTypes.None;
 			});
 		}
 

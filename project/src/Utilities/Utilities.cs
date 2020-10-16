@@ -71,6 +71,7 @@ namespace Synergy
 		public const int PresetReplace = 0x08;
 		public const int PresetAppend = 0x10;
 		public const int PresetMerge = 0x20;
+		public const int PresetUsePlaceholder = 0x40;
 
 		public static string PresetSavePath
 		{

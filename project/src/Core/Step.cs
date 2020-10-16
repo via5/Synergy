@@ -410,12 +410,7 @@ namespace Synergy
 		public void DisableAllExcept(ModifierContainer except)
 		{
 			foreach (var m in modifiers_)
-			{
-				if (m == except)
-					m.Enabled = true;
-				else
-					m.Enabled = false;
-			}
+				m.Enabled = (m == except);
 		}
 
 		public void Reset()
