@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Synergy.src.Modifiers.Specific
+namespace Synergy
 {
 	class StepExtenderModifier : AtomModifier
 	{
@@ -13,14 +13,24 @@ namespace Synergy.src.Modifiers.Specific
 		public override string GetDisplayName() { return DisplayName; }
 
 
-		private FloatStorableParameter storable_;
+		private StorableParameterHolder holder_ = new StorableParameterHolder();
 
 
 		public StepExtenderModifier()
 		{
-			storable_ = new FloatStorableParameter(
-				Atom.GetStorableByID("plugin#1_VamTimeline.AtomPlugin")
-					.GetFloatJSONParam("Time Remaining"));
+		}
+
+		public override IModifier Clone(int cloneFlags = 0)
+		{
+			var m = new StepExtenderModifier();
+			CopyTo(m, cloneFlags);
+			return m;
+		}
+
+		private void CopyTo(StepExtenderModifier m, int cloneFlags)
+		{
+			base.CopyTo(m, cloneFlags);
+			m.holder_ = holder_.Clone(cloneFlags);
 		}
 
 		public override FloatRange PreferredRange
@@ -32,7 +42,8 @@ namespace Synergy.src.Modifiers.Specific
 		{
 			get
 			{
-				return storable_.Value;
+				var p = (FloatStorableParameter)holder_.Parameter;
+				return p?.Value ?? 0;
 			}
 		}
 
@@ -49,16 +60,83 @@ namespace Synergy.src.Modifiers.Specific
 			get { return true; }
 		}
 
-		public override IModifier Clone(int cloneFlags = 0)
+		public override bool UsesSync
 		{
-			var m = new StepExtenderModifier();
-			CopyTo(m, cloneFlags);
-			return m;
+			get { return false; }
+		}
+
+		public FloatStorableParameter Parameter
+		{
+			get
+			{
+				return (FloatStorableParameter)holder_.Parameter;
+			}
+
+			set
+			{
+				holder_.Parameter = value;
+			}
+		}
+
+		public JSONStorable Storable
+		{
+			get
+			{
+				return holder_.Storable;
+			}
+		}
+
+		public void SetStorable(string id)
+		{
+			holder_.SetStorable(Atom, id);
 		}
 
 		protected override string MakeName()
 		{
-			return "Step extender";
+			string s = "StepExt ";
+
+			if (Parameter == null)
+				s += "none";
+			else
+				s += Parameter.GetDisplayName();
+
+			return s;
+		}
+
+		public override void DeferredInit()
+		{
+			holder_.DeferredInit(Atom);
+		}
+
+		public void SetParameter(string name)
+		{
+			holder_.SetParameter(name);
+		}
+
+		public void SetParameter(JSONStorableFloat sp)
+		{
+			holder_.SetParameter(sp);
+		}
+
+		public override J.Node ToJSON()
+		{
+			var o = base.ToJSON().AsObject();
+			holder_.ToJSON(o);
+			return o;
+		}
+
+		public override bool FromJSON(J.Node n)
+		{
+			if (!base.FromJSON(n))
+				return false;
+
+			var o = n.AsObject("StepExtenderModifier");
+			if (o == null)
+				return false;
+
+			holder_.FromJSON(Atom, o);
+
+			return true;
 		}
 	}
 }

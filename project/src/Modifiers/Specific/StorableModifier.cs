@@ -273,13 +273,13 @@ namespace Synergy
 		public override void Set(float magnitude, float normalizedMagnitude)
 		{
 			if (Parameter != null)
-				Parameter.valNoCallback = (normalizedMagnitude > 0.5f);
+				Parameter.val = (normalizedMagnitude > 0.5f);
 		}
 
 		public override void Reset()
 		{
 			if (Parameter != null)
-				Parameter.valNoCallback = Parameter.defaultVal;
+				Parameter.val = Parameter.defaultVal;
 		}
 
 		public override IEnumerable<string> GetStorableNames(Atom a, bool pluginsOnly)
@@ -841,50 +841,31 @@ namespace Synergy
 	}
 
 
-	sealed class StorableModifier : AtomWithMovementModifier
+	class StorableParameterHolder
 	{
-		public static string FactoryTypeName { get; } = "storable";
-		public override string GetFactoryTypeName() { return FactoryTypeName; }
-
-		public static string DisplayName { get; } = "Storable";
-		public override string GetDisplayName() { return DisplayName; }
-
-
 		private JSONStorable storable_ = null;
 		private string storableId_ = null;
 		private IStorableParameter parameter_ = null;
 
-
-		public StorableModifier()
+		public StorableParameterHolder Clone(int cloneFlags = 0)
 		{
+			var h = new StorableParameterHolder();
+			h.storable_ = storable_;
+			h.storableId_ = storableId_;
+			h.parameter_ = parameter_?.Clone(cloneFlags);
+			return h;
 		}
 
-		public StorableModifier(Atom a, string storable, string parameter)
+		public void DeferredInit(Atom atom)
 		{
-			Atom = a;
-			SetStorable(storable);
-			SetParameter(parameter);
-			Movement = new Movement(0, 1);
-		}
+			if (storableId_ != null)
+			{
+				SetStorable(atom, storableId_);
+				storableId_ = null;
+			}
 
-		public override IModifier Clone(int cloneFlags = 0)
-		{
-			var m = new StorableModifier();
-			CopyTo(m, cloneFlags);
-			return m;
-		}
-
-		private void CopyTo(StorableModifier m, int cloneFlags)
-		{
-			base.CopyTo(m, cloneFlags);
-			m.storable_ = storable_;
-			m.parameter_ = parameter_?.Clone(cloneFlags);
-		}
-
-		public override void Removed()
-		{
-			base.Removed();
-			ResetParameter();
+			if (parameter_ != null && storable_ != null)
+				parameter_.PostLoad(storable_);
 		}
 
 		public IStorableParameter Parameter
@@ -896,9 +877,7 @@ namespace Synergy
 
 			set
 			{
-				ResetParameter();
 				parameter_ = value;
-				FirePreferredRangeChanged();
 			}
 		}
 
@@ -924,16 +903,16 @@ namespace Synergy
 			}
 		}
 
-		public void SetStorable(string id)
+		public void SetStorable(Atom atom, string id)
 		{
-			if (Atom == null || string.IsNullOrEmpty(id))
+			if (atom == null || string.IsNullOrEmpty(id))
 				return;
 
-			var s = Atom.GetStorableByID(id);
+			var s = atom.GetStorableByID(id);
 			if (s == null)
 			{
 				Synergy.LogError(
-					$"storable id '{id}' not found in atom '{Atom.uid}'");
+					$"storable id '{id}' not found in atom '{atom.uid}'");
 
 				return;
 			}
@@ -955,13 +934,53 @@ namespace Synergy
 
 				Synergy.LogError(
 					$"parameter '{name}' not found in storable " +
-					$"'{storable_.name}' from atom '{Atom.uid}'");
+					$"'{storable_.name}'");
+			}
+		}
+
+		public void SetParameter(JSONStorableParam sp)
+		{
+			var p = StorableParameterFactory.Create(sp);
+			if (p == null)
+			{
+				Synergy.LogError("unknown parameter type");
+				return;
+			}
+
+			Parameter = p;
+		}
+
+		public void SetParameter(JSONStorableAction a)
+		{
+			Parameter = new ActionStorableParameter(a);
+		}
+
+		public void AtomChanged(Atom newAtom)
+		{
+			string oldStorable = storable_?.name ?? "";
+			string oldParameter = Parameter?.Name ?? "";
+
+
+			if (oldStorable == "")
+				storable_ = null;
+			else
+				storable_ = newAtom.GetStorableByID(oldStorable);
+
+
+			if (storable_ == null || oldParameter == "")
+			{
+				Parameter = null;
+			}
+			else
+			{
+				if (!SetParameterImpl(oldParameter))
+					Parameter = null;
 			}
 		}
 
 		private bool SetParameterImpl(string name)
 		{
-			if (Atom == null || storable_ == null || string.IsNullOrEmpty(name))
+			if (storable_ == null || string.IsNullOrEmpty(name))
 				return true;
 
 			var p = storable_.GetParam(name);
@@ -981,16 +1000,122 @@ namespace Synergy
 			return false;
 		}
 
-		public void SetParameter(JSONStorableParam sp)
+		public void ToJSON(J.Object o)
 		{
-			var p = StorableParameterFactory.Create(sp);
-			if (p == null)
+			if (storable_ != null)
+				o.Add("storable", storable_.storeId);
+
+			o.Add("parameter", parameter_);
+		}
+
+		public void FromJSON(Atom atom, J.Object o)
+		{
+			if (atom != null)
 			{
-				Synergy.LogError("unknown parameter type");
-				return;
+				if (o.HasKey("storable"))
+				{
+					string id = "";
+					o.Opt("storable", ref id);
+
+					if (id != "")
+					{
+						if (J.Node.SaveContext.ForPreset)
+							SetStorable(atom, id);
+						else
+							storableId_ = id;
+					}
+				}
 			}
 
-			Parameter = p;
+			o.Opt<StorableParameterFactory, IStorableParameter>(
+				"parameter", ref parameter_);
+
+			if (parameter_ != null && storable_ != null)
+			{
+				if (J.Node.SaveContext.ForPreset)
+					parameter_.PostLoad(storable_);
+			}
+		}
+	}
+
+
+	sealed class StorableModifier : AtomWithMovementModifier
+	{
+		public static string FactoryTypeName { get; } = "storable";
+		public override string GetFactoryTypeName() { return FactoryTypeName; }
+
+		public static string DisplayName { get; } = "Storable";
+		public override string GetDisplayName() { return DisplayName; }
+
+		private StorableParameterHolder holder_ = new StorableParameterHolder();
+
+		public StorableModifier()
+		{
+		}
+
+		public StorableModifier(Atom a, string storable, string parameter)
+		{
+			Atom = a;
+			SetStorable(storable);
+			SetParameter(parameter);
+			Movement = new Movement(0, 1);
+		}
+
+		public override IModifier Clone(int cloneFlags = 0)
+		{
+			var m = new StorableModifier();
+			CopyTo(m, cloneFlags);
+			return m;
+		}
+
+		private void CopyTo(StorableModifier m, int cloneFlags)
+		{
+			base.CopyTo(m, cloneFlags);
+			m.holder_ = holder_.Clone(cloneFlags);
+		}
+
+		public override void Removed()
+		{
+			base.Removed();
+			ResetParameter();
+		}
+
+		public IStorableParameter Parameter
+		{
+			get
+			{
+				return holder_.Parameter;
+			}
+
+			set
+			{
+				ResetParameter();
+				holder_.Parameter = value;
+				FirePreferredRangeChanged();
+			}
+		}
+
+		public JSONStorable Storable
+		{
+			get
+			{
+				return holder_.Storable;
+			}
+		}
+
+		public void SetStorable(string id)
+		{
+			holder_.SetStorable(Atom, id);
+		}
+
+		public void SetParameter(string name)
+		{
+			holder_.SetParameter(name);
+		}
+
+		public void SetParameter(JSONStorableParam sp)
+		{
+			holder_.SetParameter(sp);
 		}
 
 		public void SetParameter(JSONStorableAction a)
@@ -1053,25 +1178,13 @@ namespace Synergy
 
 		public override void DeferredInit()
 		{
-			if (storableId_ != null)
-			{
-				SetStorable(storableId_);
-				storableId_ = null;
-			}
-
-			if (parameter_ != null && storable_ != null)
-				parameter_.PostLoad(storable_);
+			holder_.DeferredInit(Atom);
 		}
 
 		public override J.Node ToJSON()
 		{
 			var o = base.ToJSON().AsObject();
-
-			if (storable_ != null)
-				o.Add("storable", storable_.storeId);
-
-			o.Add("parameter", parameter_);
-
+			holder_.ToJSON(o);
 			return o;
 		}
 
@@ -1084,56 +1197,14 @@ namespace Synergy
 			if (o == null)
 				return false;
 
-			if (Atom != null)
-			{
-				if (o.HasKey("storable"))
-				{
-					string id = "";
-					o.Opt("storable", ref id);
-
-					if (id != "")
-					{
-						if (J.Node.SaveContext.ForPreset)
-							SetStorable(id);
-						else
-							storableId_ = id;
-					}
-				}
-			}
-
-			o.Opt<StorableParameterFactory, IStorableParameter>(
-				"parameter", ref parameter_);
-
-			if (parameter_ != null && storable_ != null)
-			{
-				if (J.Node.SaveContext.ForPreset)
-					parameter_.PostLoad(storable_);
-			}
+			holder_.FromJSON(Atom, o);
 
 			return true;
 		}
 
 		protected override void AtomChanged()
 		{
-			string oldStorable = storable_?.name ?? "";
-			string oldParameter = Parameter?.Name ?? "";
-
-
-			if (oldStorable == "")
-				storable_ = null;
-			else
-				storable_ = Atom.GetStorableByID(oldStorable);
-
-
-			if (storable_ == null || oldParameter == "")
-			{
-				Parameter = null;
-			}
-			else
-			{
-				if (!SetParameterImpl(oldParameter))
-					Parameter = null;
-			}
+			holder_.AtomChanged(Atom);
 		}
 	}
 }

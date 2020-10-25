@@ -1,5 +1,4 @@
-﻿using Synergy.src.Modifiers.Specific;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Synergy
@@ -19,6 +18,7 @@ namespace Synergy
 		int TickCalls { get; }
 		int SetCalls { get; }
 		bool HardDuration { get; }
+		bool UsesSync { get; }
 
 		IModifier Clone(int cloneFlags = 0);
 
@@ -129,6 +129,11 @@ namespace Synergy
 		public virtual bool HardDuration
 		{
 			get { return false; }
+		}
+
+		public virtual bool UsesSync
+		{
+			get { return true; }
 		}
 
 		public virtual bool Finished

@@ -132,8 +132,11 @@
 
 				if (d == 0)
 					return magnitude_;
-				else
+
+				if (r.Minimum < r.Maximum)
 					return (magnitude_ - r.Minimum) / d;
+				else
+					return (magnitude_ - r.Maximum) / d;
 			}
 		}
 

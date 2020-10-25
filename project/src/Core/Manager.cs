@@ -134,7 +134,7 @@ namespace Synergy
 
 			foreach (var ss in steps_)
 			{
-				if (ss.Enabled && ss != s)
+				if (ss.Enabled && !ss.Paused && ss != s)
 					return false;
 			}
 

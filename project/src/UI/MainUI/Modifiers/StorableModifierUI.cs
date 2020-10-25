@@ -337,6 +337,15 @@ namespace Synergy
 	}
 
 
+	class StorableList : StringList
+	{
+		public StorableList(int flags)
+			: base(flags)
+		{
+		}
+	}
+
+
 	class StorableModifierUI : AtomWithMovementUI
 	{
 		public override string ModifierType

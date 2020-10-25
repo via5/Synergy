@@ -119,7 +119,9 @@ namespace Synergy
 			widgets_.AddToUI(new SmallSpacer(Widget.Right));
 
 			widgets_.AddToUI(type_);
-			widgets_.AddToUI(modifierSync_);
+
+			if (currentModifier_.Modifier != null && currentModifier_.Modifier.UsesSync)
+				widgets_.AddToUI(modifierSync_);
 
 			if (modifierSyncUI_ != null)
 				modifierSyncUI_.AddToUI(m.ModifierSync);

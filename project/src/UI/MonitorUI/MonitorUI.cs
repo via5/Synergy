@@ -1,5 +1,4 @@
-﻿using Synergy.src.Modifiers.Specific;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Synergy
