@@ -298,8 +298,7 @@ namespace Synergy
 
 						if (active_.orderIndex >= order1_.Count)
 						{
-							Log(
-								$"NextActive: {active_.orderIndex} past end, reversing");
+							Log($"NextActive: {active_.orderIndex} past end, reversing");
 
 							active_.forwards = false;
 							active_.orderIndex = order1_.Count - 1;
@@ -324,8 +323,7 @@ namespace Synergy
 						{
 							--active_.orderIndex;
 
-							Log(
-								$"NextActive: i now {active_.orderIndex}");
+							Log($"NextActive: i now {active_.orderIndex}");
 						}
 					}
 
