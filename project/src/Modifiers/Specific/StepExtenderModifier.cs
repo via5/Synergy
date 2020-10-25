@@ -106,6 +106,12 @@ namespace Synergy
 			return s;
 		}
 
+		protected override void AtomChanged()
+		{
+			base.AtomChanged();
+			holder_.Atom = Atom;
+		}
+
 		public override void DeferredInit()
 		{
 			holder_.DeferredInit();

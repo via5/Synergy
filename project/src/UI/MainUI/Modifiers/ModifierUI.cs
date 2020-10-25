@@ -45,7 +45,7 @@ namespace Synergy
 			type_ = new ModifierStringList(
 				"Type", "", TypeChanged, Widget.Right);
 
-			type_.PopupHeight = 400;
+			type_.PopupHeight = 460;
 
 			modifierSync_  = new ModifierSyncStringList(
 				"Sync", ModifierSyncChanged, Widget.Right);

@@ -73,6 +73,9 @@ namespace Synergy
 				"Clone modifier zero values", CloneModifierZero,
 				Widget.Right);
 
+			stepsList_.PopupHeight = 1000;
+			modifiersList_.PopupHeight = 1000;
+
 			step_ = new StepUI();
 			modifier_ = new ModifierUI(this);
 			monitor_ = new MonitorUI();
