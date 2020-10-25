@@ -22,27 +22,21 @@ namespace Synergy
 		public event CountCallback ItemCount;
 		public event TimeCallback GetOverlapTime;
 
-		public class TickInfo
+		public struct TickInfo
 		{
 			public int orderIndex;
 			public bool forwards;
 			public bool order1;
 			public bool mustWait;
 
-			public TickInfo()
+			public static TickInfo Empty()
 			{
-				orderIndex = -1;
-				forwards = false;
-				order1 = true;
-				mustWait = false;
-			}
-
-			public TickInfo(TickInfo o)
-			{
-				orderIndex = o.orderIndex;
-				forwards = o.forwards;
-				order1 = o.order1;
-				mustWait = o.mustWait;
+				var ti = new TickInfo();
+				ti.orderIndex = -1;
+				ti.forwards = false;
+				ti.order1 = true;
+				ti.mustWait = false;
+				return ti;
 			}
 
 			public override string ToString()
@@ -59,8 +53,8 @@ namespace Synergy
 		private readonly string name_;
 		private List<int> order1_ = new List<int>();
 		private List<int> order2_ = new List<int>();
-		private TickInfo active_ = new TickInfo();
-		private TickInfo overlap_ = new TickInfo();
+		private TickInfo active_ = TickInfo.Empty();
+		private TickInfo overlap_ = TickInfo.Empty();
 
 
 		public Overlapper(string name)
@@ -90,12 +84,12 @@ namespace Synergy
 
 		public TickInfo ActiveTick
 		{
-			get { return new TickInfo(active_); }
+			get { return active_; }
 		}
 
 		public TickInfo OverlapTick
 		{
-			get { return new TickInfo(overlap_); }
+			get { return overlap_; }
 		}
 
 		public float OverlapTime
@@ -139,8 +133,8 @@ namespace Synergy
 			order1_ = Regenerate(null);
 			order2_ = new List<int>();
 
-			active_ = new TickInfo();
-			overlap_ = new TickInfo();
+			active_ = TickInfo.Empty();
+			overlap_ = TickInfo.Empty();
 
 			for (int i = 0; i < order1_.Count; ++i)
 			{
@@ -357,7 +351,7 @@ namespace Synergy
 				Log("NextActive: overlap already active, taking over");
 
 				// already an overlap, take it over
-				active_ = new TickInfo(overlap_);
+				active_ = overlap_;
 
 				if (active_.mustWait)
 				{
@@ -390,7 +384,7 @@ namespace Synergy
 					active_.order1 = true;
 				}
 
-				overlap_ = new TickInfo();
+				overlap_ = TickInfo.Empty();
 
 				return;
 			}
@@ -425,7 +419,7 @@ namespace Synergy
 					"NextOverlap: no current overlap, starting from active " +
 					$"i={active_.orderIndex} fwd={active_.forwards}");
 
-				overlap_ = new TickInfo(active_);
+				overlap_ = active_;
 			}
 			else
 			{
@@ -707,8 +701,8 @@ namespace Synergy
 		{
 			Log("items changed, regenerating");
 
-			active_ = new TickInfo();
-			overlap_ = new TickInfo();
+			active_ = TickInfo.Empty();
+			overlap_ = TickInfo.Empty();
 
 			order1_ = new List<int>();
 			order2_ = new List<int>();

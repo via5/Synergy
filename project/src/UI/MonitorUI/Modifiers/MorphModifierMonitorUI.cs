@@ -53,17 +53,17 @@ namespace Synergy
 						stopping.Value = mi.stopping;
 						finished.Value = mi.finished;
 
-						if (mi.target == null)
-						{
-							customTargetTime.Value = -1;
-							customTargetMovePerTick.Value = -1;
-							customTargetValue.Value = -1;
-						}
-						else
+						if (mi.target.active)
 						{
 							customTargetTime.Value = mi.target.time;
 							customTargetMovePerTick.Value = mi.target.movePerTick;
 							customTargetValue.Value = mi.target.value;
+						}
+						else
+						{
+							customTargetTime.Value = -1;
+							customTargetMovePerTick.Value = -1;
+							customTargetValue.Value = -1;
 						}
 
 						return;

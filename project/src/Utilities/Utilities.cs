@@ -33,7 +33,7 @@ namespace Synergy
 
 	public interface IRandomProvider
 	{
-		// returns a float in [min, max[
+		// returns a float in [min, max]
 		//
 		float RandomFloat(float min, float max);
 
@@ -107,7 +107,7 @@ namespace Synergy
 			set { rng_ = value; }
 		}
 
-		// returns a float in [min, max[
+		// returns a float in [min, max]
 		//
 		public static float RandomFloat(float min, float max)
 		{

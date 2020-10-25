@@ -522,26 +522,45 @@ namespace Synergy
 			}
 			else
 			{
-				var av = new List<int>();
+				bool avoidHor = false;
+				bool avoidVer = false;
 
 				if (avoidXRange_ < xRange_)
-				{
-					av.Add(0);
-					av.Add(2);
-				}
+					avoidHor = true;
 
 				if (avoidYRange_ < yRange_)
-				{
-					av.Add(1);
-					av.Add(3);
-				}
+					avoidVer = true;
 
-				if (av.Count > 0)
+				if (avoidHor || avoidVer)
 				{
-					int i = Utilities.RandomInt(0, av.Count);
-					i = av[i];
+					int side;
 
-					if (i == 0)
+					if (avoidHor && avoidVer)
+					{
+						side = Utilities.RandomInt(0, 4);
+					}
+					else
+					{
+						int i = Utilities.RandomInt(0, 2);
+
+						if (avoidHor)
+						{
+							if (i == 0)
+								side = 0;
+							else
+								side = 2;
+						}
+						else
+						{
+							if (i == 0)
+								side = 1;
+							else
+								side = 3;
+						}
+					}
+
+
+					if (side == 0)
 					{
 						// left
 						x = Utilities.RandomFloat(0, xRange_ - avoidXRange_);
@@ -550,7 +569,7 @@ namespace Synergy
 						y = Utilities.RandomFloat(0, yRange_ * 2);
 						y = centerY_ - yRange_ + y;
 					}
-					else if (i == 1)
+					else if (side == 1)
 					{
 						// top
 						x = Utilities.RandomFloat(0, xRange_ * 2);
@@ -559,7 +578,7 @@ namespace Synergy
 						y = Utilities.RandomFloat(0, yRange_ - avoidYRange_);
 						y = centerY_ + avoidYRange_ + y;
 					}
-					else if (i == 2)
+					else if (side == 2)
 					{
 						// right
 						x = Utilities.RandomFloat(0, xRange_ - avoidXRange_);
@@ -568,7 +587,7 @@ namespace Synergy
 						y = Utilities.RandomFloat(0, yRange_ * 2);
 						y = centerY_ - yRange_ + y;
 					}
-					else if (i == 3)
+					else if (side == 3)
 					{
 						// bottom
 						x = Utilities.RandomFloat(0, xRange_ * 2);

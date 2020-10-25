@@ -152,15 +152,26 @@ namespace Synergy
 
 		private bool stop_ = false;
 
-		public class CustomTarget
+		public struct CustomTarget
 		{
+			public bool active;
 			public float time;
 			public float movePerTick;
 			public float value;
 			public float lastValue;
 
+			public CustomTarget(bool a)
+			{
+				active = a;
+				time = 0;
+				movePerTick = 0;
+				value = 0;
+				lastValue = NoLastValue;
+			}
+
 			public CustomTarget(float t, float mpt, float v)
 			{
+				active = true;
 				time = t;
 				movePerTick = mpt;
 				value = v;
@@ -176,7 +187,7 @@ namespace Synergy
 
 			public bool stopping = false;
 			public bool finished = false;
-			public CustomTarget target = null;
+			public CustomTarget target = new CustomTarget(false);
 
 			public MorphInfo(IDuration d, Delay dl)
 			{
@@ -353,7 +364,7 @@ namespace Synergy
 				if (stop_ && mi.finished)
 					continue;
 
-				if (mi.target != null)
+				if (mi.target.active)
 				{
 					if (!DoTargetTick(i))
 					{
@@ -449,7 +460,7 @@ namespace Synergy
 					// holding the value in TickPaused(), or whatever
 					//
 					// this is never going to work, so just give up
-					mi.target = null;
+					mi.target.active = false;
 					return false;
 				}
 			}
@@ -475,7 +486,7 @@ namespace Synergy
 			if (vbefore == vafter)
 			{
 				// target looks out of range
-				mi.target = null;
+				mi.target.active = false;
 				return false;
 			}
 
@@ -486,7 +497,7 @@ namespace Synergy
 			if (d < 0.01f)
 			{
 				sm.Morph.morphValue = mi.target.value;
-				mi.target = null;
+				mi.target.active = false;
 				return false;
 			}
 
@@ -500,7 +511,7 @@ namespace Synergy
 
 			for (int i = 0; i < morphInfos_.Count; ++i)
 			{
-				if (morphInfos_[i].target != null)
+				if (morphInfos_[i].target.active)
 					continue;
 
 				morphs_[i].Set();
@@ -535,7 +546,7 @@ namespace Synergy
 			{
 				mi.stopping = false;
 				mi.finished = false;
-				mi.target = null;
+				mi.target.active = false;
 				mi.ResetDuration(Duration, Delay);
 			}
 
