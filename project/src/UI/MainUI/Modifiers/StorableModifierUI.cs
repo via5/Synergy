@@ -337,158 +337,100 @@ namespace Synergy
 	}
 
 
-	class StorableList : StringList
+	class StorableWidgets
 	{
-		public StorableList(int flags)
-			: base(flags)
-		{
-		}
-	}
+		public const string PluginSuffix = "_plugins";
 
-
-	class StorableModifierUI : AtomWithMovementUI
-	{
-		public override string ModifierType
-		{
-			get { return StorableModifier.FactoryTypeName; }
-		}
-
-		private const string PluginSuffix = "_plugins";
-
-		private StorableModifier modifier_ = null;
-		private readonly StringList types_;
+		private StorableParameterHolder holder_ = null;
 		private readonly StringList storables_;
 		private readonly StringList parameters_;
-		private IStorableParameterUI parameterUI_ = null;
 		private bool storablesStale_ = true;
 		private bool parametersStale_ = true;
+		private string type_ = "";
 
+		public delegate void Handler();
+		public event Handler OnParameterChanged;
 
-		public StorableModifierUI(MainUI ui)
-			: base(ui)
+		public StorableWidgets(int flags)
 		{
-			types_ = new StringList("Show only", TypeChanged, Widget.Right);
-
 			storables_ = new StringList(
-				"Storable", StorableChanged, Widget.Right);
+				"Storable", StorableChanged, flags | Widget.Filterable);
 
 			parameters_ = new StringList(
-				"Parameter", ParameterChanged, Widget.Right);
+				"Parameter", ParameterChanged, flags | Widget.Filterable);
 
 			storables_.OnOpen += UpdateStorables;
 			parameters_.OnOpen += UpdateParameters;
-
-
-			var list = new StorableParameterFactory().GetAllDisplayNames();
-
-			var names = new List<string>();
-
-			names.Add("All (plugins only)");
-			foreach (var s in list)
-				names.Add(s + " (plugins only)");
-
-			foreach (var s in list)
-				names.Add(s);
-
-			names.Add("All (very slow)");
-			types_.DisplayChoices = names;
-
-
-
-			list = new StorableParameterFactory().GetAllFactoryTypeNames();
-
-			var types = new List<string>();
-
-			types.Add(PluginSuffix);
-			foreach (var s in list)
-				types.Add(s + PluginSuffix);
-
-			foreach (var s in list)
-				types.Add(s);
-
-			types.Add("");
-			types_.Choices = types;
-
-			types_.Value = "float" + PluginSuffix;
 		}
 
-		public override void DeferredInit()
+		public string Type
 		{
-			storables_.Value = modifier_?.Storable?.storeId ?? "";
-			parameters_.Value = modifier_?.Parameter?.Name ?? "";
+			get
+			{
+				return type_;
+			}
+
+			set
+			{
+				type_ = value;
+				storablesStale_ = true;
+				parametersStale_ = true;
+			}
 		}
 
-		public override void AddToTopUI(IModifier m)
+		public void AtomChanged()
 		{
-			if (modifier_ != m)
+			storables_.Value = holder_?.Storable?.name ?? "";
+			parameters_.Value = holder_?.Parameter?.Name ?? "";
+			storablesStale_ = true;
+			parametersStale_ = true;
+		}
+
+		public void DeferredInit(StorableParameterHolder h)
+		{
+			holder_ = h;
+			storables_.Value = holder_?.Storable?.storeId ?? "";
+			parameters_.Value = holder_?.Parameter?.Name ?? "";
+		}
+
+		public void AddToUI(StorableParameterHolder h)
+		{
+			if (holder_ != h)
 			{
 				storablesStale_ = true;
 				parametersStale_ = true;
 			}
 
-			modifier_ = m as StorableModifier;
-			if (modifier_ == null)
+			holder_ = h;
+
+			storables_.Value = holder_?.Storable?.storeId ?? "";
+			parameters_.Value = holder_?.Parameter?.Name ?? "";
+
+			storables_.AddToUI();
+			parameters_.AddToUI();
+		}
+
+		public void RemoveFromUI()
+		{
+			storables_.RemoveFromUI();
+			parameters_.RemoveFromUI();
+		}
+
+		private void StorableChanged(string s)
+		{
+			if (holder_ == null)
 				return;
 
-			var p = modifier_?.Parameter;
-			if (p == null)
-			{
-				parameterUI_ = null;
-			}
-			else
-			{
-				if (parameterUI_ == null ||
-					parameterUI_.ParameterType != p.GetFactoryTypeName())
-				{
-					parameterUI_ = CreateParameterUI(p);
-				}
-			}
-
-
-			storables_.Value = modifier_?.Storable?.storeId ?? "";
-			parameters_.Value = modifier_?.Parameter?.Name ?? "";
-
-			AddAtomWidgets(m);
-
-			widgets_.AddToUI(types_);
-			widgets_.AddToUI(storables_);
-			widgets_.AddToUI(parameters_);
-
-			if (parameterUI_ != null)
-			{
-				widgets_.AddToUI(new SmallSpacer(Widget.Right));
-				parameterUI_.AddToUI(p);
-			}
-
-			AddAtomWithMovementWidgets(m);
-
-			base.AddToTopUI(m);
+			holder_.SetStorable(s);
+			parameters_.Value = holder_.Parameter?.Name ?? "";
+			parametersStale_ = true;
+			OnParameterChanged?.Invoke();
 		}
 
-		public override void RemoveFromUI()
+		private void ParameterChanged(string s)
 		{
-			base.RemoveFromUI();
-
-			if (parameterUI_ != null)
-				parameterUI_.RemoveFromUI();
-		}
-
-		private IStorableParameterUI CreateParameterUI(IStorableParameter p)
-		{
-			if (p is FloatStorableParameter)
-				return new FloatStorableParameterUI();
-			else if (p is BoolStorableParameter)
-				return new BoolStorableParameterUI();
-			else if (p is ColorStorableParameter)
-				return new ColorStorableParameterUI();
-			else if (p is UrlStorableParameter)
-				return new UrlStorableParameterUI();
-			else if (p is StringStorableParameter)
-				return new StringStorableParameterUI();
-			else if (p is ActionStorableParameter)
-				return new ActionStorableParameterUI();
-			else
-				return null;
+			holder_.SetParameter(s);
+			OnParameterChanged?.Invoke();
 		}
 
 		private void UpdateStorables()
@@ -498,12 +440,12 @@ namespace Synergy
 
 			List<string> list = null;
 
-			var a = modifier_?.Atom;
+			var a = holder_?.Atom;
 
 			if (a != null)
 			{
-				string type = types_.Value;
 				bool pluginsOnly = false;
+				string type = type_;
 
 				if (type.EndsWith(PluginSuffix))
 				{
@@ -547,10 +489,10 @@ namespace Synergy
 
 			List<string> list = null;
 
-			var s = modifier_?.Storable;
+			var s = holder_?.Storable;
 			if (s != null)
 			{
-				string type = types_.Value;
+				string type = type_;
 
 				if (type.EndsWith(PluginSuffix))
 					type = type.Substring(0, type.Length - PluginSuffix.Length);
@@ -563,7 +505,7 @@ namespace Synergy
 				{
 					var p = new StorableParameterFactory().Create(type);
 					if (p == null)
-						Synergy.LogError($"unknown type {types_.Value}");
+						Synergy.LogError($"unknown type {type_}");
 					else
 						list = new List<string>(p.GetParameterNames(s));
 				}
@@ -577,28 +519,182 @@ namespace Synergy
 
 			parametersStale_ = false;
 		}
+	}
+
+
+	class StorableTypesList : StringList
+	{
+		public delegate void TypeHandler(string type);
+		public event TypeHandler OnTypeChanged;
+
+		public StorableTypesList(int flags)
+			: this(new List<string>(), flags)
+		{
+		}
+
+		public StorableTypesList(List<string> types, int flags)
+			: base("Show only", null, flags)
+		{
+			SelectionChanged += TypeChanged;
+			UpdateList(types);
+		}
+
+		private void UpdateList(List<string> filter)
+		{
+			var displayNames = new StorableParameterFactory().GetAllDisplayNames();
+			var typeNames = new StorableParameterFactory().GetAllFactoryTypeNames();
+
+			var displayChoices = new List<string>();
+			var choices = new List<string>();
+
+			if (filter.Count == 0 || filter.Contains("all"))
+			{
+				displayChoices.Add("All (plugins only)");
+				choices.Add(StorableWidgets.PluginSuffix);
+			}
+
+
+			// plugins only
+			for (int i = 0; i < typeNames.Count; ++i)
+			{
+				if (filter.Count == 0 || filter.Contains(typeNames[i]))
+				{
+					displayChoices.Add(displayNames[i] + " (plugins only)");
+					choices.Add(typeNames[i] + StorableWidgets.PluginSuffix);
+				}
+			}
+
+
+			// any
+			for (int i = 0; i < typeNames.Count; ++i)
+			{
+				if (filter.Count == 0 || filter.Contains(typeNames[i]))
+				{
+					displayChoices.Add(displayNames[i]);
+					choices.Add(typeNames[i]);
+				}
+			}
+
+
+			if (filter.Count == 0 || filter.Contains("all"))
+			{
+				displayChoices.Add("All (very slow)");
+				choices.Add("");
+			}
+
+
+			DisplayChoices = displayChoices;
+			Choices = choices;
+
+			// todo
+			Value = "float" + StorableWidgets.PluginSuffix;
+		}
 
 		private void TypeChanged(string s)
 		{
-			storablesStale_ = true;
-			parametersStale_ = true;
+			OnTypeChanged?.Invoke(s);
+		}
+	}
+
+
+	class StorableModifierUI : AtomWithMovementUI
+	{
+		public override string ModifierType
+		{
+			get { return StorableModifier.FactoryTypeName; }
 		}
 
-		private void StorableChanged(string s)
+		private StorableModifier modifier_ = null;
+		private readonly StorableTypesList types_;
+		private readonly StorableWidgets storableWidgets_;
+		private IStorableParameterUI parameterUI_ = null;
+
+
+		public StorableModifierUI(MainUI ui)
+			: base(ui)
 		{
+			types_ = new StorableTypesList(Widget.Right);
+			types_.OnTypeChanged += TypeChanged;
+
+			storableWidgets_ = new StorableWidgets(Widget.Right);
+			storableWidgets_.OnParameterChanged += UpdateParameter;
+			storableWidgets_.Type = types_.Value;
+		}
+
+		public override void DeferredInit()
+		{
+			storableWidgets_.DeferredInit(modifier_?.Holder);
+		}
+
+		public override void AddToTopUI(IModifier m)
+		{
+			modifier_ = m as StorableModifier;
 			if (modifier_ == null)
 				return;
 
-			modifier_.SetStorable(s);
-			parameters_.Value = modifier_.Parameter?.Name ?? "";
-			parametersStale_ = true;
-			UpdateParameter();
+			var p = modifier_?.Parameter;
+			if (p == null)
+			{
+				parameterUI_ = null;
+			}
+			else
+			{
+				if (parameterUI_ == null ||
+					parameterUI_.ParameterType != p.GetFactoryTypeName())
+				{
+					parameterUI_ = CreateParameterUI(p);
+				}
+			}
+
+
+			AddAtomWidgets(m);
+
+			widgets_.AddToUI(types_);
+			storableWidgets_.AddToUI(modifier_.Holder);
+
+			if (parameterUI_ != null)
+			{
+				widgets_.AddToUI(new SmallSpacer(Widget.Right));
+				parameterUI_.AddToUI(p);
+			}
+
+			AddAtomWithMovementWidgets(m);
+
+			base.AddToTopUI(m);
 		}
 
-		private void ParameterChanged(string s)
+		public override void RemoveFromUI()
 		{
-			modifier_.SetParameter(s);
-			UpdateParameter();
+			base.RemoveFromUI();
+
+			storableWidgets_.RemoveFromUI();
+
+			if (parameterUI_ != null)
+				parameterUI_.RemoveFromUI();
+		}
+
+		private IStorableParameterUI CreateParameterUI(IStorableParameter p)
+		{
+			if (p is FloatStorableParameter)
+				return new FloatStorableParameterUI();
+			else if (p is BoolStorableParameter)
+				return new BoolStorableParameterUI();
+			else if (p is ColorStorableParameter)
+				return new ColorStorableParameterUI();
+			else if (p is UrlStorableParameter)
+				return new UrlStorableParameterUI();
+			else if (p is StringStorableParameter)
+				return new StringStorableParameterUI();
+			else if (p is ActionStorableParameter)
+				return new ActionStorableParameterUI();
+			else
+				return null;
+		}
+
+
+		private void TypeChanged(string s)
+		{
+			storableWidgets_.Type = s;
 		}
 
 		protected override void AtomChanged(Atom atom)
@@ -608,10 +704,7 @@ namespace Synergy
 			if (modifier_ == null)
 				return;
 
-			storables_.Value = modifier_.Storable?.name ?? "";
-			parameters_.Value = modifier_.Parameter?.Name ?? "";
-			storablesStale_ = true;
-			parametersStale_ = true;
+			storableWidgets_.AtomChanged();
 			UpdateParameter();
 		}
 

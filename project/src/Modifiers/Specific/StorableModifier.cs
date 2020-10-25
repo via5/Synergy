@@ -28,11 +28,11 @@ namespace Synergy
 			return new List<IStorableParameter>()
 			{
 				new FloatStorableParameter(),
+				new ActionStorableParameter(),
 				new BoolStorableParameter(),
 				new ColorStorableParameter(),
 				new UrlStorableParameter(),
-				new StringStorableParameter(),
-				new ActionStorableParameter()
+				new StringStorableParameter()
 			};
 		}
 
@@ -843,6 +843,7 @@ namespace Synergy
 
 	class StorableParameterHolder
 	{
+		private Atom atom_ = null;
 		private JSONStorable storable_ = null;
 		private string storableId_ = null;
 		private IStorableParameter parameter_ = null;
@@ -856,11 +857,25 @@ namespace Synergy
 			return h;
 		}
 
-		public void DeferredInit(Atom atom)
+		public Atom Atom
+		{
+			get
+			{
+				return atom_;
+			}
+
+			set
+			{
+				if (value != atom_)
+					AtomChanged(value);
+			}
+		}
+
+		public void DeferredInit()
 		{
 			if (storableId_ != null)
 			{
-				SetStorable(atom, storableId_);
+				SetStorable(storableId_);
 				storableId_ = null;
 			}
 
@@ -903,16 +918,16 @@ namespace Synergy
 			}
 		}
 
-		public void SetStorable(Atom atom, string id)
+		public void SetStorable(string id)
 		{
-			if (atom == null || string.IsNullOrEmpty(id))
+			if (atom_ == null || string.IsNullOrEmpty(id))
 				return;
 
-			var s = atom.GetStorableByID(id);
+			var s = atom_.GetStorableByID(id);
 			if (s == null)
 			{
 				Synergy.LogError(
-					$"storable id '{id}' not found in atom '{atom.uid}'");
+					$"storable id '{id}' not found in atom '{atom_.uid}'");
 
 				return;
 			}
@@ -955,7 +970,7 @@ namespace Synergy
 			Parameter = new ActionStorableParameter(a);
 		}
 
-		public void AtomChanged(Atom newAtom)
+		private void AtomChanged(Atom newAtom)
 		{
 			string oldStorable = storable_?.name ?? "";
 			string oldParameter = Parameter?.Name ?? "";
@@ -976,6 +991,8 @@ namespace Synergy
 				if (!SetParameterImpl(oldParameter))
 					Parameter = null;
 			}
+
+			atom_ = newAtom;
 		}
 
 		private bool SetParameterImpl(string name)
@@ -1008,9 +1025,11 @@ namespace Synergy
 			o.Add("parameter", parameter_);
 		}
 
-		public void FromJSON(Atom atom, J.Object o)
+		public void FromJSON(Atom a, J.Object o)
 		{
-			if (atom != null)
+			atom_ = a;
+
+			if (atom_ != null)
 			{
 				if (o.HasKey("storable"))
 				{
@@ -1020,7 +1039,7 @@ namespace Synergy
 					if (id != "")
 					{
 						if (J.Node.SaveContext.ForPreset)
-							SetStorable(atom, id);
+							SetStorable(id);
 						else
 							storableId_ = id;
 					}
@@ -1051,11 +1070,13 @@ namespace Synergy
 
 		public StorableModifier()
 		{
+			holder_.Atom = Atom;
 		}
 
 		public StorableModifier(Atom a, string storable, string parameter)
 		{
 			Atom = a;
+			holder_.Atom = a;
 			SetStorable(storable);
 			SetParameter(parameter);
 			Movement = new Movement(0, 1);
@@ -1103,9 +1124,14 @@ namespace Synergy
 			}
 		}
 
+		public StorableParameterHolder Holder
+		{
+			get { return holder_; }
+		}
+
 		public void SetStorable(string id)
 		{
-			holder_.SetStorable(Atom, id);
+			holder_.SetStorable(id);
 		}
 
 		public void SetParameter(string name)
@@ -1178,7 +1204,7 @@ namespace Synergy
 
 		public override void DeferredInit()
 		{
-			holder_.DeferredInit(Atom);
+			holder_.DeferredInit();
 		}
 
 		public override J.Node ToJSON()
@@ -1204,7 +1230,7 @@ namespace Synergy
 
 		protected override void AtomChanged()
 		{
-			holder_.AtomChanged(Atom);
+			holder_.Atom = Atom;
 		}
 	}
 }

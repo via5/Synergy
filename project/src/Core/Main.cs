@@ -125,6 +125,12 @@ namespace Synergy
 			s.AddModifier(mc);
 
 			mc = new ModifierContainer();
+			var m4 = new StorableModifier();
+			mc.Modifier = m4;
+			s.AddModifier(mc);
+
+
+			mc = new ModifierContainer();
 			var m2 = new RigidbodyModifier(a, "head");
 			m2.Movement = new Movement(0, 100);
 			mc.ModifierSync = new UnsyncedModifier(new RandomDuration(1));
@@ -139,7 +145,10 @@ namespace Synergy
 
 			manager_.AddStep(s);
 
-			manager_.AddStep();
+
+			s = new Step();
+			s.Duration = new RandomDuration(2);
+			manager_.AddStep(s);
 		}
 
 		public Timer CreateTimer(float seconds, Timer.Callback f)

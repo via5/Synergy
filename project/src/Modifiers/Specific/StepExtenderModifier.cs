@@ -18,6 +18,7 @@ namespace Synergy
 
 		public StepExtenderModifier()
 		{
+			holder_.Atom = Atom;
 		}
 
 		public override IModifier Clone(int cloneFlags = 0)
@@ -80,15 +81,17 @@ namespace Synergy
 
 		public JSONStorable Storable
 		{
-			get
-			{
-				return holder_.Storable;
-			}
+			get { return holder_.Storable; }
+		}
+
+		public StorableParameterHolder Holder
+		{
+			get { return holder_; }
 		}
 
 		public void SetStorable(string id)
 		{
-			holder_.SetStorable(Atom, id);
+			holder_.SetStorable(id);
 		}
 
 		protected override string MakeName()
@@ -105,7 +108,7 @@ namespace Synergy
 
 		public override void DeferredInit()
 		{
-			holder_.DeferredInit(Atom);
+			holder_.DeferredInit();
 		}
 
 		public void SetParameter(string name)

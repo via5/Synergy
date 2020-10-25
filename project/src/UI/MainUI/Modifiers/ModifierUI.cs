@@ -178,6 +178,8 @@ namespace Synergy
 				return new EyesModifierUI(ui_);
 			else if (m is StorableModifier)
 				return new StorableModifierUI(ui_);
+			else if (m is StepExtenderModifier)
+				return new StepExtenderModifierUI(ui_);
 			else
 				return null;
 		}
