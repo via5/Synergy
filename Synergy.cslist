@@ -24,6 +24,7 @@ project\src\UI\MainUI\DelayUI.cs
 project\src\UI\MainUI\DurationUI.cs
 project\src\UI\MainUI\MainUI.cs
 project\src\UI\MainUI\MovementUI.cs
+project\src\UI\MainUI\OptionsUI.cs
 project\src\UI\MainUI\RandomizableValueUI.cs
 project\src\UI\MainUI\StepUI.cs
 project\src\UI\MainUI\Modifiers\AudioModifierUI.cs

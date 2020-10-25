@@ -83,6 +83,7 @@
     <Compile Include="src\UI\MainUI\Modifiers\StepExtenderModifierUI.cs" />
     <Compile Include="src\UI\MainUI\Modifiers\StorableModifierUI.cs" />
     <Compile Include="src\UI\MainUI\MovementUI.cs" />
+    <Compile Include="src\UI\MainUI\OptionsUI.cs" />
     <Compile Include="src\UI\MainUI\RandomizableValueUI.cs" />
     <Compile Include="src\UI\MainUI\StepUI.cs" />
     <Compile Include="src\UI\MonitorUI\DurationMonitorUI.cs" />
