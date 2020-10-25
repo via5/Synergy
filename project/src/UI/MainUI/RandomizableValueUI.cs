@@ -3,17 +3,15 @@ using System;
 
 namespace Synergy
 {
-	abstract class RandomizableValueWidgets<T, Parameter> : CompoundWidget
-		where Parameter : BasicParameter<T>
+	class RandomizableFloatWidgets : CompoundWidget
 	{
-		protected BasicRandomizableValue<T, Parameter> value_ = null;
-
-		protected BasicSlider<T, Parameter> initial_ = null;
-		protected BasicSlider<T, Parameter> range_ = null;
-		protected readonly FloatSlider interval_;
+		private RandomizableFloat value_ = null;
+		private FloatSlider initial_ = null;
+		private FloatSlider range_ = null;
+		private readonly FloatSlider interval_;
 		private Button randomHalf_;
 
-		public RandomizableValueWidgets(string name, int flags)
+		public RandomizableFloatWidgets(string name, int flags = 0)
 			: base(flags)
 		{
 			interval_ = new FloatSlider(
@@ -21,10 +19,224 @@ namespace Synergy
 				IntervalChanged, flags);
 
 			randomHalf_ = new Button("Randomize half", RandomizeHalf, flags);
+
+			initial_ = new FloatSlider(
+				name, 0, new FloatRange(0, 0),
+				InitialChanged, flags);
+
+			range_ = new FloatSlider(
+				name + " random range", 0, new FloatRange(0, 0),
+				RangeChanged, flags);
 		}
 
-		public void SetValue(
-			BasicRandomizableValue<T, Parameter> v, Range<T> preferredRange)
+		public List<IWidget> GetWidgets()
+		{
+			return new List<IWidget>()
+			{
+				initial_, range_, interval_, randomHalf_
+			};
+		}
+
+		public void SetValue(RandomizableFloat v, FloatRange preferredRange)
+		{
+			value_ = v;
+
+			if (value_ != null)
+			{
+				initial_.Parameter = value_.InitialParameter;
+				initial_.Default = value_.Initial;
+				initial_.Range = preferredRange;
+
+				range_.Parameter = value_.RangeParameter;
+				range_.Default = value_.Range;
+				range_.Range = preferredRange;
+
+				interval_.Parameter = value_.IntervalParameter;
+				interval_.Default = value_.Interval;
+			}
+		}
+
+		protected override void DoAddToUI()
+		{
+			// no-op
+		}
+
+		protected override void DoRemoveFromUI()
+		{
+			// no-op
+		}
+
+		private void InitialChanged(float x)
+		{
+			if (value_ != null)
+				value_.Initial = x;
+		}
+
+		private void RangeChanged(float x)
+		{
+			if (value_ != null)
+				value_.Range = x;
+		}
+
+		private void IntervalChanged(float x)
+		{
+			if (value_ != null)
+				value_.Interval = x;
+		}
+
+		private void RandomizeHalf()
+		{
+			var half = initial_.Value / 2;
+
+			value_.Initial = half;
+			value_.Range = Math.Abs(half);
+
+			initial_.Value = half;
+			range_.Value = Math.Abs(half);
+		}
+	}
+
+
+	class RandomizableTimeWidgets : CompoundWidget
+	{
+		private RandomizableTime value_ = null;
+		private FloatSlider initial_ = null;
+		private FloatSlider range_ = null;
+		private readonly FloatSlider interval_;
+		private Button randomHalf_;
+		private readonly StringList cutoff_;
+
+		public RandomizableTimeWidgets(string name, int flags = 0)
+			: base(flags)
+		{
+			interval_ = new FloatSlider(
+				name + " change interval", 0, new FloatRange(0, 10),
+				IntervalChanged, flags);
+
+			randomHalf_ = new Button("Randomize half", RandomizeHalf, flags);
+
+			initial_ = new FloatSlider(
+				name, 0, new FloatRange(0, 0),
+				InitialChanged, flags);
+
+			range_ = new FloatSlider(
+				name + " random range", 0, new FloatRange(0, 0),
+				RangeChanged, flags);
+
+			cutoff_ = new StringList(
+				name + " cut-off", "",
+				RandomizableTime.GetCutoffNames(), CutoffChanged, flags);
+		}
+
+		public List<IWidget> GetWidgets()
+		{
+			return new List<IWidget>()
+			{
+				initial_, range_, interval_, randomHalf_, cutoff_
+			};
+		}
+
+		public void SetValue(RandomizableTime v, FloatRange preferredRange)
+		{
+			value_ = v;
+
+			if (value_ != null)
+			{
+				initial_.Parameter = value_.InitialParameter;
+				initial_.Default = value_.Initial;
+				initial_.Range = preferredRange;
+
+				range_.Parameter = value_.RangeParameter;
+				range_.Default = value_.Range;
+				range_.Range = preferredRange;
+
+				interval_.Parameter = value_.IntervalParameter;
+				interval_.Default = value_.Interval;
+			}
+
+			if (v != null)
+				cutoff_.Value = RandomizableTime.CutoffToString(v.Cutoff);
+		}
+
+		private void CutoffChanged(string s)
+		{
+			var i = RandomizableTime.CutoffFromString(s);
+			if (i == -1)
+				return;
+
+			if (value_ != null)
+				((RandomizableTime)value_).Cutoff = i;
+		}
+
+		protected override void DoAddToUI()
+		{
+			// no-op
+		}
+
+		protected override void DoRemoveFromUI()
+		{
+			// no-op
+		}
+
+		private void InitialChanged(float x)
+		{
+			if (value_ != null)
+				value_.Initial = x;
+		}
+
+		private void RangeChanged(float x)
+		{
+			if (value_ != null)
+				value_.Range = x;
+		}
+
+		private void IntervalChanged(float x)
+		{
+			if (value_ != null)
+				value_.Interval = x;
+		}
+
+		private void RandomizeHalf()
+		{
+			var half = initial_.Value / 2;
+
+			value_.Initial = half;
+			value_.Range = Math.Abs(half);
+
+			initial_.Value = half;
+			range_.Value = Math.Abs(half);
+		}
+	}
+
+
+	class RandomizableIntWidgets : CompoundWidget
+	{
+		private RandomizableInt value_ = null;
+
+		private IntSlider initial_ = null;
+		private IntSlider range_ = null;
+		private readonly FloatSlider interval_;
+		private Button randomHalf_;
+
+		public RandomizableIntWidgets(string name, int flags = 0)
+			: base(flags)
+		{
+			interval_ = new FloatSlider(
+				name + " change interval", 0, new FloatRange(0, 10),
+				IntervalChanged, flags);
+
+			randomHalf_ = new Button("Randomize half", RandomizeHalf, flags);
+
+			initial_ = new IntSlider(
+				name, 0, new IntRange(0, 0),
+				InitialChanged, flags);
+
+			range_ = new IntSlider(
+				name + " range", 0, new IntRange(0, 0),
+				RangeChanged, flags);
+		}
+
+		public void SetValue(RandomizableInt v, IntRange preferredRange)
 		{
 			value_ = v;
 
@@ -61,13 +273,13 @@ namespace Synergy
 			// no-op
 		}
 
-		protected void InitialChanged(T x)
+		protected void InitialChanged(int x)
 		{
 			if (value_ != null)
 				value_.Initial = x;
 		}
 
-		protected void RangeChanged(T x)
+		protected void RangeChanged(int x)
 		{
 			if (value_ != null)
 				value_.Range = x;
@@ -79,113 +291,7 @@ namespace Synergy
 				value_.Interval = x;
 		}
 
-		protected abstract void RandomizeHalf();
-	}
-
-
-	class RandomizableFloatWidgets
-		: RandomizableValueWidgets<float, FloatParameter>
-	{
-		public RandomizableFloatWidgets(string name, int flags = 0)
-			: base(name, flags)
-		{
-			initial_ = new FloatSlider(
-				name, 0, new FloatRange(0, 0),
-				InitialChanged, flags);
-
-			range_ = new FloatSlider(
-				name + " random range", 0, new FloatRange(0, 0),
-				RangeChanged, flags);
-		}
-
-		protected override void RandomizeHalf()
-		{
-			var half = initial_.Value / 2;
-
-			value_.Initial = half;
-			value_.Range = Math.Abs(half);
-
-			initial_.Value = half;
-			range_.Value = Math.Abs(half);
-		}
-	}
-
-
-	class RandomizableTimeWidgets
-		: RandomizableValueWidgets<float, FloatParameter>
-	{
-		private readonly StringList cutoff_;
-
-		public RandomizableTimeWidgets(string name, int flags = 0)
-			: base(name, flags)
-		{
-			initial_ = new FloatSlider(
-				name, 0, new FloatRange(0, 0),
-				InitialChanged, flags);
-
-			range_ = new FloatSlider(
-				name + " random range", 0, new FloatRange(0, 0),
-				RangeChanged, flags);
-
-			cutoff_ = new StringList(
-				name + " cut-off", "",
-				RandomizableTime.GetCutoffNames(), CutoffChanged, flags);
-		}
-
-		public override List<IWidget> GetWidgets()
-		{
-			var list = base.GetWidgets();
-			list.Add(cutoff_);
-			return list;
-		}
-
-		public void SetValue(RandomizableTime v, FloatRange preferredRange)
-		{
-			base.SetValue(v, preferredRange);
-
-			if (v != null)
-				cutoff_.Value = RandomizableTime.CutoffToString(v.Cutoff);
-		}
-
-		private void CutoffChanged(string s)
-		{
-			var i = RandomizableTime.CutoffFromString(s);
-			if (i == -1)
-				return;
-
-			if (value_ != null)
-				((RandomizableTime)value_).Cutoff = i;
-		}
-
-		protected override void RandomizeHalf()
-		{
-			var half = initial_.Value / 2;
-
-			value_.Initial = half;
-			value_.Range = Math.Abs(half);
-
-			initial_.Value = half;
-			range_.Value = Math.Abs(half);
-		}
-	}
-
-
-	class RandomizableIntWidgets
-		: RandomizableValueWidgets<int, IntParameter>
-	{
-		public RandomizableIntWidgets(string name, int flags = 0)
-			: base(name, flags)
-		{
-			initial_ = new IntSlider(
-				name, 0, new IntRange(0, 0),
-				InitialChanged, flags);
-
-			range_ = new IntSlider(
-				name + " range", 0, new IntRange(0, 0),
-				RangeChanged, flags);
-		}
-
-		protected override void RandomizeHalf()
+		private void RandomizeHalf()
 		{
 			var half = initial_.Value / 2;
 

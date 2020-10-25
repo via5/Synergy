@@ -25,9 +25,6 @@ namespace Synergy
 
 			if (m_ != null)
 			{
-				if (preferredRange == null)
-					preferredRange = new FloatRange(0, 1);
-
 				easing_.Value = m_.Easing;
 				min_.SetValue(m_.Minimum, preferredRange);
 				max_.SetValue(m_.Maximum, preferredRange);

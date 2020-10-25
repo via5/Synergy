@@ -2,26 +2,9 @@
 
 namespace Synergy
 {
-	public interface IRange
+	public struct FloatRange
 	{
-		bool IsEmpty();
-	}
-
-
-	public abstract class Range<T> : IRange
-	{
-		public T Minimum, Maximum;
-
-		public abstract bool IsEmpty();
-	}
-
-
-	public class FloatRange : Range<float>
-	{
-		public FloatRange()
-			: this(0, 0)
-		{
-		}
+		public float Minimum, Maximum;
 
 		public FloatRange(float min, float max)
 		{
@@ -43,7 +26,7 @@ namespace Synergy
 			}
 		}
 
-		public override bool IsEmpty()
+		public bool IsEmpty()
 		{
 			return (Minimum == Maximum);
 		}
@@ -62,28 +45,23 @@ namespace Synergy
 
 		public override bool Equals(Object o)
 		{
-			var r = o as FloatRange;
-			if (r == null)
+			if (!(o is FloatRange))
 				return false;
 
-			return Equals(r);
+			return Equals((FloatRange)o);
 		}
 
 		public bool Equals(FloatRange r)
 		{
-			if (r == null)
-				return false;
-
-			if (ReferenceEquals(this, r))
-				return true;
-
 			return (Minimum == r.Minimum) && (Maximum == r.Maximum);
 		}
 	}
 
 
-	class IntRange : Range<int>
+	class IntRange
 	{
+		public int Minimum, Maximum;
+
 		public IntRange(int min, int max)
 		{
 			Minimum = min;
@@ -98,7 +76,7 @@ namespace Synergy
 			}
 		}
 
-		public override bool IsEmpty()
+		public bool IsEmpty()
 		{
 			return (Minimum == Maximum);
 		}

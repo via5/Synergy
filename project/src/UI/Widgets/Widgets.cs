@@ -219,10 +219,8 @@ namespace Synergy
 		public abstract T Value { get; set; }
 		public abstract ParameterType Parameter { get; set; }
 		public abstract T Default { get; set; }
-		public abstract Range<T> Range { get; set; }
 
 		public abstract void Set(T min, T max, T value);
-		public abstract void Set(Range<T> range, T value);
 		public abstract void SetFromRange(T initial, T range, T current);
 	}
 
@@ -304,7 +302,7 @@ namespace Synergy
 			storable_.max = Math.Max(max, value);
 		}
 
-		public override void Set(Range<float> range, float value)
+		public void Set(FloatRange range, float value)
 		{
 			Set(range.Minimum, range.Maximum, value);
 		}
@@ -333,7 +331,7 @@ namespace Synergy
 			set { storable_.defaultVal = 0; }
 		}
 
-		public override Range<float> Range
+		public FloatRange Range
 		{
 			get
 			{
@@ -457,7 +455,7 @@ namespace Synergy
 			storable_.valNoCallback = value;
 		}
 
-		public override void Set(Range<int> range, int value)
+		public void Set(IntRange range, int value)
 		{
 			Set(range.Minimum, range.Maximum, value);
 		}
@@ -488,7 +486,7 @@ namespace Synergy
 			set { storable_.defaultVal = value; }
 		}
 
-		public override Range<int> Range
+		public IntRange Range
 		{
 			get
 			{

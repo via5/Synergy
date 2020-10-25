@@ -428,10 +428,7 @@ namespace Synergy
 
 		public SelectedMorph AddMorph(DAZMorph m, FloatRange r)
 		{
-			if (r == null)
-				return AddMorph(m, new Movement());
-			else
-				return AddMorph(m, new Movement(r));
+			return AddMorph(m, new Movement(r));
 		}
 
 		public SelectedMorph AddMorph(DAZMorph m, Movement mv)

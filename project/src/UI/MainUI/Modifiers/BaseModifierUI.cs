@@ -120,7 +120,8 @@ namespace Synergy
 				currentModifier_.PreferredRangeChanged += PreferredRangeChanged;
 
 			movementUI_.SetValue(
-				currentModifier_?.Movement, currentModifier_?.PreferredRange);
+				currentModifier_?.Movement,
+				currentModifier_?.PreferredRange ?? new FloatRange(0, 1));
 
 			foreach (var w in movementUI_.GetWidgets())
 				widgets_.AddToUI(w);
