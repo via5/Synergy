@@ -40,7 +40,7 @@ namespace Synergy
 		private bool inFirstHalf_ = true;
 		private List<ModifierContainer> enabledModifiers_ = null;
 
-		private const float EnabledCheckInterval = 1000;
+		private const float EnabledCheckInterval = 1;
 		private float nextEnabledCheck_ = 0;
 
 

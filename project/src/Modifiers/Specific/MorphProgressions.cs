@@ -663,9 +663,10 @@ namespace Synergy
 		private float overlapTime_ = -1;
 
 
-		public OrderedMorphProgression(bool holdHalfway = false)
+		public OrderedMorphProgression(bool holdHalfway, float overlapTime)
 		{
 			HoldHalfway = holdHalfway;
+			OverlapTime = overlapTime;
 
 			o_.CanRun += i => true;
 			o_.Resume += (i) => { enabledMorphs_[i].Resume(); return true; };
@@ -952,8 +953,8 @@ namespace Synergy
 		public static string DisplayName { get; } = "Sequential";
 		public override string GetDisplayName() { return DisplayName; }
 
-		public SequentialMorphProgression(bool holdHalfway = false)
-			: base(holdHalfway)
+		public SequentialMorphProgression(bool holdHalfway = false, float overlapTime = -1)
+			: base(holdHalfway, overlapTime)
 		{
 		}
 
@@ -991,8 +992,8 @@ namespace Synergy
 
 		private readonly ShuffledOrder order_ = new ShuffledOrder();
 
-		public RandomMorphProgression(bool holdHalfway = false)
-			: base(holdHalfway)
+		public RandomMorphProgression(bool holdHalfway = false, float overlapTime = -1)
+			: base(holdHalfway, overlapTime)
 		{
 		}
 

@@ -10,7 +10,6 @@ namespace Synergy
 		private readonly Checkbox resetValuesOnFreeze_;
 		private readonly Checkbox resetCountersOnThaw_;
 		private readonly Checkbox pickAnimatable_;
-		private readonly Checkbox loop_;
 		private readonly Button manageAnimatable_;
 		private readonly FloatSlider overlapTime_;
 		private readonly StringList logLevel_;
@@ -29,10 +28,6 @@ namespace Synergy
 			resetCountersOnThaw_ = new Checkbox(
 				"Reset counters on thaw", options_.ResetCountersOnThaw,
 				ResetCountersOnThaw, flags);
-
-			loop_ = new Checkbox(
-				"Loop steps", options_.Loop,
-				Loop, flags);
 
 			pickAnimatable_ = new Checkbox(
 				"Pick animatable", PickAnimatableChanged, flags);
@@ -56,7 +51,6 @@ namespace Synergy
 
 			collapsible_.Add(resetValuesOnFreeze_);
 			collapsible_.Add(resetCountersOnThaw_);
-			collapsible_.Add(loop_);
 			collapsible_.Add(pickAnimatable_);
 			collapsible_.Add(manageAnimatable_);
 			collapsible_.Add(overlapTime_);
@@ -277,11 +271,6 @@ namespace Synergy
 		private void ResetCountersOnThaw(bool b)
 		{
 			options_.ResetCountersOnThaw = b;
-		}
-
-		private void Loop(bool b)
-		{
-			options_.Loop = b;
 		}
 
 		private void PickAnimatableChanged(bool b)

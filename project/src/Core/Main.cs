@@ -120,34 +120,14 @@ namespace Synergy
 			var s = new Step();
 
 			var mc = new ModifierContainer();
-			var m = new StepExtenderModifier();
+			var m = new MorphModifier();
+			m.AddMorph("Mouth Open", new Movement(0, 1));
+			m.AddMorph("Eyes Closed", new Movement(0, 1));
+			m.Progression = new SequentialMorphProgression(false, 0);
 			mc.Modifier = m;
 			s.AddModifier(mc);
+			s.Duration = new RandomDuration(0, 3);
 
-			mc = new ModifierContainer();
-			var m4 = new StorableModifier();
-			mc.Modifier = m4;
-			s.AddModifier(mc);
-
-
-			mc = new ModifierContainer();
-			var m2 = new RigidbodyModifier(a, "head");
-			m2.Movement = new Movement(0, 100);
-			mc.ModifierSync = new UnsyncedModifier(new RandomDuration(1));
-			mc.Modifier = m2;
-			s.AddModifier(mc);
-
-			mc = new ModifierContainer();
-			var m3 = new RigidbodyModifier(a, "lFoot");
-			m3.Movement = new Movement(0, 100);
-			mc.Modifier = m3;
-			s.AddModifier(mc);
-
-			manager_.AddStep(s);
-
-
-			s = new Step();
-			s.Duration = new RandomDuration(2);
 			manager_.AddStep(s);
 		}
 

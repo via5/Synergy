@@ -218,7 +218,9 @@ namespace Synergy
 				runningStep_.Text =
 					"(Step running: " + runningStep.Name + ", " +
 					runningStep.EnabledModifiers.Count.ToString() + "/" +
-					runningStep.Modifiers.Count.ToString() + " m)";
+					runningStep.Modifiers.Count.ToString() + " m" +
+					(runningStep.MustStopEventually ? "" : ", infinite") +
+					")";
 			}
 
 			if (currentStep_ == null)
