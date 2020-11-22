@@ -802,6 +802,11 @@ namespace Synergy
 			}
 		}
 
+		public override Selectable GetSelectable()
+		{
+			return element_?.popup.topButton;
+		}
+
 		protected override void DoAddToUI()
 		{
 			RemoveFromUI();

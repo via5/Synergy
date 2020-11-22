@@ -120,13 +120,9 @@ namespace Synergy
 			var s = new Step();
 
 			var mc = new ModifierContainer();
-			var m = new MorphModifier();
-			m.AddMorph("Mouth Open", new Movement(0, 1));
-			m.AddMorph("Eyes Closed", new Movement(0, 1));
-			m.Progression = new SequentialMorphProgression(false, 0);
+			var m = new EyesModifier();
 			mc.Modifier = m;
 			s.AddModifier(mc);
-			s.Duration = new RandomDuration(0, 3);
 
 			manager_.AddStep(s);
 		}

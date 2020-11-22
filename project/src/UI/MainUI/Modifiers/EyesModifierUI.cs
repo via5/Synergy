@@ -42,7 +42,7 @@ namespace Synergy
 		private RigidbodyEyesTarget target_ = null;
 
 		private readonly AtomList atom_;
-		private readonly RigidBodyList receiver_;
+		private readonly ForceReceiverList receiver_;
 		private readonly Vector3UI offset_;
 
 		public RigidbodyEyesTargetUI(
@@ -55,7 +55,7 @@ namespace Synergy
 				"Atom", target_?.Atom?.uid, AtomChanged,
 				null, Widget.Right);
 
-			receiver_ = new RigidBodyList(
+			receiver_ = new ForceReceiverList(
 				"Receiver", target_?.Receiver?.name,
 				ReceiverChanged, Widget.Right);
 
@@ -467,6 +467,7 @@ namespace Synergy
 		private readonly RandomizableTimeWidgets saccadeTime_;
 		private readonly FloatSlider saccadeMin_, saccadeMax_;
 		private readonly FloatSlider minDistance_;
+		private readonly StringList gaze_;
 
 		private readonly Button addTarget_;
 		private readonly Checkbox previewsEnabled_;
@@ -492,6 +493,9 @@ namespace Synergy
 			minDistance_ = new FloatSlider(
 				"Minimum distance (avoids cross-eyed)",
 				MinDistanceChanged, Widget.Right);
+
+			gaze_ = new StringList(
+				"MacGruber Gaze", GazeChanged, Widget.Right);
 
 			addTarget_ = new Button("Add target", AddTarget, Widget.Right);
 
@@ -540,9 +544,41 @@ namespace Synergy
 			minDistance_.Parameter = modifier_.MinDistanceParameter;
 			previewsEnabled_.Value = previews_.Enabled;
 
+
+			if (modifier_.Gaze.Available())
+			{
+				gaze_.Choices = new List<string>() { "ignore", "enable", "disable" };
+				gaze_.DisplayChoices = new List<string>() { "Don't change", "Enable", "Disable" };
+				gaze_.Enabled = true;
+
+				switch (modifier_.GazeSetting)
+				{
+					case EyesModifier.GazeIgnore:
+						gaze_.Value = "ignore";
+						break;
+
+					case EyesModifier.GazeEnable:
+						gaze_.Value = "enable";
+						break;
+
+					case EyesModifier.GazeDisable:
+						gaze_.Value = "disable";
+						break;
+				}
+			}
+			else
+			{
+				gaze_.Choices = new List<string>() { };
+				gaze_.DisplayChoices = new List<string>() { };
+				gaze_.Value = "Not found";
+				gaze_.Enabled = false;
+			}
+
+
 			AddAtomWidgets(m);
 			widgets_.AddToUI(saccade_);
 			widgets_.AddToUI(minDistance_);
+			widgets_.AddToUI(gaze_);
 			widgets_.AddToUI(new SmallSpacer(Widget.Right));
 			widgets_.AddToUI(addTarget_);
 			widgets_.AddToUI(previewsEnabled_);
@@ -605,6 +641,19 @@ namespace Synergy
 				return;
 
 			modifier_.MinDistance = f;
+		}
+
+		private void GazeChanged(string s)
+		{
+			if (modifier_ == null)
+				return;
+
+			if (s == "disable")
+				modifier_.GazeSetting = EyesModifier.GazeDisable;
+			else if (s == "enable")
+				modifier_.GazeSetting = EyesModifier.GazeEnable;
+			else
+				modifier_.GazeSetting = EyesModifier.GazeIgnore;
 		}
 
 		private void AddTarget()

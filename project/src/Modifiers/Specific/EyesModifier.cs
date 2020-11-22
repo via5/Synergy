@@ -94,6 +94,7 @@ namespace Synergy
 
 		private void CopyTo(RigidbodyEyesTarget t, int cloneFlags)
 		{
+			t.atom_ = atom_;
 			t.receiver_ = receiver_;
 			t.offset_ = offset_;
 		}
@@ -755,6 +756,9 @@ namespace Synergy
 		public static string DisplayName { get; } = "Eyes";
 		public override string GetDisplayName() { return DisplayName; }
 
+		public const int GazeIgnore = 0;
+		public const int GazeEnable = 1;
+		public const int GazeDisable = 2;
 
 		private Rigidbody head_ = null;
 		private Rigidbody eyes_ = null;
@@ -762,6 +766,8 @@ namespace Synergy
 
 		private List<EyesTargetContainer> targets_ =
 			new List<EyesTargetContainer>();
+
+		private ShuffledOrder order_ = new ShuffledOrder();
 
 		private RandomizableTime saccadeTime_ =
 			new RandomizableTime(1, 0.2f, 0);
@@ -773,7 +779,10 @@ namespace Synergy
 		private FloatParameter minDistance_ = new FloatParameter(
 			"MinDistance", 0.5f, 0.1f);
 
-		private int current_ = -1;
+		private int gazeSetting_ = GazeIgnore;
+		private Integration.Gaze gaze_ = new Integration.Gaze();
+
+		private int currentOrder_ = -1;
 		private float lastProgress_ = -1;
 		private bool lastFirstHalf_ = false;
 		private Vector3 saccadeOffset_ = new Vector3();
@@ -828,6 +837,27 @@ namespace Synergy
 			get { return minDistance_; }
 		}
 
+		public int GazeSetting
+		{
+			get
+			{
+				return gazeSetting_;
+			}
+
+			set
+			{
+				gazeSetting_ = value;
+			}
+		}
+
+		public Integration.Gaze Gaze
+		{
+			get
+			{
+				return gaze_;
+			}
+		}
+
 		public List<EyesTargetContainer> Targets
 		{
 			get { return new List<EyesTargetContainer>(targets_); }
@@ -877,6 +907,8 @@ namespace Synergy
 			}
 
 			m.minDistance_.Value = minDistance_.Value;
+			m.gazeSetting_ = gazeSetting_;
+			m.gaze_ = new Integration.Gaze();
 		}
 
 		public override FloatRange PreferredRange
@@ -936,7 +968,7 @@ namespace Synergy
 			{
 				lastProgress_ = progress;
 
-				if (CurrentIndex == -1 || progress == 1)
+				if (CurrentOrderIndex == -1 || progress == 1)
 				{
 					lastFirstHalf_ = firstHalf;
 					Next();
@@ -948,12 +980,15 @@ namespace Synergy
 		{
 			if (targets_.Count == 0)
 			{
-				CurrentIndex = -1;
+				SetOrderIndex(-1);
 				return;
 			}
 
-			var i = CurrentIndex;
-			current_ = -1;
+			if (targets_.Count != order_.Count)
+				order_.Shuffle(targets_.Count);
+
+			var i = CurrentOrderIndex;
+			SetOrderIndex(-1);
 
 			var start = i;
 			if (start < 0)
@@ -962,38 +997,67 @@ namespace Synergy
 			for (; ;)
 			{
 				++i;
-				if (i >= targets_.Count)
-					i = 0;
-
-				if (targets_[i].Enabled)
+				if (i >= order_.Count)
 				{
-					CurrentIndex = i;
+					order_.Shuffle(targets_.Count);
+					i = 0;
+				}
+
+				if (GetTarget(i).Enabled)
+				{
+					SetOrderIndex(i);
 					break;
 				}
 
 				if (i == start)
 				{
 					// nothing enabled
-					CurrentIndex = -1;
 					break;
 				}
 			}
 		}
 
-		public int CurrentIndex
+		public EyesTargetContainer GetTarget(int orderIndex)
+		{
+			if (orderIndex < 0 || orderIndex >= order_.Count)
+				return null;
+
+			var i = order_.Get(orderIndex);
+			if (i < 0 || i >= targets_.Count)
+				return null;
+
+			return targets_[i];
+		}
+
+		public int CurrentOrderIndex
 		{
 			get
 			{
-				return current_;
+				return currentOrder_;
 			}
+		}
 
-			set
+		public int CurrentRealIndex
+		{
+			get
 			{
-				if (current_ != value)
-				{
-					current_ = value;
-					TargetChanged();
-				}
+				if (CurrentOrderIndex < 0 || CurrentOrderIndex >= order_.Count)
+					return -1;
+
+				var i = order_.Get(CurrentOrderIndex);
+				if (i < 0 || i >= targets_.Count)
+					return -1;
+
+				return i;
+			}
+		}
+
+		private void SetOrderIndex(int i)
+		{
+			if (currentOrder_ != i)
+			{
+				currentOrder_ = i;
+				TargetChanged();
 			}
 		}
 
@@ -1001,10 +1065,11 @@ namespace Synergy
 		{
 			get
 			{
-				if (current_ >= 0 && current_ < targets_.Count)
-					return targets_[current_].Target;
-				else
+				var i = CurrentRealIndex;
+				if (i < 0 || i >= targets_.Count)
 					return null;
+
+				return targets_[i].Target;
 			}
 		}
 
@@ -1015,6 +1080,24 @@ namespace Synergy
 				return;
 
 			t.Update(head_, chest_);
+			CheckGaze();
+		}
+
+		private void CheckGaze()
+		{
+			switch (gazeSetting_)
+			{
+				case GazeIgnore:
+					break;
+
+				case GazeEnable:
+					gaze_.SetEnabled(Atom, true);
+					break;
+
+				case GazeDisable:
+					gaze_.SetEnabled(Atom, false);
+					break;
+			}
 		}
 
 		protected override void DoSet(bool paused)
@@ -1069,6 +1152,7 @@ namespace Synergy
 			o.Add("saccadeMin", saccadeMin_);
 			o.Add("saccadeMax", saccadeMax_);
 			o.Add("minDistance", minDistance_);
+			o.Add("gaze", gazeSetting_);
 
 			return o;
 		}
@@ -1099,6 +1183,7 @@ namespace Synergy
 			o.Opt("saccadeMin", saccadeMin_);
 			o.Opt("saccadeMax", saccadeMax_);
 			o.Opt("minDistance", minDistance_);
+			o.Opt("gaze", ref gazeSetting_);
 
 			UpdateAtom();
 
@@ -1107,6 +1192,8 @@ namespace Synergy
 
 		private void UpdateAtom()
 		{
+			gaze_.Atom = Atom;
+
 			if (Atom == null)
 			{
 				head_ = null;

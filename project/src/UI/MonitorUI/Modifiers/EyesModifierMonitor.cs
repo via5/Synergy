@@ -74,7 +74,7 @@ namespace Synergy
 			else
 			{
 				current_.Text =
-					"Current: #" + (modifier_.CurrentIndex + 1).ToString() +
+					"Current: #" + (modifier_.CurrentRealIndex + 1).ToString() +
 					" " + modifier_.CurrentTarget.Name;
 
 				currentPos_.Text =
