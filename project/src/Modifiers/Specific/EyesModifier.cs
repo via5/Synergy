@@ -1085,18 +1085,21 @@ namespace Synergy
 
 		private void CheckGaze()
 		{
-			switch (gazeSetting_)
+			bool e;
+
+			if (gazeSetting_ == GazeEnable)
+				e = true;
+			else if (gazeSetting_ == GazeDisable)
+				e = false;
+			else
+				return;
+
+			if (!gaze_.SetEnabled(Atom, e))
 			{
-				case GazeIgnore:
-					break;
+				Synergy.LogError(
+					"gaze: can't set value, changing setting to Ignore");
 
-				case GazeEnable:
-					gaze_.SetEnabled(Atom, true);
-					break;
-
-				case GazeDisable:
-					gaze_.SetEnabled(Atom, false);
-					break;
+				gazeSetting_ = GazeIgnore;
 			}
 		}
 

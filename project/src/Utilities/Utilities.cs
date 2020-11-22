@@ -473,17 +473,40 @@ namespace Synergy
 				return false;
 			}
 
-			public void SetEnabled(Atom atom, bool b)
+			public bool SetEnabled(Atom atom, bool b)
 			{
 				if (toggle_ == null)
-					toggle_ = GetToggle();
+				{
+					if (atom_ == null)
+						return true;
 
-				if (toggle_ != null)
+					toggle_ = GetToggle();
+				}
+
+				if (toggle_ == null)
+					return false;
+
+				try
+				{
 					toggle_.val = b;
+					return true;
+				}
+				catch (Exception)
+				{
+					Synergy.LogError(
+						"gaze: failed to change value, " +
+						"assuming script is gone");
+
+					toggle_ = null;
+				}
+
+				return false;
 			}
 
 			private JSONStorableBool GetToggle()
 			{
+				Synergy.LogVerbose("gaze: searching for enabled parameter");
+
 				foreach (var id in atom_.GetStorableIDs())
 				{
 					if (id.Contains("MacGruber.Gaze"))
