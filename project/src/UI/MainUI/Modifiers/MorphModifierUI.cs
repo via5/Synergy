@@ -85,6 +85,7 @@ namespace Synergy
 		private readonly MorphProgressionTypeStringList progressionType_;
 		private IMorphProgressionUI progressionUI_ = null;
 		private readonly Collapsible selectedMorphsCollapsible_;
+		private readonly Button toggleAll_;
 		private readonly List<SelectedMorphWidget> selectedMorphs_ =
 			new List<SelectedMorphWidget>();
 		private readonly MorphCheckboxes morphCheckboxes_;
@@ -97,6 +98,8 @@ namespace Synergy
 
 			selectedMorphsCollapsible_ = new Collapsible(
 				"Selected morphs", null, Widget.Right);
+
+			toggleAll_ = new Button("Toggle All", ToggleAll, Widget.Right);
 
 			morphCheckboxes_ = new MorphCheckboxes(
 				"Morphs", MorphAdded, MorphRemoved, Widget.Right);
@@ -118,6 +121,7 @@ namespace Synergy
 			if (changed)
 			{
 				selectedMorphsCollapsible_.Clear();
+				selectedMorphsCollapsible_.Add(toggleAll_);
 
 				foreach (var sm in modifier_.Morphs)
 					AddSelectedMorphUI(sm);
@@ -174,7 +178,10 @@ namespace Synergy
 						selectedMorphs_[i].Collapsible);
 
 					selectedMorphs_.RemoveAt(i);
-					ui_.NeedsReset("selected morph removed");
+
+					if (selectedMorphsCollapsible_.Expanded)
+						ui_.NeedsReset("selected morph removed");
+
 					return;
 				}
 			}
@@ -222,6 +229,17 @@ namespace Synergy
 			selectedMorphsCollapsible_.Add(smw.Collapsible);
 		}
 
+		private void ToggleAll()
+		{
+			if (selectedMorphs_.Count == 0)
+				return;
+
+			bool b = !selectedMorphs_[0].Collapsible.Expanded;
+
+			foreach (var sm in selectedMorphs_)
+				sm.Collapsible.SetExpanded(b);
+		}
+
 		private void MorphAdded(DAZMorph m)
 		{
 			if (modifier_ == null)
@@ -230,7 +248,8 @@ namespace Synergy
 			var sm = modifier_.AddMorph(m);
 			AddSelectedMorphUI(sm);
 
-			ui_.NeedsReset("selected morph added");
+			if (selectedMorphsCollapsible_.Expanded)
+				ui_.NeedsReset("selected morph added");
 		}
 
 		private void MorphRemoved(DAZMorph m)

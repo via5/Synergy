@@ -105,15 +105,20 @@ namespace Synergy
 			}
 		}
 
-		private void OnToggle()
+		public void SetExpanded(bool b)
 		{
-			Expanded = !Expanded;
+			Expanded = b;
 			callback_?.Invoke(Expanded);
 			UpdateButton();
 
 			sc_.UI.NeedsReset(
 				"collapsible " + Text + " " +
 				(Expanded ? "expanded" : "collapsed"));
+		}
+
+		private void OnToggle()
+		{
+			SetExpanded(!Expanded);
 		}
 
 		private void UpdateButton()

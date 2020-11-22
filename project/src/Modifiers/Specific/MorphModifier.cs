@@ -413,7 +413,7 @@ namespace Synergy
 			{
 				Synergy.LogError(
 					$"AddMorph: morph '{id}' not found in " +
-					"atom '{Atom.name}'");
+					$"atom '{Atom.name}'");
 
 				return null;
 			}
