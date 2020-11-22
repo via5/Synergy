@@ -46,6 +46,7 @@ namespace Synergy
 				new AudioModifier(),
 				new EyesModifier(),
 				new StorableModifier(),
+				new LinkModifier(),
 				new StepExtenderModifier()
 			};
 		}

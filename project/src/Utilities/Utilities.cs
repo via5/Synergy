@@ -212,7 +212,7 @@ namespace Synergy
 
 		public static Rigidbody FindForceReceiver(Atom atom, string name)
 		{
-			if (atom == null || name == null)
+			if (atom == null || string.IsNullOrEmpty(name))
 				return null;
 
 			foreach (var fr in atom.forceReceivers)
@@ -231,13 +231,27 @@ namespace Synergy
 
 		public static Rigidbody FindRigidbody(Atom atom, string name)
 		{
-			if (atom == null || name == null)
+			if (atom == null || string.IsNullOrEmpty(name))
 				return null;
 
 			foreach (var fr in atom.rigidbodies)
 			{
 				if (fr.name == name)
 					return fr.GetComponent<Rigidbody>();
+			}
+
+			return null;
+		}
+
+		public static FreeControllerV3 FindFreeController(Atom atom, string name)
+		{
+			if (atom == null || string.IsNullOrEmpty(name))
+				return null;
+
+			foreach (var fc in atom.freeControllers)
+			{
+				if (fc.name == name)
+					return fc;
 			}
 
 			return null;

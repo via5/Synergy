@@ -65,6 +65,7 @@
     <Compile Include="src\Modifiers\Specific\AudioModifier.cs" />
     <Compile Include="src\Modifiers\Specific\EyesModifier.cs" />
     <Compile Include="src\Modifiers\Specific\LightModifier.cs" />
+    <Compile Include="src\Modifiers\Specific\LinkModifier.cs" />
     <Compile Include="src\Modifiers\Specific\MorphModifier.cs" />
     <Compile Include="src\Modifiers\Specific\MorphProgressions.cs" />
     <Compile Include="src\Modifiers\Specific\RigidbodyModifier.cs" />
@@ -76,6 +77,7 @@
     <Compile Include="src\UI\MainUI\Modifiers\BaseModifierUI.cs" />
     <Compile Include="src\UI\MainUI\Modifiers\EyesModifierUI.cs" />
     <Compile Include="src\UI\MainUI\Modifiers\LightModifierUI.cs" />
+    <Compile Include="src\UI\MainUI\Modifiers\LinkModifierUI.cs" />
     <Compile Include="src\UI\MainUI\Modifiers\ModifierUI.cs" />
     <Compile Include="src\UI\MainUI\Modifiers\MorphModifierUI.cs" />
     <Compile Include="src\UI\MainUI\Modifiers\RigidbodyModifierUI.cs" />
