@@ -305,6 +305,37 @@ namespace Synergy
 			return list;
 		}
 
+		public static JSONStorable FindStorableInNewAtom(
+			Atom newAtom, string oldId)
+		{
+			if (newAtom == null || oldId == "")
+				return null;
+
+			var st = newAtom.GetStorableByID(oldId);
+			if (st != null)
+				return st;
+
+			var re = new Regex("plugin#(\\d+)_(.+)");
+			var m = re.Match(oldId);
+
+			if (m == null)
+				return null;
+
+			var pluginName = m.Groups[2].Value;
+
+			for (int i = 0; i < 20; ++i)
+			{
+				var stName = "plugin#" + i.ToString() + "_" + pluginName;
+
+				st = newAtom.GetStorableByID(stName);
+				if (st != null)
+					return st;
+			}
+
+
+			return null;
+		}
+
 		public static bool AtomHasForceReceivers(Atom a)
 		{
 			foreach (var fr in a.forceReceivers)

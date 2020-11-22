@@ -975,12 +975,7 @@ namespace Synergy
 			string oldStorable = storable_?.name ?? "";
 			string oldParameter = Parameter?.Name ?? "";
 
-
-			if (oldStorable == "")
-				storable_ = null;
-			else
-				storable_ = newAtom.GetStorableByID(oldStorable);
-
+			storable_ = Utilities.FindStorableInNewAtom(newAtom, oldStorable);
 
 			if (storable_ == null || oldParameter == "")
 			{

@@ -120,7 +120,7 @@ namespace Synergy
 			var s = new Step();
 
 			var mc = new ModifierContainer();
-			var m = new MorphModifier(a);
+			var m = new StorableModifier(a, "plugin#1_MacGruber.Gaze", "enabled");
 			//m.AddMorph("Eyes Closed");
 			//m.AddMorph("Right Fingers Fist");
 			mc.Modifier = m;
