@@ -41,6 +41,9 @@ namespace Synergy
 
 			public override string ToString()
 			{
+				if (orderIndex == -1)
+					return "--";
+
 				return
 					"i=" + orderIndex.ToString() + " " +
 					(forwards ? "fw" : "bw") + " " +
@@ -211,7 +214,7 @@ namespace Synergy
 						{
 							Log(
 								$"Tick: remaining {TimeRemaining(realIndex)}, " +
-								"starting overlap");
+								$"overlap time {GetOverlapTime()}, starting overlap");
 
 							// element ending, start overlap
 							NextOverlap();
@@ -305,8 +308,7 @@ namespace Synergy
 							reversedDir = true;
 						}
 
-						Log(
-							$"NextActive: i now {active_.orderIndex}");
+						Log($"NextActive: i now {active_.orderIndex}");
 					}
 					else
 					{
@@ -336,6 +338,13 @@ namespace Synergy
 					else if (!CanRun(realIndex))
 					{
 						Log("NextActive: but it's disabled, continuing");
+					}
+					else if (!active_.forwards && !CanRunBackwards(realIndex))
+					{
+						Log(
+							$"NextActive: index {overlap_.orderIndex} " +
+							$"enabled but not half move, so doesn't need " +
+							$"ticking; continuing");
 					}
 					else
 					{
@@ -371,8 +380,7 @@ namespace Synergy
 					active_.mustWait = false;
 				}
 
-				Log(
-					$"NextActive: i={active_.orderIndex}");
+				Log($"NextActive: i={active_.orderIndex}");
 
 				if (!active_.order1)
 				{
@@ -508,14 +516,37 @@ namespace Synergy
 							order1 = false;
 						}
 					}
-					else if (overlap_.orderIndex == active_.orderIndex && reversedDir)
+					else if (overlap_.orderIndex <= active_.orderIndex && reversedDir)
 					{
-						Log(
-							"NextOverlap: went around, reached active " +
-							$"i={active_.orderIndex}, must wait (bw)");
+						var realIndex = GetRealIndex(overlap_.orderIndex, order1);
 
-						overlap_.mustWait = true;
-						break;
+						if (realIndex == -1)
+						{
+							Log(
+								$"NextOverlap: no element for " +
+								$"{overlap_.orderIndex}, continuing (bw)");
+
+							--overlap_.orderIndex;
+						}
+						else if (!overlap_.forwards && !CanRunBackwards(realIndex))
+						{
+							Log(
+								"NextOverlap: went around, reached active " +
+								$"i={active_.orderIndex}, not half move, " +
+								"continuing");
+
+							--overlap_.orderIndex;
+						}
+						else
+						{
+							Log(
+								"NextOverlap: went around, reached active " +
+								$"i={active_.orderIndex}, must wait (bw)");
+
+							overlap_.mustWait = true;
+
+							break;
+						}
 					}
 					else
 					{

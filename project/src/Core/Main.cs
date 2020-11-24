@@ -355,15 +355,20 @@ namespace Synergy
 		}
 
 
-		static public void Log(int level, string s)
+		static public void Log(int level, string s, bool force=false)
 		{
 			if (instance_ != null && level > instance_.options_.LogLevel)
-				return;
+			{
+				if (!force)
+					return;
+			}
+
+			string prefix = "[" + Time.realtimeSinceStartup.ToString("0.00") + "] ";
 
 			if (level <= Options.LogLevelWarn)
-				SuperController.LogError(s);
+				SuperController.LogError(prefix + s);
 			else
-				SuperController.LogMessage(s);
+				SuperController.LogMessage(prefix + s);
 		}
 
 		static public void LogError(string s)
@@ -396,7 +401,7 @@ namespace Synergy
 		static public void LogOverlap(string s)
 		{
 			if (Instance.options_.LogOverlap)
-				SuperController.LogMessage(s);
+				Log(Options.LogLevelInfo, s, true);
 		}
 	}
 }

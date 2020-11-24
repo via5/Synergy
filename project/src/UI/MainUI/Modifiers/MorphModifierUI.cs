@@ -407,8 +407,8 @@ namespace Synergy
 			overlapTime_.Enabled = progression_.OverrideOverlapTime;
 
 			widgets_.AddToUI(holdHalfway_);
-			widgets_.AddToUI(overrideOverlapTime_);
-			widgets_.AddToUI(overlapTime_);
+			//widgets_.AddToUI(overrideOverlapTime_);
+			//widgets_.AddToUI(overlapTime_);
 		}
 
 		private void HoldHalfwayChanged(bool b)

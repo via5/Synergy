@@ -661,6 +661,7 @@ namespace Synergy
 		private Overlapper o_ = new Overlapper("morph");
 		private List<SelectedMorph> enabledMorphs_ = new List<SelectedMorph>();
 		private float overlapTime_ = -1;
+		private bool finished_ = false;
 
 
 		public OrderedMorphProgression(bool holdHalfway, float overlapTime)
@@ -676,7 +677,7 @@ namespace Synergy
 			o_.TimeRemaining += i => GetTimeRemainingForMorph(i);
 			o_.Regenerate += (old) => Regenerate(old, enabledMorphs_.Count);
 			o_.ItemCount += () => enabledMorphs_.Count;
-			o_.GetOverlapTime += () => OverlapTime;
+			o_.GetOverlapTime += () => 0; // OverlapTime;
 		}
 
 		public bool HoldHalfway
@@ -726,25 +727,30 @@ namespace Synergy
 
 		public float GetTimeRemainingForMorph(int i)
 		{
-			if (enabledMorphs_.Count == 0)
-				return 0;
-
-			float overlapTime = OverlapTime;
-
-			float duration = ParentModifier.CurrentDuration;
-			float remaining = ParentModifier.TimeRemaining;
-			float timePerMorph = duration / enabledMorphs_.Count;
-			float passed = duration - ParentModifier.TimeRemaining;
-			float startTime = timePerMorph * (enabledMorphs_.Count - i - 1);
-
-			float f = 0;
-
-			if (enabledMorphs_.Count > 1 && overlapTime > 0 && i == 0 && (passed >= (timePerMorph * (enabledMorphs_.Count - 1))))
-				f = Utilities.Clamp((timePerMorph + overlapTime) - (overlapTime - remaining), 0, timePerMorph + overlapTime);
+			if (finished_)
+				return ParentModifier.CurrentDuration;
 			else
-				f = Utilities.Clamp(remaining - startTime, 0, timePerMorph);
+				return ParentModifier.TimeRemaining;
 
-			return f;
+			//if (enabledMorphs_.Count == 0)
+			//	return 0;
+			//
+			//float overlapTime = OverlapTime;
+			//
+			//float duration = ParentModifier.CurrentDuration;
+			//float remaining = ParentModifier.TimeRemaining;
+			//float timePerMorph = duration / enabledMorphs_.Count;
+			//float passed = duration - ParentModifier.TimeRemaining;
+			//float startTime = timePerMorph * (enabledMorphs_.Count - i - 1);
+			//
+			//float f = 0;
+			//
+			//if (enabledMorphs_.Count > 1 && overlapTime > 0 && i == 0 && (passed >= (timePerMorph * (enabledMorphs_.Count - 1))))
+			//	f = Utilities.Clamp((timePerMorph + overlapTime) - (overlapTime - remaining), 0, timePerMorph + overlapTime);
+			//else
+			//	f = Utilities.Clamp(remaining - startTime, 0, timePerMorph);
+			//
+			//return f;
 		}
 
 
@@ -814,27 +820,81 @@ namespace Synergy
 			}
 			else
 			{
-				float lp = GetStrictProgressForMorph(i);
-				float p = GetProgressForMorph(i);
+				//float lp = GetStrictProgressForMorph(i);
+				//float p = GetProgressForMorph(i);
+
+
+				// this doesn't work at all, the progression must be per-morph,
+				// this just gets the progression of the current duration, which
+				// is fine for the active morph, but not for the overlapping
+				// morph
+				//
+				// find a way to have per-morph progressions, but it's probably
+				// impossible as it is right now
+
+				float duration = ParentModifier.CurrentDuration;
+				float remaining = ParentModifier.TimeRemaining;
+				float passed = duration - remaining;
+				float p = passed / duration;
+
+
+
 				bool fwd;
 
-				if (p <= 0.5f)
+				if (HoldHalfway)
 				{
-					fwd = true;
-					p = p / 0.5f;
+					fwd = stepForwards;
 				}
 				else
 				{
-					fwd = false;
-					p = (p - 0.5f) / 0.5f;
+					if (p <= 0.5f)
+					{
+						fwd = true;
+						p = p / 0.5f;
+					}
+					else
+					{
+						fwd = false;
+						p = (p - 0.5f) / 0.5f;
+					}
+
 				}
+				//Synergy.LogInfo($"{i} {p} {fwd}");
+
 
 				enabledMorphs_[i].Tick(deltaTime, p, fwd);
 
-				if (!fwd && lp == 1)
-					return false;
+				bool tickFinished;
 
-				return true;
+				if (HoldHalfway)
+				{
+					tickFinished = (p == 1);
+				}
+				else
+				{
+					tickFinished = (!fwd && p == 1);
+				}
+
+				if (tickFinished)
+				{
+					if (finished_)
+					{
+						return true;
+					}
+					else
+					{
+						finished_ = true;
+						return false;
+					}
+				}
+				else
+				{
+					finished_ = false;
+					return true;
+				}
+
+				//return true;
+				//return ParentModifier.Finished;
 			}
 		}
 
