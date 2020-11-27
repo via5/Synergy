@@ -3,14 +3,16 @@ using UnityEngine;
 
 namespace Synergy
 {
-	class LinkModifierController
+	class LinkModifierController : IJsonable
 	{
 		private string controllerName_ = "";
+		private string atomName_ = "";
 		private string rbName_ = "";
 		private int position_ = -1;
 		private int rotation_ = -1;
 
 		private FreeControllerV3 controller_ = null;
+		private Atom atom_ = null;
 		private Rigidbody rb_ = null;
 		private bool logged_ = false;
 
@@ -19,12 +21,16 @@ namespace Synergy
 		}
 
 		public LinkModifierController(
-			string controllerName, string rbName, int position, int rotation)
+			string controllerName, Atom atom, string rbName,
+			int position, int rotation)
 		{
 			controllerName_ = controllerName;
+			atomName_ = atom.uid;
 			rbName_ = rbName;
 			position_ = position;
 			rotation_ = rotation;
+
+			UpdateAtom();
 		}
 
 		public LinkModifierController Clone(int cloneFlags)
@@ -37,6 +43,7 @@ namespace Synergy
 		private void CopyTo(LinkModifierController c, int cloneFlags)
 		{
 			c.controllerName_ = controllerName_;
+			c.atomName_ = atomName_;
 			c.rbName_ = rbName_;
 			c.position_ = position_;
 			c.rotation_ = rotation_;
@@ -45,7 +52,36 @@ namespace Synergy
 		public void AtomChanged()
 		{
 			controller_ = null;
-			rb_ = null;
+		}
+
+		public void Removed()
+		{
+			ResetController();
+		}
+
+		public string Name
+		{
+			get
+			{
+				if (controllerName_ == "" && rbName_ == "")
+					return "(none)";
+
+				string s = "";
+
+				if (controllerName_ == "")
+					s += "(none)";
+				else
+					s += controllerName_;
+
+				s += "->";
+
+				if (rbName_ == "")
+					s += "(none)";
+				else
+					s += rbName_;
+
+				return s;
+			}
 		}
 
 		public string ControllerName
@@ -59,11 +95,44 @@ namespace Synergy
 			{
 				if (controllerName_ != value)
 				{
+					ResetController();
 					controllerName_ = value;
 					controller_ = null;
 					logged_ = false;
 				}
 			}
+		}
+
+		public string AtomName
+		{
+			get
+			{
+				return atomName_;
+			}
+
+			set
+			{
+				if (atomName_ != value)
+				{
+					atomName_ = value;
+					atom_ = null;
+
+					UpdateAtom();
+
+					if (rbName_ != "" && atom_ != null)
+						rb_ = Utilities.FindRigidbody(atom_, rbName_);
+					else
+						rb_ = null;
+
+					if (rb_ == null)
+						rbName_ = "";
+				}
+			}
+		}
+
+		public Atom Atom
+		{
+			get { return atom_; }
 		}
 
 		public string RigidbodyName
@@ -112,16 +181,12 @@ namespace Synergy
 
 		public void Set(Atom atom)
 		{
-			UpdateController(atom);
-			UpdateRigidbody(atom);
+			UpdateAll(atom);
 
 			if (controller_ != null)
 			{
-				if (rb_ != null)
-				{
-					if (controller_.linkToRB != rb_)
-						controller_.SelectLinkToRigidbody(rb_);
-				}
+				if (controller_.linkToRB != rb_)
+					controller_.SelectLinkToRigidbody(rb_);
 
 				if (position_ != -1)
 				{
@@ -135,6 +200,41 @@ namespace Synergy
 						(FreeControllerV3.RotationState)rotation_;
 				}
 			}
+		}
+
+		public J.Node ToJSON()
+		{
+			var o = new J.Object();
+
+			o.Add("controllerName", controllerName_);
+			o.Add("atomName", atomName_);
+			o.Add("rbName", rbName_);
+			o.Add("position", position_);
+			o.Add("rotation", rotation_);
+
+			return o;
+		}
+
+		public bool FromJSON(J.Node n)
+		{
+			var o = n.AsObject("LinkModifierController");
+			if (o == null)
+				return false;
+
+			o.Opt("controllerName", ref controllerName_);
+			o.Opt("atomName", ref atomName_);
+			o.Opt("rbName", ref rbName_);
+			o.Opt("position", ref position_);
+			o.Opt("rotation", ref rotation_);
+
+			return true;
+		}
+
+		private void UpdateAll(Atom atom)
+		{
+			UpdateController(atom);
+			UpdateAtom();
+			UpdateRigidbody();
 		}
 
 		private void UpdateController(Atom atom)
@@ -155,20 +255,48 @@ namespace Synergy
 			}
 		}
 
-		private void UpdateRigidbody(Atom atom)
+		private void UpdateAtom()
 		{
-			if (rb_ == null && rbName_ != "")
+			if (atom_ == null && atomName_ != "")
 			{
-				rb_ = Utilities.FindRigidbody(atom, rbName_);
+				atom_ = SuperController.singleton.GetAtomByUid(atomName_);
+
+				if (atom_ == null && !logged_)
+				{
+					Synergy.LogError($"cannot find atom {atomName_}");
+					logged_ = true;
+				}
+			}
+		}
+
+		private void UpdateRigidbody()
+		{
+			if (rb_ == null && rbName_ != "" && atom_ != null)
+			{
+				rb_ = Utilities.FindRigidbody(atom_, rbName_);
 
 				if (rb_ == null && !logged_)
 				{
 					Synergy.LogError(
 						$"cannot find rigidbody {rbName_} in atom " +
-						$"{atom.uid}");
+						$"{atom_.uid}");
 
 					logged_ = true;
 				}
+			}
+		}
+
+		private void ResetController()
+		{
+			if (controller_ != null)
+			{
+				controller_.SelectLinkToRigidbody(null);
+
+				controller_.currentPositionState =
+					FreeControllerV3.PositionState.On;
+
+				controller_.currentRotationState =
+					FreeControllerV3.RotationState.On;
 			}
 		}
 	}
@@ -224,6 +352,15 @@ namespace Synergy
 		public void RemoveController(LinkModifierController c)
 		{
 			controllers_.Remove(c);
+			c.Removed();
+		}
+
+		public List<LinkModifierController> Controllers
+		{
+			get
+			{
+				return new List<LinkModifierController>(controllers_);
+			}
 		}
 
 		protected override void DoTick(float deltaTime, float progress, bool firstHalf)
@@ -257,7 +394,7 @@ namespace Synergy
 			if (Atom == null)
 				s += "none";
 			else
-				s += Atom.name;
+				s += Atom.uid;
 
 			return s;
 		}
@@ -274,6 +411,8 @@ namespace Synergy
 		{
 			var o = base.ToJSON().AsObject();
 
+			o.Add("controllers", controllers_);
+
 			return o;
 		}
 
@@ -285,6 +424,19 @@ namespace Synergy
 			var o = n.AsObject("LinkModifier");
 			if (o == null)
 				return false;
+
+			controllers_.Clear();
+
+			var controllersArray = o.Get("controllers").AsArray();
+			if (controllersArray != null)
+			{
+				controllersArray.ForEach((node) =>
+				{
+					var mc = new LinkModifierController();
+					if (mc.FromJSON(node))
+						AddController(mc);
+				});
+			}
 
 			return true;
 		}

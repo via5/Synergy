@@ -120,14 +120,15 @@ namespace Synergy
 			var s = new Step();
 
 			var mc = new ModifierContainer();
+
 			var m = new LinkModifier(a);
 			m.AddController(new LinkModifierController(
-				"rHandControl", "lHand",
+				"rHandControl", a, "lHand",
 				(int)FreeControllerV3.PositionState.ParentLink,
 				(int)FreeControllerV3.RotationState.ParentLink));
 
-			//m.AddMorph("Eyes Closed");
-			//m.AddMorph("Right Fingers Fist");
+			//var m = new EyesModifier();
+
 			mc.Modifier = m;
 			s.AddModifier(mc);
 

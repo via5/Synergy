@@ -68,6 +68,11 @@ namespace Synergy
 			}
 
 			Utilities.NatSort(names);
+
+			// on top
+			if (Bits.IsSet(flags_, AllowNone))
+				names.Insert(0, "None");
+
 			Choices = names;
 		}
 
@@ -75,6 +80,12 @@ namespace Synergy
 		{
 			if (callback_ == null)
 				return;
+
+			if (s == "None")
+			{
+				callback_(null);
+				return;
+			}
 
 			var atom = sc_.GetAtomById(s);
 			if (atom == null)

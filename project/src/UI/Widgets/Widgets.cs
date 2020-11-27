@@ -42,6 +42,7 @@ namespace Synergy
 		public const int Tall           = 0x08;  // button, checkbox
 		public const int NavButtons     = 0x10;  // string list
 		public const int Filterable     = 0x20;  // string list
+		public const int AllowNone      = 0x40;  // atom, link lists
 
 		public const int LineHeight = 60;
 
