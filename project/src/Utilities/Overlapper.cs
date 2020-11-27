@@ -33,7 +33,7 @@ namespace Synergy
 			{
 				var ti = new TickInfo();
 				ti.orderIndex = -1;
-				ti.forwards = false;
+				ti.forwards = true;
 				ti.order1 = true;
 				ti.mustWait = false;
 				return ti;
