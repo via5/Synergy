@@ -544,36 +544,7 @@ namespace Synergy
 			minDistance_.Parameter = modifier_.MinDistanceParameter;
 			previewsEnabled_.Value = previews_.Enabled;
 
-
-			if (modifier_.Gaze.Available())
-			{
-				gaze_.Choices = new List<string>() { "ignore", "enable", "disable" };
-				gaze_.DisplayChoices = new List<string>() { "Don't change", "Enable", "Disable" };
-				gaze_.Enabled = true;
-
-				switch (modifier_.GazeSetting)
-				{
-					case EyesModifier.GazeIgnore:
-						gaze_.Value = "ignore";
-						break;
-
-					case EyesModifier.GazeEnable:
-						gaze_.Value = "enable";
-						break;
-
-					case EyesModifier.GazeDisable:
-						gaze_.Value = "disable";
-						break;
-				}
-			}
-			else
-			{
-				gaze_.Choices = new List<string>() { };
-				gaze_.DisplayChoices = new List<string>() { };
-				gaze_.Value = "Not found";
-				gaze_.Enabled = false;
-			}
-
+			UpdateGaze();
 
 			AddAtomWidgets(m);
 			widgets_.AddToUI(saccade_);
@@ -611,6 +582,12 @@ namespace Synergy
 				else
 					previews_.Destroy();
 			}
+		}
+
+		protected override void AtomChanged(Atom atom)
+		{
+			base.AtomChanged(atom);
+			UpdateGaze();
 		}
 
 		public override void Update()
@@ -670,6 +647,37 @@ namespace Synergy
 		private void PreviewsChanged(bool b)
 		{
 			previews_.Enabled = b;
+		}
+
+		private void UpdateGaze()
+		{
+			if (modifier_ == null || !modifier_.Gaze.Available())
+			{
+				gaze_.Choices = new List<string>() { };
+				gaze_.DisplayChoices = new List<string>() { };
+				gaze_.Value = "Not found";
+				gaze_.Enabled = false;
+				return;
+			}
+
+			gaze_.Choices = new List<string>() { "ignore", "enable", "disable" };
+			gaze_.DisplayChoices = new List<string>() { "Don't change", "Enable", "Disable" };
+			gaze_.Enabled = true;
+
+			switch (modifier_.GazeSetting)
+			{
+				case EyesModifier.GazeIgnore:
+					gaze_.Value = "ignore";
+					break;
+
+				case EyesModifier.GazeEnable:
+					gaze_.Value = "enable";
+					break;
+
+				case EyesModifier.GazeDisable:
+					gaze_.Value = "disable";
+					break;
+			}
 		}
 	}
 
