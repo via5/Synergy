@@ -655,9 +655,9 @@ namespace Synergy
 
 			if (orderIndex == -1)
 			{
-				LogErrorST(
-					$"RemoveFromOrder: index {realIndex} not found in " +
-					$"order list, has {list.Count} items");
+				//LogErrorST(
+				//	$"RemoveFromOrder: index {realIndex} not found in " +
+				//	$"order list, has {list.Count} items");
 
 				return;
 			}

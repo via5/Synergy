@@ -20,6 +20,7 @@ namespace Synergy
 		void Removed();
 
 		void Tick(float delta);
+		void Resume();
 		void Reset();
 		void Reset(float maxTime);
 	}
@@ -55,6 +56,11 @@ namespace Synergy
 		public abstract float Current { get; }
 
 		public abstract IDuration Clone(int cloneFlags = 0);
+
+		public virtual void Resume()
+		{
+			// no-op
+		}
 
 		public virtual void Removed()
 		{
@@ -217,6 +223,11 @@ namespace Synergy
 		{
 			base.Removed();
 			Time = null;
+		}
+
+		public override void Resume()
+		{
+			Time.Resume();
 		}
 
 		public override void Tick(float deltaTime)

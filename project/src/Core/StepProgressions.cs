@@ -146,8 +146,8 @@ namespace Synergy
 
 		public override void ForceRun(Step s)
 		{
-			o_.ForceRun(Steps.IndexOf(s));
 			s.Reset();
+			o_.ForceRun(Steps.IndexOf(s));
 		}
 
 		public override void Tick(float deltaTime)

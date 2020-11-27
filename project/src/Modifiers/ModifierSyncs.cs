@@ -55,7 +55,7 @@ namespace Synergy
 			get { return parent_?.ParentStep; }
 		}
 
-		public void Resume()
+		public virtual void Resume()
 		{
 			// no-op
 		}
@@ -241,6 +241,13 @@ namespace Synergy
 			var m = new UnsyncedModifier();
 			CopyTo(m, cloneFlags);
 			return m;
+		}
+
+		public override void Resume()
+		{
+			base.Resume();
+			Duration?.Resume();
+			Delay?.Resume();
 		}
 
 		public override void Removed()

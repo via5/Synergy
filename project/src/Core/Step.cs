@@ -477,6 +477,10 @@ namespace Synergy
 		{
 			GatherEnabledModifiers();
 
+			Duration?.Resume();
+			Repeat?.Resume();
+			Delay?.Resume();
+
 			foreach (var m in enabledModifiers_)
 				m?.Modifier?.Resume();
 		}

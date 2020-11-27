@@ -50,6 +50,13 @@ namespace Synergy
 			endForwards_.Value = endForwards;
 		}
 
+		public void Resume()
+		{
+			HalfwayDuration.Resume();
+			EndForwardsDuration.Resume();
+			EndBackwardsDuration.Resume();
+		}
+
 		public void Removed()
 		{
 			HalfwayDuration = null;

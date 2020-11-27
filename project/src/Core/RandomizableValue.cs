@@ -14,6 +14,7 @@ namespace Synergy
 		protected T current_;
 		protected float elapsed_;
 		protected float totalElapsed_;
+		protected bool dirty_;
 
 
 		public BasicRandomizableValue(
@@ -26,6 +27,7 @@ namespace Synergy
 			current_ = initial.Value;
 			elapsed_ = 0;
 			totalElapsed_ = float.MaxValue;
+			dirty_ = false;
 		}
 
 		protected void CopyTo(
@@ -38,9 +40,10 @@ namespace Synergy
 				r.interval_.Value = interval_.Value;
 			}
 
-			current_ = initial_.Value;
-			elapsed_ = 0;
-			totalElapsed_ = float.MaxValue;
+			r.current_ = initial_.Value;
+			r.elapsed_ = 0;
+			r.totalElapsed_ = float.MaxValue;
+			r.dirty_ = true;
 		}
 
 		public virtual void Removed()
@@ -52,8 +55,16 @@ namespace Synergy
 
 		public T Initial
 		{
-			get { return initial_.Value; }
-			set { initial_.Value = value; }
+			get
+			{
+				return initial_.Value;
+			}
+
+			set
+			{
+				initial_.Value = value;
+				dirty_ = true;
+			}
 		}
 
 		public Parameter InitialParameter
@@ -63,8 +74,16 @@ namespace Synergy
 
 		public T Range
 		{
-			get { return range_.Value; }
-			set { range_.Value = value; }
+			get
+			{
+				return range_.Value;
+			}
+
+			set
+			{
+				range_.Value = value;
+				dirty_ = true;
+			}
 		}
 
 		public Parameter RangeParameter
@@ -74,8 +93,16 @@ namespace Synergy
 
 		public float Interval
 		{
-			get { return interval_.Value; }
-			set { interval_.Value = value; }
+			get
+			{
+				return interval_.Value;
+			}
+
+			set
+			{
+				interval_.Value = value;
+				dirty_ = true;
+			}
 		}
 
 		public FloatParameter IntervalParameter
@@ -105,15 +132,22 @@ namespace Synergy
 		}
 
 
-		public void Reset()
+		public void Resume()
+		{
+			if (dirty_)
+				Reset(true);
+		}
+
+		public void Reset(bool force=false)
 		{
 			elapsed_ = 0;
 
-			if (totalElapsed_ >= (ActualInterval - 0.009f))
+			if (force || totalElapsed_ >= (ActualInterval - 0.009f))
 			{
 				Next();
 				elapsed_ = 0;
 				totalElapsed_ = 0;
+				dirty_ = false;
 			}
 		}
 
