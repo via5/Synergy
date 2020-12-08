@@ -119,17 +119,20 @@ namespace Synergy
 		{
 			var s = new Step();
 
-			var mc = new ModifierContainer();
+			for (int i = 0; i < 2; ++i)
+			{
+				var mc1 = new ModifierContainer(new RigidbodyModifier());
+				mc1.ModifierSync = new UnsyncedModifier();
+				s.AddModifier(mc1);
 
-			var m = new EyesModifier();
+				var mc2 = new ModifierContainer(new RigidbodyModifier());
+				mc2.ModifierSync = new OtherModifierSyncedModifier(mc1.Modifier);
+				s.AddModifier(mc2);
 
-			m.AddTarget(new EyesTargetContainer(new RandomEyesTarget(
-				a, Utilities.FindRigidbody(a, "chestControl"))));
-
-			mc.Modifier = m;
-			mc.ModifierSync = new UnsyncedModifier(new RandomDuration(2));
-
-			s.AddModifier(mc);
+				var mc3 = new ModifierContainer(new RigidbodyModifier());
+				mc3.ModifierSync = new OtherModifierSyncedModifier(mc1.Modifier);
+				s.AddModifier(mc3);
+			}
 
 			manager_.AddStep(s);
 		}

@@ -388,17 +388,20 @@ namespace Synergy
 			return m;
 		}
 
-		public void DeleteModifier(ModifierContainer m)
+		public void DeleteModifier(ModifierContainer mc)
 		{
-			m.Removed();
+			// remember the modifier, the container nulls it in Removed()
+			var m = mc.Modifier;
 
-			if (m.Modifier != null)
+			mc.Removed();
+
+			if (m != null)
 			{
 				foreach (var sm in modifiers_)
-					sm.ModifierSync?.OtherModifierRemoved(m.Modifier);
+					sm.ModifierSync?.OtherModifierRemoved(m);
 			}
 
-			modifiers_.Remove(m);
+			modifiers_.Remove(mc);
 			ModifiersChanged?.Invoke();
 		}
 
