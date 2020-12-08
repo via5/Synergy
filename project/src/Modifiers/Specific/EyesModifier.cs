@@ -384,8 +384,8 @@ namespace Synergy
 		private float centerY_ = 0;
 		private float xRange_ = 2;
 		private float yRange_ = 2;
-		private float avoidXRange_ = 1;
-		private float avoidYRange_ = 1;
+		private float avoidXRange_ = 0;
+		private float avoidYRange_ = 0;
 
 		private Atom atom_ = null;
 		private Rigidbody rel_ = null;
@@ -784,9 +784,11 @@ namespace Synergy
 
 		private int currentOrder_ = -1;
 		private float lastProgress_ = -1;
-		private bool lastFirstHalf_ = false;
 		private Vector3 saccadeOffset_ = new Vector3();
-
+		private Vector3 last_ = new Vector3();
+		private float focusProgress_ = 0;
+		private RandomizableTime focusDuration_ = new RandomizableTime(0.5f, 0, 0);
+		private float currentFocusDuration_ = -1;
 
 		public EyesModifier()
 		{
@@ -798,10 +800,7 @@ namespace Synergy
 
 		public RandomizableTime SaccadeTime
 		{
-			get
-			{
-				return saccadeTime_;
-			}
+			get { return saccadeTime_; }
 		}
 
 		public float SaccadeMin
@@ -824,6 +823,27 @@ namespace Synergy
 		public FloatParameter SaccadeMaxParameter
 		{
 			get { return saccadeMax_; }
+		}
+
+		public RandomizableTime FocusDuration
+		{
+			get { return focusDuration_; }
+		}
+
+		public float CurrentFocusDuration
+		{
+			get { return currentFocusDuration_; }
+		}
+
+		public float FocusProgressNormalized
+		{
+			get
+			{
+				if (currentFocusDuration_ > 0)
+					return focusProgress_ / currentFocusDuration_;
+				else
+					return 0;
+			}
 		}
 
 		public float MinDistance
@@ -907,6 +927,7 @@ namespace Synergy
 			}
 
 			m.minDistance_.Value = minDistance_.Value;
+			m.focusDuration_ = focusDuration_.Clone(cloneFlags);
 			m.gazeSetting_ = gazeSetting_;
 			m.gaze_ = new Integration.Gaze();
 		}
@@ -936,7 +957,6 @@ namespace Synergy
 		public override void Reset()
 		{
 			base.Reset();
-			lastFirstHalf_ = false;
 			saccadeTime_.Reset();
 		}
 
@@ -963,16 +983,25 @@ namespace Synergy
 					SaccadeMin, SaccadeMax);
 			}
 
+			focusDuration_.Tick(deltaTime);
+			if (focusDuration_.Finished)
+				focusDuration_.Reset();
+
+			if (currentFocusDuration_ < 0)
+				currentFocusDuration_ = focusDuration_.Current;
+
+			if (focusProgress_ < currentFocusDuration_)
+			{
+				focusProgress_ = Utilities.Clamp(
+					focusProgress_ + deltaTime, 0, currentFocusDuration_);
+			}
 
 			if (progress != lastProgress_)
 			{
 				lastProgress_ = progress;
 
 				if (CurrentOrderIndex == -1 || progress == 1)
-				{
-					lastFirstHalf_ = firstHalf;
 					Next();
-				}
 			}
 		}
 
@@ -1079,8 +1108,16 @@ namespace Synergy
 			if (t == null)
 				return;
 
+			if (eyes_ == null)
+				last_ = new Vector3();
+			else
+				last_ = eyes_.position;
+
 			t.Update(head_, chest_);
 			CheckGaze();
+
+			focusProgress_ = 0;
+			currentFocusDuration_ = focusDuration_.Current;
 		}
 
 		private void CheckGaze()
@@ -1128,6 +1165,13 @@ namespace Synergy
 				pos += (dir * add);
 			}
 
+			if (currentFocusDuration_ > 0)
+			{
+				float focus = FocusProgressNormalized;
+				pos.x = Mathf.Lerp(last_.x, pos.x, focus);
+				pos.y = Mathf.Lerp(last_.y, pos.y, focus);
+				pos.z = Mathf.Lerp(last_.z, pos.z, focus);
+			}
 
 			eyes_.position = pos;
 		}
@@ -1155,6 +1199,7 @@ namespace Synergy
 			o.Add("saccadeMin", saccadeMin_);
 			o.Add("saccadeMax", saccadeMax_);
 			o.Add("minDistance", minDistance_);
+			o.Add("focusDuration", focusDuration_);
 			o.Add("gaze", gazeSetting_);
 
 			return o;
@@ -1186,6 +1231,7 @@ namespace Synergy
 			o.Opt("saccadeMin", saccadeMin_);
 			o.Opt("saccadeMax", saccadeMax_);
 			o.Opt("minDistance", minDistance_);
+			o.Opt("focusDuration", ref focusDuration_);
 			o.Opt("gaze", ref gazeSetting_);
 
 			UpdateAtom();

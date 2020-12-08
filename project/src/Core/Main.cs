@@ -121,15 +121,14 @@ namespace Synergy
 
 			var mc = new ModifierContainer();
 
-			var m = new LinkModifier(a);
-			m.AddController(new LinkModifierController(
-				"rHandControl", a, "lHand",
-				(int)FreeControllerV3.PositionState.ParentLink,
-				(int)FreeControllerV3.RotationState.ParentLink));
+			var m = new EyesModifier();
 
-			//var m = new EyesModifier();
+			m.AddTarget(new EyesTargetContainer(new RandomEyesTarget(
+				a, Utilities.FindRigidbody(a, "chestControl"))));
 
 			mc.Modifier = m;
+			mc.ModifierSync = new UnsyncedModifier(new RandomDuration(2));
+
 			s.AddModifier(mc);
 
 			manager_.AddStep(s);

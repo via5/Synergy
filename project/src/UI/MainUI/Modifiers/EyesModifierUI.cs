@@ -467,10 +467,13 @@ namespace Synergy
 		private readonly RandomizableTimeWidgets saccadeTime_;
 		private readonly FloatSlider saccadeMin_, saccadeMax_;
 		private readonly FloatSlider minDistance_;
+		private readonly Collapsible focusDurationCollapsible_;
+		private readonly RandomizableTimeWidgets focusDuration_;
 		private readonly StringList gaze_;
 
 		private readonly Button addTarget_;
 		private readonly Checkbox previewsEnabled_;
+		private readonly FloatSlider previewsAlpha_;
 		private readonly List<EyesModifierTargetUIContainer> targets_ =
 			new List<EyesModifierTargetUIContainer>();
 
@@ -494,6 +497,12 @@ namespace Synergy
 				"Minimum distance (avoids cross-eyed)",
 				MinDistanceChanged, Widget.Right);
 
+			focusDurationCollapsible_ = new Collapsible(
+				"Focus time", null, Widget.Right);
+
+			focusDuration_ = new RandomizableTimeWidgets(
+				"Focus time", Widget.Right);
+
 			gaze_ = new StringList(
 				"MacGruber Gaze", GazeChanged, Widget.Right);
 
@@ -502,11 +511,18 @@ namespace Synergy
 			previewsEnabled_ = new Checkbox(
 				"Show previews", PreviewsChanged, Widget.Right);
 
+			previewsAlpha_ = new FloatSlider(
+				"Previews alpha", 0.1f, new FloatRange(0, 1),
+				PreviewsAlphaChanged, Widget.Right);
+
 			foreach (var w in saccadeTime_.GetWidgets())
 				saccade_.Add(w);
 
 			saccade_.Add(saccadeMin_);
 			saccade_.Add(saccadeMax_);
+
+			foreach (var w in focusDuration_.GetWidgets())
+				focusDurationCollapsible_.Add(w);
 		}
 
 
@@ -539,20 +555,25 @@ namespace Synergy
 
 			saccadeTime_.SetValue(
 				modifier_.SaccadeTime, new FloatRange(0, 5));
+			focusDuration_.SetValue(
+				modifier_.FocusDuration, new FloatRange(0, 1));
 			saccadeMin_.Parameter = modifier_.SaccadeMinParameter;
 			saccadeMax_.Parameter = modifier_.SaccadeMaxParameter;
 			minDistance_.Parameter = modifier_.MinDistanceParameter;
 			previewsEnabled_.Value = previews_.Enabled;
+			previewsAlpha_.Value = previews_.Alpha;
 
 			UpdateGaze();
 
 			AddAtomWidgets(m);
 			widgets_.AddToUI(saccade_);
+			widgets_.AddToUI(focusDurationCollapsible_);
 			widgets_.AddToUI(minDistance_);
 			widgets_.AddToUI(gaze_);
 			widgets_.AddToUI(new SmallSpacer(Widget.Right));
 			widgets_.AddToUI(addTarget_);
 			widgets_.AddToUI(previewsEnabled_);
+			widgets_.AddToUI(previewsAlpha_);
 
 			if (targets_.Count > 0)
 			{
@@ -649,6 +670,11 @@ namespace Synergy
 			previews_.Enabled = b;
 		}
 
+		private void PreviewsAlphaChanged(float f)
+		{
+			previews_.Alpha = f;
+		}
+
 		private void UpdateGaze()
 		{
 			if (modifier_ == null || !modifier_.Gaze.Available())
@@ -690,10 +716,52 @@ namespace Synergy
 			public GameObject plane = null;
 			public GameObject planeAvoid = null;
 			public EyesTargetContainer t;
+			private float alpha_ = 1;
 
-			public Preview(EyesTargetContainer t = null)
+			public Preview(EyesTargetContainer tc, float alpha)
 			{
-				this.t = t;
+				t = tc;
+				alpha_ = alpha * 50;
+				Create();
+			}
+
+			private void Create()
+			{
+				Destroy();
+
+				if (t.Target == null)
+					return;
+
+				sphere = CreateObject(
+					PrimitiveType.Sphere, GetColor(t.Target, 0.5f));
+
+				sphere.transform.localPosition = t.Target.Position;
+
+				if (t.Target is RandomEyesTarget)
+				{
+					plane = CreateObject(
+						PrimitiveType.Cube, GetColor(t.Target, 0.02f));
+
+					planeAvoid = CreateObject(
+						PrimitiveType.Cube, new Color(0, 0, 0, 0.1f));
+				}
+			}
+
+			public void SetAlpha(float f)
+			{
+				alpha_ = f * 50;
+
+				if (sphere != null)
+					SetAlpha(sphere, GetColor(t.Target, 0.5f));
+
+				if (t.Target is RandomEyesTarget)
+				{
+					if (plane != null)
+						SetAlpha(plane, GetColor(t.Target, 0.02f));
+
+					if (planeAvoid != null)
+						SetAlpha(planeAvoid, GetColor(t.Target, 0.1f));
+				}
 			}
 
 			public void Destroy()
@@ -716,9 +784,55 @@ namespace Synergy
 					planeAvoid = null;
 				}
 			}
+
+			private GameObject CreateObject(PrimitiveType t, Color c)
+			{
+				var o = GameObject.CreatePrimitive(t);
+
+				foreach (var collider in o.GetComponents<Collider>())
+				{
+					collider.enabled = false;
+					Object.Destroy(collider);
+				}
+
+				var material = new Material(Shader.Find("Battlehub/RTGizmos/Handles"));
+
+				material.color = c;
+				material.SetFloat("_Offset", 1f);
+				material.SetFloat("_MinAlpha", 1f);
+
+				var r = o.GetComponent<Renderer>();
+				r.material = material;
+
+				o.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+
+				return o;
+			}
+
+			private void SetAlpha(GameObject o, Color c)
+			{
+				var r = o.GetComponent<Renderer>();
+				r.material.color = c;
+			}
+
+			private Color GetColor(IEyesTarget t, float a)
+			{
+				a = Utilities.Clamp(a * alpha_, 0, 1);
+
+				if (t is RigidbodyEyesTarget)
+					return new Color(1, 0, 0, a);
+				else if (t is ConstantEyesTarget)
+					return new Color(0, 1, 0, a);
+				else if (t is RandomEyesTarget)
+					return new Color(0, 0, 1, a);
+				else
+					return new Color(1, 1, 1, a);
+			}
 		}
 
+
 		private bool enabled_ = false;
+		private float alpha_ = 0.3f;
 		private EyesModifier modifier_ = null;
 		private readonly List<Preview> previews_ = new List<Preview>();
 
@@ -751,6 +865,25 @@ namespace Synergy
 			}
 		}
 
+		public float Alpha
+		{
+			get
+			{
+				return alpha_;
+			}
+
+			set
+			{
+				alpha_ = value;
+
+				if (enabled_)
+				{
+					foreach (var p in previews_)
+						p.SetAlpha(alpha_);
+				}
+			}
+		}
+
 		public void Create()
 		{
 			Destroy();
@@ -759,71 +892,7 @@ namespace Synergy
 				return;
 
 			foreach (var t in modifier_.Targets)
-			{
-				var p = CreatePreview(t);
-				if (p != null)
-					previews_.Add(p);
-			}
-		}
-
-		private Preview CreatePreview(EyesTargetContainer tc)
-		{
-			var p = new Preview(tc);
-
-			if (tc.Target == null)
-				return p;
-
-			p.sphere = CreateObject(
-				PrimitiveType.Sphere, GetColor(tc.Target, 0.5f));
-
-			p.sphere.transform.localPosition = tc.Target.Position;
-
-			if (tc.Target is RandomEyesTarget)
-			{
-				p.plane = CreateObject(
-					PrimitiveType.Cube, GetColor(tc.Target, 0.02f));
-
-				p.planeAvoid = CreateObject(
-					PrimitiveType.Cube, new Color(0, 0, 0, 0.1f));
-			}
-
-			return p;
-		}
-
-		private Color GetColor(IEyesTarget t, float a)
-		{
-			if (t is RigidbodyEyesTarget)
-				return new Color(1, 0, 0, a);
-			else if (t is ConstantEyesTarget)
-				return new Color(0, 1, 0, a);
-			else if (t is RandomEyesTarget)
-				return new Color(0, 0, 1, a);
-			else
-				return new Color(1, 1, 1, a);
-		}
-
-		private GameObject CreateObject(PrimitiveType t, Color c)
-		{
-			var o = GameObject.CreatePrimitive(t);
-
-			foreach (var collider in o.GetComponents<Collider>())
-			{
-				collider.enabled = false;
-				Object.Destroy(collider);
-			}
-
-			var material = new Material(Shader.Find("Battlehub/RTGizmos/Handles"));
-
-			material.color = c;
-			material.SetFloat("_Offset", 1f);
-			material.SetFloat("_MinAlpha", 1f);
-
-			var r = o.GetComponent<Renderer>();
-			r.material = material;
-
-			o.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
-
-			return o;
+				previews_.Add(new Preview(t, alpha_));
 		}
 
 		public void Destroy()
@@ -870,21 +939,29 @@ namespace Synergy
 			p.plane.transform.localScale = new Vector3(
 				rt.RangeX*2, rt.RangeY*2, 0.01f);
 
-			p.plane.transform.localRotation =
-				Quaternion.LookRotation(fwd);
+			p.plane.transform.localRotation = rel.rotation;
+			//p.plane.transform.localRotation = Quaternion.LookRotation(fwd);
 
+			if (rt.AvoidRangeX == 0 && rt.AvoidRangeY == 0)
+			{
+				p.planeAvoid.SetActive(false);
+			}
+			else
+			{
+				p.planeAvoid.SetActive(p.t.Enabled);
 
-			p.planeAvoid.transform.localPosition =
-				rel.position +
-				fwd * rt.Distance +
-				ver * rt.CenterY +
-				hor * rt.CenterX;
+				p.planeAvoid.transform.localPosition =
+					rel.position +
+					fwd * rt.Distance +
+					ver * rt.CenterY +
+					hor * rt.CenterX;
 
-			p.planeAvoid.transform.localScale = new Vector3(
-				rt.AvoidRangeX*2, rt.AvoidRangeY*2, 0.01f);
+				p.planeAvoid.transform.localScale = new Vector3(
+					rt.AvoidRangeX * 2, rt.AvoidRangeY * 2, 0.01f);
 
-			p.planeAvoid.transform.localRotation =
-				Quaternion.LookRotation(fwd);
+				p.planeAvoid.transform.localRotation =
+					Quaternion.LookRotation(fwd);
+			}
 		}
 	}
 }

@@ -21,6 +21,9 @@ namespace Synergy
 		private readonly Label saccade_;
 		private readonly RandomizableTimeMonitorWidgets saccadeTime_;
 		private readonly FloatSlider saccadeMin_, saccadeMax_;
+		private readonly RandomizableTimeMonitorWidgets focusDuration_;
+		private readonly FloatSlider currentfocusDuration_;
+		private readonly FloatSlider focusDurationProgress_;
 		private readonly FloatSlider minDistance_;
 
 
@@ -35,6 +38,12 @@ namespace Synergy
 				"Saccade", Widget.Right);
 			saccadeMin_ = new FloatSlider("Saccade minimum", null, Widget.Right);
 			saccadeMax_ = new FloatSlider("Saccade maximum", null, Widget.Right);
+			focusDuration_ = new RandomizableTimeMonitorWidgets(
+				"Focus duration", Widget.Right);
+			currentfocusDuration_ = new FloatSlider(
+				"Current focus duration", null, Widget.Right);
+			focusDurationProgress_ = new FloatSlider(
+				"Focus progress", null, Widget.Right);
 			minDistance_ = new FloatSlider("Minimum distance", null, Widget.Right);
 		}
 
@@ -56,6 +65,12 @@ namespace Synergy
 
 			widgets_.AddToUI(saccadeMin_);
 			widgets_.AddToUI(saccadeMax_);
+
+			foreach (var w in focusDuration_.GetWidgets())
+				widgets_.AddToUI(w);
+
+			widgets_.AddToUI(currentfocusDuration_);
+			widgets_.AddToUI(focusDurationProgress_);
 
 			widgets_.AddToUI(minDistance_);
 
@@ -99,6 +114,11 @@ namespace Synergy
 			saccadeTime_.SetValue(modifier_?.SaccadeTime);
 			saccadeMin_.Value = modifier_?.SaccadeMin ?? 0;
 			saccadeMax_.Value = modifier_?.SaccadeMax ?? 0;
+
+			focusDuration_.SetValue(modifier_?.FocusDuration);
+			currentfocusDuration_.Value = modifier_?.CurrentFocusDuration ?? 0;
+			focusDurationProgress_.Value = modifier_?.FocusProgressNormalized ?? 0;
+
 			minDistance_.Value = modifier_?.MinDistance ?? 0;
 		}
 	}
