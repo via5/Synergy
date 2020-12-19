@@ -929,7 +929,7 @@ namespace Synergy
 			m.minDistance_.Value = minDistance_.Value;
 			m.focusDuration_ = focusDuration_.Clone(cloneFlags);
 			m.gazeSetting_ = gazeSetting_;
-			m.gaze_ = new Integration.Gaze();
+			m.gaze_ = gaze_.Clone(cloneFlags);
 		}
 
 		public override FloatRange PreferredRange
@@ -1010,6 +1010,7 @@ namespace Synergy
 			if (targets_.Count == 0)
 			{
 				SetOrderIndex(-1);
+				CheckGaze();
 				return;
 			}
 

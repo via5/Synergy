@@ -543,6 +543,10 @@ namespace Synergy
 				var newMorph = Utilities.FindMorphInNewAtom(Atom, sm.Morph);
 				if (newMorph == null)
 				{
+					Synergy.LogWarning(
+						"morph " + sm.Morph.displayName + " doesn't exist in " +
+						Atom.uid);
+
 					sm.Removed();
 					continue;
 				}
@@ -556,6 +560,8 @@ namespace Synergy
 
 			morphs_.Clear();
 			morphs_.AddRange(fixedList);
+
+			Progression.MorphsChanged();
 		}
 
 		protected override void DoResume()

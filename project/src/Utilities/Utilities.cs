@@ -312,6 +312,9 @@ namespace Synergy
 			foreach (var oldMorph in oldMorphs)
 			{
 				var newMorph = mui.GetMorphByUid(oldMorph.uid);
+				if (newMorph == null)
+					newMorph = mui.GetMorphByDisplayName(oldMorph.displayName);
+
 				if (newMorph != null)
 					list.Add(newMorph);
 			}
@@ -486,6 +489,19 @@ namespace Synergy
 		{
 			private Atom atom_ = null;
 			private JSONStorableBool toggle_ = null;
+
+			public Gaze Clone(int cloneFlags = 0)
+			{
+				var g = new Gaze();
+				CopyTo(g, cloneFlags);
+				return g;
+			}
+
+			private void CopyTo(Gaze g, int cloneFlags)
+			{
+				g.atom_ = atom_;
+				g.toggle_ = toggle_;
+			}
 
 			public Atom Atom
 			{

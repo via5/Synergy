@@ -118,8 +118,13 @@ namespace Synergy
 				return;
 			}
 
+			if (selectedMorphs_.Count != modifier_.Morphs.Count)
+				changed = true;
+
 			if (changed)
 			{
+				selectedMorphs_.Clear();
+
 				selectedMorphsCollapsible_.Clear();
 				selectedMorphsCollapsible_.Add(toggleAll_);
 
