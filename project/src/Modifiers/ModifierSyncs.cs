@@ -20,6 +20,7 @@ namespace Synergy
 		bool Finished { get; }
 		float TimeRemaining { get; }
 		float CurrentDuration { get; }
+		float DurationProgress { get; }
 		void Reset();
 	}
 
@@ -75,6 +76,7 @@ namespace Synergy
 		public abstract bool Finished { get; }
 		public abstract float TimeRemaining { get; }
 		public abstract float CurrentDuration { get; }
+		public abstract float DurationProgress { get; }
 
 		public abstract bool Tick(float deltaTime);
 		public abstract void TickPaused(float deltaTime);
@@ -115,6 +117,20 @@ namespace Synergy
 		public override float CurrentDuration
 		{
 			get { return ParentStep?.Duration?.Current ?? 0; }
+		}
+
+		public override float DurationProgress
+		{
+			get
+			{
+				var current = CurrentDuration;
+				var remaining = TimeRemaining;
+
+				if (current == 0)
+					return 0;
+
+				return (current - remaining) / current;
+			}
 		}
 
 		public override bool Tick(float deltaTime)
@@ -222,7 +238,7 @@ namespace Synergy
 				if (!Finished && inFirstHalf_ && Delay.Halfway)
 					t += Delay.HalfwayDuration.TimeRemaining;
 				else if (Delay.ActiveType != Delay.None)
-					return Delay.ActiveDuration.TimeRemaining;
+					t += Delay.ActiveDuration.TimeRemaining;
 
 				return t;
 			}
@@ -233,6 +249,20 @@ namespace Synergy
 			get
 			{
 				return Duration?.Current ?? 0;
+			}
+		}
+
+		public override float DurationProgress
+		{
+			get
+			{
+				var current = Duration?.Current ?? 0;
+				var remaining = Duration?.TimeRemaining ?? 0;
+
+				if (remaining == 0)
+					return 1;
+
+				return (current - remaining) / current;
 			}
 		}
 
@@ -499,6 +529,20 @@ namespace Synergy
 			get { return ParentStep?.Duration?.Current ?? 0; }
 		}
 
+		public override float DurationProgress
+		{
+			get
+			{
+				var current = CurrentDuration;
+				var remaining = TimeRemaining;
+
+				if (current == 0)
+					return 0;
+
+				return (current - remaining) / current;
+			}
+		}
+
 		public override bool Tick(float deltaTime)
 		{
 			// no-op
@@ -672,6 +716,20 @@ namespace Synergy
 					return 0;
 				else
 					return modifier_.CurrentDuration;
+			}
+		}
+
+		public override float DurationProgress
+		{
+			get
+			{
+				var current = CurrentDuration;
+				var remaining = TimeRemaining;
+
+				if (current == 0)
+					return 0;
+
+				return (current - remaining) / current;
 			}
 		}
 

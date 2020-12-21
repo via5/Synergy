@@ -13,10 +13,13 @@
 		protected readonly int flags_;
 
 		private IModifierSync sync_ = null;
+		private FloatSlider progress_;
+		protected WidgetList widgets_ = new WidgetList();
 
 		public BasicModifierSyncMonitor(int flags)
 		{
 			flags_ = flags;
+			progress_ = new FloatSlider("Duration progress", null, flags);
 		}
 
 		public abstract string SyncType { get; }
@@ -24,14 +27,18 @@
 		public virtual void AddToUI(IModifierSync s)
 		{
 			sync_ = s;
+			widgets_.AddToUI(progress_);
 		}
 
 		public virtual void RemoveFromUI()
 		{
+			widgets_.RemoveFromUI();
 		}
 
 		public virtual void Update()
 		{
+			if (sync_ != null)
+				progress_.Set(0, 1, sync_.DurationProgress);
 		}
 	}
 
@@ -57,7 +64,6 @@
 
 		private IDurationMonitor duration_ = null;
 		private DelayMonitor delay_;
-		private WidgetList widgets_ = new WidgetList();
 
 		public UnsyncedModifierModifier(int flags)
 			: base(flags)
@@ -67,8 +73,6 @@
 
 		public override void AddToUI(IModifierSync s)
 		{
-			base.AddToUI(s);
-
 			var us = s as UnsyncedModifier;
 			if (us == null)
 				return;
@@ -85,13 +89,13 @@
 
 			foreach (var w in delay_.GetWidgets(us.Delay))
 				widgets_.AddToUI(w);
+
+			base.AddToUI(s);
 		}
 
 		public override void RemoveFromUI()
 		{
 			base.RemoveFromUI();
-
-			widgets_.RemoveFromUI();
 
 			if (duration_ != null)
 				duration_.RemoveFromUI();

@@ -290,8 +290,8 @@ namespace Synergy
 
 		public MorphModifier(Atom a, DAZMorph m = null)
 		{
-			Atom = a;
 			Progression = new SequentialMorphProgression();
+			Atom = a;
 
 			if (m != null)
 				AddMorph(m);
@@ -419,6 +419,11 @@ namespace Synergy
 			}
 
 			return AddMorph(m, mv);
+		}
+
+		public SelectedMorph AddMorph(string id, FloatRange r)
+		{
+			return AddMorph(id, new Movement(r));
 		}
 
 		public SelectedMorph AddMorph(DAZMorph m)

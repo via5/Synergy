@@ -729,8 +729,11 @@ namespace Synergy
 		{
 			if (finished_)
 				return ParentModifier.CurrentDuration;
-			else
-				return ParentModifier.TimeRemaining;
+
+			var duration = ParentModifier.CurrentDuration;
+			var progress = ParentModifier.ModifierSync.DurationProgress;
+
+			return duration - (duration * progress);
 
 			//if (enabledMorphs_.Count == 0)
 			//	return 0;
@@ -781,7 +784,7 @@ namespace Synergy
 			float duration = ParentModifier.CurrentDuration;
 			float timePerMorph = (duration / enabledMorphs_.Count);
 			float remaining = ParentModifier.TimeRemaining;
-			float passed = duration - ParentModifier.TimeRemaining;
+			float passed = ParentModifier.ModifierSync.DurationProgress * duration;
 			float startTime = timePerMorph * i;
 
 			float p = 0;
@@ -833,9 +836,16 @@ namespace Synergy
 				// impossible as it is right now
 
 				float duration = ParentModifier.CurrentDuration;
+				float timePerMorph = (duration / enabledMorphs_.Count);
 				float remaining = ParentModifier.TimeRemaining;
-				float passed = duration - remaining;
-				float p = passed / duration;
+				float passed = ParentModifier.ModifierSync.DurationProgress * duration;
+				float startTime = timePerMorph * i;
+				float p = ParentModifier.ModifierSync.DurationProgress;
+
+				//float duration = ParentModifier.CurrentDuration;
+				//float remaining = ParentModifier.TimeRemaining;
+				//float passed = duration - remaining;
+				//float p = passed / duration;
 
 
 
