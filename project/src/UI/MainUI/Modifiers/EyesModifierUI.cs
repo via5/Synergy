@@ -470,6 +470,7 @@ namespace Synergy
 		private readonly Collapsible focusDurationCollapsible_;
 		private readonly RandomizableTimeWidgets focusDuration_;
 		private readonly StringList gaze_;
+		private readonly StringList blink_;
 
 		private readonly Button addTarget_;
 		private readonly Checkbox previewsEnabled_;
@@ -504,7 +505,9 @@ namespace Synergy
 				"Focus time", Widget.Right);
 
 			gaze_ = new StringList(
-				"MacGruber Gaze", GazeChanged, Widget.Right);
+				"MacGruber's Gaze", GazeChanged, Widget.Right);
+
+			blink_ = new StringList("Blink", BlinkChanged, Widget.Right);
 
 			addTarget_ = new Button("Add target", AddTarget, Widget.Right);
 
@@ -564,12 +567,14 @@ namespace Synergy
 			previewsAlpha_.Value = previews_.Alpha;
 
 			UpdateGaze();
+			UpdateBlink();
 
 			AddAtomWidgets(m);
 			widgets_.AddToUI(saccade_);
 			widgets_.AddToUI(focusDurationCollapsible_);
 			widgets_.AddToUI(minDistance_);
 			widgets_.AddToUI(gaze_);
+			widgets_.AddToUI(blink_);
 			widgets_.AddToUI(new SmallSpacer(Widget.Right));
 			widgets_.AddToUI(addTarget_);
 			widgets_.AddToUI(previewsEnabled_);
@@ -609,6 +614,7 @@ namespace Synergy
 		{
 			base.AtomChanged(atom);
 			UpdateGaze();
+			UpdateBlink();
 		}
 
 		public override void Update()
@@ -647,11 +653,24 @@ namespace Synergy
 				return;
 
 			if (s == "disable")
-				modifier_.GazeSetting = EyesModifier.GazeDisable;
+				modifier_.GazeSetting = EyesModifier.SettingDisable;
 			else if (s == "enable")
-				modifier_.GazeSetting = EyesModifier.GazeEnable;
+				modifier_.GazeSetting = EyesModifier.SettingEnable;
 			else
-				modifier_.GazeSetting = EyesModifier.GazeIgnore;
+				modifier_.GazeSetting = EyesModifier.SettingIgnore;
+		}
+
+		private void BlinkChanged(string s)
+		{
+			if (modifier_ == null)
+				return;
+
+			if (s == "disable")
+				modifier_.BlinkSetting = EyesModifier.SettingDisable;
+			else if (s == "enable")
+				modifier_.BlinkSetting = EyesModifier.SettingEnable;
+			else
+				modifier_.BlinkSetting = EyesModifier.SettingIgnore;
 		}
 
 		private void AddTarget()
@@ -686,22 +705,32 @@ namespace Synergy
 				return;
 			}
 
-			gaze_.Choices = new List<string>() { "ignore", "enable", "disable" };
-			gaze_.DisplayChoices = new List<string>() { "Don't change", "Enable", "Disable" };
-			gaze_.Enabled = true;
+			UpdateSetting(gaze_, modifier_.GazeSetting);
+		}
 
-			switch (modifier_.GazeSetting)
+		private void UpdateBlink()
+		{
+			UpdateSetting(blink_, modifier_.BlinkSetting);
+		}
+
+		private void UpdateSetting(StringList list, int setting)
+		{
+			list.Choices = new List<string>() { "ignore", "enable", "disable" };
+			list.DisplayChoices = new List<string>() { "Don't change", "Enable", "Disable" };
+			list.Enabled = true;
+
+			switch (setting)
 			{
-				case EyesModifier.GazeIgnore:
-					gaze_.Value = "ignore";
+				case EyesModifier.SettingIgnore:
+					list.Value = "ignore";
 					break;
 
-				case EyesModifier.GazeEnable:
-					gaze_.Value = "enable";
+				case EyesModifier.SettingEnable:
+					list.Value = "enable";
 					break;
 
-				case EyesModifier.GazeDisable:
-					gaze_.Value = "disable";
+				case EyesModifier.SettingDisable:
+					list.Value = "disable";
 					break;
 			}
 		}

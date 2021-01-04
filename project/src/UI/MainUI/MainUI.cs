@@ -25,6 +25,7 @@ namespace Synergy
 		private Button addModifier_;
 		private Button cloneModifier_;
 		private Button cloneModifierZero_;
+		private Button cloneModifierSynced_;
 		private ModifierUI modifier_;
 
 		MonitorUI monitor_;
@@ -70,6 +71,9 @@ namespace Synergy
 				"Clone modifier", CloneModifier, Widget.Right);
 			cloneModifierZero_ = new Button(
 				"Clone modifier zero values", CloneModifierZero,
+				Widget.Right);
+			cloneModifierSynced_ = new Button(
+				"Clone modifier zero synced", CloneModifierZeroSynced,
 				Widget.Right);
 
 			stepsList_.PopupHeight = 1000;
@@ -321,8 +325,8 @@ namespace Synergy
 			widgets_.AddToUI(addModifier_);
 			widgets_.AddToUI(cloneModifier_);
 			widgets_.AddToUI(cloneModifierZero_);
+			widgets_.AddToUI(cloneModifierSynced_);
 			widgets_.AddToUI(new LargeSpacer(Widget.Right));
-			widgets_.AddToUI(new SmallSpacer(Widget.Right));
 			modifier_.AddToUI(CurrentModifier);
 
 			cloneModifier_.Enabled = (CurrentModifier != null);
@@ -498,6 +502,23 @@ namespace Synergy
 
 			CurrentStep.AddModifier(CurrentModifier.Clone(
 				Utilities.CloneZero));
+
+			SelectModifier(CurrentStep.Modifiers.Count - 1);
+		}
+
+		private void CloneModifierZeroSynced()
+		{
+			if (CurrentStep == null || CurrentStep.Modifiers.Count == 0)
+				return;
+
+			if (CurrentModifier?.Modifier == null)
+				return;
+
+			var m = CurrentModifier.Clone(Utilities.CloneZero);
+			m.ModifierSync = new OtherModifierSyncedModifier(
+				CurrentModifier.Modifier);
+
+			CurrentStep.AddModifier(m);
 
 			SelectModifier(CurrentStep.Modifiers.Count - 1);
 		}

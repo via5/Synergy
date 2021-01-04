@@ -587,7 +587,7 @@ namespace Synergy
 			Choices = choices;
 
 			// todo
-			Value = "float" + StorableWidgets.PluginSuffix;
+			Value = "action" + StorableWidgets.PluginSuffix;
 		}
 
 		private void TypeChanged(string s)
