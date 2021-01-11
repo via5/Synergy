@@ -13,26 +13,17 @@ namespace Synergy
 		protected readonly EyesModifierTargetUIContainer parent_;
 
 		private EyesTargetContainer target_ = null;
-		private readonly Checkbox enabled_;
 
 		public BasicEyesModifierTargetUI(
 			EyesModifierTargetUIContainer parent, EyesTargetContainer t)
 		{
 			parent_ = parent;
 			target_ = t;
-
-			enabled_ = new Checkbox(
-				"Enabled", t.Enabled, EnabledChanged, Widget.Right);
 		}
 
 		public virtual List<Widget> GetWidgets()
 		{
-			return new List<Widget>() { enabled_ };
-		}
-
-		private void EnabledChanged(bool b)
-		{
-			target_.Enabled = b;
+			return new List<Widget>() { };
 		}
 	}
 
@@ -364,6 +355,7 @@ namespace Synergy
 		private readonly ConfirmableButton delete_ = null;
 		private readonly
 			FactoryStringList<EyesTargetFactory, IEyesTarget> types_;
+		private readonly Checkbox enabled_;
 
 		private IEyesModifierTargetUI ui_ = null;
 		private bool stale_ = true;
@@ -379,6 +371,9 @@ namespace Synergy
 
 			types_ = new FactoryStringList<EyesTargetFactory, IEyesTarget>(
 				"Type", TypeChanged, Widget.Right);
+
+			enabled_ = new Checkbox(
+				"Enabled", t.Enabled, EnabledChanged, Widget.Right);
 
 			collapsible_ = new Collapsible(
 				container_.Name, null, Widget.Right);
@@ -431,6 +426,7 @@ namespace Synergy
 			collapsible_.Clear();
 			collapsible_.Add(delete_);
 			collapsible_.Add(types_);
+			collapsible_.Add(enabled_);
 
 			var t = container_.Target;
 
@@ -450,6 +446,14 @@ namespace Synergy
 				foreach (var w in ui_.GetWidgets())
 					collapsible_.Add(w);
 			}
+		}
+
+		private void EnabledChanged(bool b)
+		{
+			if (container_ == null)
+				return;
+
+			container_.Enabled = b;
 		}
 	}
 
@@ -515,7 +519,7 @@ namespace Synergy
 				"Show previews", PreviewsChanged, Widget.Right);
 
 			previewsAlpha_ = new FloatSlider(
-				"Previews alpha", 0.1f, new FloatRange(0, 1),
+				"Previews alpha", 0.3f, new FloatRange(0, 1),
 				PreviewsAlphaChanged, Widget.Right);
 
 			foreach (var w in saccadeTime_.GetWidgets())
@@ -741,16 +745,23 @@ namespace Synergy
 	{
 		class Preview
 		{
-			public GameObject sphere = null;
+			public GameObject target = null;
+			public GameObject adjustedTarget = null;
 			public GameObject plane = null;
 			public GameObject planeAvoid = null;
+			public EyesModifier modifier = null;
 			public EyesTargetContainer t;
 			private float alpha_ = 1;
+			private static float AlphaFactor = 3.3f;
+			private static float DefaultSphereScaleF = 0.1f;
+			private static Vector3 DefaultSphereScale = new Vector3(
+				DefaultSphereScaleF, DefaultSphereScaleF, DefaultSphereScaleF);
 
-			public Preview(EyesTargetContainer tc, float alpha)
+			public Preview(EyesModifier m, EyesTargetContainer tc, float alpha)
 			{
+				modifier = m;
 				t = tc;
-				alpha_ = alpha * 50;
+				alpha_ = alpha * AlphaFactor;
 				Create();
 			}
 
@@ -761,10 +772,18 @@ namespace Synergy
 				if (t.Target == null)
 					return;
 
-				sphere = CreateObject(
+				target = CreateObject(
 					PrimitiveType.Sphere, GetColor(t.Target, 0.5f));
 
-				sphere.transform.localPosition = t.Target.Position;
+				target.transform.localPosition = t.Target.Position;
+				target.transform.localScale = DefaultSphereScale;
+
+				adjustedTarget = CreateObject(
+					PrimitiveType.Sphere, GetColor(t.Target, 0.1f));
+
+				adjustedTarget.transform.localPosition =
+					modifier.AdjustedPosition(t.Target.Position);
+				adjustedTarget.transform.localScale = DefaultSphereScale / 2;
 
 				if (t.Target is RandomEyesTarget)
 				{
@@ -778,10 +797,13 @@ namespace Synergy
 
 			public void SetAlpha(float f)
 			{
-				alpha_ = f * 50;
+				alpha_ = f * AlphaFactor;
 
-				if (sphere != null)
-					SetAlpha(sphere, GetColor(t.Target, 0.5f));
+				if (target != null)
+					SetAlpha(target, GetColor(t.Target, 0.5f));
+
+				if (adjustedTarget != null)
+					SetAlpha(adjustedTarget, GetColor(t.Target, 0.1f));
 
 				if (t.Target is RandomEyesTarget)
 				{
@@ -795,10 +817,16 @@ namespace Synergy
 
 			public void Destroy()
 			{
-				if (sphere != null)
+				if (target != null)
 				{
-					Object.Destroy(sphere);
-					sphere = null;
+					Object.Destroy(target);
+					target = null;
+				}
+
+				if (adjustedTarget != null)
+				{
+					Object.Destroy(adjustedTarget);
+					adjustedTarget = null;
 				}
 
 				if (plane != null)
@@ -921,7 +949,7 @@ namespace Synergy
 				return;
 
 			foreach (var t in modifier_.Targets)
-				previews_.Add(new Preview(t, alpha_));
+				previews_.Add(new Preview(modifier_, t, alpha_));
 		}
 
 		public void Destroy()
@@ -934,13 +962,20 @@ namespace Synergy
 
 		public void Update()
 		{
+			if (modifier_ == null)
+				return;
+
 			foreach (var p in previews_)
 			{
 				if (p.t?.Target == null)
 					continue;
 
-				p.sphere.SetActive(p.t.Enabled);
-				p.sphere.transform.localPosition = p.t.Target.Position;
+				p.target.SetActive(p.t.Enabled);
+				p.target.transform.localPosition = p.t.Target.Position;
+
+				p.adjustedTarget.SetActive(p.t.Enabled);
+				p.adjustedTarget.transform.localPosition =
+					modifier_.AdjustedPosition(p.t.Target.Position);
 
 				if (p.t.Target is RandomEyesTarget)
 				{
@@ -969,7 +1004,6 @@ namespace Synergy
 				rt.RangeX*2, rt.RangeY*2, 0.01f);
 
 			p.plane.transform.localRotation = rel.rotation;
-			//p.plane.transform.localRotation = Quaternion.LookRotation(fwd);
 
 			if (rt.AvoidRangeX == 0 && rt.AvoidRangeY == 0)
 			{

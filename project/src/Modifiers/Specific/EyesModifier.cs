@@ -22,6 +22,7 @@ namespace Synergy
 	{
 		IEyesTarget Clone(int cloneFlags);
 		Vector3 Position { get; }
+		bool Valid { get; }
 		void Update(Rigidbody head, Rigidbody chest);
 		string Name { get; }
 	}
@@ -33,6 +34,7 @@ namespace Synergy
 
 		public abstract IEyesTarget Clone(int cloneFlags);
 		public abstract Vector3 Position { get; }
+		public abstract bool Valid { get; }
 		public abstract void Update(Rigidbody head, Rigidbody chest);
 
 		public abstract string Name { get; }
@@ -149,6 +151,11 @@ namespace Synergy
 		public override Vector3 Position
 		{
 			get { return pos_; }
+		}
+
+		public override bool Valid
+		{
+			get { return receiver_ != null; }
 		}
 
 		public override void Update(Rigidbody head, Rigidbody chest)
@@ -282,6 +289,11 @@ namespace Synergy
 		public override Vector3 Position
 		{
 			get { return pos_; }
+		}
+
+		public override bool Valid
+		{
+			get { return true; }
 		}
 
 		public Vector3 Offset
@@ -434,6 +446,11 @@ namespace Synergy
 		public override Vector3 Position
 		{
 			get { return pos_; }
+		}
+
+		public override bool Valid
+		{
+			get { return true; }
 		}
 
 		public Atom Atom
@@ -985,6 +1002,13 @@ namespace Synergy
 			if (head_ == null || eyes_ == null)
 				return;
 
+			var tc = CurrentTargetContainer;
+			if (tc != null && !tc.Enabled)
+			{
+				// target got disabled
+				Next();
+			}
+
 
 			saccadeTime_.Tick(deltaTime);
 			if (saccadeTime_.Finished)
@@ -1040,8 +1064,6 @@ namespace Synergy
 			SetOrderIndex(-1);
 
 			var start = i;
-			if (start < 0)
-				start = 0;
 
 			for (; ;)
 			{
@@ -1060,8 +1082,17 @@ namespace Synergy
 
 				if (i == start)
 				{
-					// nothing enabled
-					break;
+					if (start < 0)
+					{
+						// no index when started
+						start = 0;
+					}
+					else
+					{
+						// nothing enabled
+						SetOrderIndex(-1);
+						break;
+					}
 				}
 			}
 		}
@@ -1110,7 +1141,7 @@ namespace Synergy
 			}
 		}
 
-		public IEyesTarget CurrentTarget
+		public EyesTargetContainer CurrentTargetContainer
 		{
 			get
 			{
@@ -1118,7 +1149,15 @@ namespace Synergy
 				if (i < 0 || i >= targets_.Count)
 					return null;
 
-				return targets_[i].Target;
+				return targets_[i];
+			}
+		}
+
+		public IEyesTarget CurrentTarget
+		{
+			get
+			{
+				return CurrentTargetContainer?.Target;
 			}
 		}
 
@@ -1228,7 +1267,26 @@ namespace Synergy
 			if (t == null)
 				return;
 
-			var pos = t.Position + saccadeOffset_;
+			if (t.Valid)
+			{
+				var pos = AdjustedPosition(t.Position + saccadeOffset_);
+
+				if (currentFocusDuration_ > 0)
+				{
+					float focus = FocusProgressNormalized;
+					pos.x = Mathf.Lerp(last_.x, pos.x, focus);
+					pos.y = Mathf.Lerp(last_.y, pos.y, focus);
+					pos.z = Mathf.Lerp(last_.z, pos.z, focus);
+				}
+
+				eyes_.position = pos;
+			}
+		}
+
+		public Vector3 AdjustedPosition(Vector3 pos)
+		{
+			if (head_ == null)
+				return pos;
 
 			var distanceToTarget = Vector3.Distance(head_.position, pos);
 			if (distanceToTarget < MinDistance)
@@ -1239,15 +1297,7 @@ namespace Synergy
 				pos += (dir * add);
 			}
 
-			if (currentFocusDuration_ > 0)
-			{
-				float focus = FocusProgressNormalized;
-				pos.x = Mathf.Lerp(last_.x, pos.x, focus);
-				pos.y = Mathf.Lerp(last_.y, pos.y, focus);
-				pos.z = Mathf.Lerp(last_.z, pos.z, focus);
-			}
-
-			eyes_.position = pos;
+			return pos;
 		}
 
 		protected override string MakeName()
