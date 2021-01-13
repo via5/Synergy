@@ -450,7 +450,7 @@ namespace Synergy
 
 		public override bool Valid
 		{
-			get { return true; }
+			get { return (rel_ != null); }
 		}
 
 		public Atom Atom
