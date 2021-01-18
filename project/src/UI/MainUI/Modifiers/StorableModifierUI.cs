@@ -62,8 +62,7 @@ namespace Synergy
 			widgets_.AddToUI(new Label(
 				"This is a bool parameter. The\n" +
 				"movement sliders below will set\n" +
-				"it to false <= 0.5, true > 0.5 \n" +
-				"(value is normalized).",
+				"it to false <= 0.5, true > 0.5.",
 				Widget.Right));
 		}
 	}
@@ -103,9 +102,9 @@ namespace Synergy
 
 			widgets_.AddToUI(new Label(
 				"This is a color parameter. The\n" +
-				"movement sliders below will set\n" +
-				"it to color 1 <= 0.5, color 2 > 0.5 \n" +
-				"(value is normalized).",
+				"movement sliders below will\n" +
+				"interpolate between color 1 (0.0)\n" +
+				"and color 2 (1.0).",
 				Widget.Right));
 
 			widgets_.AddToUI(color1_);
@@ -260,6 +259,145 @@ namespace Synergy
 		}
 	}
 
+
+	class StringChooserStorableParameterUI : BasicStorableParameterUI
+	{
+		public override string ParameterType
+		{
+			get { return StringStorableParameter.FactoryTypeName; }
+		}
+
+		private readonly StringList av_, strings_;
+		private readonly Textbox current_;
+		private readonly Button save_, add_;
+		private readonly ConfirmableButton delete_;
+
+		private StringChooserStorableParameter param_ = null;
+		private int sel_ = -1;
+
+
+		public StringChooserStorableParameterUI()
+		{
+			av_ = new StringList("Available strings", null, Widget.Right);
+			strings_ = new StringList("Strings", null, Widget.Right);
+			current_ = new Textbox("Selected", "", CurrentChanged, Widget.Right);
+			save_ = new Button("Save changes", SaveChanges, Widget.Right);
+			add_ = new Button("Add new", AddNew, Widget.Right);
+			delete_ = new ConfirmableButton(
+				"Delete selected", DeleteSelected, Widget.Right);
+
+			strings_.SelectionIndexChanged += StringSelected;
+		}
+
+		public override void AddToUI(IStorableParameter p)
+		{
+			base.AddToUI(p);
+
+			param_ = p as StringChooserStorableParameter;
+			if (param_ == null)
+				return;
+
+			current_.Placeholder = "No selection";
+
+			widgets_.AddToUI(new Label(
+				"This is a string parameter. Each string\n" +
+				"in the list will be set for an equal part\n" +
+				"of the movement range (value is\n" +
+				"normalized).",
+				Widget.Right));
+
+			widgets_.AddToUI(av_);
+			widgets_.AddToUI(strings_);
+			widgets_.AddToUI(current_);
+			widgets_.AddToUI(save_);
+			widgets_.AddToUI(add_);
+			widgets_.AddToUI(delete_);
+
+			save_.Enabled = false;
+
+			if (param_.Parameter != null)
+				av_.Choices = param_.Parameter.choices;
+		}
+
+		public void SaveChanges()
+		{
+			if (param_ == null)
+				return;
+
+			var list = strings_.Choices;
+			if (sel_ < 0 || sel_ >= list.Count)
+				return;
+
+			list[sel_] = current_.Value;
+			strings_.Choices = list;
+			strings_.Value = current_.Value;
+			param_.Strings = list;
+			save_.Enabled = false;
+		}
+
+		public void AddNew()
+		{
+			var list = strings_.Choices;
+
+			string s = "New string";
+			for (int i = 1; i < 100; ++i)
+			{
+				if (list.IndexOf(s) == -1)
+					break;
+
+				s = "New string (" + i.ToString() + ")";
+			}
+
+			list.Add(s);
+			strings_.Choices = list;
+			strings_.Value = s;
+			current_.Value = s;
+			sel_ = list.Count - 1;
+			param_.Strings = list;
+		}
+
+		public void DeleteSelected()
+		{
+			if (param_ == null)
+				return;
+
+			var list = strings_.Choices;
+			if (sel_ < 0 || sel_ >= list.Count)
+				return;
+
+			list.RemoveAt(sel_);
+
+			strings_.Choices = list;
+			param_.Strings = list;
+
+			if (list.Count == 0)
+			{
+				current_.Value = "";
+				sel_ = -1;
+				strings_.Value = "";
+			}
+			else
+			{
+				if (sel_ >= list.Count)
+					sel_ = list.Count - 1;
+
+				current_.Value = list[sel_];
+				strings_.Value = current_.Value;
+			}
+		}
+
+		private void CurrentChanged(string s)
+		{
+			save_.Enabled = true;
+		}
+
+		private void StringSelected(int i)
+		{
+			sel_ = i;
+			current_.Value = strings_.Choices[i];
+			save_.Enabled = false;
+		}
+	}
 
 	class UrlStorableParameterUI : StringStorableParameterUI
 	{
@@ -685,6 +823,8 @@ namespace Synergy
 				return new UrlStorableParameterUI();
 			else if (p is StringStorableParameter)
 				return new StringStorableParameterUI();
+			else if (p is StringChooserStorableParameter)
+				return new StringChooserStorableParameterUI();
 			else if (p is ActionStorableParameter)
 				return new ActionStorableParameterUI();
 			else

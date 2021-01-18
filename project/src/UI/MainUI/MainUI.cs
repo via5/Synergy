@@ -331,6 +331,7 @@ namespace Synergy
 
 			cloneModifier_.Enabled = (CurrentModifier != null);
 			cloneModifierZero_.Enabled = (CurrentModifier != null);
+			cloneModifierSynced_.Enabled = (CurrentModifier != null);
 		}
 
 

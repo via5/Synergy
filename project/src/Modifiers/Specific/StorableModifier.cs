@@ -32,7 +32,8 @@ namespace Synergy
 				new BoolStorableParameter(),
 				new ColorStorableParameter(),
 				new UrlStorableParameter(),
-				new StringStorableParameter()
+				new StringStorableParameter(),
+				new StringChooserStorableParameter()
 			};
 		}
 
@@ -48,6 +49,8 @@ namespace Synergy
 				return new UrlStorableParameter(p as JSONStorableUrl);
 			else if (p is JSONStorableString)
 				return new StringStorableParameter(p as JSONStorableString);
+			else if (p is JSONStorableStringChooser)
+				return new StringChooserStorableParameter(p as JSONStorableStringChooser);
 			else
 				return null;
 		}
@@ -273,7 +276,7 @@ namespace Synergy
 		public override void Set(float magnitude, float normalizedMagnitude)
 		{
 			if (Parameter != null)
-				Parameter.val = (normalizedMagnitude > 0.5f);
+				Parameter.val = (magnitude > 0.5f);
 		}
 
 		public override void Reset()
@@ -355,9 +358,9 @@ namespace Synergy
 			if (Parameter != null)
 			{
 				var c = new Color(
-					Interpolate(c1_.r, c2_.r, normalizedMagnitude),
-					Interpolate(c1_.g, c2_.g, normalizedMagnitude),
-					Interpolate(c1_.b, c2_.b, normalizedMagnitude));
+					Interpolate(c1_.r, c2_.r, magnitude),
+					Interpolate(c1_.g, c2_.g, magnitude),
+					Interpolate(c1_.b, c2_.b, magnitude));
 
 				Parameter.SetColor(c);
 			}
@@ -482,7 +485,17 @@ namespace Synergy
 				if (next != current_)
 				{
 					current_ = next;
-					Parameter.val = next;
+
+					try
+					{
+						Parameter.val = next;
+					}
+					catch (Exception e)
+					{
+						Synergy.LogError(
+							"can't set parameter '" + Parameter.name + "' to " +
+							"'" + next + "', " + e.Message);
+					}
 				}
 			}
 		}
@@ -529,6 +542,122 @@ namespace Synergy
 				return false;
 
 			var o = n.AsObject("StringStorableParameter");
+			if (o == null)
+				return false;
+
+			o.Opt("strings", ref strings_);
+
+			return true;
+		}
+	}
+
+
+	class StringChooserStorableParameter
+	: ParamDerivedStorableParameter<JSONStorableStringChooser>
+	{
+		public static string FactoryTypeName { get; } = "stringchooser";
+		public override string GetFactoryTypeName() { return FactoryTypeName; }
+
+		public static string DisplayName { get; } = "String chooser";
+		public override string GetDisplayName() { return DisplayName; }
+
+		private List<string> strings_ = new List<string>();
+		private string current_ = null;
+
+		public StringChooserStorableParameter(JSONStorableStringChooser p = null)
+			: base(p)
+		{
+		}
+
+		public override IStorableParameter Clone(int cloneFlags = 0)
+		{
+			var p = new StringChooserStorableParameter();
+			CopyTo(p, cloneFlags);
+			return p;
+		}
+
+		protected void CopyTo(StringChooserStorableParameter p, int cloneFlags)
+		{
+			base.CopyTo(p, cloneFlags);
+			p.strings_ = new List<string>(strings_);
+		}
+
+		public List<string> Strings
+		{
+			get { return strings_; }
+			set { strings_ = new List<string>(value); }
+		}
+
+		public string Current
+		{
+			get { return current_; }
+		}
+
+		public override void Set(float magnitude, float normalizedMagnitude)
+		{
+			if (Parameter != null)
+			{
+				if (strings_.Count == 0)
+					return;
+
+				var magPer = 1.0f / strings_.Count;
+
+				var i = Math.Min(
+					(int)Math.Floor(normalizedMagnitude / magPer),
+					strings_.Count - 1);
+
+				var next = strings_[i];
+
+				if (next != current_)
+				{
+					current_ = next;
+					Parameter.val = next;
+				}
+			}
+		}
+
+		public override void Reset()
+		{
+			// no-op
+		}
+
+		public override IEnumerable<string> GetStorableNames(Atom a, bool pluginsOnly)
+		{
+			if (a != null)
+			{
+				foreach (var id in a.GetStorableIDs())
+				{
+					if (!pluginsOnly || Utilities.StorableIsPlugin(id))
+					{
+						var s = a.GetStorableByID(id);
+						if (s.GetStringChooserParamNames().Count > 0)
+							yield return id;
+					}
+				}
+			}
+		}
+
+		public override IEnumerable<string> GetParameterNames(JSONStorable s)
+		{
+			foreach (var n in s.GetStringChooserParamNames())
+				yield return n;
+		}
+
+		public override J.Node ToJSON()
+		{
+			var o = base.ToJSON().AsObject();
+
+			o.Add("strings", strings_);
+
+			return o;
+		}
+
+		public override bool FromJSON(J.Node n)
+		{
+			if (!base.FromJSON(n))
+				return false;
+
+			var o = n.AsObject("StringChooserStorableParameter");
 			if (o == null)
 				return false;
 
@@ -958,7 +1087,7 @@ namespace Synergy
 			var p = StorableParameterFactory.Create(sp);
 			if (p == null)
 			{
-				Synergy.LogError("unknown parameter type");
+				Synergy.LogError("unknown parameter type " + sp.ToString());
 				return;
 			}
 

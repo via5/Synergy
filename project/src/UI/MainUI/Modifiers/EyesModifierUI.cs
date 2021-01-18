@@ -791,7 +791,7 @@ namespace Synergy
 						PrimitiveType.Cube, GetColor(t.Target, 0.02f));
 
 					planeAvoid = CreateObject(
-						PrimitiveType.Cube, new Color(0, 0, 0, 0.1f));
+						PrimitiveType.Cube, new Color(1, 0, 0, 0.1f));
 				}
 			}
 
