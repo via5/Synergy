@@ -11,7 +11,6 @@ namespace Synergy
 			return new List<IEyesTarget>()
 			{
 				new RigidbodyEyesTarget(),
-				new ConstantEyesTarget(),
 				new RandomEyesTarget()
 			};
 		}
@@ -210,178 +209,14 @@ namespace Synergy
 				}
 			}
 
-			o.OptRigidbody("receiver", atom_, ref receiver_);
+			// migration from constant eye target
+			o.OptRigidbody("relative", atom_, ref receiver_);
+
+			if (receiver_ == null)
+				o.OptRigidbody("receiver", atom_, ref receiver_);
 
 			if (o.HasKey("offset"))
 				J.Wrappers.FromJSON(o.Get("offset"), ref offset_);
-
-			return true;
-		}
-	}
-
-	class ConstantEyesTarget : BasicEyesTarget
-	{
-		public override string GetFactoryTypeName() { return "constant"; }
-		public override string GetDisplayName() { return "Constant"; }
-
-		private Vector3 offset_ = new Vector3();
-		private Atom atom_ = null;
-		private Rigidbody rel_ = null;
-
-		private Vector3 pos_ = new Vector3();
-
-
-		public ConstantEyesTarget()
-			: this(new Vector3(), null, null)
-		{
-		}
-
-		public ConstantEyesTarget(
-			Vector3 offset, Atom a, Rigidbody rel)
-		{
-			atom_ = a;
-			offset_ = offset;
-			rel_ = rel;
-		}
-
-		public static Rigidbody GetPreferredTarget(Atom a)
-		{
-			var chest = Utilities.FindRigidbody(a, "chest");
-			if (chest != null)
-				return chest;
-
-			var head = Utilities.FindRigidbody(a, "head");
-			if (head != null)
-				return head;
-
-			var c = Utilities.FindRigidbody(a, "control");
-			if (c != null)
-				return c;
-
-			return null;
-		}
-
-		public override IEyesTarget Clone(int cloneFlags)
-		{
-			var t = new ConstantEyesTarget();
-			CopyTo(t, cloneFlags);
-			return t;
-		}
-
-		private void CopyTo(ConstantEyesTarget t, int cloneFlags)
-		{
-			t.offset_ = offset_;
-			t.rel_ = rel_;
-		}
-
-		public override string Name
-		{
-			get
-			{
-				string s = "Constant";
-				if (rel_ != null)
-					s += " " + rel_.name;
-
-				return s;
-			}
-		}
-
-		public override Vector3 Position
-		{
-			get { return pos_; }
-		}
-
-		public override bool Valid
-		{
-			get { return true; }
-		}
-
-		public Vector3 Offset
-		{
-			get { return offset_; }
-			set { offset_ = value; }
-		}
-
-		public Atom Atom
-		{
-			get
-			{
-				return atom_;
-			}
-
-			set
-			{
-				if (value != null && rel_ != null)
-					rel_ = Utilities.FindRigidbody(value, rel_.name);
-				else
-					rel_ = null;
-
-				atom_ = value;
-			}
-		}
-
-		public Rigidbody RelativeTo
-		{
-			get { return rel_; }
-			set { rel_ = value; }
-		}
-
-		public override void Update(Rigidbody head, Rigidbody chest)
-		{
-			if (rel_ == null)
-				pos_ = head.position + offset_;
-			else
-				pos_ = rel_.position + rel_.rotation * offset_;
-		}
-
-		public override J.Node ToJSON()
-		{
-			var o = base.ToJSON().AsObject();
-
-			o.Add("offset", J.Wrappers.ToJSON(offset_));
-
-			if (atom_ != null)
-			{
-				if (J.Node.SaveContext.UsePlaceholder)
-					o.Add("atom", Utilities.PresetAtomPlaceholder);
-				else
-					o.Add("atom", atom_.uid);
-			}
-
-			if (rel_ != null)
-				o.Add("relative", rel_.name);
-
-			return o;
-		}
-
-		public override bool FromJSON(J.Node n)
-		{
-			if (!base.FromJSON(n))
-				return false;
-
-			var o = n.AsObject("ConstantEyesTarget");
-			if (o == null)
-				return false;
-
-			if (o.HasKey("offset"))
-				J.Wrappers.FromJSON(o.Get("offset"), ref offset_);
-
-			if (o.HasKey("atom"))
-			{
-				var atomUID = o.Get("atom").AsString();
-				if (atomUID != null)
-				{
-					if (atomUID == Utilities.PresetAtomPlaceholder)
-						atom_ = Synergy.Instance.DefaultAtom;
-					else
-						atom_ = SuperController.singleton.GetAtomByUid(atomUID);
-
-					if (atom_ == null)
-						Synergy.LogError("atom '" + atomUID + "' not found");
-				}
-			}
-
-			o.OptRigidbody("relative", atom_, ref rel_);
 
 			return true;
 		}
@@ -759,6 +594,24 @@ namespace Synergy
 				return false;
 
 			o.Opt("enabled", ref enabled_);
+
+			// migration: constant target removed, was redundant with rigidbody
+			if (o.HasChildObject("target"))
+			{
+				var t = o.Get("target").AsObject();
+
+				string type = "";
+				t.Opt("factoryTypeName", ref type);
+
+				if (type == "constant")
+				{
+					Synergy.LogInfo("found constant eye target, converting to rigidbody");
+					target_ = new RigidbodyEyesTarget();
+					return target_.FromJSON(t);
+				}
+			}
+
+
 			o.Opt<EyesTargetFactory, IEyesTarget>("target", ref target_);
 
 			return true;
