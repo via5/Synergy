@@ -1138,6 +1138,9 @@ namespace Synergy
 
 		private void StopFocus()
 		{
+			currentFocusDuration_ = focusDuration_.Current;
+			focusProgress_ = currentFocusDuration_;
+
 			// focusing is done, set the look mode to what the target
 			// actually wants
 			if (lookMode_ != null)
