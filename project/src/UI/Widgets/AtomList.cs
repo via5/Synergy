@@ -43,11 +43,6 @@ namespace Synergy
 
 		private void UpdateList()
 		{
-			var ignore = new HashSet<string>()
-			{
-				"[camerarig]"
-			};
-
 			var names = new List<string>();
 
 			if (sc_.GetAtomById("Player") != null)
@@ -55,9 +50,6 @@ namespace Synergy
 
 			foreach (var a in sc_.GetSceneAtoms())
 			{
-				if (ignore.Contains(a.name.ToLower()))
-					continue;
-
 				if (pred_ != null)
 				{
 					if (!pred_(a))
