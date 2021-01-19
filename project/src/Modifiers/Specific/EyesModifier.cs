@@ -721,9 +721,9 @@ namespace Synergy
 		private RandomizableTime saccadeTime_ =
 			new RandomizableTime(1, 0.2f, 0);
 		private FloatParameter saccadeMin_ = new FloatParameter(
-			"SaccadeMin", 0.01f, 0.01f);
+			"SaccadeMin", 0.1f, 0.01f);
 		private FloatParameter saccadeMax_ = new FloatParameter(
-			"SaccadeMax", 0.02f, 0.01f);
+			"SaccadeMax", 0.2f, 0.01f);
 
 		private FloatParameter minDistance_ = new FloatParameter(
 			"MinDistance", 0.5f, 0.1f);
@@ -948,13 +948,13 @@ namespace Synergy
 				saccadeTime_.Reset();
 
 				saccadeOffset_.x = Utilities.RandomFloat(
-					SaccadeMin, SaccadeMax);
+					SaccadeMin / 10, SaccadeMax / 10);
 
 				saccadeOffset_.y = Utilities.RandomFloat(
-					SaccadeMin, SaccadeMax);
+					SaccadeMin / 10, SaccadeMax / 10);
 
 				saccadeOffset_.z = Utilities.RandomFloat(
-					SaccadeMin, SaccadeMax);
+					SaccadeMin / 10, SaccadeMax / 10);
 			}
 
 			focusDuration_.Tick(deltaTime);
@@ -965,10 +965,10 @@ namespace Synergy
 
 			if (progress != lastProgress_)
 			{
-				lastProgress_ = progress;
-
-				if (CurrentOrderIndex == -1 || progress == 1)
+				if (CurrentOrderIndex == -1 || (progress < lastProgress_ && firstHalf))
 					Next();
+
+				lastProgress_ = progress;
 			}
 		}
 
@@ -1092,6 +1092,8 @@ namespace Synergy
 			if (t == null)
 				return;
 
+			bool needsFocus = true;
+
 			if (eyes_ == null)
 			{
 				last_ = new Vector3();
@@ -1102,6 +1104,12 @@ namespace Synergy
 				// player's eyes
 				last_ = Utilities.CenterEyePosition();
 			}
+			else if (lookMode_ != null && lookMode_.val == "Player" && t.LookMode == "Player")
+			{
+				// look is already in player mode and that's what the target
+				// wants to, no focusing needed
+				needsFocus = false;
+			}
 			else
 			{
 				last_ = eyes_.position;
@@ -1111,7 +1119,10 @@ namespace Synergy
 			CheckGaze();
 			CheckBlink();
 
-			StartFocus();
+			if (needsFocus)
+				StartFocus();
+			else
+				StopFocus();
 		}
 
 		private void StartFocus()
@@ -1125,6 +1136,18 @@ namespace Synergy
 				lookMode_.val = "Target";
 		}
 
+		private void StopFocus()
+		{
+			// focusing is done, set the look mode to what the target
+			// actually wants
+			if (lookMode_ != null)
+			{
+				var t = CurrentTarget;
+				if (t != null)
+					lookMode_.val = t.LookMode;
+			}
+		}
+
 		private void CheckFocus(float deltaTime)
 		{
 			if (currentFocusDuration_ < 0)
@@ -1136,16 +1159,7 @@ namespace Synergy
 					focusProgress_ + deltaTime, 0, currentFocusDuration_);
 
 				if (focusProgress_ >= currentFocusDuration_)
-				{
-					// focusing is done, set the look mode to what the target
-					// actually wants
-					if (lookMode_ != null)
-					{
-						var t = CurrentTarget;
-						if (t != null)
-							lookMode_.val = t.LookMode;
-					}
-				}
+					StopFocus();
 			}
 		}
 

@@ -422,13 +422,15 @@ namespace Synergy
 				"Saccade interval", Widget.Right);
 
 			saccadeMin_ = new FloatSlider(
-				"Saccade minimum", SaccadeMinChanged, Widget.Right);
+				"Saccade minimum (x10)", 0, new FloatRange(0, 1),
+				SaccadeMinChanged, Widget.Right);
 
 			saccadeMax_ = new FloatSlider(
-				"Saccade maximum", SaccadeMaxChanged, Widget.Right);
+				"Saccade maximum (x10)", 0, new FloatRange(0, 1),
+				SaccadeMaxChanged, Widget.Right);
 
 			minDistance_ = new FloatSlider(
-				"Minimum distance (avoids cross-eyed)",
+				"Minimum distance (avoids cross-eyed)", 0, new FloatRange(0, 1),
 				MinDistanceChanged, Widget.Right);
 
 			focusDurationCollapsible_ = new Collapsible(
@@ -456,9 +458,12 @@ namespace Synergy
 
 			saccade_.Add(saccadeMin_);
 			saccade_.Add(saccadeMax_);
+			saccade_.Add(new SmallSpacer(Widget.Right));
 
 			foreach (var w in focusDuration_.GetWidgets())
 				focusDurationCollapsible_.Add(w);
+
+			focusDurationCollapsible_.Add(new SmallSpacer(Widget.Right));
 		}
 
 
