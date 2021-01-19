@@ -333,7 +333,7 @@ namespace Synergy
 				list.Clear();
 
 				foreach (JSONNode n in array)
-					list.Add(n.ToString());
+					list.Add(n.Value);
 			}
 
 			public void Opt(string key, ref bool v)

@@ -158,7 +158,8 @@ namespace Synergy
 		public override void Update()
 		{
 			base.Update();
-			currentString_.Text = "Current: " + (parameter_?.Current ?? " (none)");
+			currentString_.Text =
+				"Current: " + (parameter_?.CurrentString ?? " (none)");
 		}
 	}
 

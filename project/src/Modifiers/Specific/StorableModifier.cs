@@ -11,6 +11,7 @@ namespace Synergy
 		IStorableParameter Clone(int cloneFlags = 0);
 		FloatRange PreferredRange { get; }
 		string Name { get; }
+		bool TryParameter(JSONStorableParam p);
 
 		void Tick(float deltaTime, float progress, bool firstHalf);
 		void Set(float magnitude, float normalizedMagnitude);
@@ -78,6 +79,11 @@ namespace Synergy
 			}
 		}
 
+		public virtual bool TryParameter(JSONStorableParam p)
+		{
+			return false;
+		}
+
 		public abstract string Name { get; }
 
 		public virtual J.Node ToJSON()
@@ -134,6 +140,18 @@ namespace Synergy
 		public T Parameter
 		{
 			get { return param_; }
+			set { param_ = value; }
+		}
+
+		public override bool TryParameter(JSONStorableParam p)
+		{
+			if (p is T)
+			{
+				param_ = (T)p;
+				return true;
+			}
+
+			return false;
 		}
 
 		public override J.Node ToJSON()
@@ -426,157 +444,28 @@ namespace Synergy
 	}
 
 
-	class StringStorableParameter
-		: ParamDerivedStorableParameter<JSONStorableString>
+	interface IStringListStorableParameter
 	{
-		public static string FactoryTypeName { get; } = "string";
-		public override string GetFactoryTypeName() { return FactoryTypeName; }
-
-		public static string DisplayName { get; } = "String";
-		public override string GetDisplayName() { return DisplayName; }
-
-		private List<string> strings_ = new List<string>();
-		private string current_ = null;
-
-		public StringStorableParameter(JSONStorableString p = null)
-			: base(p)
-		{
-		}
-
-		public override IStorableParameter Clone(int cloneFlags = 0)
-		{
-			var p = new StringStorableParameter();
-			CopyTo(p, cloneFlags);
-			return p;
-		}
-
-		protected void CopyTo(StringStorableParameter p, int cloneFlags)
-		{
-			base.CopyTo(p, cloneFlags);
-			p.strings_ = new List<string>(strings_);
-		}
-
-		public List<string> Strings
-		{
-			get { return strings_; }
-			set { strings_ = new List<string>(value); }
-		}
-
-		public string Current
-		{
-			get { return current_; }
-		}
-
-		public override void Set(float magnitude, float normalizedMagnitude)
-		{
-			if (Parameter != null)
-			{
-				if (strings_.Count == 0)
-					return;
-
-				var magPer = 1.0f / strings_.Count;
-
-				var i = Math.Min(
-					(int)Math.Floor(normalizedMagnitude / magPer),
-					strings_.Count - 1);
-
-				var next = strings_[i];
-
-				if (next != current_)
-				{
-					current_ = next;
-
-					try
-					{
-						Parameter.val = next;
-					}
-					catch (Exception e)
-					{
-						Synergy.LogError(
-							"can't set parameter '" + Parameter.name + "' to " +
-							"'" + next + "', " + e.Message);
-					}
-				}
-			}
-		}
-
-		public override void Reset()
-		{
-			// no-op
-		}
-
-		public override IEnumerable<string> GetStorableNames(Atom a, bool pluginsOnly)
-		{
-			if (a != null)
-			{
-				foreach (var id in a.GetStorableIDs())
-				{
-					if (!pluginsOnly || Utilities.StorableIsPlugin(id))
-					{
-						var s = a.GetStorableByID(id);
-						if (s.GetStringParamNames().Count > 0)
-							yield return id;
-					}
-				}
-			}
-		}
-
-		public override IEnumerable<string> GetParameterNames(JSONStorable s)
-		{
-			foreach (var n in s.GetStringParamNames())
-				yield return n;
-		}
-
-		public override J.Node ToJSON()
-		{
-			var o = base.ToJSON().AsObject();
-
-			o.Add("strings", strings_);
-
-			return o;
-		}
-
-		public override bool FromJSON(J.Node n)
-		{
-			if (!base.FromJSON(n))
-				return false;
-
-			var o = n.AsObject("StringStorableParameter");
-			if (o == null)
-				return false;
-
-			o.Opt("strings", ref strings_);
-
-			return true;
-		}
+		List<string> Strings { get; set; }
+		bool HasAvailableStrings { get; }
+		List<string> AvailableStrings { get; }
 	}
 
 
-	class StringChooserStorableParameter
-	: ParamDerivedStorableParameter<JSONStorableStringChooser>
+	abstract class StringListStorableParameter<T> :
+		ParamDerivedStorableParameter<T>,
+		IStringListStorableParameter
+		where T : JSONStorableParam
 	{
-		public static string FactoryTypeName { get; } = "stringchooser";
-		public override string GetFactoryTypeName() { return FactoryTypeName; }
-
-		public static string DisplayName { get; } = "String chooser";
-		public override string GetDisplayName() { return DisplayName; }
-
 		private List<string> strings_ = new List<string>();
-		private string current_ = null;
+		private int current_ = -1;
 
-		public StringChooserStorableParameter(JSONStorableStringChooser p = null)
+		public StringListStorableParameter(T p = null)
 			: base(p)
 		{
 		}
 
-		public override IStorableParameter Clone(int cloneFlags = 0)
-		{
-			var p = new StringChooserStorableParameter();
-			CopyTo(p, cloneFlags);
-			return p;
-		}
-
-		protected void CopyTo(StringChooserStorableParameter p, int cloneFlags)
+		protected void CopyTo(StringListStorableParameter<T> p, int cloneFlags)
 		{
 			base.CopyTo(p, cloneFlags);
 			p.strings_ = new List<string>(strings_);
@@ -588,9 +477,18 @@ namespace Synergy
 			set { strings_ = new List<string>(value); }
 		}
 
-		public string Current
+		public abstract bool HasAvailableStrings { get; }
+		public abstract List<string> AvailableStrings { get; }
+
+		public string CurrentString
 		{
-			get { return current_; }
+			get
+			{
+				if (current_ < 0 || current_ >= strings_.Count)
+					return "";
+
+				return strings_[current_];
+			}
 		}
 
 		public override void Set(float magnitude, float normalizedMagnitude)
@@ -606,15 +504,18 @@ namespace Synergy
 					(int)Math.Floor(normalizedMagnitude / magPer),
 					strings_.Count - 1);
 
-				var next = strings_[i];
-
-				if (next != current_)
+				if (i != current_)
 				{
-					current_ = next;
-					Parameter.val = next;
+					current_ = i;
+					SetValue(strings_[i]);
 				}
+
+				if (normalizedMagnitude >= 0.95f)
+					current_ = -1;
 			}
 		}
+
+		protected abstract void SetValue(string s);
 
 		public override void Reset()
 		{
@@ -657,13 +558,133 @@ namespace Synergy
 			if (!base.FromJSON(n))
 				return false;
 
-			var o = n.AsObject("StringChooserStorableParameter");
+			var o = n.AsObject("StringListStorableParameter");
 			if (o == null)
 				return false;
 
 			o.Opt("strings", ref strings_);
 
 			return true;
+		}
+	}
+
+
+	class StringStorableParameter
+		: StringListStorableParameter<JSONStorableString>
+	{
+		public static string FactoryTypeName { get; } = "string";
+		public override string GetFactoryTypeName() { return FactoryTypeName; }
+
+		public static string DisplayName { get; } = "String";
+		public override string GetDisplayName() { return DisplayName; }
+
+		public StringStorableParameter(JSONStorableString p = null)
+			: base(p)
+		{
+		}
+
+		public override IStorableParameter Clone(int cloneFlags = 0)
+		{
+			var p = new StringStorableParameter();
+			CopyTo(p, cloneFlags);
+			return p;
+		}
+
+		public override bool HasAvailableStrings
+		{
+			get { return false; }
+		}
+
+		public override List<String> AvailableStrings
+		{
+			get { return new List<string>(); }
+		}
+
+		public override IEnumerable<string> GetStorableNames(Atom a, bool pluginsOnly)
+		{
+			if (a != null)
+			{
+				foreach (var id in a.GetStorableIDs())
+				{
+					if (!pluginsOnly || Utilities.StorableIsPlugin(id))
+					{
+						var s = a.GetStorableByID(id);
+						if (s.GetStringParamNames().Count > 0)
+							yield return id;
+					}
+				}
+			}
+		}
+
+		public override IEnumerable<string> GetParameterNames(JSONStorable s)
+		{
+			foreach (var n in s.GetStringParamNames())
+				yield return n;
+		}
+
+		protected override void SetValue(string s)
+		{
+			Parameter.val = s;
+		}
+	}
+
+
+	class StringChooserStorableParameter
+		: StringListStorableParameter<JSONStorableStringChooser>
+	{
+		public static string FactoryTypeName { get; } = "stringchooser";
+		public override string GetFactoryTypeName() { return FactoryTypeName; }
+
+		public static string DisplayName { get; } = "String chooser";
+		public override string GetDisplayName() { return DisplayName; }
+
+		public StringChooserStorableParameter(JSONStorableStringChooser p = null)
+			: base(p)
+		{
+		}
+
+		public override IStorableParameter Clone(int cloneFlags = 0)
+		{
+			var p = new StringChooserStorableParameter();
+			CopyTo(p, cloneFlags);
+			return p;
+		}
+
+		public override bool HasAvailableStrings
+		{
+			get { return true; }
+		}
+
+		public override List<string> AvailableStrings
+		{
+			get { return Parameter?.choices ?? new List<string>(); }
+		}
+
+		public override IEnumerable<string> GetStorableNames(Atom a, bool pluginsOnly)
+		{
+			if (a != null)
+			{
+				foreach (var id in a.GetStorableIDs())
+				{
+					if (!pluginsOnly || Utilities.StorableIsPlugin(id))
+					{
+						var s = a.GetStorableByID(id);
+						if (s.GetStringChooserParamNames().Count > 0)
+							yield return id;
+					}
+				}
+			}
+		}
+
+		public override IEnumerable<string> GetParameterNames(JSONStorable s)
+		{
+			foreach (var n in s.GetStringChooserParamNames())
+				yield return n;
+		}
+
+		protected override void SetValue(string s)
+		{
+			Parameter.val = s;
 		}
 	}
 
@@ -822,6 +843,12 @@ namespace Synergy
 		public int LastState
 		{
 			get { return lastState_; }
+		}
+
+		public JSONStorableAction Parameter
+		{
+			get { return param_; }
+			set { param_ = value; }
 		}
 
 		public override void Tick(
@@ -1014,15 +1041,8 @@ namespace Synergy
 
 		public IStorableParameter Parameter
 		{
-			get
-			{
-				return parameter_;
-			}
-
-			set
-			{
-				parameter_ = value;
-			}
+			get { return parameter_; }
+			set { parameter_ = value; }
 		}
 
 		public JSONStorable Storable
@@ -1084,6 +1104,9 @@ namespace Synergy
 
 		public void SetParameter(JSONStorableParam sp)
 		{
+			if (Parameter != null && Parameter.TryParameter(sp))
+				return;
+
 			var p = StorableParameterFactory.Create(sp);
 			if (p == null)
 			{
@@ -1096,7 +1119,10 @@ namespace Synergy
 
 		public void SetParameter(JSONStorableAction a)
 		{
-			Parameter = new ActionStorableParameter(a);
+			if (Parameter is ActionStorableParameter)
+				((ActionStorableParameter)Parameter).Parameter = a;
+			else
+				Parameter = new ActionStorableParameter(a);
 		}
 
 		private void AtomChanged(Atom newAtom)
@@ -1195,6 +1221,7 @@ namespace Synergy
 		public StorableModifier()
 		{
 			holder_.Atom = Atom;
+			Movement = new Movement(0, 1);
 		}
 
 		public StorableModifier(Atom a, string storable, string parameter)
