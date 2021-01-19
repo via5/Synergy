@@ -27,6 +27,16 @@ namespace Synergy
 		}
 	}
 
+	class PlayerEyesTargetUI : BasicEyesModifierTargetUI
+	{
+		public PlayerEyesTargetUI(
+			EyesModifierTargetUIContainer parent, EyesTargetContainer t)
+				: base(parent, t)
+		{
+		}
+	}
+
+
 
 	class RigidbodyEyesTargetUI : BasicEyesModifierTargetUI
 	{
@@ -353,6 +363,8 @@ namespace Synergy
 				ui_ = new RigidbodyEyesTargetUI(this, container_);
 			else if (t is RandomEyesTarget)
 				ui_ = new RandomEyesTargetUI(this, container_);
+			else if (t is PlayerEyesTarget)
+				ui_ = new PlayerEyesTargetUI(this, container_);
 			else
 				ui_ = null;
 
@@ -361,6 +373,8 @@ namespace Synergy
 				foreach (var w in ui_.GetWidgets())
 					collapsible_.Add(w);
 			}
+
+			collapsible_.Add(new SmallSpacer(Widget.Right));
 		}
 
 		private void EnabledChanged(bool b)

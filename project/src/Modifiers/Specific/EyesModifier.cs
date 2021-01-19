@@ -11,7 +11,8 @@ namespace Synergy
 			return new List<IEyesTarget>()
 			{
 				new RigidbodyEyesTarget(),
-				new RandomEyesTarget()
+				new RandomEyesTarget(),
+				new PlayerEyesTarget()
 			};
 		}
 	}
@@ -24,6 +25,7 @@ namespace Synergy
 		bool Valid { get; }
 		void Update(Rigidbody head, Rigidbody chest);
 		string Name { get; }
+		string LookMode { get; }
 	}
 
 	abstract class BasicEyesTarget : IEyesTarget
@@ -38,6 +40,11 @@ namespace Synergy
 
 		public abstract string Name { get; }
 
+		public virtual string LookMode
+		{
+			get { return "Target"; }
+		}
+
 		public virtual J.Node ToJSON()
 		{
 			return new J.Object();
@@ -48,6 +55,76 @@ namespace Synergy
 			return true;
 		}
 	}
+
+
+	class PlayerEyesTarget : BasicEyesTarget
+	{
+		public override string GetFactoryTypeName() { return "player"; }
+		public override string GetDisplayName() { return "Player"; }
+
+		public PlayerEyesTarget()
+		{
+		}
+
+		public static Rigidbody GetPreferredTarget(Atom a)
+		{
+			return null;
+		}
+
+		public override IEyesTarget Clone(int cloneFlags)
+		{
+			var t = new PlayerEyesTarget();
+			CopyTo(t, cloneFlags);
+			return t;
+		}
+
+		private void CopyTo(PlayerEyesTarget t, int cloneFlags)
+		{
+		}
+
+		public override string Name
+		{
+			get { return "Player"; }
+		}
+
+		public override string LookMode
+		{
+			get { return "Player"; }
+		}
+
+		public override Vector3 Position
+		{
+			get { return Utilities.CenterEyePosition(); }
+		}
+
+		public override bool Valid
+		{
+			get { return true; }
+		}
+
+		public override void Update(Rigidbody head, Rigidbody chest)
+		{
+		}
+
+		public override J.Node ToJSON()
+		{
+			var o = base.ToJSON().AsObject();
+			return o;
+		}
+
+		public override bool FromJSON(J.Node n)
+		{
+			if (!base.FromJSON(n))
+				return false;
+
+			var o = n.AsObject("PlayerTargetType");
+			if (o == null)
+				return false;
+
+			return true;
+		}
+	}
+
 
 	class RigidbodyEyesTarget : BasicEyesTarget
 	{
@@ -634,6 +711,7 @@ namespace Synergy
 		private Rigidbody head_ = null;
 		private Rigidbody eyes_ = null;
 		private Rigidbody chest_ = null;
+		private JSONStorableStringChooser lookMode_ = null;
 
 		private List<EyesTargetContainer> targets_ =
 			new List<EyesTargetContainer>();
@@ -798,6 +876,7 @@ namespace Synergy
 
 			m.head_ = head_;
 			m.eyes_ = eyes_;
+			m.lookMode_ = lookMode_;
 			m.chest_ = chest_;
 
 			m.targets_.Clear();
@@ -882,14 +961,7 @@ namespace Synergy
 			if (focusDuration_.Finished)
 				focusDuration_.Reset();
 
-			if (currentFocusDuration_ < 0)
-				currentFocusDuration_ = focusDuration_.Current;
-
-			if (focusProgress_ < currentFocusDuration_)
-			{
-				focusProgress_ = Utilities.Clamp(
-					focusProgress_ + deltaTime, 0, currentFocusDuration_);
-			}
+			CheckFocus(deltaTime);
 
 			if (progress != lastProgress_)
 			{
@@ -1021,16 +1093,60 @@ namespace Synergy
 				return;
 
 			if (eyes_ == null)
+			{
 				last_ = new Vector3();
+			}
+			else if (lookMode_ != null && lookMode_.val == "Player" && t.LookMode != "Player")
+			{
+				// going from player to target, the last position is the
+				// player's eyes
+				last_ = Utilities.CenterEyePosition();
+			}
 			else
+			{
 				last_ = eyes_.position;
+			}
 
 			t.Update(head_, chest_);
 			CheckGaze();
 			CheckBlink();
 
+			StartFocus();
+		}
+
+		private void StartFocus()
+		{
 			focusProgress_ = 0;
 			currentFocusDuration_ = focusDuration_.Current;
+
+			// look must be in target mode so focusing works, regardless of what
+			// the target's EyeMode wants
+			if (lookMode_ != null)
+				lookMode_.val = "Target";
+		}
+
+		private void CheckFocus(float deltaTime)
+		{
+			if (currentFocusDuration_ < 0)
+				currentFocusDuration_ = focusDuration_.Current;
+
+			if (focusProgress_ < currentFocusDuration_)
+			{
+				focusProgress_ = Utilities.Clamp(
+					focusProgress_ + deltaTime, 0, currentFocusDuration_);
+
+				if (focusProgress_ >= currentFocusDuration_)
+				{
+					// focusing is done, set the look mode to what the target
+					// actually wants
+					if (lookMode_ != null)
+					{
+						var t = CurrentTarget;
+						if (t != null)
+							lookMode_.val = t.LookMode;
+					}
+				}
+			}
 		}
 
 		private void CheckGaze()
@@ -1227,6 +1343,7 @@ namespace Synergy
 			{
 				head_ = null;
 				eyes_ = null;
+				lookMode_ = null;
 				chest_ = null;
 				return;
 			}
@@ -1234,6 +1351,16 @@ namespace Synergy
 			head_ = Utilities.FindRigidbody(Atom, "headControl");
 			eyes_ = Utilities.FindRigidbody(Atom, "eyeTargetControl");
 			chest_ = Utilities.FindRigidbody(Atom, "chestControl");
+
+			lookMode_ = null;
+
+			var eyesStorable = Atom.GetStorableByID("Eyes");
+			if (eyesStorable != null)
+			{
+				lookMode_ = eyesStorable.GetStringChooserJSONParam("lookMode");
+				if (lookMode_ == null)
+					Synergy.LogError("atom " + Atom.uid + " has no lookMode");
+			}
 
 			if (chest_ == null)
 				Synergy.LogError("atom " + Atom.uid + " has no chest");

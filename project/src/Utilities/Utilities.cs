@@ -149,6 +149,31 @@ namespace Synergy
 		private static float lastErrorTime_ = 0;
 		private static int errorCount_ = 0;
 
+		private static Rigidbody centerEye_ = null;
+		private static bool centerEyeChecked_ = false;
+
+		public static Vector3 CenterEyePosition()
+		{
+			if (centerEye_ == null && !centerEyeChecked_)
+			{
+				centerEyeChecked_ = true;
+
+				var rig = SuperController.singleton.GetAtomByUid("[CameraRig]");
+				if (rig == null)
+				{
+					Synergy.LogError("[CameraRig] not found");
+				}
+				else
+				{
+					centerEye_ = FindRigidbody(rig, "CenterEye");
+					if (centerEye_ == null)
+						Synergy.LogError("CenterEye not found in [CameraRig]");
+				}
+			}
+
+			return centerEye_?.transform?.position ?? new Vector3();
+		}
+
 		public static void Handler(Action a)
 		{
 			try
