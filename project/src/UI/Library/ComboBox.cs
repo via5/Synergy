@@ -500,6 +500,7 @@ namespace Synergy.UI
 		private readonly CustomButton up_ = null;
 		private readonly CustomButton down_ = null;
 		private ComboBoxList<ItemType> list_;
+		private bool nav_ = false;
 
 
 		public ComboBox(List<ItemType> items = null)
@@ -526,6 +527,7 @@ namespace Synergy.UI
 			up_.MinimumSize = new Size(20, 20);
 			down_.MinimumSize = new Size(20, 20);
 
+			buttons_.Visible = false;
 			buttons_.Add(up_);
 			buttons_.Add(down_);
 
@@ -536,6 +538,20 @@ namespace Synergy.UI
 			list_.Opened += () => Opened?.Invoke();
 			list_.SelectionChanged += (item) => SelectionChanged?.Invoke(item);
 			list_.SelectionIndexChanged += (index) => SelectionIndexChanged?.Invoke(index);
+		}
+
+		public bool NavButtons
+		{
+			get
+			{
+				return nav_;
+			}
+
+			set
+			{
+				nav_ = value;
+				buttons_.Visible = value;
+			}
 		}
 
 		public void AddItem(ItemType i)
@@ -619,14 +635,14 @@ namespace Synergy.UI
 
 		private void OnUp()
 		{
-			if (SelectedIndex > 0)
-				Select(SelectedIndex - 1);
+			if (SelectedIndex < (Count - 1))
+				Select(SelectedIndex + 1);
 		}
 
 		private void OnDown()
 		{
-			if (SelectedIndex < (Count - 1))
-				Select(SelectedIndex + 1);
+			if (SelectedIndex > 0)
+				Select(SelectedIndex - 1);
 		}
 	}
 }

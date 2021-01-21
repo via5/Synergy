@@ -77,6 +77,8 @@ namespace Synergy.NewUI
 			clone0_.Tooltip.Text = S("Clone this modifier and zero all values");
 			remove_.Tooltip.Text = S("Remove this modifier");
 
+			modifiers_.NavButtons = true;
+
 			var p = new Panel(new UI.HorizontalFlow(20));
 			p.Add(add_);
 			p.Add(clone_);
@@ -691,11 +693,6 @@ namespace Synergy.NewUI
 
 		private void UpdateList()
 		{
-			var ignore = new HashSet<string>()
-			{
-				"[camerarig]"
-			};
-
 			var items = new List<string>();
 
 			items.Add(null);
@@ -708,9 +705,6 @@ namespace Synergy.NewUI
 
 			foreach (var a in Synergy.Instance.GetSceneAtoms())
 			{
-				if (ignore.Contains(a.name.ToLower()))
-					continue;
-
 				if (pred_ != null)
 				{
 					if (!pred_(a))

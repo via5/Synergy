@@ -77,6 +77,8 @@
 
 				if (modifier_.HeldValue != null)
 					modifier_.HeldValue.ParentContainer = this;
+
+				FireNameChanged();
 			}
 		}
 

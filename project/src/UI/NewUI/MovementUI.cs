@@ -134,6 +134,7 @@ namespace Synergy.NewUI
 		private readonly MovementWidgets value_;
 		private readonly MovementWidgets range_;
 		private readonly MovementWidgets interval_;
+		private readonly UI.Button randomizeHalf_;
 
 		private RandomizableFloat rf_ = null;
 		private bool ignore_ = false;
@@ -144,6 +145,7 @@ namespace Synergy.NewUI
 			value_ = new MovementWidgets(flags);
 			range_ = new MovementWidgets(flags);
 			interval_ = new MovementWidgets(flags);
+			randomizeHalf_ = new UI.Button(S("Randomize half"), OnRandomizeHalf);
 
 			var gl = new UI.GridLayout(2);
 			gl.HorizontalStretch = new List<bool>() { false, true };
@@ -157,6 +159,7 @@ namespace Synergy.NewUI
 			p.Add(range_);
 			p.Add(new UI.Label(S("Interval")));
 			p.Add(interval_);
+			p.Add(randomizeHalf_);
 
 			Layout = new VerticalFlow(10);
 			Add(new UI.Label(caption));
@@ -197,6 +200,17 @@ namespace Synergy.NewUI
 				return;
 
 			rf_.Interval = f;
+		}
+
+		private void OnRandomizeHalf()
+		{
+			var half = rf_.Initial / 2;
+
+			rf_.Initial = half;
+			rf_.Range = Math.Abs(half);
+
+			value_.Set(rf_.Initial);
+			range_.Set(rf_.Range);
 		}
 	}
 }

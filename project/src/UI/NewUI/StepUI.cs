@@ -85,6 +85,8 @@ namespace Synergy.NewUI
 			up_.Tooltip.Text = S("Move this step earlier in the execution order");
 			down_.Tooltip.Text = S("Move this step later in the execution order");
 
+			steps_.NavButtons = true;
+
 			var p = new Panel(new UI.HorizontalFlow(20));
 			p.Add(add_);
 			p.Add(clone_);

@@ -541,6 +541,8 @@ namespace Synergy.NewUI
 	{
 		public const int ShowPoses = 0x01;
 		public const int ShowMorphs = 0x02;
+		public const int LatestOnly = 0x04;
+		public const int FavoritesOnly = 0x08;
 
 		public string searchText;
 		public Regex search;
@@ -564,6 +566,7 @@ namespace Synergy.NewUI
 			public string name;
 			public bool hasPoses;
 			public bool hasMorphs;
+			public bool hasFavorites;
 			public List<DAZMorph> morphs;
 
 			public Category(string name)
@@ -571,6 +574,7 @@ namespace Synergy.NewUI
 				this.name = name;
 				hasPoses = false;
 				hasMorphs = false;
+				hasFavorites = false;
 				morphs = new List<DAZMorph>();
 			}
 
@@ -609,6 +613,13 @@ namespace Synergy.NewUI
 
 		private bool FlagsMatch(MorphFilter filter, Category c)
 		{
+			if (Bits.IsSet(filter.flags, MorphFilter.FavoritesOnly))
+			{
+				if (!c.hasFavorites)
+					return false;
+			}
+
+
 			if (Bits.IsSet(filter.flags, MorphFilter.ShowMorphs))
 			{
 				if (c.hasMorphs)
@@ -691,11 +702,6 @@ namespace Synergy.NewUI
 			if (atom_ == null)
 				return;
 
-			var all = new Category("");
-			all.hasMorphs = true;
-			all.hasPoses = true;
-			cats_.Add(all);
-
 			var d = new Dictionary<string, Category>();
 
 			foreach (var morph in Utilities.GetAtomMorphs(atom_))
@@ -712,11 +718,20 @@ namespace Synergy.NewUI
 
 				cat.hasMorphs = cat.hasMorphs || !morph.isPoseControl;
 				cat.hasPoses = cat.hasPoses || morph.isPoseControl;
+				cat.hasFavorites = cat.hasFavorites || morph.favorite;
+
 				cat.morphs.Add(morph);
 			}
 
 			cats_.AddRange(d.Values.ToList());
+
 			Utilities.NatSort(cats_);
+
+			var all = new Category("");
+			all.hasMorphs = true;
+			all.hasPoses = true;
+			all.hasFavorites = true;
+			cats_.Insert(0, all);
 		}
 
 		private void OnSelection(Category cat)
@@ -744,10 +759,24 @@ namespace Synergy.NewUI
 
 			public override string ToString()
 			{
+				string s = "";
+
 				if (active)
-					return "\u2713" + morph.displayName;
+					s += "\u2713";
 				else
-					return "   " + morph.displayName;
+					s += "   ";
+
+				if (morph.isInPackage)
+					s += "P ";
+				else
+					s += "   ";
+
+				s += morph.displayName;
+
+				if (morph.isInPackage)
+					s += " " + morph.version;
+
+				return s;
 			}
 		}
 
@@ -849,6 +878,19 @@ namespace Synergy.NewUI
 				}
 			}
 
+			if (Bits.IsSet(filter.flags, MorphFilter.FavoritesOnly))
+			{
+				if (!m.morph.favorite)
+					return false;
+			}
+
+			if (Bits.IsSet(filter.flags, MorphFilter.LatestOnly))
+			{
+				if (!m.morph.isLatestVersion)
+					return false;
+			}
+
+
 			if (Bits.IsSet(filter.flags, MorphFilter.ShowMorphs))
 			{
 				if (!m.morph.isPoseControl)
@@ -860,6 +902,7 @@ namespace Synergy.NewUI
 				if (m.morph.isPoseControl)
 					return true;
 			}
+
 
 			return false;
 		}
@@ -945,6 +988,9 @@ namespace Synergy.NewUI
 
 				list.Add(new Morph(morph));
 			}
+
+			foreach (var m in morphs_)
+				Utilities.NatSort(m.Value);
 		}
 
 		private void OnSelection(Morph m)
@@ -964,6 +1010,7 @@ namespace Synergy.NewUI
 		private readonly MorphCategoryListView categories_;
 		private readonly MorphListView morphs_;
 		private readonly SearchTextBox search_;
+		private readonly UI.CheckBox onlyLatest_, onlyFavorites_;
 		private readonly UI.Button toggle_;
 
 		private Atom atom_ = null;
@@ -1016,6 +1063,12 @@ namespace Synergy.NewUI
 			search_ = new SearchTextBox();
 			search_.SearchChanged += OnSearchChanged;
 			top.Add(search_);
+
+			onlyLatest_ = new CheckBox("Latest", OnLatestChanged, true);
+			top.Add(onlyLatest_);
+
+			onlyFavorites_ = new CheckBox("Favorites", OnFavoritesChanged);
+			top.Add(onlyFavorites_);
 
 			var mainPanel = new UI.Panel();
 			mainPanel.Layout = new UI.BorderLayout(20);
@@ -1100,6 +1153,8 @@ namespace Synergy.NewUI
 			foreach (var s in selection_)
 				morphs_.SetActive(s, true);
 
+			UpdateToggleButton();
+
 			dirty_ = false;
 		}
 
@@ -1117,23 +1172,29 @@ namespace Synergy.NewUI
 
 		private MorphFilter CreateFilter()
 		{
-			int flags;
+			int flags = 0;
 
 			switch (show_.SelectedIndex)
 			{
 				case 1:
-					flags = MorphFilter.ShowMorphs;
+					flags |= MorphFilter.ShowMorphs;
 					break;
 
 				case 2:
-					flags = MorphFilter.ShowPoses;
+					flags |= MorphFilter.ShowPoses;
 					break;
 
 				case 0:
 				default:
-					flags = MorphFilter.ShowMorphs | MorphFilter.ShowPoses;
+					flags |= MorphFilter.ShowMorphs | MorphFilter.ShowPoses;
 					break;
 			}
+
+			if (onlyLatest_.Checked)
+				flags |= MorphFilter.LatestOnly;
+
+			if (onlyFavorites_.Checked)
+				flags |= MorphFilter.FavoritesOnly;
 
 			return new MorphFilter(search_.Text, flags);
 		}
@@ -1173,6 +1234,17 @@ namespace Synergy.NewUI
 		}
 
 		private void OnSearchChanged(string s)
+		{
+			UpdateCategories();
+			UpdateMorphs();
+		}
+
+		private void OnLatestChanged(bool b)
+		{
+			UpdateMorphs();
+		}
+
+		private void OnFavoritesChanged(bool b)
 		{
 			UpdateCategories();
 			UpdateMorphs();
