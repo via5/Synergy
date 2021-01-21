@@ -322,24 +322,14 @@ namespace Synergy.NewUI
 
 			Layout = new UI.VerticalFlow(40);
 
+			min_.ButtonsPanel.Add(new UI.Button(S("Copy to other morphs"), OnCopyMinimum));
+			max_.ButtonsPanel.Add(new UI.Button(S("Copy to other morphs"), OnCopyMaximum));
+
 			Add(top);
-			Add(CreateMovementPanel(min_, OnCopyMinimum));
-			Add(CreateMovementPanel(max_, OnCopyMaximum));
+			Add(min_);
+			Add(max_);
 
 			enabled_.Changed += OnEnabled;
-		}
-
-		private UI.Panel CreateMovementPanel(
-			MovementPanel mp, UI.Button.Callback copyCallback)
-		{
-			var vf = new UI.VerticalFlow(10);
-			vf.Expand = false;
-
-			var p = new UI.Panel(vf);
-			p.Add(mp);
-			p.Add(new UI.Button(S("Copy to other morphs"), copyCallback));
-
-			return p;
 		}
 
 		public void Set(MorphModifier mm, SelectedMorph sm)

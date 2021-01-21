@@ -12,6 +12,9 @@ namespace Synergy.NewUI
 		private readonly FactoryComboBox<
 			LightPropertyFactory, ILightProperty> property_;
 
+		private readonly FactoryComboBox<EasingFactory, IEasing> easing_ =
+			new FactoryComboBox<EasingFactory, IEasing>();
+
 		private FactoryObjectWidget<
 			LightPropertyFactory,
 			ILightProperty,
@@ -46,6 +49,8 @@ namespace Synergy.NewUI
 			p.Add(atom_);
 			p.Add(new UI.Label(S("Property")));
 			p.Add(property_);
+			p.Add(new UI.Label(S("Easing")));
+			p.Add(easing_);
 			w.Add(p);
 
 			w.Add(min_);
@@ -56,6 +61,7 @@ namespace Synergy.NewUI
 			Add(ui_, UI.BorderLayout.Center);
 
 			atom_.AtomSelectionChanged += OnAtomChanged;
+			easing_.FactoryTypeChanged += OnEasingChanged;
 		}
 
 		public override string Title
@@ -76,6 +82,7 @@ namespace Synergy.NewUI
 			{
 				atom_.Select(modifier_.Atom);
 				property_.Select(modifier_.Property);
+				easing_.Select(modifier_.Movement.Easing);
 				min_.Set(modifier_.Movement.Minimum);
 				max_.Set(modifier_.Movement.Maximum);
 				ui_.Set(modifier_.Property);
@@ -97,6 +104,14 @@ namespace Synergy.NewUI
 
 			modifier_.Property = p;
 			ui_.Set(p);
+		}
+
+		private void OnEasingChanged(IEasing easing)
+		{
+			if (ignore_)
+				return;
+
+			modifier_.Movement.Easing = easing;
 		}
 	}
 

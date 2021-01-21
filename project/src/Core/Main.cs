@@ -104,8 +104,8 @@ namespace Synergy
 				RegisterString(new JSONStorableString("dummy", ""));
 				SetStringParamValue("dummy", "dummy");
 
-				if (GetAtomById("synergytestatom") != null)
-					CreateTestStuff(GetAtomById("synergytestatom"));
+				if (GetAtomById("synergyuitest") != null)
+					CreateTestStuff(GetAtomById("synergyuitest"));
 
 				ui_ = new MainUI();
 				ui_.Create();
