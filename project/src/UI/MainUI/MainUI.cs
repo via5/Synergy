@@ -38,6 +38,8 @@ namespace Synergy
 
 		private bool needsReset_ = false;
 
+		NewUI.NewUI nui_ = null;
+
 		public MainUI()
 		{
 		}
@@ -95,6 +97,9 @@ namespace Synergy
 				monitor_.Update();
 			else if (modifier_ != null)
 				modifier_.Update();
+
+			if (nui_ != null)
+				nui_.Tick();
 		}
 
 		public void PluginEnabled(bool b)
@@ -153,6 +158,13 @@ namespace Synergy
 
 		private void ResetUI()
 		{
+			if (Synergy.Instance.DefaultAtom.name == "synergyuitest")
+			{
+				if (nui_ == null)
+					nui_ = new NewUI.NewUI();
+				return;
+			}
+
 			Synergy.LogVerbose("resetting ui");
 
 			ReselectStepAndModifier();

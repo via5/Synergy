@@ -70,6 +70,24 @@
     <Compile Include="src\Modifiers\Specific\MorphProgressions.cs" />
     <Compile Include="src\Modifiers\Specific\RigidbodyModifier.cs" />
     <Compile Include="src\Modifiers\Specific\StepExtenderModifier.cs" />
+    <Compile Include="src\UI\Library\BorderLayout.cs" />
+    <Compile Include="src\UI\Library\Button.cs" />
+    <Compile Include="src\UI\Library\CheckBox.cs" />
+    <Compile Include="src\UI\Library\ColorPicker.cs" />
+    <Compile Include="src\UI\Library\ComboBox.cs" />
+    <Compile Include="src\UI\Library\Dialog.cs" />
+    <Compile Include="src\UI\Library\GridLayout.cs" />
+    <Compile Include="src\UI\Library\Label.cs" />
+    <Compile Include="src\UI\Library\Layout.cs" />
+    <Compile Include="src\UI\Library\ListView.cs" />
+    <Compile Include="src\UI\Library\Root.cs" />
+    <Compile Include="src\UI\Library\Slider.cs" />
+    <Compile Include="src\UI\Library\Style.cs" />
+    <Compile Include="src\UI\Library\Tabs.cs" />
+    <Compile Include="src\UI\Library\TextBox.cs" />
+    <Compile Include="src\UI\Library\Tooltip.cs" />
+    <Compile Include="src\UI\Library\Utilities.cs" />
+    <Compile Include="src\UI\Library\Widget.cs" />
     <Compile Include="src\UI\MainUI\DelayUI.cs" />
     <Compile Include="src\UI\MainUI\DurationUI.cs" />
     <Compile Include="src\UI\MainUI\MainUI.cs" />
@@ -99,6 +117,16 @@
     <Compile Include="src\UI\MonitorUI\Modifiers\StorableModifierMonitorUI.cs" />
     <Compile Include="src\UI\MonitorUI\MonitorUI.cs" />
     <Compile Include="src\UI\MonitorUI\MovementMonitorUI.cs" />
+    <Compile Include="src\UI\NewUI\AudioModifierUI.cs" />
+    <Compile Include="src\UI\NewUI\DurationUI.cs" />
+    <Compile Include="src\UI\NewUI\FactoryUI.cs" />
+    <Compile Include="src\UI\NewUI\LightModifierUI.cs" />
+    <Compile Include="src\UI\NewUI\ModifierUI.cs" />
+    <Compile Include="src\UI\NewUI\MorphUI.cs" />
+    <Compile Include="src\UI\NewUI\MovementUI.cs" />
+    <Compile Include="src\UI\NewUI\NewUI.cs" />
+    <Compile Include="src\UI\NewUI\RigidbodyUI.cs" />
+    <Compile Include="src\UI\NewUI\StepUI.cs" />
     <Compile Include="src\UI\Widgets\AtomList.cs" />
     <Compile Include="src\UI\Widgets\AudioClipsCheckboxes.cs" />
     <Compile Include="src\UI\Widgets\Collapsible.cs" />
@@ -153,6 +181,9 @@
     <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\VaM_Data\Managed\UnityEngine.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>..\..\..\..\VaM_Data\Managed\UnityEngine.UIModule.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

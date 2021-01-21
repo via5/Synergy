@@ -6,9 +6,9 @@ namespace Synergy
 	{
 		private readonly List<Timer> timers_ = new List<Timer>();
 
-		public Timer CreateTimer(float seconds, Timer.Callback callback)
+		public Timer CreateTimer(float seconds, Timer.Callback f, int flags = 0)
 		{
-			var t = new Timer(this, seconds, callback);
+			var t = new Timer(this, seconds, f, flags);
 			timers_.Add(t);
 			return t;
 		}
@@ -41,16 +41,20 @@ namespace Synergy
 		public delegate void Callback();
 		public const float Immediate = float.MinValue;
 
+		public const int Repeat = 0x01;
+
 		private readonly TimerManager manager_;
 		private readonly float time_;
 		private readonly Callback callback_;
+		private readonly int flags_;
 		private float elapsed_ = 0;
 
-		public Timer(TimerManager tm, float seconds, Callback callback)
+		public Timer(TimerManager tm, float seconds, Callback f, int flags = 0)
 		{
 			manager_ = tm;
 			time_ = seconds;
-			callback_ = callback;
+			callback_ = f;
+			flags_ = flags;
 		}
 
 		public void Restart()
@@ -60,8 +64,13 @@ namespace Synergy
 
 		public void Fire()
 		{
-			callback_?.Invoke();
-			Destroy();
+			Utilities.Handler(() =>
+			{
+				callback_?.Invoke();
+			});
+
+			if (!Bits.IsSet(flags_, Repeat))
+				Destroy();
 		}
 
 		public void Destroy()

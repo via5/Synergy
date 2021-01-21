@@ -132,9 +132,9 @@ namespace Synergy
 			manager_.AddStep(s);
 		}
 
-		public Timer CreateTimer(float seconds, Timer.Callback f)
+		public Timer CreateTimer(float seconds, Timer.Callback f, int flags = 0)
 		{
-			return timers_.CreateTimer(seconds, f);
+			return timers_.CreateTimer(seconds, f, flags);
 		}
 
 		public void RemoveTimer(Timer t)
