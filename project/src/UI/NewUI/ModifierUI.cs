@@ -300,16 +300,21 @@ namespace Synergy.NewUI
 	{
 		public event Callback ModifierTypeChanged;
 
-		private readonly UI.CheckBox enabled_;
 		private readonly FactoryComboBox<ModifierFactory, IModifier> type_;
+		private readonly UI.CheckBox enabled_;
+		private readonly UI.Button disableOthers_, enableAll_;
 		private ModifierContainer mc_ = null;
 		private bool ignore_ = false;
 
 		public ModifierInfo()
 		{
-			enabled_ = new CheckBox(S("Enabled"));
 			type_ = new FactoryComboBox<ModifierFactory, IModifier>(
 				OnTypeChanged);
+			enabled_ = new CheckBox(S("Enabled"));
+			disableOthers_ = new UI.Button(S("Disable others"), OnDisableOthers);
+			enableAll_ = new UI.Button(S("Enable all"), OnEnableAll);
+
+			enabled_.Tooltip.Text = S("Whether this modifier is executed");
 
 			Layout = new UI.VerticalFlow(20);
 
@@ -317,6 +322,8 @@ namespace Synergy.NewUI
 			p.Add(new UI.Label(S("Modifier type")));
 			p.Add(type_);
 			p.Add(enabled_);
+			p.Add(disableOthers_);
+			p.Add(enableAll_);
 			Add(p);
 
 			enabled_.Changed += OnEnabledChanged;
@@ -347,6 +354,18 @@ namespace Synergy.NewUI
 
 			mc_.Modifier = m;
 			ModifierTypeChanged?.Invoke();
+		}
+
+		private void OnDisableOthers()
+		{
+			mc_?.ParentStep?.DisableAllExcept(mc_);
+			enabled_.Checked = mc_?.Enabled ?? false;
+		}
+
+		private void OnEnableAll()
+		{
+			mc_?.ParentStep?.EnableAll();
+			enabled_.Checked = true;
 		}
 	}
 
@@ -474,13 +493,13 @@ namespace Synergy.NewUI
 
 	class OtherModifierSyncedModifierUI : UI.Panel, IUIFactoryWidget<IModifierSync>
 	{
-		private readonly ComboBox<IModifier> others_;
+		private readonly ComboBox<ModifierContainer> others_;
 		private OtherModifierSyncedModifier sync_ = null;
 		private bool ignore_ = false;
 
 		public OtherModifierSyncedModifierUI()
 		{
-			others_ = new ComboBox<IModifier>(OnSelectionChanged);
+			others_ = new ComboBox<ModifierContainer>(OnSelectionChanged);
 
 			var p = new UI.Panel(new UI.HorizontalFlow(20));
 			p.Add(new UI.Label(S("Modifier:")));
@@ -501,31 +520,31 @@ namespace Synergy.NewUI
 			using (new ScopedFlag((bool b) => ignore_ = b))
 			{
 				UpdateList();
-				others_.Select(sync_.OtherModifier);
+				others_.Select(sync_.OtherModifierContainer);
 			}
 		}
 
 		private void UpdateList()
 		{
-			var list = new List<IModifier>();
+			var list = new List<ModifierContainer>();
 
 			list.Add(null);
 
-			foreach (var mc in sync_.ParentModifier.ParentStep.Modifiers)
+			foreach (var mc in sync_.ParentStep.Modifiers)
 			{
-				if (mc.Modifier != null && mc.Modifier != sync_.ParentModifier)
-					list.Add(mc.Modifier);
+				if (mc != sync_.ParentModifierContainer)
+					list.Add(mc);
 			}
 
-			others_.SetItems(list, sync_.OtherModifier);
+			others_.SetItems(list, sync_.OtherModifierContainer);
 		}
 
-		private void OnSelectionChanged(IModifier m)
+		private void OnSelectionChanged(ModifierContainer mc)
 		{
 			if (ignore_)
 				return;
 
-			sync_.OtherModifier = m;
+			sync_.OtherModifierContainer = mc;
 		}
 	}
 

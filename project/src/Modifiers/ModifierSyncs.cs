@@ -4,11 +4,11 @@ namespace Synergy
 {
 	interface IModifierSync : IFactoryObject
 	{
-		IModifier ParentModifier { get; set; }
+		ModifierContainer ParentModifierContainer { get; set; }
 
 		IModifierSync Clone(int cloneFlags = 0);
 		void Removed();
-		void OtherModifierRemoved(IModifier m);
+		void OtherModifierRemoved(ModifierContainer mc);
 
 		void Resume();
 		bool Tick(float deltaTime);
@@ -43,9 +43,9 @@ namespace Synergy
 		public abstract string GetFactoryTypeName();
 		public abstract string GetDisplayName();
 
-		private IModifier parent_ = null;
+		private ModifierContainer parent_ = null;
 
-		public IModifier ParentModifier
+		public ModifierContainer ParentModifierContainer
 		{
 			get { return parent_; }
 			set { parent_ = value; }
@@ -65,10 +65,10 @@ namespace Synergy
 
 		public virtual void Removed()
 		{
-			ParentModifier = null;
+			ParentModifierContainer = null;
 		}
 
-		public virtual void OtherModifierRemoved(IModifier m)
+		public virtual void OtherModifierRemoved(ModifierContainer mc)
 		{
 			// no-op
 		}
@@ -641,35 +641,35 @@ namespace Synergy
 		public static string DisplayName { get; } = "Other modifier";
 		public override string GetDisplayName() { return DisplayName; }
 
-		private IModifier modifier_ = null;
-		private int modifierIndex_ = -1;
+		private ModifierContainer mc_ = null;
+		private int index_ = -1;
 
 
 		public OtherModifierSyncedModifier()
 		{
 		}
 
-		public OtherModifierSyncedModifier(IModifier m)
+		public OtherModifierSyncedModifier(ModifierContainer mc)
 		{
-			OtherModifier = m;
+			OtherModifierContainer = mc;
 		}
 
-		public IModifier OtherModifier
+		public ModifierContainer OtherModifierContainer
 		{
 			get
 			{
 				ResolveModifier();
-				return modifier_;
+				return mc_;
 			}
 
 			set
 			{
-				modifier_ = value;
+				mc_ = value;
 
-				if (modifier_?.ParentStep == null)
-					modifierIndex_ = -1;
+				if (mc_?.ParentStep == null)
+					index_ = -1;
 				else
-					modifierIndex_ = modifier_.ParentStep.IndexOfModifier(modifier_);
+					index_ = mc_.ParentStep.IndexOfModifier(mc_);
 			}
 		}
 
@@ -682,41 +682,23 @@ namespace Synergy
 
 		private void CopyTo(OtherModifierSyncedModifier m, int cloneFlags)
 		{
-			m.modifier_ = null;
-			m.modifierIndex_ = modifierIndex_;
+			m.mc_ = null;
+			m.index_ = index_;
 		}
 
 		public override bool Finished
 		{
-			get
-			{
-				if (modifier_ == null)
-					return true;
-				else
-					return modifier_.Finished;
-			}
+			get { return mc_?.Modifier?.Finished ?? true; }
 		}
 
 		public override float TimeRemaining
 		{
-			get
-			{
-				if (modifier_ == null)
-					return 0;
-				else
-					return modifier_.TimeRemaining;
-			}
+			get { return mc_?.Modifier?.TimeRemaining ?? 0; }
 		}
 
 		public override float CurrentDuration
 		{
-			get
-			{
-				if (modifier_ == null)
-					return 0;
-				else
-					return modifier_.CurrentDuration;
-			}
+			get { return mc_?.Modifier?.CurrentDuration ?? 0; }
 		}
 
 		public override float DurationProgress
@@ -759,38 +741,30 @@ namespace Synergy
 		{
 			ResolveModifier();
 
-			if (modifier_?.ModifierSync == null)
-			{
+			if (mc_?.ModifierSync == null)
 				return 1;
-			}
-			else
-			{
-				return modifier_.ModifierSync.GetProgress(
-					modifier_, stepProgress, stepForwards);
-			}
+
+			return mc_.ModifierSync.GetProgress(
+				mc_.Modifier, stepProgress, stepForwards);
 		}
 
 		public override bool IsInFirstHalf(IModifier m, float stepProgress, bool stepForwards)
 		{
 			ResolveModifier();
 
-			if (modifier_?.ModifierSync == null)
-			{
+			if (mc_?.ModifierSync == null)
 				return false;
-			}
-			else
-			{
-				return modifier_.ModifierSync.IsInFirstHalf(
-					modifier_, stepProgress, stepForwards);
-			}
+
+			return mc_.ModifierSync.IsInFirstHalf(
+				mc_.Modifier, stepProgress, stepForwards);
 		}
 
-		public override void OtherModifierRemoved(IModifier m)
+		public override void OtherModifierRemoved(ModifierContainer mc)
 		{
-			if (OtherModifier == m)
-				OtherModifier = null;
+			if (OtherModifierContainer == mc)
+				OtherModifierContainer = null;
 			else
-				modifierIndex_ = -1;
+				index_ = -1;
 		}
 
 		public override void Reset()
@@ -802,7 +776,7 @@ namespace Synergy
 		{
 			var o = new J.Object();
 
-			o.Add("modifier", modifierIndex_);
+			o.Add("modifier", index_);
 
 			return o;
 		}
@@ -813,32 +787,32 @@ namespace Synergy
 			if (o == null)
 				return false;
 
-			o.Opt("modifier", ref modifierIndex_);
+			o.Opt("modifier", ref index_);
 
 			return true;
 		}
 
 		private void ResolveModifier()
 		{
-			if (ParentModifier?.ParentStep == null)
+			if (ParentStep == null)
 				return;
 
-			if (modifierIndex_ == -1 && modifier_ != null)
+			if (index_ == -1 && mc_ != null)
 			{
-				modifierIndex_ = ParentModifier.ParentStep.IndexOfModifier(modifier_);
+				index_ = ParentStep.IndexOfModifier(mc_);
 			}
-			else if (modifierIndex_ >= 0 && modifier_ == null)
+			else if (index_ >= 0 && mc_ == null)
 			{
-				var mods = ParentModifier.ParentStep.Modifiers;
-				if (modifierIndex_ >= 0 && modifierIndex_ < mods.Count)
-					modifier_ = mods[modifierIndex_].Modifier;
+				var mods = ParentStep.Modifiers;
+				if (index_ >= 0 && index_ < mods.Count)
+					mc_ = mods[index_].Modifier.ParentContainer;
 			}
 
-			if (modifier_ == ParentModifier)
+			if (mc_ != null && mc_ == ParentModifierContainer)
 			{
 				Synergy.LogError("OtherModifierSyncedModifier: same modifiers");
-				modifier_ = null;
-				modifierIndex_ = -1;
+				mc_ = null;
+				index_ = -1;
 			}
 		}
 	}

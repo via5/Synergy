@@ -383,7 +383,7 @@ namespace Synergy
 
 		private void CopyToAll()
 		{
-			var m = unsynced_?.ParentModifier;
+			var m = unsynced_?.ParentModifierContainer?.Modifier;
 			var s = m?.ParentStep;
 
 			if (m == null || s == null)
@@ -405,18 +405,18 @@ namespace Synergy
 
 		private void SyncToThis()
 		{
-			var m = unsynced_?.ParentModifier;
-			var s = m?.ParentStep;
+			var self = unsynced_?.ParentModifierContainer;
+			var step = unsynced_?.ParentStep;
 
-			if (m == null || s == null)
+			if (self == null || step == null)
 				return;
 
-			foreach (var sm in s.Modifiers)
+			foreach (var mc in step.Modifiers)
 			{
-				if (sm.Modifier == m)
+				if (mc == self)
 					continue;
 
-				sm.ModifierSync = new OtherModifierSyncedModifier(m);
+				mc.ModifierSync = new OtherModifierSyncedModifier(self);
 			}
 		}
 	}
@@ -443,35 +443,38 @@ namespace Synergy
 		public override void AddToUI(IModifierSync s)
 		{
 			sync_ = s as OtherModifierSyncedModifier;
-			if (sync_?.ParentModifier?.ParentStep == null)
+			if (sync_?.ParentStep == null)
 				return;
 
 			var names = new List<string>();
 			bool found = false;
 
-			foreach (var m in sync_.ParentModifier.ParentStep.Modifiers)
+			foreach (var mc in sync_.ParentStep.Modifiers)
 			{
-				if (m.Modifier == sync_.ParentModifier)
+				if (mc == sync_.ParentModifierContainer)
 					continue;
 
-				names.Add(m.Name);
+				names.Add(mc.Name);
 
-				if (sync_.OtherModifier != null && sync_.OtherModifier == m.Modifier)
-					found = true;
+				if (sync_.OtherModifierContainer != null)
+				{
+					if (sync_.OtherModifierContainer == mc)
+						found = true;
+				}
 			}
 
 			modifiers_.Choices = names;
 
 			if (found)
 			{
-				modifiers_.Value = sync_.OtherModifier.Name;
+				modifiers_.Value = sync_.OtherModifierContainer.Name;
 			}
 			else
 			{
-				if (sync_.OtherModifier != null)
+				if (sync_.OtherModifierContainer != null)
 				{
 					Synergy.LogError(
-						"modifier '" + sync_.OtherModifier.Name + "' " +
+						"modifier '" + sync_.OtherModifierContainer.Name + "' " +
 						"not found");
 				}
 
@@ -488,14 +491,14 @@ namespace Synergy
 
 		private void ModifierChanged(string value)
 		{
-			if (sync_?.ParentModifier?.ParentStep == null)
+			if (sync_?.ParentStep == null)
 				return;
 
-			foreach (var m in sync_.ParentModifier.ParentStep.Modifiers)
+			foreach (var mc in sync_.ParentStep.Modifiers)
 			{
-				if (m.Name == value)
+				if (mc.Name == value)
 				{
-					sync_.OtherModifier = m.Modifier;
+					sync_.OtherModifierContainer = mc;
 
 					Synergy.Instance.UI.NeedsReset(
 						"modifier sync with modifier changed");

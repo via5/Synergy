@@ -77,9 +77,6 @@
 
 				if (modifier_.HeldValue != null)
 					modifier_.HeldValue.ParentContainer = this;
-
-				if (ModifierSync != null)
-					ModifierSync.ParentModifier = modifier_.HeldValue;
 			}
 		}
 
@@ -163,7 +160,7 @@
 				sync_.Set(value);
 
 				if (sync_.HeldValue != null)
-					sync_.HeldValue.ParentModifier = Modifier;
+					sync_.HeldValue.ParentModifierContainer = this;
 			}
 		}
 

@@ -391,15 +391,10 @@ namespace Synergy
 		public void DeleteModifier(ModifierContainer mc)
 		{
 			// remember the modifier, the container nulls it in Removed()
-			var m = mc.Modifier;
-
 			mc.Removed();
 
-			if (m != null)
-			{
-				foreach (var sm in modifiers_)
-					sm.ModifierSync?.OtherModifierRemoved(m);
-			}
+			foreach (var sm in modifiers_)
+				sm.ModifierSync?.OtherModifierRemoved(mc);
 
 			modifiers_.Remove(mc);
 			ModifiersChanged?.Invoke();

@@ -528,8 +528,7 @@ namespace Synergy
 				return;
 
 			var m = CurrentModifier.Clone(Utilities.CloneZero);
-			m.ModifierSync = new OtherModifierSyncedModifier(
-				CurrentModifier.Modifier);
+			m.ModifierSync = new OtherModifierSyncedModifier(CurrentModifier);
 
 			CurrentStep.AddModifier(m);
 

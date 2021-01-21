@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Synergy.NewUI
 {
@@ -77,6 +78,7 @@ namespace Synergy.NewUI
 	{
 		private readonly TimeWidgets time_, range_, interval_;
 		private readonly UI.ComboBox<string> cutoff_;
+		private readonly UI.Button randomizeHalf_;
 		private RandomizableTime rt_ = null;
 
 		public RandomizableTimePanel(RandomizableTime rt = null)
@@ -86,6 +88,7 @@ namespace Synergy.NewUI
 			interval_ = new TimeWidgets(OnIntervalChanged);
 			cutoff_ = new UI.ComboBox<string>(
 				RandomizableTime.GetCutoffNames(), OnCutoffChanged);
+			randomizeHalf_ = new UI.Button(S("Randomize half"), OnRandomizeHalf);
 
 			var gl = new UI.GridLayout(2);
 			gl.HorizontalSpacing = 10;
@@ -106,6 +109,8 @@ namespace Synergy.NewUI
 
 			p.Add(new UI.Label(S("Cut-off")));
 			p.Add(cutoff_);
+
+			p.Add(randomizeHalf_);
 
 			Layout = new UI.VerticalFlow();
 			Add(p);
@@ -151,6 +156,17 @@ namespace Synergy.NewUI
 			}
 
 			rt_.Cutoff = c;
+		}
+
+		private void OnRandomizeHalf()
+		{
+			var half = rt_.Initial / 2;
+
+			rt_.Initial = half;
+			rt_.Range = Math.Abs(half);
+
+			time_.Set(rt_.Initial);
+			range_.Set(rt_.Range);
 		}
 	}
 
