@@ -123,4 +123,24 @@ namespace Synergy.UI
 			return new UI.Size(50, DontCare);
 		}
 	}
+
+
+	class CustomButton : UI.Button
+	{
+		public CustomButton(string text = "", Callback clicked = null)
+			: base(text, clicked)
+		{
+		}
+
+		protected override Size DoGetPreferredSize(
+			float maxWidth, float maxHeight)
+		{
+			return new Size(0, 0);
+		}
+
+		protected override Size DoGetMinimumSize()
+		{
+			return new UI.Size(DontCare, DontCare);
+		}
+	}
 }

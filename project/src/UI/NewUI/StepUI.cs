@@ -62,6 +62,7 @@ namespace Synergy.NewUI
 		private readonly UI.ComboBox<Step> steps_;
 		private readonly UI.Button add_, clone_, clone0_, remove_, up_, down_;
 		private readonly UI.Button rename_;
+		private readonly FactoryComboBox<StepProgressionFactory, IStepProgression> progression_;
 		private bool ignore_ = false;
 
 		public StepControls()
@@ -73,7 +74,9 @@ namespace Synergy.NewUI
 			remove_ = new UI.ToolButton("\x2013", RemoveStep);       // en dash
 			up_ = new UI.ToolButton("\x25b2", () => MoveStep(-1));   // up arrow
 			down_ = new UI.ToolButton("\x25bc", () => MoveStep(+1)); // down arrow
-			rename_ = new UI.Button("Rename", OnRename);
+			rename_ = new UI.Button(S("Rename"), OnRename);
+			progression_ = new FactoryComboBox<StepProgressionFactory, IStepProgression>(
+				OnProgressionChanged);
 
 			add_.Tooltip.Text = S("Add a new step");
 			clone_.Tooltip.Text = S("Clone this step");
@@ -90,6 +93,7 @@ namespace Synergy.NewUI
 			p.Add(up_);
 			p.Add(down_);
 			p.Add(rename_);
+			p.Add(progression_);
 
 			Layout = new UI.HorizontalFlow(20);
 			Add(new UI.Label(S("Steps:")));
@@ -99,6 +103,7 @@ namespace Synergy.NewUI
 			Synergy.Instance.Manager.StepsChanged += OnStepsChanged;
 			Synergy.Instance.Manager.StepNameChanged += OnStepNameChanged;
 
+			progression_.Select(Synergy.Instance.Manager.StepProgression);
 			UpdateSteps();
 		}
 
@@ -200,6 +205,14 @@ namespace Synergy.NewUI
 				});
 		}
 
+		private void OnProgressionChanged(IStepProgression p)
+		{
+			if (ignore_)
+				return;
+
+			Synergy.Instance.Manager.StepProgression = p;
+		}
+
 		private void UpdateSteps()
 		{
 			steps_.SetItems(
@@ -211,25 +224,36 @@ namespace Synergy.NewUI
 
 	class StepInfo : UI.Panel
 	{
-		private readonly UI.CheckBox enabled_, halfMove_;
+		private readonly UI.CheckBox enabled_, paused_, halfMove_;
+		private readonly UI.Button disableOthers_, enableAll_;
 		private Step step_ = null;
 
 		public StepInfo()
 		{
 			Layout = new UI.HorizontalFlow(10);
 
-			enabled_ = new UI.CheckBox(S("Step enabled"));
+			enabled_ = new UI.CheckBox(S("Enabled"));
+			paused_ = new UI.CheckBox(S("Paused"));
 			halfMove_ = new UI.CheckBox(S("Half move"));
+			disableOthers_ = new UI.Button(S("Disable others"), OnDisableOthers);
+			enableAll_ = new UI.Button(S("Enable all"), OnEnableAll);
 
 			enabled_.Tooltip.Text = S("Whether this step is executed");
+			paused_.Tooltip.Text = S(
+				"Pause the modifiers in their current state and disables " +
+				"the step");
 			halfMove_.Tooltip.Text = S(
 				"Whether this step should stop halfway before executing " +
 				"the next step");
 
 			Add(enabled_);
+			Add(paused_);
 			Add(halfMove_);
+			Add(disableOthers_);
+			Add(enableAll_);
 
 			enabled_.Changed += OnEnabled;
+			paused_.Changed += OnPaused;
 			halfMove_.Changed += OnHalfMove;
 		}
 
@@ -238,6 +262,7 @@ namespace Synergy.NewUI
 			step_ = s;
 
 			enabled_.Checked = s.Enabled;
+			paused_.Checked = s.Paused;
 			halfMove_.Checked = s.HalfMove;
 		}
 
@@ -253,10 +278,31 @@ namespace Synergy.NewUI
 				step_.Enabled = b;
 		}
 
+		private void OnPaused(bool b)
+		{
+			if (step_ != null)
+				step_.Paused = b;
+		}
+
 		private void OnHalfMove(bool b)
 		{
 			if (step_ != null)
 				step_.HalfMove = b;
+		}
+
+		private void OnDisableOthers()
+		{
+			if (step_ != null)
+			{
+				Synergy.Instance.Manager.DisableAllExcept(step_);
+				enabled_.Checked = step_.Enabled;
+			}
+		}
+
+		private void OnEnableAll()
+		{
+			Synergy.Instance.Manager.EnableAllSteps();
+			enabled_.Checked = true;
 		}
 	}
 }

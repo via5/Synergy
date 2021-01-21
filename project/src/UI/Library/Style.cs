@@ -117,6 +117,10 @@ namespace Synergy.UI
 			get { return 20; }
 		}
 
+		public static int ComboBoxNavTextSize
+		{
+			get { return 12; }
+		}
 
 		public static void ClampScrollView(GameObject scrollView)
 		{

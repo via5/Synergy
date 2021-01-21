@@ -307,7 +307,7 @@ namespace Synergy.NewUI
 
 		public ModifierInfo()
 		{
-			enabled_ = new CheckBox(S("Modifier enabled"));
+			enabled_ = new CheckBox(S("Enabled"));
 			type_ = new FactoryComboBox<ModifierFactory, IModifier>(
 				OnTypeChanged);
 

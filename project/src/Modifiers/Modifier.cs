@@ -117,6 +117,11 @@ namespace Synergy
 			}
 		}
 
+		public override string ToString()
+		{
+			return Name;
+		}
+
 		public int TickCalls
 		{
 			get { return tickCalls_; }

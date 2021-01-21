@@ -716,6 +716,7 @@ namespace Synergy.NewUI
 			}
 
 			cats_.AddRange(d.Values.ToList());
+			Utilities.NatSort(cats_);
 		}
 
 		private void OnSelection(Category cat)

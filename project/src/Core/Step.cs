@@ -528,6 +528,11 @@ namespace Synergy
 			}
 		}
 
+		public override string ToString()
+		{
+			return Name;
+		}
+
 		private bool NeedsTickPaused()
 		{
 			// modifiers in TickPaused() will reset movements, which is

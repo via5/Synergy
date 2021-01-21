@@ -327,10 +327,10 @@ namespace Synergy.UI
 	}
 
 
-	class ComboBox<ItemType> : TypedListImpl<ItemType>
+	class ComboBoxList<ItemType> : TypedListImpl<ItemType>
 		where ItemType : class
 	{
-		public override string TypeName { get { return "combobox"; } }
+		public override string TypeName { get { return "comboboxlist"; } }
 
 		public event Callback Opened;
 
@@ -338,17 +338,17 @@ namespace Synergy.UI
 		private BorderGraphics borders_ = null;
 
 
-		public ComboBox(List<ItemType> items = null)
+		public ComboBoxList(List<ItemType> items = null)
 			: this(items, null)
 		{
 		}
 
-		public ComboBox(ItemCallback selectionChanged)
+		public ComboBoxList(ItemCallback selectionChanged)
 			: this(null, selectionChanged)
 		{
 		}
 
-		public ComboBox(List<ItemType> items, ItemCallback selectionChanged)
+		public ComboBoxList(List<ItemType> items, ItemCallback selectionChanged)
 			: base(items, selectionChanged)
 		{
 		}
@@ -479,6 +479,154 @@ namespace Synergy.UI
 			Utilities.BringToTop(Popup.popup.popupPanel);
 
 			Opened?.Invoke();
+		}
+	}
+
+
+	class ComboBox<ItemType> : Widget
+		where ItemType : class
+	{
+		public override string TypeName { get { return "combobox"; } }
+
+		public event Callback Opened;
+
+		public delegate void ItemCallback(ItemType item);
+		public event ItemCallback SelectionChanged;
+
+		public delegate void IndexCallback(int index);
+		public event IndexCallback SelectionIndexChanged;
+
+		private readonly Panel buttons_ = null;
+		private readonly CustomButton up_ = null;
+		private readonly CustomButton down_ = null;
+		private ComboBoxList<ItemType> list_;
+
+
+		public ComboBox(List<ItemType> items = null)
+			: this(items, null)
+		{
+		}
+
+		public ComboBox(ComboBoxList<ItemType>.ItemCallback selectionChanged)
+			: this(null, selectionChanged)
+		{
+		}
+
+		public ComboBox(
+			List<ItemType> items,
+			ComboBoxList<ItemType>.ItemCallback selectionChanged)
+		{
+			buttons_ = new Panel(new VerticalFlow());
+			up_ = new CustomButton("\x25b2", OnUp);
+			up_.FontSize = Style.ComboBoxNavTextSize;
+			down_ = new CustomButton("\x25bc", OnDown);
+			down_.FontSize = Style.ComboBoxNavTextSize;
+			list_ = new ComboBoxList<ItemType>(items, selectionChanged);
+
+			up_.MinimumSize = new Size(20, 20);
+			down_.MinimumSize = new Size(20, 20);
+
+			buttons_.Add(up_);
+			buttons_.Add(down_);
+
+			Layout = new BorderLayout(3);
+			Add(buttons_, BorderLayout.Left);
+			Add(list_, BorderLayout.Center);
+
+			list_.Opened += () => Opened?.Invoke();
+			list_.SelectionChanged += (item) => SelectionChanged?.Invoke(item);
+			list_.SelectionIndexChanged += (index) => SelectionIndexChanged?.Invoke(index);
+		}
+
+		public void AddItem(ItemType i)
+		{
+			list_.AddItem(i);
+		}
+
+		public void RemoveItem(ItemType item)
+		{
+			list_.RemoveItem(item);
+		}
+
+		public List<ItemType> Items
+		{
+			get { return list_.Items; }
+			set { list_.Items = value; }
+		}
+
+		public ItemType At(int index)
+		{
+			return list_.At(index);
+		}
+
+		public int Count
+		{
+			get { return list_.Count; }
+		}
+
+		public void Clear()
+		{
+			list_.Clear();
+		}
+
+		public void SetItems(List<ItemType> items, ItemType sel = null)
+		{
+			list_.SetItems(items, sel);
+
+			if (SelectedIndex == -1 && Count > 0)
+				Select(0);
+		}
+
+		public void UpdateItemsText()
+		{
+			list_.UpdateItemsText();
+		}
+
+		public void UpdateItemText(int index)
+		{
+			list_.UpdateItemText(index);
+		}
+
+		public void UpdateItemText(ItemType item)
+		{
+			list_.UpdateItemText(item);
+		}
+
+		public int IndexOf(ItemType item)
+		{
+			return list_.IndexOf(item);
+		}
+
+		public void Select(ItemType item)
+		{
+			list_.Select(item);
+		}
+
+		public void Select(int i)
+		{
+			list_.Select(i);
+		}
+
+		public ItemType Selected
+		{
+			get { return list_.Selected; }
+		}
+
+		public int SelectedIndex
+		{
+			get { return list_.SelectedIndex; }
+		}
+
+		private void OnUp()
+		{
+			if (SelectedIndex > 0)
+				Select(SelectedIndex - 1);
+		}
+
+		private void OnDown()
+		{
+			if (SelectedIndex < (Count - 1))
+				Select(SelectedIndex + 1);
 		}
 	}
 }
