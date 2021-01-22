@@ -43,7 +43,7 @@ namespace Synergy.NewUI
 			steps_.SelectionChanged += OnStepSelected;
 			root_.DoLayoutIfNeeded();
 
-			modifiersTab_.SelectTab(4);
+			modifiersTab_.SelectTab(5);
 		}
 
 		public void SelectStep(Step s)

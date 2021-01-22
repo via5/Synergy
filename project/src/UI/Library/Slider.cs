@@ -132,7 +132,7 @@ namespace Synergy.UI
 			rt.offsetMax = new Vector2(
 				rt.offsetMax.x + 12, rt.offsetMax.y - 30);
 
-			Style.Polish(this);
+			Style.Setup(this);
 		}
 
 		protected override Size DoGetPreferredSize(
@@ -165,7 +165,7 @@ namespace Synergy.UI
 			Add(slider_, BorderLayout.Center);
 			Add(text_, BorderLayout.Right);
 
-			text_.Text = "0";
+			UpdateText();
 
 			text_.Edited += OnTextChanged;
 			slider_.ValueChanged += OnValueChanged;
@@ -195,6 +195,7 @@ namespace Synergy.UI
 		public void Set(float value, float min, float max)
 		{
 			slider_.Set(value, min, max);
+			UpdateText();
 		}
 
 		private void OnTextChanged(string s)
@@ -216,8 +217,13 @@ namespace Synergy.UI
 
 		private void OnValueChanged(float f)
 		{
-			text_.Text = f.ToString("0.00");
+			UpdateText();
 			ValueChanged?.Invoke(f);
+		}
+
+		private void UpdateText()
+		{
+			text_.Text = slider_.Value.ToString("0.00");
 		}
 	}
 }

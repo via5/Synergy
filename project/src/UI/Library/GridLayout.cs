@@ -132,10 +132,11 @@ namespace Synergy.UI
 		{
 		}
 
-		public GridLayout(int cols)
+		public GridLayout(int cols, int spacing=0)
 		{
 			widgets_.Extend(cols, 1);
 			horStretch_.Extend(cols, true);
+			Spacing = spacing;
 		}
 
 		public static Data P(int col, int row)

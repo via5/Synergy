@@ -69,6 +69,7 @@ project\src\UI\MonitorUI\Modifiers\RigidbodyModifierMonitorUI.cs
 project\src\UI\MonitorUI\Modifiers\StorableModifierMonitorUI.cs
 project\src\UI\NewUI\AudioModifierUI.cs
 project\src\UI\NewUI\DurationUI.cs
+project\src\UI\NewUI\EyesModifierUI.cs
 project\src\UI\NewUI\FactoryUI.cs
 project\src\UI\NewUI\LightModifierUI.cs
 project\src\UI\NewUI\ModifierUI.cs

@@ -119,6 +119,7 @@
     <Compile Include="src\UI\MonitorUI\MovementMonitorUI.cs" />
     <Compile Include="src\UI\NewUI\AudioModifierUI.cs" />
     <Compile Include="src\UI\NewUI\DurationUI.cs" />
+    <Compile Include="src\UI\NewUI\EyesModifierUI.cs" />
     <Compile Include="src\UI\NewUI\FactoryUI.cs" />
     <Compile Include="src\UI\NewUI\LightModifierUI.cs" />
     <Compile Include="src\UI\NewUI\ModifierUI.cs" />

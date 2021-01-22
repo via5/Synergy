@@ -52,7 +52,7 @@ namespace Synergy.UI
 			if (text_ != null)
 				picker_.label = text_;
 
-			Style.Polish(this);
+			Style.Setup(this);
 		}
 
 		private void SetColor()

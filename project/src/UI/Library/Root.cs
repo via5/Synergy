@@ -124,7 +124,7 @@ namespace Synergy.UI
 			var scriptUI = Synergy.Instance.UITransform.GetComponentInChildren<MVRScriptUI>();
 
 			AttachTo(scriptUI);
-			Style.PolishRoot(scriptUI);
+			Style.SetupRoot(scriptUI);
 		}
 
 		public void AttachTo(MVRScriptUI scriptUI)

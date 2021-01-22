@@ -240,6 +240,14 @@ namespace Synergy.UI
 			UpdateChoices();
 			UpdateLabel();
 
+			Style.Setup(this);
+		}
+
+		protected override void DoSetEnabled(bool b)
+		{
+			base.DoSetEnabled(b);
+
+			popup_.popup.topButton.interactable = b;
 			Style.Polish(this);
 		}
 
@@ -508,21 +516,26 @@ namespace Synergy.UI
 		{
 		}
 
-		public ComboBox(ComboBoxList<ItemType>.ItemCallback selectionChanged)
+		public ComboBox(IndexCallback selectionChanged)
+			: this(null, null)
+		{
+			if (selectionChanged != null)
+				SelectionIndexChanged += selectionChanged;
+		}
+
+		public ComboBox(ItemCallback selectionChanged)
 			: this(null, selectionChanged)
 		{
 		}
 
-		public ComboBox(
-			List<ItemType> items,
-			ComboBoxList<ItemType>.ItemCallback selectionChanged)
+		public ComboBox(List<ItemType> items, ItemCallback selectionChanged)
 		{
 			buttons_ = new Panel(new VerticalFlow());
 			up_ = new CustomButton("\x25b2", OnUp);
 			up_.FontSize = Style.ComboBoxNavTextSize;
 			down_ = new CustomButton("\x25bc", OnDown);
 			down_.FontSize = Style.ComboBoxNavTextSize;
-			list_ = new ComboBoxList<ItemType>(items, selectionChanged);
+			list_ = new ComboBoxList<ItemType>(items);
 
 			up_.MinimumSize = new Size(20, 20);
 			down_.MinimumSize = new Size(20, 20);
@@ -538,6 +551,9 @@ namespace Synergy.UI
 			list_.Opened += () => Opened?.Invoke();
 			list_.SelectionChanged += (item) => SelectionChanged?.Invoke(item);
 			list_.SelectionIndexChanged += (index) => SelectionIndexChanged?.Invoke(index);
+
+			if (selectionChanged != null)
+				SelectionChanged += selectionChanged;
 		}
 
 		public bool NavButtons
@@ -631,6 +647,12 @@ namespace Synergy.UI
 		public int SelectedIndex
 		{
 			get { return list_.SelectedIndex; }
+		}
+
+		protected override void DoSetEnabled(bool b)
+		{
+			base.DoSetEnabled(b);
+			list_.Enabled = b;
 		}
 
 		private void OnUp()

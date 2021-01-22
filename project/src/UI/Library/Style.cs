@@ -59,7 +59,7 @@ namespace Synergy.UI
 
 		public static Color DisabledTextColor
 		{
-			get { return new Color(0.7f, 0.7f, 0.7f); }
+			get { return new Color(0.6f, 0.6f, 0.6f); }
 		}
 
 		public static Color EditableTextColor
@@ -128,6 +128,29 @@ namespace Synergy.UI
 			sr.movementType = ScrollRect.MovementType.Clamped;
 		}
 
+
+		public static void SetupRoot(Component scriptUI)
+		{
+			AdjustRoot(scriptUI);
+			PolishRoot(scriptUI);
+		}
+
+		public static void AdjustRoot(Component scriptUI)
+		{
+			var scrollView = Utilities.FindChildRecursive(
+				scriptUI, "Scroll View");
+
+			if (scrollView == null)
+			{
+				Synergy.LogError("AdjustRoot: no scrollview");
+			}
+			else
+			{
+				// clamp the whole script ui
+				ClampScrollView(scrollView);
+			}
+		}
+
 		public static void PolishRoot(Component scriptUI)
 		{
 			var scrollView = Utilities.FindChildRecursive(
@@ -139,35 +162,123 @@ namespace Synergy.UI
 			}
 			else
 			{
-				// clamp the whole script ui
-				ClampScrollView(scrollView);
-
 				// main background color
 				scrollView.GetComponent<Image>().color = BackgroundColor;
+			}
+		}
+
+
+		public static void Setup(ColorPicker e)
+		{
+			Adjust(e);
+			Polish(e);
+		}
+
+		public static void Adjust(ColorPicker e)
+		{
+			var picker = e.WidgetObject.GetComponent<UIDynamicColorPicker>();
+
+			var sliders = new List<UnityEngine.UI.Slider>()
+			{
+				picker.colorPicker.redSlider,
+				picker.colorPicker.greenSlider,
+				picker.colorPicker.blueSlider
+			};
+
+			foreach (var slider in sliders)
+			{
+				// sliders are actually in a parent that has the panel, label,
+				// input and slider
+				var parent = slider.transform.parent;
+
+				var text = Utilities.FindChildRecursive(parent, "Text")
+					?.GetComponent<Text>();
+
+				if (text != null)
+				{
+					var rt = text.GetComponent<RectTransform>();
+					rt.offsetMin = new Vector2(rt.offsetMin.x - 10, rt.offsetMin.y);
+
+					Adjust(text, e.Font, SliderTextSize);
+				}
+
+				var input = Utilities.FindChildRecursive(parent, "InputField")
+					?.GetComponent<InputField>();
+
+				if (input != null)
+				{
+					var rt = input.GetComponent<RectTransform>();
+					rt.offsetMax = new Vector2(rt.offsetMax.x + 10, rt.offsetMax.y);
+				}
+
+				{
+					var rt = slider.GetComponent<RectTransform>();
+					rt.offsetMin = new Vector2(rt.offsetMin.x - 10, rt.offsetMin.y + 10);
+					rt.offsetMax = new Vector2(rt.offsetMax.x + 10, rt.offsetMax.y);
+				}
+
+				// adjust the slider itself
+				Adjust(slider);
+			}
+
+			{
+				// moving all the sliders down to make space for the color
+				// sample at the top
+
+				// blue
+				var rt = picker.colorPicker.blueSlider.transform.parent.GetComponent<RectTransform>();
+				rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y - 10);
+				rt.offsetMax = new Vector2(rt.offsetMax.x, rt.offsetMax.y - 10);
+
+				// green
+				rt = picker.colorPicker.greenSlider.transform.parent.GetComponent<RectTransform>();
+				rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y - 30);
+				rt.offsetMax = new Vector2(rt.offsetMax.x, rt.offsetMax.y - 30);
+
+				// red
+				rt = picker.colorPicker.redSlider.transform.parent.GetComponent<RectTransform>();
+				rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y - 50);
+				rt.offsetMax = new Vector2(rt.offsetMax.x, rt.offsetMax.y - 50);
+
+				// sample
+				rt = picker.colorPicker.colorSample.GetComponent<RectTransform>();
+				rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y - 50);
+			}
+
+			// buttons at the bottom
+			var buttons = new List<string>()
+			{
+				"DefaultValueButton",
+				"CopyToClipboardButton",
+				"PasteFromClipboardButton"
+			};
+
+			foreach (var name in buttons)
+			{
+				var b = Utilities.FindChildRecursive(picker, name)
+					?.GetComponent<UnityEngine.UI.Button>();
+
+				if (b != null)
+					Adjust(b, e.Font, e.FontSize, false);
 			}
 		}
 
 		public static void Polish(ColorPicker e)
 		{
 			var picker = e.WidgetObject.GetComponent<UIDynamicColorPicker>();
-			Polish(picker, e.Font, e.FontSize);
-		}
 
-		private static void Polish(
-			UIDynamicColorPicker e, Font font, int fontSize)
-		{
 			// background
-			e.GetComponent<Image>().color = new Color(0, 0, 0, 0);
+			picker.GetComponent<Image>().color = new Color(0, 0, 0, 0);
 
 			// label on top
-			e.labelText.color = TextColor;
-			e.labelText.alignment = TextAnchor.MiddleLeft;
+			picker.labelText.color = TextColor;
+			picker.labelText.alignment = TextAnchor.MiddleLeft;
 
 			var sliders = new List<UnityEngine.UI.Slider>()
 			{
-				e.colorPicker.redSlider,
-				e.colorPicker.greenSlider,
-				e.colorPicker.blueSlider
+				picker.colorPicker.redSlider,
+				picker.colorPicker.greenSlider,
+				picker.colorPicker.blueSlider
 			};
 
 			foreach (var slider in sliders)
@@ -184,21 +295,15 @@ namespace Synergy.UI
 
 				var text = Utilities.FindChildRecursive(parent, "Text")
 					?.GetComponent<Text>();
-				if (text != null)
-				{
-					var rt = text.GetComponent<RectTransform>();
-					rt.offsetMin = new Vector2(rt.offsetMin.x - 10, rt.offsetMin.y);
 
-					Polish(text, font, SliderTextSize);
-				}
+				if (text != null)
+					Polish(text, e.Font, SliderTextSize);
 
 				var input = Utilities.FindChildRecursive(parent, "InputField")
 					?.GetComponent<InputField>();
+
 				if (input != null)
 				{
-					var rt = input.GetComponent<RectTransform>();
-					rt.offsetMax = new Vector2(rt.offsetMax.x + 10, rt.offsetMax.y);
-
 					// that input doesn't seem to get styled properly, can't
 					// get the background color to change, so just change the
 					// text color
@@ -208,40 +313,8 @@ namespace Synergy.UI
 					input.textComponent.fontSize = SliderTextSize;
 				}
 
-
-				{
-					var rt = slider.GetComponent<RectTransform>();
-					rt.offsetMin = new Vector2(rt.offsetMin.x - 10, rt.offsetMin.y + 10);
-					rt.offsetMax = new Vector2(rt.offsetMax.x + 10, rt.offsetMax.y);
-				}
-
-
 				// polish the slider itself
 				Polish(slider);
-			}
-
-			{
-				// moving all the sliders down to make space for the color
-				// sample at the top
-
-				// blue
-				var rt = e.colorPicker.blueSlider.transform.parent.GetComponent<RectTransform>();
-				rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y - 10);
-				rt.offsetMax = new Vector2(rt.offsetMax.x, rt.offsetMax.y - 10);
-
-				// green
-				rt = e.colorPicker.greenSlider.transform.parent.GetComponent<RectTransform>();
-				rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y - 30);
-				rt.offsetMax = new Vector2(rt.offsetMax.x, rt.offsetMax.y - 30);
-
-				// red
-				rt = e.colorPicker.redSlider.transform.parent.GetComponent<RectTransform>();
-				rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y - 50);
-				rt.offsetMax = new Vector2(rt.offsetMax.x, rt.offsetMax.y - 50);
-
-				// sample
-				rt = e.colorPicker.colorSample.GetComponent<RectTransform>();
-				rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y - 50);
 			}
 
 			// buttons at the bottom
@@ -254,12 +327,24 @@ namespace Synergy.UI
 
 			foreach (var name in buttons)
 			{
-				var b = Utilities.FindChildRecursive(e, name)
+				var b = Utilities.FindChildRecursive(picker, name)
 					?.GetComponent<UnityEngine.UI.Button>();
 
 				if (b != null)
-					Polish(b, font, fontSize, false);
+					Polish(b, e.Font, e.FontSize, false);
 			}
+		}
+
+
+		public static void Setup(Slider e)
+		{
+			Adjust(e);
+			Polish(e);
+		}
+
+		public static void Adjust(Slider e)
+		{
+			Adjust(e.WidgetObject.GetComponent<UIDynamicSlider>());
 		}
 
 		public static void Polish(Slider e)
@@ -267,9 +352,35 @@ namespace Synergy.UI
 			Polish(e.WidgetObject.GetComponent<UIDynamicSlider>());
 		}
 
+
+		private static void Setup(UIDynamicSlider e)
+		{
+			Adjust(e);
+			Polish(e);
+		}
+
+		private static void Adjust(UIDynamicSlider e)
+		{
+			Adjust(e.slider);
+		}
+
 		private static void Polish(UIDynamicSlider e)
 		{
 			Polish(e.slider);
+		}
+
+
+		private static void Setup(UnityEngine.UI.Slider e)
+		{
+			Adjust(e);
+			Polish(e);
+		}
+
+		private static void Adjust(UnityEngine.UI.Slider e)
+		{
+			var fill = Utilities.FindChildRecursive(e, "Fill");
+			var rt = fill.GetComponent<RectTransform>();
+			rt.offsetMin = new Vector2(rt.offsetMin.x - 4, rt.offsetMin.y);
 		}
 
 		private static void Polish(UnityEngine.UI.Slider e)
@@ -285,15 +396,116 @@ namespace Synergy.UI
 
 			var fill = Utilities.FindChildRecursive(e, "Fill");
 			fill.GetComponent<Image>().color = new Color(0, 0, 0, 0);
+		}
 
-			var rt = fill.GetComponent<RectTransform>();
-			rt.offsetMin = new Vector2(rt.offsetMin.x - 4, rt.offsetMin.y);
+
+		public static void Setup(CheckBox e)
+		{
+			Adjust(e);
+			Polish(e);
+		}
+
+		public static void Adjust(CheckBox e)
+		{
+			var toggle = e.WidgetObject.GetComponent<UIDynamicToggle>();
+			Adjust(toggle);
 		}
 
 		public static void Polish(CheckBox e)
 		{
 			var toggle = e.WidgetObject.GetComponent<UIDynamicToggle>();
 			Polish(toggle);
+		}
+
+
+		public static void Setup<ItemType>(TypedListImpl<ItemType> list)
+			where ItemType : class
+		{
+			Adjust(list);
+			Polish(list);
+		}
+
+		public static void Adjust<ItemType>(TypedListImpl<ItemType> list)
+			where ItemType : class
+		{
+			Adjust(
+				list.WidgetObject.GetComponent<UIDynamicPopup>(),
+				list.Font, list.FontSize);
+		}
+
+		public static void Polish<ItemType>(TypedListImpl<ItemType> list)
+			where ItemType : class
+		{
+			Polish(
+				list.WidgetObject.GetComponent<UIDynamicPopup>(),
+				list.Font, list.FontSize);
+		}
+
+
+		public static void Setup(Button b)
+		{
+			Adjust(b);
+			Polish(b);
+		}
+
+		public static void Adjust(Button b)
+		{
+			Adjust(
+				b.WidgetObject.GetComponent<UIDynamicButton>(),
+				b.Font, b.FontSize);
+		}
+
+		public static void Polish(Button b)
+		{
+			Polish(
+				b.WidgetObject.GetComponent<UIDynamicButton>(),
+				b.Font, b.FontSize);
+		}
+
+
+		public static void Setup(Label e)
+		{
+			Adjust(e);
+			Polish(e);
+		}
+
+		public static void Adjust(Label e)
+		{
+			var text = e.WidgetObject.GetComponent<Text>();
+			Adjust(text, e.Font, e.FontSize);
+		}
+
+		public static void Polish(Label e)
+		{
+			var text = e.WidgetObject.GetComponent<Text>();
+			Polish(text, e.Font, e.FontSize);
+		}
+
+
+		public static void Setup(TextBox e)
+		{
+			Adjust(e);
+			Polish(e);
+		}
+
+		public static void Adjust(TextBox e)
+		{
+			var input = e.WidgetObject.GetComponentInChildren<InputField>();
+			if (input != null)
+				Adjust(input, e.Font, e.FontSize);
+		}
+
+		public static void Polish(TextBox e)
+		{
+			var input = e.WidgetObject.GetComponentInChildren<InputField>();
+			if (input != null)
+				Polish(input, e.Font, e.FontSize);
+		}
+
+
+		private static void Adjust(UIDynamicToggle e)
+		{
+			// no-op
 		}
 
 		private static void Polish(UIDynamicToggle e)
@@ -306,6 +518,13 @@ namespace Synergy.UI
 
 			// there doesn't seem to be any way to change the checkmark color,
 			// so the box will have to stay white for now
+		}
+
+		private static void Adjust(
+			UnityEngine.UI.Button e, Font font, int fontSize,
+			bool changeFont = true)
+		{
+			// no-op
 		}
 
 		private static void Polish(
@@ -337,6 +556,12 @@ namespace Synergy.UI
 			sb.UpdateStyle();
 		}
 
+
+		private static void Adjust(UIDynamicButton e, Font font, int fontSize)
+		{
+			Adjust(e.button, font, fontSize);
+		}
+
 		private static void Polish(UIDynamicButton e, Font font, int fontSize)
 		{
 			Polish(e.button, font, fontSize);
@@ -345,7 +570,8 @@ namespace Synergy.UI
 			e.buttonText.fontSize = (fontSize < 0 ? DefaultFontSize : fontSize);
 		}
 
-		private static void Polish(UIDynamicPopup e, Font font, int fontSize)
+
+		private static void Adjust(UIDynamicPopup e, Font font, int fontSize)
 		{
 			// popups normally have a label on the left side and this controls
 			// the offset of the popup button; since the label is removed, this
@@ -355,29 +581,18 @@ namespace Synergy.UI
 			// the top and bottom padding in the list, this looks roughly
 			// equivalent to what's on the left and right
 			e.popup.topBottomBuffer = 3;
+		}
 
+		private static void Polish(UIDynamicPopup e, Font font, int fontSize)
+		{
 			Polish(e.popup, font, fontSize);
 		}
 
-		public static void Polish<ItemType>(TypedListImpl<ItemType> list)
-			where ItemType : class
-		{
-			Polish(
-				list.WidgetObject.GetComponent<UIDynamicPopup>(),
-				list.Font, list.FontSize);
-		}
 
-		public static void Polish(Button b)
+		private static void Adjust(
+			Text e, Font font, int fontSize, bool changeFont = true)
 		{
-			Polish(
-				b.WidgetObject.GetComponent<UIDynamicButton>(),
-				b.Font, b.FontSize);
-		}
-
-		public static void Polish(Label e)
-		{
-			var text = e.WidgetObject.GetComponent<Text>();
-			Polish(text, e.Font, e.FontSize);
+			// no-op
 		}
 
 		private static void Polish(
@@ -392,11 +607,12 @@ namespace Synergy.UI
 			}
 		}
 
-		public static void Polish(TextBox e)
+
+		private static void Adjust(
+			InputField input, Font font, int fontSize, bool changeFont = true)
 		{
-			var input = e.WidgetObject.GetComponentInChildren<InputField>();
-			if (input != null)
-				Polish(input, e.Font, e.FontSize);
+			// field
+			input.caretWidth = 2;
 		}
 
 		private static void Polish(
@@ -423,7 +639,6 @@ namespace Synergy.UI
 
 			// field
 			input.selectionColor = EditableSelectionBackgroundColor;
-			input.caretWidth = 2;
 
 			// placeholder
 			var ph = input.placeholder.GetComponent<Text>();
@@ -437,7 +652,8 @@ namespace Synergy.UI
 			}
 		}
 
-		private static void Polish(UIPopup e, Font font, int fontSize)
+
+		private static void Adjust(UIPopup e, Font font, int fontSize)
 		{
 			var scrollView = Utilities.FindChildRecursive(e, "Scroll View");
 			var viewport = Utilities.FindChildRecursive(e, "Viewport");
@@ -445,6 +661,34 @@ namespace Synergy.UI
 			var scrollbarHandle = Utilities.FindChildRecursive(scrollbar, "Handle");
 
 			ClampScrollView(scrollView);
+
+			// topButton is the actual combobox the user clicks to open the
+			// popup
+			Adjust(e.topButton, font, fontSize);
+
+			// popupButtonPrefab is the prefab used to create items in the
+			// popup
+			Adjust(
+				e.popupButtonPrefab.GetComponent<UnityEngine.UI.Button>(),
+				font, fontSize);
+
+			// there's some empty space at the bottom of the list, remove it
+			// by changing the bottom offset of both the viewport and vertical
+			// scrollbar; the scrollbar is also one pixel too far to the right
+			var rt = viewport.GetComponent<RectTransform>();
+			rt.offsetMin = new Vector2(rt.offsetMin.x, 0);
+
+			rt = scrollbar.GetComponent<RectTransform>();
+			rt.offsetMin = new Vector2(rt.offsetMin.x - 1, 0);
+			rt.offsetMax = new Vector2(rt.offsetMax.x - 1, rt.offsetMax.y);
+		}
+
+		private static void Polish(UIPopup e, Font font, int fontSize)
+		{
+			var scrollView = Utilities.FindChildRecursive(e, "Scroll View");
+			var viewport = Utilities.FindChildRecursive(e, "Viewport");
+			var scrollbar = Utilities.FindChildRecursive(e, "Scrollbar Vertical");
+			var scrollbarHandle = Utilities.FindChildRecursive(scrollbar, "Handle");
 
 			// background color for items in the popup; to have items be the
 			// same color as the background of the popup, this must be
@@ -472,16 +716,6 @@ namespace Synergy.UI
 			Polish(
 				e.popupButtonPrefab.GetComponent<UnityEngine.UI.Button>(),
 				font, fontSize);
-
-			// there's some empty space at the bottom of the list, remove it
-			// by changing the bottom offset of both the viewport and vertical
-			// scrollbar; the scrollbar is also one pixel too far to the right
-			var rt = viewport.GetComponent<RectTransform>();
-			rt.offsetMin = new Vector2(rt.offsetMin.x, 0);
-
-			rt = scrollbar.GetComponent<RectTransform>();
-			rt.offsetMin = new Vector2(rt.offsetMin.x - 1, 0);
-			rt.offsetMax = new Vector2(rt.offsetMax.x - 1, rt.offsetMax.y);
 
 			// scrollbar background color
 			scrollbar.GetComponent<Image>().color = SliderBackgroundColor;

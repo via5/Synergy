@@ -66,10 +66,10 @@ namespace Synergy.UI
 		{
 			textObject_ = WidgetObject.AddComponent<Text>();
 			textObject_.text = text_;
-			textObject_.horizontalOverflow = HorizontalWrapMode.Overflow;
+			textObject_.horizontalOverflow = HorizontalWrapMode.Wrap;
 			textObject_.maskable = true;
 
-			Style.Polish(this);
+			Style.Setup(this);
 		}
 
 		public override void UpdateBounds()
@@ -81,8 +81,8 @@ namespace Synergy.UI
 		protected override Size DoGetPreferredSize(
 			float maxWidth, float maxHeight)
 		{
-			return new Size(Root.FitText(
-				Font, FontSize, text_, new Size(maxWidth, maxHeight)).Width, 40);
+			return Root.FitText(
+				Font, FontSize, text_, new Size(maxWidth, maxHeight));
 		}
 
 		protected override Size DoGetMinimumSize()

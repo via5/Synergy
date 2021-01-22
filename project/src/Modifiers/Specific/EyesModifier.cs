@@ -809,17 +809,15 @@ namespace Synergy
 			get { return minDistance_; }
 		}
 
+		public bool GazeAvailable
+		{
+			get { return gaze_.Available(); }
+		}
+
 		public int GazeSetting
 		{
-			get
-			{
-				return gazeSetting_;
-			}
-
-			set
-			{
-				gazeSetting_ = value;
-			}
+			get { return gazeSetting_; }
+			set { gazeSetting_ = value; }
 		}
 
 		public Integration.Gaze Gaze
@@ -830,17 +828,15 @@ namespace Synergy
 			}
 		}
 
+		public bool BlinkAvailable
+		{
+			get { return EnsureBlink(); }
+		}
+
 		public int BlinkSetting
 		{
-			get
-			{
-				return blinkSetting_;
-			}
-
-			set
-			{
-				blinkSetting_ = value;
-			}
+			get { return blinkSetting_; }
+			set { blinkSetting_ = value; }
 		}
 
 		public List<EyesTargetContainer> Targets
@@ -1184,6 +1180,34 @@ namespace Synergy
 			}
 		}
 
+		private bool EnsureBlink()
+		{
+			if (blink_ == null)
+			{
+				var ec = Atom.GetStorableByID("EyelidControl");
+				if (ec == null)
+				{
+					Synergy.LogError(
+						"blink: EyelidControl not found, " +
+						"changing setting to Ignore");
+
+					return false;
+				}
+
+				blink_ = ec.GetBoolJSONParam("blinkEnabled");
+				if (blink_ == null)
+				{
+					Synergy.LogError(
+						"blink: blinkEnabled not found in EyelidControl, " +
+						"changing setting to Ignore");
+
+					return false;
+				}
+			}
+
+			return true;
+		}
+
 		private void CheckBlink()
 		{
 			if (Atom == null)
@@ -1198,30 +1222,12 @@ namespace Synergy
 			else
 				return;
 
-			if (blink_ == null)
+			if (!EnsureBlink())
 			{
-				var ec = Atom.GetStorableByID("EyelidControl");
-				if (ec == null)
-				{
-					Synergy.LogError(
-						"blink: EyelidControl not found, " +
-						"changing setting to Ignore");
-
-					blinkSetting_ = SettingIgnore;
-					return;
-				}
-
-				blink_ = ec.GetBoolJSONParam("blinkEnabled");
-				if (blink_ == null)
-				{
-					Synergy.LogError(
-						"blink: blinkEnabled not found in EyelidControl, " +
-						"changing setting to Ignore");
-
-					blinkSetting_ = SettingIgnore;
-					return;
-				}
+				blinkSetting_ = SettingIgnore;
+				return;
 			}
+
 
 			try
 			{

@@ -116,6 +116,19 @@ namespace Synergy.UI
 			stack_.Padding = new Insets(20);
 		}
 
+		public List<Widget> TabWidgets
+		{
+			get
+			{
+				var list = new List<Widget>();
+
+				foreach (var t in tabs_)
+					list.Add(t.Widget);
+
+				return list;
+			}
+		}
+
 		public int Selected
 		{
 			get

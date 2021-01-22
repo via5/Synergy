@@ -65,7 +65,7 @@ namespace Synergy.UI
 			button_.buttonText.text = text_;
 			button_.buttonText.alignment = Label.ToTextAnchor(align_);
 
-			Style.Polish(this);
+			Style.Setup(this);
 		}
 
 		protected override void DoSetEnabled(bool b)

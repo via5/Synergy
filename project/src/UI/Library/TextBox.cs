@@ -254,7 +254,7 @@ namespace Synergy.UI
 			input_.placeholder = text;
 			input_.placeholder.GetComponent<Text>().text = placeholder_;
 
-			Style.Polish(this);
+			Style.Setup(this);
 		}
 
 		protected override Size DoGetPreferredSize(

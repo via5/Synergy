@@ -49,9 +49,9 @@ namespace Synergy.UI
 		protected override void DoCreate()
 		{
 			toggle_ = WidgetObject.GetComponent<UIDynamicToggle>();
-			toggle_.toggle.onValueChanged.AddListener(OnClicked);
 			toggle_.labelText.text = text_;
 			toggle_.toggle.isOn = checked_;
+			toggle_.toggle.onValueChanged.AddListener(OnClicked);
 
 			toggle_.toggle.graphic.rectTransform.localScale = new Vector3(
 				0.75f, 0.75f, 0.75f);
@@ -72,7 +72,7 @@ namespace Synergy.UI
 				rt.offsetMin.x + (rt.offsetMax.x - rt.offsetMin.x) / 2,
 				rt.offsetMin.y + (rt.offsetMax.y - rt.offsetMin.y) / 2);
 
-			Style.Polish(this);
+			Style.Setup(this);
 		}
 
 		protected override Size DoGetPreferredSize(
