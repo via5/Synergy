@@ -316,8 +316,130 @@ namespace Synergy.NewUI
 
 	class EyesTargetsUI : UI.Panel, IEyesModifierTab
 	{
+		private class Target
+		{
+			public EyesTargetContainer tc = null;
+
+			public override string ToString()
+			{
+				return tc.Name;
+			}
+		};
+
+		private EyesModifier modifier_ = null;
+
+		private IgnoreFlag ignore_ = new IgnoreFlag();
+		private readonly UI.ListView<Target> targets_;
+		private readonly UI.Panel panel_;
+		private readonly UI.CheckBox enabled_;
+		private readonly FactoryComboBox<EyesTargetFactory, IEyesTarget> type_;
+
+
+		public EyesTargetsUI()
+		{
+			targets_ = new UI.ListView<Target>(OnSelection);
+			panel_ = new UI.Panel(new UI.VerticalFlow(10));
+			enabled_ = new UI.CheckBox(S("Enabled"), OnEnabledChanged);
+			type_ = new FactoryComboBox<EyesTargetFactory, IEyesTarget>(OnTypeChanged);
+
+			var buttons = new UI.Panel(new UI.HorizontalFlow());
+			buttons.Add(new UI.Button(S("Add"), OnAdd));
+
+			var left = new UI.Panel(new UI.BorderLayout());
+			left.Add(buttons, UI.BorderLayout.Top);
+			left.Add(targets_);
+
+			panel_.Add(enabled_);
+			panel_.Add(type_);
+
+			Layout = new UI.BorderLayout(10);
+			Add(left, UI.BorderLayout.Left);
+			Add(panel_, UI.BorderLayout.Center);
+		}
+
 		public void Set(EyesModifier m)
 		{
+			modifier_ = m;
+			if (modifier_ == null)
+				return;
+
+			targets_.Clear();
+
+			foreach (var tc in m.Targets)
+			{
+				var t = new Target();
+				t.tc = tc;
+
+				targets_.AddItem(t);
+			}
+
+			if (targets_.Count == 0)
+				UpdateSelection(null);
+			else
+				targets_.Select(0);
+		}
+
+		private void OnAdd()
+		{
+			if (modifier_ == null)
+				return;
+
+			var t = new Target();
+			t.tc = new EyesTargetContainer();
+
+			modifier_.AddTarget(t.tc);
+			targets_.AddItem(t);
+
+			targets_.Select(targets_.Count - 1);
+		}
+
+		private void OnSelection(Target t)
+		{
+			UpdateSelection(t);
+		}
+
+		private void OnEnabledChanged(bool b)
+		{
+			if (ignore_ || modifier_ == null)
+				return;
+
+			var t = targets_.Selected;
+			if (t == null)
+				return;
+
+			t.tc.Enabled = b;
+		}
+
+		private void OnTypeChanged(IEyesTarget type)
+		{
+			if (ignore_ || modifier_ == null)
+				return;
+
+			var t = targets_.Selected;
+			if (t == null)
+				return;
+
+			t.tc.Target = type;
+
+			targets_.UpdateItemText(t);
+			UpdateSelection(t);
+		}
+
+		private void UpdateSelection(Target t)
+		{
+			ignore_.Do(() =>
+			{
+				if (t == null)
+				{
+					panel_.Visible = false;
+				}
+				else
+				{
+					panel_.Visible = true;
+					enabled_.Checked = t.tc.Enabled;
+					type_.Select(t.tc.Target);
+				}
+			});
 		}
 	}
 }
