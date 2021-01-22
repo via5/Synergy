@@ -1,6 +1,7 @@
 ﻿using AssetBundles;
 using JetBrains.Annotations;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Synergy.NewUI
 {
@@ -228,16 +229,88 @@ namespace Synergy.NewUI
 
 	class EyesSaccadeUI : UI.Panel, IEyesModifierTab
 	{
+		private EyesModifier modifier_ = null;
+
+		private IgnoreFlag ignore_ = new IgnoreFlag();
+		private readonly RandomizableTimePanel interval_;
+		private readonly MovementWidgets min_, max_;
+
+		public EyesSaccadeUI()
+		{
+			interval_ = new RandomizableTimePanel();
+			min_ = new MovementWidgets(OnMinimumChanged, MovementWidgets.SmallMovement);
+			max_ = new MovementWidgets(OnMaximumChanged, MovementWidgets.SmallMovement);
+
+			var p = new UI.Panel(new UI.GridLayout(2, 10, 20));
+			p.Add(new UI.Label(S("Minimum")));
+			p.Add(min_);
+			p.Add(new UI.Label(S("Maximum")));
+			p.Add(max_);
+
+			Layout = new UI.VerticalFlow(40);
+			Add(interval_);
+			Add(p);
+		}
+
 		public void Set(EyesModifier m)
 		{
+			modifier_ = m;
+			if (modifier_ == null)
+				return;
 
+			ignore_.Do(() =>
+			{
+				interval_.Set(modifier_.SaccadeTime);
+				min_.Set(modifier_.SaccadeMin);
+				max_.Set(modifier_.SaccadeMax);
+			});
+		}
+
+		private void OnMinimumChanged(float f)
+		{
+			if (ignore_)
+				return;
+
+			if (modifier_ != null)
+				modifier_.SaccadeMin = f;
+		}
+
+		private void OnMaximumChanged(float f)
+		{
+			if (ignore_)
+				return;
+
+			if (modifier_ != null)
+				modifier_.SaccadeMax = f;
 		}
 	}
 
 	class EyesFocusUI : UI.Panel, IEyesModifierTab
 	{
+		private EyesModifier modifier_ = null;
+
+		private IgnoreFlag ignore_ = new IgnoreFlag();
+		private readonly RandomizableTimePanel time_;
+
+
+		public EyesFocusUI()
+		{
+			time_ = new RandomizableTimePanel();
+
+			Layout = new UI.VerticalFlow();
+			Add(time_);
+		}
+
 		public void Set(EyesModifier m)
 		{
+			modifier_ = m;
+			if (modifier_ == null)
+				return;
+
+			ignore_.Do(() =>
+			{
+				time_.Set(m.FocusDuration);
+			});
 		}
 	}
 

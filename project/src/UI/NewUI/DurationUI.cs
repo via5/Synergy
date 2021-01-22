@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Synergy.NewUI
 {
@@ -78,6 +79,7 @@ namespace Synergy.NewUI
 	{
 		private readonly TimeWidgets time_, range_, interval_;
 		private readonly UI.ComboBox<string> cutoff_;
+		private readonly UI.Panel buttonsPanel_;
 		private readonly UI.Button randomizeHalf_;
 		private RandomizableTime rt_ = null;
 
@@ -88,6 +90,7 @@ namespace Synergy.NewUI
 			interval_ = new TimeWidgets(OnIntervalChanged);
 			cutoff_ = new UI.ComboBox<string>(
 				RandomizableTime.GetCutoffNames(), OnCutoffChanged);
+			buttonsPanel_ = new UI.Panel(new UI.HorizontalFlow(10));
 			randomizeHalf_ = new UI.Button(S("Randomize half"), OnRandomizeHalf);
 
 			var gl = new UI.GridLayout(2);
@@ -96,26 +99,29 @@ namespace Synergy.NewUI
 			gl.UniformHeight = false;
 			gl.UniformWidth = false;
 
+			buttonsPanel_.Add(randomizeHalf_);
+
 			var p = new UI.Panel(gl);
 
 			p.Add(new UI.Label(S("Time")));
 			p.Add(time_);
-
 			p.Add(new UI.Label(S("Random range")));
 			p.Add(range_);
-
 			p.Add(new UI.Label(S("Random interval")));
 			p.Add(interval_);
-
 			p.Add(new UI.Label(S("Cut-off")));
 			p.Add(cutoff_);
 
-			p.Add(randomizeHalf_);
-
-			Layout = new UI.VerticalFlow();
+			Layout = new UI.VerticalFlow(10);
 			Add(p);
+			Add(buttonsPanel_);
 
 			Set(rt);
+		}
+
+		public UI.Panel ButtonsPanel
+		{
+			get { return buttonsPanel_; }
 		}
 
 		public void Set(RandomizableTime rt)

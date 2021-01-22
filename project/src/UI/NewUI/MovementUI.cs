@@ -41,6 +41,11 @@ namespace Synergy.NewUI
 		private bool ignore_ = false;
 
 		public MovementWidgets(int flags = NoFlags)
+			: this(null, flags)
+		{
+		}
+
+		public MovementWidgets(ValueCallback callback, int flags = NoFlags)
 		{
 			var hf = new UI.HorizontalFlow(5);
 			hf.Expand = false;
@@ -67,6 +72,9 @@ namespace Synergy.NewUI
 			Add(new ToolButton(S("R"), OnReset));
 
 			text_.Edited += OnTextChanged;
+
+			if (callback != null)
+				Changed += callback;
 		}
 
 		public void Set(float f)
