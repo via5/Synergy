@@ -1005,19 +1005,17 @@ namespace Synergy
 					break;
 				}
 
-				if (i == start)
+
+				if (start < 0)
 				{
-					if (start < 0)
-					{
-						// no index when started
-						start = 0;
-					}
-					else
-					{
-						// nothing enabled
-						SetOrderIndex(-1);
-						break;
-					}
+					// no index when started
+					start = 0;
+				}
+				else if (i == start)
+				{
+					// nothing enabled
+					SetOrderIndex(-1);
+					break;
 				}
 			}
 		}
