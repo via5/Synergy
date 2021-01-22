@@ -421,7 +421,7 @@ namespace Synergy.UI
 			arrow_.alignment = TextAnchor.MiddleRight;
 			arrow_.color = Style.TextColor;
 			arrow_.raycastTarget = false;
-			arrow_.text = "\x25bc";
+			arrow_.text = Utilities.DownArrow;
 			arrow_.fontSize = Style.DefaultFontSize;
 			arrow_.font = Style.DefaultFont;
 
@@ -531,9 +531,9 @@ namespace Synergy.UI
 		public ComboBox(List<ItemType> items, ItemCallback selectionChanged)
 		{
 			buttons_ = new Panel(new VerticalFlow());
-			up_ = new CustomButton("\x25b2", OnUp);
+			up_ = new CustomButton(Utilities.UpArrow, OnUp);
 			up_.FontSize = Style.ComboBoxNavTextSize;
-			down_ = new CustomButton("\x25bc", OnDown);
+			down_ = new CustomButton(Utilities.DownArrow, OnDown);
 			down_.FontSize = Style.ComboBoxNavTextSize;
 			list_ = new ComboBoxList<ItemType>(items);
 

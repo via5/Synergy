@@ -59,8 +59,11 @@ namespace Synergy
 
 	class PlayerEyesTarget : BasicEyesTarget
 	{
-		public override string GetFactoryTypeName() { return "player"; }
-		public override string GetDisplayName() { return "Player"; }
+		public static string FactoryTypeName { get; } = "player";
+		public override string GetFactoryTypeName() { return FactoryTypeName; }
+
+		public static string DisplayName { get; } = "Player";
+		public override string GetDisplayName() { return DisplayName; }
 
 		public PlayerEyesTarget()
 		{
@@ -128,8 +131,11 @@ namespace Synergy
 
 	class RigidbodyEyesTarget : BasicEyesTarget
 	{
-		public override string GetFactoryTypeName() { return "rigidbody"; }
-		public override string GetDisplayName() { return "Rigidbody"; }
+		public static string FactoryTypeName { get; } = "rigidbody";
+		public override string GetFactoryTypeName() { return FactoryTypeName; }
+
+		public static string DisplayName { get; } = "Rigidbody";
+		public override string GetDisplayName() { return DisplayName; }
 
 		private Atom atom_ = null;
 		private Rigidbody receiver_ = null;
@@ -207,6 +213,9 @@ namespace Synergy
 					receiver_ = Utilities.FindRigidbody(value, receiver_.name);
 				else
 					receiver_ = null;
+
+				if (receiver_ == null && value != null)
+					receiver_ = GetPreferredTarget(value);
 
 				atom_ = value;
 			}
@@ -301,8 +310,11 @@ namespace Synergy
 
 	class RandomEyesTarget : BasicEyesTarget
 	{
-		public override string GetFactoryTypeName() { return "random"; }
-		public override string GetDisplayName() { return "Random"; }
+		public static string FactoryTypeName { get; } = "random";
+		public override string GetFactoryTypeName() { return FactoryTypeName; }
+
+		public static string DisplayName { get; } = "Random";
+		public override string GetDisplayName() { return DisplayName; }
 
 		private float distance_ = 1.0f;
 		private float centerX_ = 0;

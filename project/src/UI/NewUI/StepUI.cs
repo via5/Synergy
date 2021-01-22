@@ -71,9 +71,9 @@ namespace Synergy.NewUI
 			add_ = new UI.ToolButton("+", AddStep);
 			clone_ = new UI.ToolButton(S("+*"), () => CloneStep(0));
 			clone0_ = new UI.ToolButton(S("+*0"), () => CloneStep(Utilities.CloneZero));
-			remove_ = new UI.ToolButton("\x2013", RemoveStep);       // en dash
-			up_ = new UI.ToolButton("\x25b2", () => MoveStep(-1));   // up arrow
-			down_ = new UI.ToolButton("\x25bc", () => MoveStep(+1)); // down arrow
+			remove_ = new UI.ToolButton(UI.Utilities.RemoveSymbol, RemoveStep);
+			up_ = new UI.ToolButton(UI.Utilities.UpArrow, () => MoveStep(-1));   // up arrow
+			down_ = new UI.ToolButton(UI.Utilities.DownArrow, () => MoveStep(+1)); // down arrow
 			rename_ = new UI.Button(S("Rename"), OnRename);
 			progression_ = new FactoryComboBox<StepProgressionFactory, IStepProgression>(
 				OnProgressionChanged);

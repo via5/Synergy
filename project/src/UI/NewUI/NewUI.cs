@@ -29,7 +29,7 @@ namespace Synergy.NewUI
 			tabs_.AddTab(S("Step"), stepTab_);
 			tabs_.AddTab(S("Modifiers"), modifiersTab_);
 
-			root_.ContentPanel.Layout = new UI.BorderLayout(30);
+			root_.ContentPanel.Layout = new UI.BorderLayout(20);
 			root_.ContentPanel.Add(steps_, UI.BorderLayout.Top);
 			root_.ContentPanel.Add(tabs_, UI.BorderLayout.Center);
 

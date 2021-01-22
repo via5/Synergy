@@ -810,14 +810,27 @@ namespace Synergy.UI
 
 	class Spacer : UI.Widget
 	{
+		private int size = -1;
+
+		public Spacer(int size = -1)
+		{
+			this.size = size;
+		}
+
 		protected override Size DoGetPreferredSize(float maxWidth, float maxHeight)
 		{
-			return new Size(maxWidth, maxHeight);
+			if (size == -1)
+				return new Size(maxWidth, maxHeight);
+			else
+				return new Size(size, size);
 		}
 
 		protected override Size DoGetMinimumSize()
 		{
-			return new Size(0, 0);
+			if (size == -1)
+				return new Size(0, 0);
+			else
+				return new Size(size, size);
 		}
 	}
 }

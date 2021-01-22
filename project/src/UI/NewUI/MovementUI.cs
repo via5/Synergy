@@ -160,8 +160,9 @@ namespace Synergy.NewUI
 			var gl = new UI.GridLayout(2);
 			gl.HorizontalStretch = new List<bool>() { false, true };
 			gl.HorizontalSpacing = 20;
-			gl.VerticalSpacing = 20;
+			gl.VerticalSpacing = 10;
 
+			buttonsPanel_.Add(new UI.Label(caption));
 			buttonsPanel_.Add(randomizeHalf_);
 
 			var p = new UI.Panel(gl);
@@ -173,9 +174,8 @@ namespace Synergy.NewUI
 			p.Add(interval_);
 
 			Layout = new VerticalFlow(10);
-			Add(new UI.Label(caption));
-			Add(p);
 			Add(buttonsPanel_);
+			Add(p);
 
 			value_.Changed += OnValueChanged;
 			range_.Changed += OnRangeChanged;

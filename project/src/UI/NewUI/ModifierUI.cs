@@ -12,7 +12,7 @@ namespace Synergy.NewUI
 
 		public ModifiersTab()
 		{
-			Layout = new UI.BorderLayout(20);
+			Layout = new UI.BorderLayout(10);
 
 			Add(controls_, UI.BorderLayout.Top);
 			Add(modifier_, UI.BorderLayout.Center);
@@ -69,7 +69,7 @@ namespace Synergy.NewUI
 			add_ = new UI.ToolButton("+", AddModifier);
 			clone_ = new UI.ToolButton(S("+*"), () => CloneModifier(0));
 			clone0_ = new UI.ToolButton(S("+*0"), () => CloneModifier(Utilities.CloneZero));
-			remove_ = new UI.ToolButton("\x2013", RemoveModifier);       // en dash
+			remove_ = new UI.ToolButton(UI.Utilities.RemoveSymbol, RemoveModifier);
 			rename_ = new UI.ToolButton(S("Rename"), OnRename);
 
 			add_.Tooltip.Text = S("Add a new modifier");
@@ -227,7 +227,7 @@ namespace Synergy.NewUI
 
 		public ModifierPanel()
 		{
-			Layout = new UI.BorderLayout(30);
+			Layout = new UI.BorderLayout(20);
 
 			var sync = new UI.Panel();
 

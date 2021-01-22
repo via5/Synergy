@@ -1,5 +1,6 @@
 ﻿using AssetBundles;
 using JetBrains.Annotations;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -333,6 +334,7 @@ namespace Synergy.NewUI
 		private readonly UI.Panel panel_;
 		private readonly UI.CheckBox enabled_;
 		private readonly FactoryComboBox<EyesTargetFactory, IEyesTarget> type_;
+		private readonly FactoryObjectWidget<EyesTargetFactory, IEyesTarget, EyesTargetUIFactory> ui_;
 
 
 		public EyesTargetsUI()
@@ -341,18 +343,23 @@ namespace Synergy.NewUI
 			panel_ = new UI.Panel(new UI.VerticalFlow(10));
 			enabled_ = new UI.CheckBox(S("Enabled"), OnEnabledChanged);
 			type_ = new FactoryComboBox<EyesTargetFactory, IEyesTarget>(OnTypeChanged);
+			ui_ = new FactoryObjectWidget<EyesTargetFactory, IEyesTarget, EyesTargetUIFactory>();
 
-			var buttons = new UI.Panel(new UI.HorizontalFlow());
-			buttons.Add(new UI.Button(S("Add"), OnAdd));
+			var buttons = new UI.Panel(new UI.HorizontalFlow(10));
+			buttons.Add(new UI.Button(S("+"), AddTarget));
+			buttons.Add(new UI.Button(S("-"), RemoveTarget));
 
 			var left = new UI.Panel(new UI.BorderLayout());
-			left.Add(buttons, UI.BorderLayout.Top);
+			//left.Add(buttons, UI.BorderLayout.Top);
 			left.Add(targets_);
 
 			panel_.Add(enabled_);
 			panel_.Add(type_);
+			panel_.Add(new UI.Spacer(40));
+			panel_.Add(ui_);
 
 			Layout = new UI.BorderLayout(10);
+			Add(buttons, UI.BorderLayout.Top);
 			Add(left, UI.BorderLayout.Left);
 			Add(panel_, UI.BorderLayout.Center);
 		}
@@ -379,7 +386,7 @@ namespace Synergy.NewUI
 				targets_.Select(0);
 		}
 
-		private void OnAdd()
+		public void AddTarget()
 		{
 			if (modifier_ == null)
 				return;
@@ -391,6 +398,30 @@ namespace Synergy.NewUI
 			targets_.AddItem(t);
 
 			targets_.Select(targets_.Count - 1);
+		}
+
+		public void RemoveTarget()
+		{
+			if (modifier_ == null)
+				return;
+
+			var t = targets_.Selected;
+			if (t == null)
+				return;
+
+			var d = new UI.MessageDialog(
+				GetRoot(), UI.MessageDialog.Yes | UI.MessageDialog.No,
+				S("Remove target"),
+				S("Are you sure you want to delete target {0}?", t.tc.Name));
+
+			d.RunDialog(() =>
+			{
+				if (d.Button != UI.MessageDialog.Yes)
+					return;
+
+				modifier_.RemoveTarget(t.tc);
+				targets_.RemoveItem(t);
+			});
 		}
 
 		private void OnSelection(Target t)
@@ -438,8 +469,144 @@ namespace Synergy.NewUI
 					panel_.Visible = true;
 					enabled_.Checked = t.tc.Enabled;
 					type_.Select(t.tc.Target);
+					ui_.Set(t.tc.Target);
 				}
 			});
+		}
+	}
+
+
+	class EyesTargetUIFactory : IUIFactory<IEyesTarget>
+	{
+		public Dictionary<string, Func<IUIFactoryWidget<IEyesTarget>>> GetCreators()
+		{
+			return new Dictionary<string, Func<IUIFactoryWidget<IEyesTarget>>>()
+			{
+				{
+					RigidbodyEyesTarget.FactoryTypeName,
+					() => { return new RigidbodyEyesTargetUI(); }
+				},
+
+				{
+					RandomEyesTarget.FactoryTypeName,
+					() => { return new RandomEyesTargetUI(); }
+				},
+
+				{
+					PlayerEyesTarget.FactoryTypeName,
+					() => { return new PlayerEyesTargetUI(); }
+				}
+			};
+		}
+	}
+
+
+	class RigidbodyEyesTargetUI : UI.Panel, IUIFactoryWidget<IEyesTarget>
+	{
+		private RigidbodyEyesTarget target_ = null;
+
+		private IgnoreFlag ignore_ = new IgnoreFlag();
+		private readonly AtomComboBox atom_;
+		private readonly RigidBodyComboBox receiver_;
+		private readonly MovementWidgets offsetX_;
+		private readonly MovementWidgets offsetY_;
+		private readonly MovementWidgets offsetZ_;
+
+		public RigidbodyEyesTargetUI()
+		{
+			atom_ = new AtomComboBox();
+			receiver_ = new RigidBodyComboBox();
+			offsetX_ = new MovementWidgets(OnOffsetXChanged, MovementWidgets.SmallMovement);
+			offsetY_ = new MovementWidgets(OnOffsetYChanged, MovementWidgets.SmallMovement);
+			offsetZ_ = new MovementWidgets(OnOffsetZChanged, MovementWidgets.SmallMovement);
+
+			Layout = new UI.GridLayout(2, 10);
+			Add(new UI.Label(S("Atom")));
+			Add(atom_);
+			Add(new UI.Label(S("Receiver")));
+			Add(receiver_);
+			Add(new UI.Label(S("Offset X")));
+			Add(offsetX_);
+			Add(new UI.Label(S("Offset Y")));
+			Add(offsetY_);
+			Add(new UI.Label(S("Offset Z")));
+			Add(offsetZ_);
+
+			atom_.AtomSelectionChanged += OnAtomChanged;
+			receiver_.RigidbodySelectionChanged += OnReceiverChanged;
+		}
+
+		public void Set(IEyesTarget t)
+		{
+			target_ = t as RigidbodyEyesTarget;
+			if (target_ == null)
+				return;
+
+			ignore_.Do(() =>
+			{
+				atom_.Select(target_.Atom);
+				receiver_.Set(target_.Atom, target_.Receiver);
+				offsetX_.Set(target_.Offset.x);
+				offsetY_.Set(target_.Offset.y);
+				offsetZ_.Set(target_.Offset.z);
+			});
+		}
+
+		private void OnAtomChanged(Atom a)
+		{
+			if (ignore_ || target_ == null)
+				return;
+
+			target_.Atom = a;
+			receiver_.Set(a, target_.Receiver);
+		}
+
+		private void OnReceiverChanged(Rigidbody rb)
+		{
+			if (ignore_ || target_ == null)
+				return;
+
+			target_.Receiver = rb;
+		}
+
+		private void OnOffsetXChanged(float f)
+		{
+			if (ignore_ || target_ == null)
+				return;
+
+			target_.Offset = new Vector3(f, target_.Offset.y, target_.Offset.z);
+		}
+
+		private void OnOffsetYChanged(float f)
+		{
+			if (ignore_ || target_ == null)
+				return;
+
+			target_.Offset = new Vector3(target_.Offset.x, f, target_.Offset.z);
+		}
+
+		private void OnOffsetZChanged(float f)
+		{
+			if (ignore_ || target_ == null)
+				return;
+
+			target_.Offset = new Vector3(target_.Offset.x, target_.Offset.y, f);
+		}
+	}
+
+
+	class RandomEyesTargetUI : UI.Panel, IUIFactoryWidget<IEyesTarget>
+	{
+		public void Set(IEyesTarget t)
+		{
+		}
+	}
+
+
+	class PlayerEyesTargetUI : UI.Panel, IUIFactoryWidget<IEyesTarget>
+	{
+		public void Set(IEyesTarget t)
+		{
 		}
 	}
 }

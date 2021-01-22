@@ -40,8 +40,7 @@ namespace Synergy.NewUI
 
 			var w = new UI.Panel(new UI.VerticalFlow(30));
 
-			var gl = new UI.GridLayout(4);
-			gl.Spacing = 20;
+			var gl = new UI.GridLayout(4, 20, 10);
 			gl.HorizontalStretch = new List<bool>() { false, true, false, true };
 
 			var p = new UI.Panel(gl);

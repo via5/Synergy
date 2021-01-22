@@ -6,6 +6,10 @@ namespace Synergy.UI
 {
 	class Utilities
 	{
+		public const string RemoveSymbol = "\x2013";  // en dash
+		public const string UpArrow = "\x25b2";
+		public const string DownArrow = "\x25bc";
+
 		public static void Handler(Action a)
 		{
 			try
