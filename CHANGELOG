@@ -1,3 +1,14 @@
+3.2  24 January 2021
+  - Half move steps were not rewinding correctly
+  - Light colours were not actually being saved
+  - Fixed delays not being being reset when loading a scene
+  - Added example
+
+
+3.1  22 January 2021
+  - Fixed infinite loop with one eye target that's disabled
+
+
 3.0 January 2021
   - New modifiers: Eyes and Storable
   - Step overlap

@@ -357,6 +357,8 @@ namespace Synergy
 				"progression", ref sp);
 			StepProgression = sp;
 
+			ResetAllSteps();
+
 			return true;
 		}
 

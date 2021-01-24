@@ -57,6 +57,13 @@ namespace Synergy
 			EndBackwardsDuration.Resume();
 		}
 
+		public void Reset()
+		{
+			HalfwayDuration.Reset();
+			EndForwardsDuration.Reset();
+			EndBackwardsDuration.Reset();
+		}
+
 		public void Removed()
 		{
 			HalfwayDuration = null;

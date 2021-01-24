@@ -442,6 +442,7 @@ namespace Synergy
 		{
 			Duration.Reset();
 			Repeat.Reset();
+			Delay.Reset();
 
 			if (!Synergy.Instance.Manager.IsOnlyEnabledStep(this))
 			{

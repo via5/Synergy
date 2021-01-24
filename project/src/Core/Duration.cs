@@ -264,6 +264,8 @@ namespace Synergy
 			o.Opt("time", ref t);
 			Time = t;
 
+			Time.Reset(true);
+
 			return true;
 		}
 	}
