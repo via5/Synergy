@@ -41,12 +41,12 @@ namespace Synergy
 
 		public abstract ILightProperty Clone(int cloneFlags = 0);
 
-		public J.Node ToJSON()
+		public virtual J.Node ToJSON()
 		{
 			return new J.Object();
 		}
 
-		public bool FromJSON(J.Node n)
+		public virtual bool FromJSON(J.Node n)
 		{
 			return true;
 		}
@@ -162,8 +162,20 @@ namespace Synergy
 		public static string DisplayName { get; } = "Color";
 		public override string GetDisplayName() { return DisplayName; }
 
-		public Color Color1 { get; set; } = Color.blue;
-		public Color Color2 { get; set; } = Color.yellow;
+		private Color color1_ = Color.blue;
+		private Color color2_ = Color.yellow;
+
+		public Color Color1
+		{
+			get { return color1_; }
+			set { color1_ = value; }
+		}
+
+		public Color Color2
+		{
+			get { return color2_; }
+			set { color2_ = value; }
+		}
 
 		public override ILightProperty Clone(int cloneFlags = 0)
 		{
@@ -192,6 +204,31 @@ namespace Synergy
 		public override void Reset(Light light)
 		{
 			light.color = new Color(1.0f, 228.0f / 255.0f, 199.0f / 255.0f);
+		}
+
+		public override J.Node ToJSON()
+		{
+			var o = base.ToJSON().AsObject();
+
+			o.Add("color1", color1_);
+			o.Add("color2", color2_);
+
+			return o;
+		}
+
+		public override bool FromJSON(J.Node n)
+		{
+			if (!base.FromJSON(n))
+				return false;
+
+			var o = n.AsObject("ColorLightProperty");
+			if (o == null)
+				return false;
+
+			o.Opt("color1", ref color1_);
+			o.Opt("color2", ref color2_);
+
+			return true;
 		}
 	}
 

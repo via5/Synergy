@@ -282,6 +282,10 @@ namespace Synergy
 
 				bool reversedDir = false;
 
+				bool atOneEnd = (
+					active_.orderIndex == 0 ||
+					active_.orderIndex == order1_.Count - 1);
+
 				for (; ; )
 				{
 					if (active_.orderIndex == initial && reversedDir)
@@ -305,7 +309,11 @@ namespace Synergy
 
 							active_.forwards = false;
 							active_.orderIndex = order1_.Count - 1;
-							reversedDir = true;
+
+							if (atOneEnd)
+								atOneEnd = false;
+							else
+								reversedDir = true;
 						}
 
 						Log($"NextActive: i now {active_.orderIndex}");
@@ -319,7 +327,11 @@ namespace Synergy
 							active_.forwards = true;
 							order1_ = new List<int>(order2_);
 							order2_ = Regenerate(order2_);
-							reversedDir = true;
+
+							if (atOneEnd)
+								atOneEnd = false;
+							else
+								reversedDir = true;
 						}
 						else
 						{
@@ -342,7 +354,7 @@ namespace Synergy
 					else if (!active_.forwards && !CanRunBackwards(realIndex))
 					{
 						Log(
-							$"NextActive: index {overlap_.orderIndex} " +
+							$"NextActive: index {active_.orderIndex} " +
 							$"enabled but not half move, so doesn't need " +
 							$"ticking; continuing");
 					}
