@@ -581,6 +581,8 @@ namespace Synergy.UI
 			// the top and bottom padding in the list, this looks roughly
 			// equivalent to what's on the left and right
 			e.popup.topBottomBuffer = 3;
+
+			Adjust(e.popup, font, fontSize);
 		}
 
 		private static void Polish(UIDynamicPopup e, Font font, int fontSize)
@@ -681,6 +683,11 @@ namespace Synergy.UI
 			rt = scrollbar.GetComponent<RectTransform>();
 			rt.offsetMin = new Vector2(rt.offsetMin.x - 1, 0);
 			rt.offsetMax = new Vector2(rt.offsetMax.x - 1, rt.offsetMax.y);
+
+			// for filterable popups, hide the filter, there's a custom textbox
+			// already visible
+			if (e.filterField != null)
+				e.filterField.gameObject.SetActive(false);
 		}
 
 		private static void Polish(UIPopup e, Font font, int fontSize)

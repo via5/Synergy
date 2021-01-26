@@ -86,11 +86,14 @@ namespace Synergy.NewUI
 			p.Add(remove_);
 			p.Add(rename_);
 
-			Layout = new UI.HorizontalFlow(20);
+			var left = new UI.Panel(new UI.BorderLayout(10));
+			left.Add(new UI.Label(S("Modifiers")), UI.BorderLayout.Left);
+			left.Add(modifiers_, UI.BorderLayout.Center);
 
-			Add(new UI.Label(S("Modifiers:")));
-			Add(modifiers_);
-			Add(p);
+			Layout = new UI.BorderLayout(20);
+
+			Add(left, UI.BorderLayout.Center);
+			Add(p, UI.BorderLayout.Right);
 		}
 
 		public override void Dispose()
@@ -236,6 +239,7 @@ namespace Synergy.NewUI
 			modifierPanels_.Add(new LightModifierPanel());
 			modifierPanels_.Add(new AudioModifierPanel());
 			modifierPanels_.Add(new EyesModifierPanel());
+			modifierPanels_.Add(new StorableModifierPanel());
 
 			tabs_.AddTab(S("Sync"), sync_);
 
@@ -398,7 +402,7 @@ namespace Synergy.NewUI
 			Layout = new BorderLayout(20);
 
 			var p = new Panel(new HorizontalFlow(20));
-			p.Add(new UI.Label(S("Sync type:")));
+			p.Add(new UI.Label(S("Sync type")));
 			p.Add(type_);
 
 			Add(p, BorderLayout.Top);
@@ -505,7 +509,7 @@ namespace Synergy.NewUI
 			others_ = new ComboBox<ModifierContainer>(OnSelectionChanged);
 
 			var p = new UI.Panel(new UI.HorizontalFlow(20));
-			p.Add(new UI.Label(S("Modifier:")));
+			p.Add(new UI.Label(S("Modifier")));
 			p.Add(others_);
 
 			Layout = new UI.BorderLayout(20);
@@ -635,6 +639,7 @@ namespace Synergy.NewUI
 			};
 
 			cb_.Opened += OnOpen;
+			cb_.Filterable = true;
 
 			UpdateList();
 

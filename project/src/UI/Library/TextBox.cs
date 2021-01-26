@@ -140,7 +140,11 @@ namespace Synergy.UI
 		public delegate void StringCallback(string s);
 
 		public event ValidateCallback Validate;
+
+		// after changes are committed
 		public event StringCallback Edited;
+
+		// for each character
 		public event StringCallback Changed;
 
 
@@ -148,6 +152,7 @@ namespace Synergy.UI
 		private string placeholder_ = "";
 		private CustomInputField input_ = null;
 		private readonly IgnoreFlag ignore_ = new IgnoreFlag();
+		private int focusflags_ = Root.FocusDefault;
 
 		public TextBox(string t = "", string placeholder = "")
 		{
@@ -190,6 +195,12 @@ namespace Synergy.UI
 				if (input_ != null)
 					input_.placeholder.GetComponent<Text>().text = placeholder_;
 			}
+		}
+
+		public int FocusFlags
+		{
+			get { return focusflags_; }
+			set { focusflags_ = value; }
 		}
 
 		protected override void DoFocus()
@@ -272,7 +283,7 @@ namespace Synergy.UI
 		{
 			Utilities.Handler(() =>
 			{
-				Root.SetFocus(this);
+				Root.SetFocus(this, focusflags_);
 			});
 		}
 

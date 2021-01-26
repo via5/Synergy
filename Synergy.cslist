@@ -78,6 +78,7 @@ project\src\UI\NewUI\MovementUI.cs
 project\src\UI\NewUI\NewUI.cs
 project\src\UI\NewUI\RigidbodyUI.cs
 project\src\UI\NewUI\StepUI.cs
+project\src\UI\NewUI\StorableModifierUI.cs
 project\src\UI\Widgets\AtomList.cs
 project\src\UI\Widgets\AudioClipsCheckboxes.cs
 project\src\UI\Widgets\Collapsible.cs

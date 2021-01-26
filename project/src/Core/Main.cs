@@ -122,7 +122,7 @@ namespace Synergy
 		{
 			var s = new Step();
 
-			var m = new EyesModifier();
+			var m = new StorableModifier();
 			s.AddModifier(new ModifierContainer(m));
 
 			manager_.AddStep(s);

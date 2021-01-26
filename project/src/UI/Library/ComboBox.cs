@@ -344,6 +344,8 @@ namespace Synergy.UI
 
 		private Text arrow_ = null;
 		private BorderGraphics borders_ = null;
+		private TextBox filter_ = null;
+		private bool filterable_ = false;
 
 
 		public ComboBoxList(List<ItemType> items = null)
@@ -359,6 +361,12 @@ namespace Synergy.UI
 		public ComboBoxList(List<ItemType> items, ItemCallback selectionChanged)
 			: base(items, selectionChanged)
 		{
+		}
+
+		public bool Filterable
+		{
+			get { return filterable_; }
+			set { filterable_ = value; }
 		}
 
 		public override void SetItems(List<ItemType> items, ItemType sel = null)
@@ -384,15 +392,37 @@ namespace Synergy.UI
 			return new Size(Math.Max(175, widest), 40);
 		}
 
+		public override void Create()
+		{
+			base.Create();
+
+			if (filterable_)
+			{
+				filter_.Create();
+				filter_.MainObject.transform.SetParent(FilterParent(), false);
+			}
+		}
+
 		protected override GameObject CreateGameObject()
 		{
 			return UnityEngine.Object.Instantiate(
-				Synergy.Instance.manager.configurableScrollablePopupPrefab).gameObject;
+				Synergy.Instance.manager.configurableFilterablePopupPrefab).gameObject;
 		}
 
 		protected override void DoCreate()
 		{
 			base.DoCreate();
+
+			if (filterable_)
+			{
+				filter_ = new TextBox("", "Filter");
+				filter_.FocusFlags = Root.FocusKeepPopup;
+				filter_.Changed += OnFilterChanged;
+			}
+			else
+			{
+				Popup.popup.useFiltering = false;
+			}
 
 			Popup.popup.onOpenPopupHandlers += () =>
 			{
@@ -408,7 +438,10 @@ namespace Synergy.UI
 			{
 				Utilities.Handler(() =>
 				{
-					OnOpen();
+					// this handler is called before the popup, so visible is
+					// false when it's about to poen
+					if (!Popup.popup.visible)
+						OnOpen();
 				});
 			};
 
@@ -486,7 +519,45 @@ namespace Synergy.UI
 			Root.SetOpenedPopup(Popup.popup);
 			Utilities.BringToTop(Popup.popup.popupPanel);
 
+			UpdateFilterBounds();
+
+			if (filterable_)
+			{
+				// the popup hasn't processed the event yet and it will steal
+				// focus when it does, so focus the filter after that
+				Synergy.Instance.CreateTimer(Timer.Immediate, () =>
+				{
+					filter_.Focus();
+				});
+			}
+
 			Opened?.Invoke();
+		}
+
+		Transform FilterParent()
+		{
+			return Utilities.FindChildRecursive(Popup.popup, "PopupPanel").transform;
+		}
+
+		private void UpdateFilterBounds()
+		{
+			if (!filterable_)
+				return;
+
+			var parent = FilterParent();
+			var rt = parent.GetComponent<RectTransform>();
+			var r = rt.rect;
+			var h = filter_.GetRealPreferredSize(DontCare, DontCare).Height;
+
+			filter_.Bounds = Rectangle.FromPoints(
+				0, r.height, r.width, r.height + h);
+
+			filter_.UpdateBounds();
+		}
+
+		private void OnFilterChanged(string s)
+		{
+			Popup.popup.filter = s;
 		}
 	}
 
@@ -548,12 +619,18 @@ namespace Synergy.UI
 			Add(buttons_, BorderLayout.Left);
 			Add(list_, BorderLayout.Center);
 
-			list_.Opened += () => Opened?.Invoke();
+			list_.Opened += () => OnOpened();
 			list_.SelectionChanged += (item) => SelectionChanged?.Invoke(item);
 			list_.SelectionIndexChanged += (index) => SelectionIndexChanged?.Invoke(index);
 
 			if (selectionChanged != null)
 				SelectionChanged += selectionChanged;
+		}
+
+		private void OnOpened()
+		{
+			//UI.Utilities.DumpComponentsAndDown(list_.WidgetObject);
+			Opened?.Invoke();
 		}
 
 		public bool NavButtons
@@ -569,6 +646,13 @@ namespace Synergy.UI
 				buttons_.Visible = value;
 			}
 		}
+
+		public bool Filterable
+		{
+			get { return list_.Filterable; }
+			set { list_.Filterable = value; }
+		}
+
 
 		public void AddItem(ItemType i)
 		{

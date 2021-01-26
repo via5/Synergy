@@ -157,6 +157,7 @@ namespace Synergy.NewUI
 				RigidbodySelectionChanged?.Invoke(SelectedRigidbody);
 			};
 
+			cb_.Filterable = true;
 			cb_.Opened += OnOpen;
 		}
 

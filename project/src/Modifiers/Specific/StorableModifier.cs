@@ -1127,7 +1127,7 @@ namespace Synergy
 
 		private void AtomChanged(Atom newAtom)
 		{
-			string oldStorable = storable_?.name ?? "";
+			string oldStorable = storable_?.storeId ?? "";
 			string oldParameter = Parameter?.Name ?? "";
 
 			storable_ = Utilities.FindStorableInNewAtom(newAtom, oldStorable);
@@ -1283,21 +1283,25 @@ namespace Synergy
 		public void SetStorable(string id)
 		{
 			holder_.SetStorable(id);
+			FireNameChanged();
 		}
 
 		public void SetParameter(string name)
 		{
 			holder_.SetParameter(name);
+			FireNameChanged();
 		}
 
 		public void SetParameter(JSONStorableParam sp)
 		{
 			holder_.SetParameter(sp);
+			FireNameChanged();
 		}
 
 		public void SetParameter(JSONStorableAction a)
 		{
 			Parameter = new ActionStorableParameter(a);
+			FireNameChanged();
 		}
 
 		private void ResetParameter()

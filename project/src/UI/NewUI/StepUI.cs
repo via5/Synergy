@@ -98,7 +98,7 @@ namespace Synergy.NewUI
 			p.Add(progression_);
 
 			Layout = new UI.HorizontalFlow(20);
-			Add(new UI.Label(S("Steps:")));
+			Add(new UI.Label(S("Steps")));
 			Add(steps_);
 			Add(p);
 

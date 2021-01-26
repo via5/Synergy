@@ -83,19 +83,24 @@ namespace Synergy.UI
 		static public UIPopup openedPopup_ = null;
 		static private Widget focused_ = null;
 
+		public const int FocusDefault = 0x0;
+		public const int FocusKeepPopup = 0x01;
+
 		static public void SetOpenedPopup(UIPopup p)
 		{
 			openedPopup_ = p;
 		}
 
-		static public void SetFocus(Widget w)
+		static public void SetFocus(Widget w, int flags=FocusDefault)
 		{
 			if (focused_ == w)
 				return;
 
 			focused_ = w;
 
-			if (openedPopup_ != null)
+			// used by the filter textbox in the combobox so clicking it doesn't
+			// close the combobox
+			if (!Bits.IsSet(flags, FocusKeepPopup) && openedPopup_ != null)
 			{
 				if (openedPopup_.visible)
 					openedPopup_.Toggle();

@@ -117,7 +117,7 @@ namespace Synergy.NewUI
 			Layout = new BorderLayout(20);
 
 			var p = new Panel(new HorizontalFlow(20));
-			p.Add(new UI.Label(S("Progression type:")));
+			p.Add(new UI.Label(S("Progression type")));
 			p.Add(type_);
 
 			Add(p, BorderLayout.Top);
