@@ -20,9 +20,12 @@ namespace Synergy.UI
 		private float min_ = 0;
 		private float max_ = 0;
 
-		public Slider()
+		public Slider(ValueCallback changed = null)
 		{
 			Borders = new Insets(2);
+
+			if (changed != null)
+				ValueChanged += changed;
 		}
 
 		public float Value

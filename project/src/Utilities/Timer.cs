@@ -69,7 +69,9 @@ namespace Synergy
 				callback_?.Invoke();
 			});
 
-			if (!Bits.IsSet(flags_, Repeat))
+			if (Bits.IsSet(flags_, Repeat))
+				Restart();
+			else
 				Destroy();
 		}
 

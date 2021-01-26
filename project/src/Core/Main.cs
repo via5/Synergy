@@ -9,6 +9,9 @@ namespace Synergy
 {
 	sealed class Synergy : MVRScript
 	{
+		public delegate void PluginStateCallback(bool b);
+		public event PluginStateCallback PluginStateChanged;
+
 		private static Synergy instance_ = null;
 		private SuperController sc_ = null;
 		private bool enabled_ = false;
@@ -300,6 +303,7 @@ namespace Synergy
 		{
 			ui_?.PluginEnabled(b);
 			manager_?.PluginEnabled(b);
+			PluginStateChanged?.Invoke(b);
 		}
 
 		public override JSONClass GetJSON(

@@ -341,6 +341,23 @@ namespace Synergy
 			rel_ = rel;
 		}
 
+		public static Rigidbody GetPreferredTarget(Atom a)
+		{
+			var chest = Utilities.FindRigidbody(a, "chest");
+			if (chest != null)
+				return chest;
+
+			var o = Utilities.FindRigidbody(a, "object");
+			if (o != null)
+				return o;
+
+			var c = Utilities.FindRigidbody(a, "control");
+			if (c != null)
+				return c;
+
+			return null;
+		}
+
 		public override IEyesTarget Clone(int cloneFlags)
 		{
 			var t = new RandomEyesTarget();
@@ -390,6 +407,9 @@ namespace Synergy
 					rel_ = Utilities.FindRigidbody(value, rel_.name);
 				else
 					rel_ = null;
+
+				if (rel_ == null && value != null)
+					rel_ = GetPreferredTarget(value);
 
 				atom_ = value;
 			}

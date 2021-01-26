@@ -1,6 +1,4 @@
-﻿using AssetBundles;
-using JetBrains.Annotations;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -15,17 +13,29 @@ namespace Synergy.NewUI
 		private IgnoreFlag ignore_ = new IgnoreFlag();
 
 		private UI.Tabs tabs_ = new UI.Tabs();
+		private UI.Slider previewsAlpha_ = null;
+		private EyesPreviews previews_ = new EyesPreviews();
 
 		public EyesModifierPanel()
 		{
 			Layout = new UI.BorderLayout(10);
 
-			var top = new UI.Panel(new UI.GridLayout(3, 10));
-			top.Add(new UI.Label(S("Atom")));
-			top.Add(atom_);
-			top.Add(new UI.CheckBox(S("Previews")));
-			Add(top, UI.BorderLayout.Top);
+			previewsAlpha_ = new UI.Slider(OnPreviewsAlphaChanged);
+			previewsAlpha_.Set(previews_.Alpha, 0, 1);
 
+			var topLeft = new UI.Panel(new UI.HorizontalFlow(10));
+			topLeft.Add(new UI.Label(S("Atom")));
+			topLeft.Add(atom_);
+
+			var topRight = new UI.Panel(new UI.HorizontalFlow(10));
+			topRight.Add(new UI.CheckBox(S("Previews"), OnPreviewsChanged));
+			topRight.Add(previewsAlpha_);
+
+			var top = new UI.Panel(new UI.BorderLayout(10));
+			top.Add(topLeft, UI.BorderLayout.Center);
+			top.Add(topRight, UI.BorderLayout.Right);
+
+			Add(top, UI.BorderLayout.Top);
 			Add(tabs_, UI.BorderLayout.Center);
 
 			tabs_.AddTab(S("Options"), new EyesOptionsUI());
@@ -50,12 +60,24 @@ namespace Synergy.NewUI
 		{
 			modifier_ = m as EyesModifier;
 
+			previews_.Modifier = modifier_;
+
 			ignore_.Do(() =>
 			{
 				atom_.Select(modifier_.Atom);
 				foreach (var t in tabs_.TabWidgets)
 					((IEyesModifierTab)t).Set(modifier_);
 			});
+		}
+
+		private void OnPreviewsChanged(bool b)
+		{
+			previews_.Enabled = b;
+		}
+
+		private void OnPreviewsAlphaChanged(float f)
+		{
+			previews_.Alpha = f;
 		}
 
 		private void OnAtomChanged(Atom a)
@@ -142,13 +164,11 @@ namespace Synergy.NewUI
 	class EyesOptionsUI : UI.Panel, IEyesModifierTab
 	{
 		private EyesModifier modifier_ = null;
-		private EyesPreviews previews_ = new EyesPreviews();
 
 		private IgnoreFlag ignore_ = new IgnoreFlag();
 		private MovementWidgets minDistance_;
 		private IntegrationSettingWidget gaze_;
 		private IntegrationSettingWidget blink_;
-		private UI.TextSlider previewAlpha_;
 
 		public EyesOptionsUI()
 		{
@@ -159,7 +179,6 @@ namespace Synergy.NewUI
 			minDistance_ = new MovementWidgets(MovementWidgets.SmallMovement);
 			gaze_ = new IntegrationSettingWidget(OnGazeChanged);
 			blink_ = new IntegrationSettingWidget(OnBlinkChanged);
-			previewAlpha_ = new UI.TextSlider(OnPreviewAlphaChanged);
 
 			top.Add(new UI.Label(S("Minimum distance")));
 			top.Add(minDistance_);
@@ -167,8 +186,6 @@ namespace Synergy.NewUI
 			top.Add(gaze_);
 			top.Add(new UI.Label(S("Blink")));
 			top.Add(blink_);
-			top.Add(new UI.Label(S("Preview alpha")));
-			top.Add(previewAlpha_);
 
 			Add(top, UI.BorderLayout.Top);
 
@@ -178,7 +195,6 @@ namespace Synergy.NewUI
 		public void Set(EyesModifier m)
 		{
 			modifier_ = m;
-			previews_.Modifier = m;
 
 			if (modifier_ == null)
 				return;
@@ -188,7 +204,6 @@ namespace Synergy.NewUI
 				minDistance_.Set(modifier_.MinDistance);
 				gaze_.Set(modifier_.GazeAvailable, modifier_.GazeSetting);
 				blink_.Set(modifier_.BlinkAvailable, modifier_.BlinkSetting);
-				previewAlpha_.Set(previews_.Alpha, 0, 1);
 			});
 		}
 
@@ -217,14 +232,6 @@ namespace Synergy.NewUI
 
 			if (modifier_ != null)
 				modifier_.BlinkSetting = setting;
-		}
-
-		private void OnPreviewAlphaChanged(float f)
-		{
-			if (ignore_)
-				return;
-
-			previews_.Alpha = f;
 		}
 	}
 
@@ -350,11 +357,14 @@ namespace Synergy.NewUI
 			buttons.Add(new UI.Button(S("-"), RemoveTarget));
 
 			var left = new UI.Panel(new UI.BorderLayout());
-			//left.Add(buttons, UI.BorderLayout.Top);
 			left.Add(targets_);
 
-			panel_.Add(enabled_);
-			panel_.Add(type_);
+			var controls = new UI.Panel(new UI.HorizontalFlow(10));
+			controls.Add(new UI.Label(S("Type")));
+			controls.Add(type_);
+			controls.Add(enabled_);
+
+			panel_.Add(controls);
 			panel_.Add(new UI.Spacer(40));
 			panel_.Add(ui_);
 
@@ -520,11 +530,17 @@ namespace Synergy.NewUI
 			offsetY_ = new MovementWidgets(OnOffsetYChanged, MovementWidgets.SmallMovement);
 			offsetZ_ = new MovementWidgets(OnOffsetZChanged, MovementWidgets.SmallMovement);
 
-			Layout = new UI.GridLayout(2, 10);
+			var gl = new UI.GridLayout(2, 10);
+			gl.UniformHeight = false;
+			Layout = gl;
+
 			Add(new UI.Label(S("Atom")));
 			Add(atom_);
 			Add(new UI.Label(S("Receiver")));
 			Add(receiver_);
+			Add(new UI.Spacer(5));
+			Add(new UI.Spacer(5));
+
 			Add(new UI.Label(S("Offset X")));
 			Add(offsetX_);
 			Add(new UI.Label(S("Offset Y")));
@@ -597,14 +613,157 @@ namespace Synergy.NewUI
 
 	class RandomEyesTargetUI : UI.Panel, IUIFactoryWidget<IEyesTarget>
 	{
+		private RandomEyesTarget target_ = null;
+
+		private IgnoreFlag ignore_ = new IgnoreFlag();
+		private readonly AtomComboBox atom_;
+		private readonly RigidBodyComboBox receiver_;
+		private readonly MovementWidgets offsetX_;
+		private readonly MovementWidgets offsetY_;
+		private readonly MovementWidgets rangeX_;
+		private readonly MovementWidgets rangeY_;
+		private readonly MovementWidgets avoidRangeX_;
+		private readonly MovementWidgets avoidRangeY_;
+
+		public RandomEyesTargetUI()
+		{
+			atom_ = new AtomComboBox();
+			receiver_ = new RigidBodyComboBox();
+			offsetX_ = new MovementWidgets(OnOffsetXChanged, MovementWidgets.SmallMovement);
+			offsetY_ = new MovementWidgets(OnOffsetYChanged, MovementWidgets.SmallMovement);
+			rangeX_ = new MovementWidgets(OnRangeXChanged, MovementWidgets.SmallMovement);
+			rangeY_ = new MovementWidgets(OnRangeYChanged, MovementWidgets.SmallMovement);
+			avoidRangeX_ = new MovementWidgets(OnAvoidRangeXChanged, MovementWidgets.SmallMovement);
+			avoidRangeY_ = new MovementWidgets(OnAvoidRangeYChanged, MovementWidgets.SmallMovement);
+
+			var gl = new UI.GridLayout(2, 10);
+			gl.UniformHeight = false;
+			Layout = gl;
+
+			Add(new UI.Label(S("Atom")));
+			Add(atom_);
+			Add(new UI.Label(S("Receiver")));
+			Add(receiver_);
+			Add(new UI.Spacer(5));
+			Add(new UI.Spacer(5));
+
+			Add(new UI.Label(S("Offset X")));
+			Add(offsetX_);
+			Add(new UI.Label(S("Offset Y")));
+			Add(offsetY_);
+			Add(new UI.Spacer(5));
+			Add(new UI.Spacer(5));
+
+			Add(new UI.Label(S("Range X")));
+			Add(rangeX_);
+			Add(new UI.Label(S("Range Y")));
+			Add(rangeY_);
+			Add(new UI.Spacer(5));
+			Add(new UI.Spacer(5));
+
+			Add(new UI.Label(S("Avoid X")));
+			Add(avoidRangeX_);
+			Add(new UI.Label(S("Avoid Y")));
+			Add(avoidRangeY_);
+
+			atom_.AtomSelectionChanged += OnAtomChanged;
+			receiver_.RigidbodySelectionChanged += OnReceiverChanged;
+		}
+
 		public void Set(IEyesTarget t)
 		{
+			target_ = t as RandomEyesTarget;
+			if (target_ == null)
+				return;
+
+			ignore_.Do(() =>
+			{
+				atom_.Select(target_.Atom);
+				receiver_.Set(target_.Atom, target_.RelativeTo);
+				offsetX_.Set(target_.CenterX);
+				offsetY_.Set(target_.CenterY);
+				rangeX_.Set(target_.RangeX);
+				rangeY_.Set(target_.RangeY);
+				avoidRangeX_.Set(target_.AvoidRangeX);
+				avoidRangeY_.Set(target_.AvoidRangeY);
+			});
+		}
+
+		private void OnAtomChanged(Atom a)
+		{
+			if (ignore_ || target_ == null)
+				return;
+
+			target_.Atom = a;
+			receiver_.Set(a, target_.RelativeTo);
+		}
+
+		private void OnReceiverChanged(Rigidbody rb)
+		{
+			if (ignore_ || target_ == null)
+				return;
+
+			target_.RelativeTo = rb;
+		}
+
+		private void OnOffsetXChanged(float f)
+		{
+			if (ignore_ || target_ == null)
+				return;
+
+			target_.CenterX = f;
+		}
+
+		private void OnOffsetYChanged(float f)
+		{
+			if (ignore_ || target_ == null)
+				return;
+
+			target_.CenterY = f;
+		}
+
+		private void OnRangeXChanged(float f)
+		{
+			if (ignore_ || target_ == null)
+				return;
+
+			target_.RangeX = f;
+		}
+
+		private void OnRangeYChanged(float f)
+		{
+			if (ignore_ || target_ == null)
+				return;
+
+			target_.RangeY = f;
+		}
+
+		private void OnAvoidRangeXChanged(float f)
+		{
+			if (ignore_ || target_ == null)
+				return;
+
+			target_.AvoidRangeX = f;
+		}
+
+		private void OnAvoidRangeYChanged(float f)
+		{
+			if (ignore_ || target_ == null)
+				return;
+
+			target_.AvoidRangeY = f;
 		}
 	}
 
 
 	class PlayerEyesTargetUI : UI.Panel, IUIFactoryWidget<IEyesTarget>
 	{
+		public PlayerEyesTargetUI()
+		{
+			Layout = new UI.VerticalFlow();
+			Add(new UI.Label(S("This Person atom will be looking at the player.")));
+		}
+
 		public void Set(IEyesTarget t)
 		{
 		}

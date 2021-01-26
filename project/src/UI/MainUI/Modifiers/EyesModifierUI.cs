@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Synergy
@@ -557,8 +558,8 @@ namespace Synergy
 
 		public override void Update()
 		{
-			if (previews_.Enabled)
-				previews_.Update();
+			//if (previews_.Enabled)
+			//	previews_.Update();
 		}
 
 		private void SaccadeMinChanged(float f)
@@ -675,155 +676,421 @@ namespace Synergy
 	}
 
 
-	class EyesPreviews
+
+	interface IEyesPreviewTarget
 	{
-		class Preview
+		void Destroy();
+		void Set(EyesModifier m, EyesTargetContainer tc, float alpha);
+		void SetAlpha(float f);
+		bool Accepts(IEyesTarget target);
+		void Update();
+	}
+
+
+	public class EyesPreviewStyle
+	{
+		public static Color RigidbodyTargetColor = new Color(1, 0, 0, 1);
+		public static Color RandomTargetColor = new Color(0, 0, 1, 1);
+		public static Color RandomPlane = new Color(0, 0, 1, 1);
+		public static Color RandomPlaneAvoid = new Color(1, 0, 1, 0.5f);
+	}
+
+
+	abstract class BasicEyesPreviewTarget : IEyesPreviewTarget
+	{
+		public static float DefaultSphereScaleF = 0.1f;
+
+		public static Vector3 DefaultSphereScale = new Vector3(
+			DefaultSphereScaleF, DefaultSphereScaleF, DefaultSphereScaleF);
+
+
+		protected EyesModifier modifier_ = null;
+		protected EyesTargetContainer target_;
+		private float alpha_ = 0;
+
+		protected BasicEyesPreviewTarget(
+			EyesModifier m, EyesTargetContainer tc, float alpha)
 		{
-			public GameObject target = null;
-			public GameObject adjustedTarget = null;
-			public GameObject plane = null;
-			public GameObject planeAvoid = null;
-			public EyesModifier modifier = null;
-			public EyesTargetContainer t;
-			private float alpha_ = 1;
-			private static float AlphaFactor = 3.3f;
-			private static float DefaultSphereScaleF = 0.1f;
-			private static Vector3 DefaultSphereScale = new Vector3(
-				DefaultSphereScaleF, DefaultSphereScaleF, DefaultSphereScaleF);
+			modifier_ = m;
+			target_ = tc;
+			alpha_ = alpha;
+			Create();
+		}
 
-			public Preview(EyesModifier m, EyesTargetContainer tc, float alpha)
+		public static IEyesPreviewTarget Create(
+			EyesModifier m, EyesTargetContainer tc, float alpha)
+		{
+			if (tc?.Target == null)
+				return null;
+
+			if (tc.Target is RigidbodyEyesTarget)
+				return new EyesPreviewRigidbody(m, tc, alpha);
+			else if (tc.Target is RandomEyesTarget)
+				return new EyesPreviewRandom(m, tc, alpha);
+			else if (tc.Target is PlayerEyesTarget)
+				return new EyesPreviewPlayer(m, tc, alpha);
+
+			Synergy.LogError("previews: unknown eyes target");
+			return null;
+		}
+
+		public void Set(EyesModifier m, EyesTargetContainer tc, float alpha)
+		{
+			modifier_ = m;
+			target_ = tc;
+			alpha_ = alpha;
+		}
+
+		public void SetAlpha(float f)
+		{
+			alpha_ = f;
+			UpdateAlpha();
+		}
+
+		private void Create()
+		{
+			Destroy();
+			DoCreate();
+			UpdateAlpha();
+		}
+
+		public void Destroy()
+		{
+			DoDestroy();
+		}
+
+		public abstract bool Accepts(IEyesTarget target);
+		public abstract void Update();
+
+		protected abstract void DoCreate();
+		protected abstract void DoDestroy();
+		protected abstract void UpdateAlpha();
+
+		protected GameObject CreateObject(PrimitiveType t, Color c)
+		{
+			var o = GameObject.CreatePrimitive(t);
+
+			foreach (var collider in o.GetComponents<Collider>())
 			{
-				modifier = m;
-				t = tc;
-				alpha_ = alpha * AlphaFactor;
-				Create();
+				collider.enabled = false;
+				UnityEngine.Object.Destroy(collider);
 			}
 
-			private void Create()
+			var material = new Material(Shader.Find("Battlehub/RTGizmos/Handles"));
+
+			material.color = c;
+			material.SetFloat("_Offset", 1f);
+			material.SetFloat("_MinAlpha", 1f);
+
+			var r = o.GetComponent<Renderer>();
+			r.material = material;
+
+			o.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
+
+			return o;
+		}
+
+		protected void SetAlpha(GameObject o, Color c, float baseAlpha)
+		{
+			c = new Color(c.r, c.g, c.b, baseAlpha * alpha_);
+
+			var r = o.GetComponent<Renderer>();
+			r.material.color = c;
+		}
+	}
+
+
+	abstract class EyesPreviewWithTarget : BasicEyesPreviewTarget
+	{
+		private GameObject sphere_ = null;
+		private GameObject adjustedSphere_ = null;
+		private Color color_ = new Color();
+
+		public EyesPreviewWithTarget(EyesModifier m, EyesTargetContainer tc, float alpha)
+			: base(m, tc, alpha)
+		{
+		}
+
+		public override void Update()
+		{
+			sphere_.SetActive(target_.Enabled);
+			sphere_.transform.localPosition = target_.Target.Position;
+
+			adjustedSphere_.SetActive(target_.Enabled);
+			adjustedSphere_.transform.localPosition =
+				modifier_.AdjustedPosition(target_.Target.Position);
+		}
+
+		protected void CreateTargets(Color color)
+		{
+			color_ = color;
+
+			if (target_.Target == null)
+				return;
+
+			sphere_ = CreateObject(PrimitiveType.Sphere, color);
+
+			sphere_.transform.localPosition = target_.Target.Position;
+			sphere_.transform.localScale = DefaultSphereScale;
+
+
+			adjustedSphere_ = CreateObject(PrimitiveType.Sphere, color);
+
+			adjustedSphere_.transform.localPosition =
+				modifier_.AdjustedPosition(target_.Target.Position);
+
+			adjustedSphere_.transform.localScale = DefaultSphereScale / 2;
+		}
+
+		protected override void UpdateAlpha()
+		{
+			if (sphere_ != null)
+				SetAlpha(sphere_, color_, 1);
+
+			if (adjustedSphere_ != null)
+				SetAlpha(adjustedSphere_, color_, 0.5f);
+		}
+
+		protected override void DoDestroy()
+		{
+			if (sphere_ != null)
 			{
-				Destroy();
-
-				if (t.Target == null)
-					return;
-
-				target = CreateObject(
-					PrimitiveType.Sphere, GetColor(t.Target, 0.5f));
-
-				target.transform.localPosition = t.Target.Position;
-				target.transform.localScale = DefaultSphereScale;
-
-				adjustedTarget = CreateObject(
-					PrimitiveType.Sphere, GetColor(t.Target, 0.1f));
-
-				adjustedTarget.transform.localPosition =
-					modifier.AdjustedPosition(t.Target.Position);
-				adjustedTarget.transform.localScale = DefaultSphereScale / 2;
-
-				if (t.Target is RandomEyesTarget)
-				{
-					plane = CreateObject(
-						PrimitiveType.Cube, GetColor(t.Target, 0.02f));
-
-					planeAvoid = CreateObject(
-						PrimitiveType.Cube, new Color(1, 0, 0, 0.1f));
-				}
+				UnityEngine.Object.Destroy(sphere_);
+				sphere_ = null;
 			}
 
-			public void SetAlpha(float f)
+			if (adjustedSphere_ != null)
 			{
-				alpha_ = f * AlphaFactor;
-
-				if (target != null)
-					SetAlpha(target, GetColor(t.Target, 0.5f));
-
-				if (adjustedTarget != null)
-					SetAlpha(adjustedTarget, GetColor(t.Target, 0.1f));
-
-				if (t.Target is RandomEyesTarget)
-				{
-					if (plane != null)
-						SetAlpha(plane, GetColor(t.Target, 0.02f));
-
-					if (planeAvoid != null)
-						SetAlpha(planeAvoid, GetColor(t.Target, 0.1f));
-				}
+				UnityEngine.Object.Destroy(adjustedSphere_);
+				adjustedSphere_ = null;
 			}
+		}
+	}
 
-			public void Destroy()
+
+	class EyesPreviewRigidbody : EyesPreviewWithTarget
+	{
+		public EyesPreviewRigidbody(EyesModifier m, EyesTargetContainer tc, float alpha)
+			: base(m, tc, alpha)
+		{
+		}
+
+		public override bool Accepts(IEyesTarget target)
+		{
+			return (target is RigidbodyEyesTarget);
+		}
+
+		protected override void DoCreate()
+		{
+			CreateTargets(EyesPreviewStyle.RigidbodyTargetColor);
+		}
+	}
+
+
+	class EyesPreviewRandom : EyesPreviewWithTarget
+	{
+		public GameObject plane_ = null;
+		public GameObject planeAvoid_ = null;
+
+		public EyesPreviewRandom(EyesModifier m, EyesTargetContainer tc, float alpha)
+			: base(m, tc, alpha)
+		{
+		}
+
+		public override bool Accepts(IEyesTarget target)
+		{
+			return (target is RandomEyesTarget);
+		}
+
+		public override void Update()
+		{
+			base.Update();
+
+			plane_.SetActive(target_.Enabled);
+			planeAvoid_.SetActive(target_.Enabled);
+
+			var rt = target_.Target as RandomEyesTarget;
+
+			var rel = rt.RelativeTo ?? modifier_.Head;
+
+			Vector3 fwd = rel.rotation * Vector3.forward;
+			Vector3 ver = rel.rotation * Vector3.up;
+			Vector3 hor = rel.rotation * Vector3.right;
+
+			plane_.transform.localPosition =
+				rel.position +
+				fwd * rt.Distance +
+				ver * rt.CenterY +
+				hor * rt.CenterX;
+
+			plane_.transform.localScale = new Vector3(
+				rt.RangeX * 2, rt.RangeY * 2, 0.01f);
+
+			plane_.transform.localRotation = rel.rotation;
+
+			if (rt.AvoidRangeX == 0 && rt.AvoidRangeY == 0)
 			{
-				if (target != null)
-				{
-					Object.Destroy(target);
-					target = null;
-				}
-
-				if (adjustedTarget != null)
-				{
-					Object.Destroy(adjustedTarget);
-					adjustedTarget = null;
-				}
-
-				if (plane != null)
-				{
-					Object.Destroy(plane);
-					plane = null;
-				}
-
-				if (planeAvoid != null)
-				{
-					Object.Destroy(planeAvoid);
-					planeAvoid = null;
-				}
+				planeAvoid_.SetActive(false);
 			}
-
-			private GameObject CreateObject(PrimitiveType t, Color c)
+			else
 			{
-				var o = GameObject.CreatePrimitive(t);
+				planeAvoid_.SetActive(target_.Enabled);
 
-				foreach (var collider in o.GetComponents<Collider>())
-				{
-					collider.enabled = false;
-					Object.Destroy(collider);
-				}
+				planeAvoid_.transform.localPosition =
+					rel.position +
+					fwd * rt.Distance +
+					ver * rt.CenterY +
+					hor * rt.CenterX;
 
-				var material = new Material(Shader.Find("Battlehub/RTGizmos/Handles"));
+				planeAvoid_.transform.localScale = new Vector3(
+					rt.AvoidRangeX * 2, rt.AvoidRangeY * 2, 0.01f);
 
-				material.color = c;
-				material.SetFloat("_Offset", 1f);
-				material.SetFloat("_MinAlpha", 1f);
-
-				var r = o.GetComponent<Renderer>();
-				r.material = material;
-
-				o.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
-
-				return o;
-			}
-
-			private void SetAlpha(GameObject o, Color c)
-			{
-				var r = o.GetComponent<Renderer>();
-				r.material.color = c;
-			}
-
-			private Color GetColor(IEyesTarget t, float a)
-			{
-				a = Utilities.Clamp(a * alpha_, 0, 1);
-
-				if (t is RigidbodyEyesTarget)
-					return new Color(1, 0, 0, a);
-				else if (t is RandomEyesTarget)
-					return new Color(0, 0, 1, a);
-				else
-					return new Color(1, 1, 1, a);
+				planeAvoid_.transform.localRotation =
+					Quaternion.LookRotation(fwd);
 			}
 		}
 
+		protected override void DoCreate()
+		{
+			CreateTargets(EyesPreviewStyle.RigidbodyTargetColor);
+
+			plane_ = CreateObject(
+				PrimitiveType.Cube, EyesPreviewStyle.RandomPlane);
+
+			planeAvoid_ = CreateObject(
+				PrimitiveType.Cube,
+				EyesPreviewStyle.RandomPlaneAvoid);
+		}
+
+		protected override void DoDestroy()
+		{
+			base.DoDestroy();
+
+			if (plane_ != null)
+			{
+				UnityEngine.Object.Destroy(plane_);
+				plane_ = null;
+			}
+
+			if (planeAvoid_ != null)
+			{
+				UnityEngine.Object.Destroy(planeAvoid_);
+				planeAvoid_ = null;
+			}
+		}
+
+		protected override void UpdateAlpha()
+		{
+			base.UpdateAlpha();
+
+			if (plane_ != null)
+				SetAlpha(plane_, EyesPreviewStyle.RandomPlane, 1);
+
+			if (planeAvoid_ != null)
+				SetAlpha(planeAvoid_, EyesPreviewStyle.RandomPlaneAvoid, 1);
+		}
+	}
+
+
+	class EyesPreviewPlayer : BasicEyesPreviewTarget
+	{
+		public EyesPreviewPlayer(EyesModifier m, EyesTargetContainer tc, float alpha)
+			: base(m, tc, alpha)
+		{
+		}
+
+		public override bool Accepts(IEyesTarget target)
+		{
+			return (target is PlayerEyesTarget);
+		}
+
+		public override void Update()
+		{
+			// no-op
+		}
+
+		protected override void DoCreate()
+		{
+			// no-op
+		}
+
+		protected override void DoDestroy()
+		{
+			// no-op
+		}
+
+		protected override void UpdateAlpha()
+		{
+			// no-op
+		}
+	}
+
+
+	class EyesPreviewContainer
+	{
+		private IEyesPreviewTarget preview_ = null;
+
+		public void SetAlpha(float f)
+		{
+			if (preview_ != null)
+				preview_.SetAlpha(f);
+		}
+
+		public void Destroy()
+		{
+			if (preview_ != null)
+				preview_.Destroy();
+		}
+
+		public void Update()
+		{
+			if (preview_ != null)
+				preview_.Update();
+		}
+
+		public void Set(EyesModifier modifier, EyesTargetContainer target, float alpha)
+		{
+			if (preview_ == null)
+			{
+				preview_ = BasicEyesPreviewTarget.Create(modifier, target, alpha);
+			}
+			else if (modifier == null || target == null)
+			{
+				preview_.Destroy();
+				preview_ = null;
+			}
+			else if (!preview_.Accepts(target.Target))
+			{
+				preview_.Destroy();
+				preview_ = BasicEyesPreviewTarget.Create(modifier, target, alpha);
+			}
+			else
+			{
+				preview_.Set(modifier, target, alpha);
+			}
+		}
+	}
+
+
+	class EyesPreviews : IDisposable
+	{
 
 		private bool enabled_ = false;
 		private float alpha_ = 0.3f;
 		private EyesModifier modifier_ = null;
-		private readonly List<Preview> previews_ = new List<Preview>();
+		private readonly List<EyesPreviewContainer> previews_ =
+			new List<EyesPreviewContainer>();
+		private Timer timer_ = null;
+
+		public EyesPreviews()
+		{
+			Synergy.Instance.PluginStateChanged += OnPluginStateChanged;
+		}
+
+		public void Dispose()
+		{
+			Synergy.Instance.PluginStateChanged -= OnPluginStateChanged;
+		}
 
 		public EyesModifier Modifier
 		{
@@ -880,8 +1147,13 @@ namespace Synergy
 			if (modifier_ == null || !enabled_)
 				return;
 
+			timer_ = Synergy.Instance.CreateTimer(
+				0.1f, () => Update(), Timer.Repeat);
+
 			foreach (var t in modifier_.Targets)
-				previews_.Add(new Preview(modifier_, t, alpha_));
+				previews_.Add(new EyesPreviewContainer());
+
+			UpdateTargets();
 		}
 
 		public void Destroy()
@@ -890,6 +1162,9 @@ namespace Synergy
 				o.Destroy();
 
 			previews_.Clear();
+
+			if (timer_ != null)
+				timer_.Destroy();
 		}
 
 		public void Update()
@@ -897,66 +1172,38 @@ namespace Synergy
 			if (modifier_ == null)
 				return;
 
-			foreach (var p in previews_)
-			{
-				if (p.t?.Target == null)
-					continue;
-
-				p.target.SetActive(p.t.Enabled);
-				p.target.transform.localPosition = p.t.Target.Position;
-
-				p.adjustedTarget.SetActive(p.t.Enabled);
-				p.adjustedTarget.transform.localPosition =
-					modifier_.AdjustedPosition(p.t.Target.Position);
-
-				if (p.t.Target is RandomEyesTarget)
-				{
-					p.plane.SetActive(p.t.Enabled);
-					p.planeAvoid.SetActive(p.t.Enabled);
-					UpdateRandomPlane(p, p.t.Target as RandomEyesTarget);
-				}
-			}
+			if (!UpdateTargets())
+				Create();
 		}
 
-		private void UpdateRandomPlane(Preview p, RandomEyesTarget rt)
+		private bool UpdateTargets()
 		{
-			var rel = rt.RelativeTo ?? modifier_.Head;
+			if (previews_.Count != modifier_.Targets.Count)
+				return false;
 
-			Vector3 fwd = rel.rotation * Vector3.forward;
-			Vector3 ver = rel.rotation * Vector3.up;
-			Vector3 hor = rel.rotation * Vector3.right;
+			bool okay = true;
 
-			p.plane.transform.localPosition =
-				rel.position +
-				fwd * rt.Distance +
-				ver * rt.CenterY +
-				hor * rt.CenterX;
-
-			p.plane.transform.localScale = new Vector3(
-				rt.RangeX*2, rt.RangeY*2, 0.01f);
-
-			p.plane.transform.localRotation = rel.rotation;
-
-			if (rt.AvoidRangeX == 0 && rt.AvoidRangeY == 0)
+			for (int i=0; i<previews_.Count; ++i)
 			{
-				p.planeAvoid.SetActive(false);
+				var preview = previews_[i];
+				var target = modifier_.Targets[i];
+
+				preview.Set(modifier_, target, alpha_);
+				preview.Update();
 			}
+
+			return okay;
+		}
+
+		private void OnPluginStateChanged(bool b)
+		{
+			if (!Enabled)
+				return;
+
+			if (b)
+				Create();
 			else
-			{
-				p.planeAvoid.SetActive(p.t.Enabled);
-
-				p.planeAvoid.transform.localPosition =
-					rel.position +
-					fwd * rt.Distance +
-					ver * rt.CenterY +
-					hor * rt.CenterX;
-
-				p.planeAvoid.transform.localScale = new Vector3(
-					rt.AvoidRangeX * 2, rt.AvoidRangeY * 2, 0.01f);
-
-				p.planeAvoid.transform.localRotation =
-					Quaternion.LookRotation(fwd);
-			}
+				Destroy();
 		}
 	}
 }
