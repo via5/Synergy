@@ -360,6 +360,12 @@ namespace Synergy.UI
 					else
 						wh = ps.Height + extraHeight[rowIndex];
 
+					if (x + ww > r.Right)
+						ww = r.Right - x;
+
+					if (y + wh > r.Bottom)
+						wh = r.Bottom - y;
+
 					var wr = Rectangle.FromSize(x, y, ww, wh);
 
 					foreach (var w in ws)

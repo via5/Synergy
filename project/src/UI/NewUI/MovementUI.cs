@@ -154,7 +154,8 @@ namespace Synergy.NewUI
 			value_ = new MovementWidgets(flags);
 			range_ = new MovementWidgets(flags);
 			interval_ = new MovementWidgets(flags);
-			buttonsPanel_ = new Panel(new UI.HorizontalFlow(10));
+			buttonsPanel_ = new Panel(new UI.HorizontalFlow(
+				10, UI.FlowLayout.AlignLeft|UI.FlowLayout.AlignVCenter));
 			randomizeHalf_ = new UI.Button(S("Randomize half"), OnRandomizeHalf);
 
 			var gl = new UI.GridLayout(2);

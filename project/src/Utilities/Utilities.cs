@@ -107,6 +107,14 @@ namespace Synergy
 			set { rng_ = value; }
 		}
 
+		public static void TimeThis(string what, Action a)
+		{
+			var start = Time.realtimeSinceStartup;
+			a();
+			var end = Time.realtimeSinceStartup;
+			Synergy.LogError(what + ": " + (end - start) + "s");
+		}
+
 		// returns a float in [min, max]
 		//
 		public static float RandomFloat(float min, float max)

@@ -1,7 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Synergy.NewUI
 {
+	using StorableParameterUIWidget = FactoryObjectWidget<
+			StorableParameterFactory, IStorableParameter, StorableParameterUIFactory>;
+
 	// note that GetAllParamAndActionNames() seems to return an internal
 	// reference, changing it breaks the parameters for the atom until vam is
 	// restarted, so this always copies the list, wherever it comes from, just
@@ -109,6 +113,7 @@ namespace Synergy.NewUI
 		public StorableList()
 		{
 			list_.Filterable = true;
+			list_.AccuratePreferredSize = false;
 			list_.SelectionChanged += OnSelectionChanged;
 			list_.Opened += OnOpened;
 
@@ -127,7 +132,6 @@ namespace Synergy.NewUI
 			{
 				if (atom_ == atom && filter_ != null && filter_.Equals(filter))
 				{
-					UpdateIfStale();
 					list_.Select(storableID);
 				}
 				else
@@ -176,7 +180,7 @@ namespace Synergy.NewUI
 					return;
 				}
 
-				var items = filter_.GetStorables(atom_);
+				List<string> items = filter_.GetStorables(atom_);
 
 				if (id_ != "" && !items.Contains(id_))
 				{
@@ -201,6 +205,8 @@ namespace Synergy.NewUI
 		private Atom atom_ = null;
 		private JSONStorable storable_ = null;
 		private string id_ = "";
+		private StorableFilter filter_ = null;
+		private bool stale_ = false;
 
 		private readonly IgnoreFlag ignore_ = new IgnoreFlag();
 		private readonly UI.ComboBox<string> list_ = new UI.ComboBox<string>();
@@ -208,7 +214,9 @@ namespace Synergy.NewUI
 		public ParameterList()
 		{
 			list_.Filterable = true;
+			list_.AccuratePreferredSize = false;
 			list_.SelectionChanged += OnSelectionChanged;
+			list_.Opened += OnOpened;
 
 			Layout = new UI.BorderLayout();
 			Add(list_, UI.BorderLayout.Center);
@@ -218,11 +226,23 @@ namespace Synergy.NewUI
 			Atom atom, JSONStorable storable, string parameterID,
 			StorableFilter filter)
 		{
+			if (atom_ == atom && storable_ == storable && (filter_ != null && filter_.Equals(filter)))
+			{
+				list_.Select(parameterID);
+			}
+			else
+			{
+				// fake it
+				list_.Clear();
+				list_.SetItems(new List<string>() { parameterID }, parameterID);
+				stale_ = true;
+			}
+
+
 			atom_ = atom;
 			storable_ = storable;
 			id_ = parameterID;
-
-			Update(filter);
+			filter_ = filter;
 		}
 
 		public Atom Atom
@@ -235,6 +255,11 @@ namespace Synergy.NewUI
 			get { return id_; }
 		}
 
+		private void OnOpened()
+		{
+			UpdateIfStale();
+		}
+
 		private void OnSelectionChanged(string id)
 		{
 			if (ignore_)
@@ -243,17 +268,26 @@ namespace Synergy.NewUI
 			ParameterChanged?.Invoke(id);
 		}
 
-		private void Update(StorableFilter filter)
+		private void UpdateIfStale()
+		{
+			if (stale_)
+			{
+				Update();
+				stale_ = false;
+			}
+		}
+
+		private void Update()
 		{
 			ignore_.Do(() =>
 			{
-				if (atom_ == null || storable_ == null)
+				if (atom_ == null || storable_ == null || filter_ == null)
 				{
 					list_.Clear();
 					return;
 				}
 
-				var items = filter.GetParameters(storable_);
+				var items = filter_.GetParameters(storable_);
 
 				if (id_ != "" && !items.Contains(id_))
 				{
@@ -329,19 +363,146 @@ namespace Synergy.NewUI
 	}
 
 
+	class StorableParameterUIFactory : IUIFactory<IStorableParameter>
+	{
+		public Dictionary<string, Func<IUIFactoryWidget<IStorableParameter>>> GetCreators()
+		{
+			return new Dictionary<string, Func<IUIFactoryWidget<IStorableParameter>>>()
+			{
+				{
+					FloatStorableParameter.FactoryTypeName,
+					() => { return new FloatStorableParameterUI(); }
+				},
+
+				{
+					ActionStorableParameter.FactoryTypeName,
+					() => { return new ActionStorableParameterUI(); }
+				},
+
+				{
+					BoolStorableParameter.FactoryTypeName,
+					() => { return new BoolStorableParameterUI(); }
+				},
+
+				{
+					ColorStorableParameter.FactoryTypeName,
+					() => { return new ColorStorableParameterUI(); }
+				},
+
+				{
+					UrlStorableParameter.FactoryTypeName,
+					() => { return new UrlStorableParameterUI(); }
+				},
+
+				{
+					StringStorableParameter.FactoryTypeName,
+					() => { return new StringStorableParameterUI(); }
+				},
+
+				{
+					StringChooserStorableParameter.FactoryTypeName,
+					() => { return new StringChooserStorableParameterUI(); }
+				}
+			};
+		}
+	}
+
+
+	class FloatStorableParameterUI : UI.Panel, IUIFactoryWidget<IStorableParameter>
+	{
+		private readonly MovementPanel ui_ = new MovementPanel(S("Float parameter"));
+
+		public FloatStorableParameterUI()
+		{
+			Layout = new UI.VerticalFlow();
+
+			Add(new UI.Label(S(
+				"This is a float parameter. Use the sliders in the Range tab " +
+				"to control it.")));
+		}
+
+		public void Set(IStorableParameter t)
+		{
+			// no-op
+		}
+	}
+
+
+	class ActionStorableParameterUI : UI.Panel, IUIFactoryWidget<IStorableParameter>
+	{
+		public void Set(IStorableParameter t)
+		{
+		}
+	}
+
+
+	class BoolStorableParameterUI : UI.Panel, IUIFactoryWidget<IStorableParameter>
+	{
+		public void Set(IStorableParameter t)
+		{
+		}
+	}
+
+
+	class ColorStorableParameterUI : UI.Panel, IUIFactoryWidget<IStorableParameter>
+	{
+		public void Set(IStorableParameter t)
+		{
+		}
+	}
+
+
+	class UrlStorableParameterUI : UI.Panel, IUIFactoryWidget<IStorableParameter>
+	{
+		public void Set(IStorableParameter t)
+		{
+		}
+	}
+
+
+	class StringStorableParameterUI : UI.Panel, IUIFactoryWidget<IStorableParameter>
+	{
+		public void Set(IStorableParameter t)
+		{
+		}
+	}
+
+
+	class StringChooserStorableParameterUI : UI.Panel, IUIFactoryWidget<IStorableParameter>
+	{
+		public void Set(IStorableParameter t)
+		{
+		}
+	}
+
+
 	class StorableModifierPanel : BasicModifierPanel
 	{
 		private StorableModifier modifier_ = null;
 
-		private IgnoreFlag ignore_ = new IgnoreFlag();
-		private AtomComboBox atom_ = new AtomComboBox();
-		private StorableList storable_ = new StorableList();
-		private ParameterList parameter_ = new ParameterList();
-		private FilterList filter_ = new FilterList();
+		private readonly IgnoreFlag ignore_ = new IgnoreFlag();
+		private readonly FilterList filter_ = new FilterList();
+		private readonly AtomComboBox atom_ = new AtomComboBox();
+		private readonly StorableList storable_ = new StorableList();
+		private readonly ParameterList parameter_ = new ParameterList();
+		private readonly UI.Tabs tabs_ = new UI.Tabs();
+		private readonly MovementPanel min_ = new MovementPanel(S("Minimum"));
+		private readonly MovementPanel max_ = new MovementPanel(S("Maximum"));
+		private readonly StorableParameterUIWidget ui_ = new StorableParameterUIWidget();
 
 		public StorableModifierPanel()
 		{
-			var panel = new UI.Panel(new UI.GridLayout(2, 10));
+			var rangePanel = new UI.Panel(new UI.VerticalFlow(30));
+			rangePanel.Add(min_);
+			rangePanel.Add(max_);
+
+			tabs_.AddTab(S("Range"), rangePanel);
+			tabs_.AddTab(S("Parameter"), ui_);
+
+			var gl = new UI.GridLayout(2, 10);
+			gl.HorizontalStretch = new List<bool>() { false, true };
+
+			var panel = new UI.Panel(gl);
 			panel.Add(new UI.Label(S("Filter")));
 			panel.Add(filter_);
 			panel.Add(new UI.Spacer(30));
@@ -353,13 +514,14 @@ namespace Synergy.NewUI
 			panel.Add(new UI.Label(S("Parameter")));
 			panel.Add(parameter_);
 
-			Layout = new UI.VerticalFlow();
-			Add(panel);
+			Layout = new UI.BorderLayout(60);
+			Add(panel, UI.BorderLayout.Top);
+			Add(tabs_, UI.BorderLayout.Center);
 
+			filter_.Changed += OnFilterChanged;
 			atom_.AtomSelectionChanged += OnAtomChanged;
 			storable_.StorableChanged += OnStorableChanged;
 			parameter_.ParameterChanged += OnParameterChanged;
-			filter_.Changed += OnFilterChanged;
 		}
 
 		public override string Title
@@ -429,6 +591,10 @@ namespace Synergy.NewUI
 					modifier_.Storable,
 					modifier_.Parameter?.Name ?? "",
 					filter_.Get());
+
+				min_.Set(modifier_.Movement.Minimum);
+				max_.Set(modifier_.Movement.Maximum);
+				ui_.Set(modifier_.Parameter);
 			});
 		}
 	}

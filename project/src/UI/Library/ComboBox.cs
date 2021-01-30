@@ -351,6 +351,7 @@ namespace Synergy.UI
 		private BorderGraphics borders_ = null;
 		private TextBox filter_ = null;
 		private bool filterable_ = false;
+		private bool accuratePreferredSize_ = true;
 
 
 		public ComboBoxList(List<ItemType> items = null)
@@ -374,6 +375,12 @@ namespace Synergy.UI
 			set { filterable_ = value; }
 		}
 
+		public bool AccuratePreferredSize
+		{
+			get { return accuratePreferredSize_; }
+			set { accuratePreferredSize_ = value; }
+		}
+
 		public override void SetItems(List<ItemType> items, ItemType sel = null)
 		{
 			base.SetItems(items, sel);
@@ -385,6 +392,9 @@ namespace Synergy.UI
 		protected override Size DoGetPreferredSize(
 			float maxWidth, float maxHeight)
 		{
+			if (!accuratePreferredSize_)
+				return new Size(maxWidth, maxHeight);
+
 			float widest = 0;
 
 			foreach (var i in InternalItems)
@@ -656,6 +666,12 @@ namespace Synergy.UI
 		{
 			get { return list_.Filterable; }
 			set { list_.Filterable = value; }
+		}
+
+		public bool AccuratePreferredSize
+		{
+			get { return list_.AccuratePreferredSize; }
+			set { list_.AccuratePreferredSize = value; }
 		}
 
 
