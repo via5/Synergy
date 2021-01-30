@@ -1070,7 +1070,11 @@ namespace Synergy
 		public void SetStorable(string id)
 		{
 			if (atom_ == null || string.IsNullOrEmpty(id))
+			{
+				storable_ = null;
+				Parameter = null;
 				return;
+			}
 
 			var s = atom_.GetStorableByID(id);
 			if (s == null)
@@ -1148,7 +1152,10 @@ namespace Synergy
 		private bool SetParameterImpl(string name)
 		{
 			if (storable_ == null || string.IsNullOrEmpty(name))
+			{
+				Parameter = null;
 				return true;
+			}
 
 			var p = storable_.GetParam(name);
 			if (p != null)

@@ -60,13 +60,18 @@ namespace Synergy.UI
 			UpdateChoices();
 		}
 
+		private bool ItemsEqual(ItemType a, ItemType b)
+		{
+			return EqualityComparer<ItemType>.Default.Equals(a, b);
+		}
+
 		public void RemoveItem(ItemType item)
 		{
 			int itemIndex = -1;
 
 			for (int i = 0; i < items_.Count; ++i)
 			{
-				if (items_[i].Object == item)
+				if (ItemsEqual(items_[i].Object, item))
 				{
 					itemIndex = i;
 					break;
@@ -139,7 +144,7 @@ namespace Synergy.UI
 
 			for (int i = 0; i < items.Count; ++i)
 			{
-				if (EqualityComparer<ItemType>.Default.Equals(items[i], sel))
+				if (ItemsEqual(items[i], sel))
 					selIndex = i;
 
 				AddItemNoUpdate(new Item(items[i]));
@@ -177,7 +182,7 @@ namespace Synergy.UI
 		{
 			for (int i = 0; i < items_.Count; ++i)
 			{
-				if (items_[i].Object == item)
+				if (ItemsEqual(items_[i].Object, item))
 					return i;
 			}
 

@@ -2,7 +2,12 @@
 
 namespace Synergy.NewUI
 {
-	struct StorableFilter
+	// note that GetAllParamAndActionNames() seems to return an internal
+	// reference, changing it breaks the parameters for the atom until vam is
+	// restarted, so this always copies the list, wherever it comes from, just
+	// in case
+	//
+	class StorableFilter
 	{
 		private string type_;
 		private bool pluginsOnly_;
@@ -13,40 +18,77 @@ namespace Synergy.NewUI
 			pluginsOnly_ = pluginsOnly;
 		}
 
+		public override int GetHashCode()
+		{
+			return HashHelper.GetHashCode(type_, pluginsOnly_);
+		}
+
+		public override bool Equals(object o)
+		{
+			var f = o as StorableFilter;
+			if (f == null)
+				return false;
+
+			return Equals(f);
+		}
+
+		public bool Equals(StorableFilter f)
+		{
+			return (type_ == f.type_ && pluginsOnly_ == f.pluginsOnly_);
+		}
+
 		public List<string> GetStorables(Atom atom)
 		{
+			var list = new List<string>();
 			if (atom == null)
-				return new List<string>();
+				return list;
 
 			if (type_ == "")
-				return atom.GetStorableIDs();
-
-			var sp = new StorableParameterFactory().Create(type_);
-			if (sp == null)
 			{
-				Synergy.LogError($"unknown type {type_}");
-				return atom.GetStorableIDs();
+				list = new List<string>(atom.GetStorableIDs());
+			}
+			else
+			{
+				var sp = new StorableParameterFactory().Create(type_);
+				if (sp == null)
+				{
+					Synergy.LogError($"unknown type {type_}");
+					list = new List<string>(atom.GetStorableIDs());
+				}
+				else
+				{
+					list = new List<string>(sp.GetStorableNames(atom, pluginsOnly_));
+				}
 			}
 
-			return new List<string>(sp.GetStorableNames(atom, pluginsOnly_));
+			return list;
 		}
 
 		public List<string> GetParameters(JSONStorable storable)
 		{
+			var list = new List<string>();
 			if (storable == null)
-				return new List<string>();
+				return list;
 
 			if (type_ == "")
-				return storable.GetAllParamAndActionNames();
-
-			var sp = new StorableParameterFactory().Create(type_);
-			if (sp == null)
 			{
-				Synergy.LogError($"unknown type {type_}");
-				return storable.GetAllParamAndActionNames();
+				list = new List<string>(storable.GetAllParamAndActionNames());
+			}
+			else
+			{
+				var sp = new StorableParameterFactory().Create(type_);
+				if (sp == null)
+				{
+					Synergy.LogError($"unknown type {type_}");
+					list = new List<string>(storable.GetAllParamAndActionNames());
+				}
+				else
+				{
+					list = new List<string>(sp.GetParameterNames(storable));
+				}
 			}
 
-			return new List<string>(sp.GetParameterNames(storable));
+			return list;
 		}
 	}
 
@@ -58,12 +100,17 @@ namespace Synergy.NewUI
 
 		private Atom atom_ = null;
 		private string id_ = "";
+		private bool stale_ = true;
+		private StorableFilter filter_ = null;
+
+		private readonly IgnoreFlag ignore_ = new IgnoreFlag();
 		private readonly UI.ComboBox<string> list_ = new UI.ComboBox<string>();
 
 		public StorableList()
 		{
 			list_.Filterable = true;
-			list_.SelectionChanged += (id) => StorableChanged?.Invoke(id);
+			list_.SelectionChanged += OnSelectionChanged;
+			list_.Opened += OnOpened;
 
 			Layout = new UI.BorderLayout();
 			Add(list_, UI.BorderLayout.Center);
@@ -76,26 +123,72 @@ namespace Synergy.NewUI
 
 		public void Set(Atom atom, string storableID, StorableFilter filter)
 		{
-			atom_ = atom;
-			id_ = storableID;
+			ignore_.Do(() =>
+			{
+				if (atom_ == atom && filter_ != null && filter_.Equals(filter))
+				{
+					UpdateIfStale();
+					list_.Select(storableID);
+				}
+				else
+				{
+					// fake it
+					list_.Clear();
+					list_.SetItems(new List<string>() { storableID }, storableID);
+					stale_ = true;
+				}
 
-			Update(filter);
+				atom_ = atom;
+				id_ = storableID;
+				filter_ = filter;
+			});
 		}
 
-		private void Update(StorableFilter filter)
+		private void OnSelectionChanged(string id)
 		{
-			if (atom_ == null)
-			{
-				list_.Clear();
+			if (ignore_)
 				return;
+
+			StorableChanged?.Invoke(id);
+		}
+
+		private void OnOpened()
+		{
+			UpdateIfStale();
+		}
+
+		private void UpdateIfStale()
+		{
+			if (stale_)
+			{
+				Update();
+				stale_ = false;
 			}
+		}
 
-			var items = filter.GetStorables(atom_);
+		private void Update()
+		{
+			ignore_.Do(() =>
+			{
+				if (atom_ == null || filter_ == null)
+				{
+					list_.Clear();
+					return;
+				}
 
-			Utilities.NatSort(items);
-			items.Insert(0, "");
+				var items = filter_.GetStorables(atom_);
 
-			list_.SetItems(items, id_);
+				if (id_ != "" && !items.Contains(id_))
+				{
+					// current selection is filtered out, add it
+					items.Add(id_);
+				}
+
+				Utilities.NatSort(items);
+				items.Insert(0, "");
+
+				list_.SetItems(items, id_);
+			});
 		}
 	}
 
@@ -108,12 +201,14 @@ namespace Synergy.NewUI
 		private Atom atom_ = null;
 		private JSONStorable storable_ = null;
 		private string id_ = "";
+
+		private readonly IgnoreFlag ignore_ = new IgnoreFlag();
 		private readonly UI.ComboBox<string> list_ = new UI.ComboBox<string>();
 
 		public ParameterList()
 		{
 			list_.Filterable = true;
-			list_.SelectionChanged += (id) => ParameterChanged?.Invoke(id);
+			list_.SelectionChanged += OnSelectionChanged;
 
 			Layout = new UI.BorderLayout();
 			Add(list_, UI.BorderLayout.Center);
@@ -140,20 +235,37 @@ namespace Synergy.NewUI
 			get { return id_; }
 		}
 
+		private void OnSelectionChanged(string id)
+		{
+			if (ignore_)
+				return;
+
+			ParameterChanged?.Invoke(id);
+		}
+
 		private void Update(StorableFilter filter)
 		{
-			if (atom_ == null || storable_ == null)
+			ignore_.Do(() =>
 			{
-				list_.Clear();
-				return;
-			}
+				if (atom_ == null || storable_ == null)
+				{
+					list_.Clear();
+					return;
+				}
 
-			var items = filter.GetParameters(storable_);
+				var items = filter.GetParameters(storable_);
 
-			Utilities.NatSort(items);
-			items.Insert(0, "");
+				if (id_ != "" && !items.Contains(id_))
+				{
+					// current selection is filtered out, add it
+					items.Add(id_);
+				}
 
-			list_.SetItems(items, id_);
+				Utilities.NatSort(items);
+				items.Insert(0, "");
+
+				list_.SetItems(items, id_);
+			});
 		}
 	}
 
@@ -247,7 +359,7 @@ namespace Synergy.NewUI
 			atom_.AtomSelectionChanged += OnAtomChanged;
 			storable_.StorableChanged += OnStorableChanged;
 			parameter_.ParameterChanged += OnParameterChanged;
-			filter_.Changed += UpdateLists;
+			filter_.Changed += OnFilterChanged;
 		}
 
 		public override string Title
@@ -293,6 +405,11 @@ namespace Synergy.NewUI
 				return;
 
 			modifier_.SetParameter(id);
+			UpdateLists();
+		}
+
+		private void OnFilterChanged()
+		{
 			UpdateLists();
 		}
 
