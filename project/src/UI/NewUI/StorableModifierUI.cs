@@ -410,8 +410,6 @@ namespace Synergy.NewUI
 
 	class FloatStorableParameterUI : UI.Panel, IUIFactoryWidget<IStorableParameter>
 	{
-		private readonly MovementPanel ui_ = new MovementPanel(S("Float parameter"));
-
 		public FloatStorableParameterUI()
 		{
 			Layout = new UI.VerticalFlow();
@@ -430,24 +428,137 @@ namespace Synergy.NewUI
 
 	class ActionStorableParameterUI : UI.Panel, IUIFactoryWidget<IStorableParameter>
 	{
+		class TriggerType
+		{
+			private string display_;
+			private int value_;
+
+			public TriggerType(string display, int value)
+			{
+				display_ = display;
+				value_ = value;
+			}
+
+			public int Value
+			{
+				get { return value_; }
+			}
+
+			public override int GetHashCode()
+			{
+				return value_;
+			}
+
+			public override bool Equals(object o)
+			{
+				var t = o as TriggerType;
+				if (t == null)
+					return false;
+
+				return Equals(t);
+			}
+
+			public bool Equals(TriggerType t)
+			{
+				return (value_ == t.value_);
+			}
+
+			public override string ToString()
+			{
+				return display_;
+			}
+		}
+
+		private ActionStorableParameter param_ = null;
+
+		private readonly IgnoreFlag ignore_ = new IgnoreFlag();
+		private readonly UI.TextSlider triggerAt_ = new UI.TextSlider();
+		private readonly UI.ComboBox<TriggerType> triggerType_ = new UI.ComboBox<TriggerType>();
+
+		public ActionStorableParameterUI()
+		{
+			var panel = new UI.Panel(new UI.GridLayout(2));
+			panel.Add(new UI.Label(S("Trigger at")));
+			panel.Add(triggerAt_);
+			panel.Add(new UI.Label(S("Trigger type")));
+			panel.Add(triggerType_);
+
+			Layout = new UI.VerticalFlow();
+			Add(panel);
+
+
+			var names = ActionStorableParameter.TriggerTypeNames();
+			var values = ActionStorableParameter.TriggerTypes();
+
+			var items = new List<TriggerType>();
+			for (int i = 0; i < names.Count; ++i)
+				items.Add(new TriggerType(names[i], values[i]));
+
+			triggerType_.Items = items;
+
+			triggerAt_.ValueChanged += OnTriggerAtChanged;
+			triggerType_.SelectionChanged += OnTriggerTypeChanged;
+		}
+
 		public void Set(IStorableParameter t)
 		{
+			param_ = t as ActionStorableParameter;
+			if (param_ == null)
+				return;
+
+			ignore_.Do(() =>
+			{
+				triggerAt_.Set(param_.TriggerMagnitude, 0, 1);
+				triggerType_.Select(new TriggerType("", param_.TriggerType));
+			});
+		}
+
+		private void OnTriggerAtChanged(float f)
+		{
+			if (ignore_ || param_ == null)
+				return;
+
+			param_.TriggerMagnitude = f;
+		}
+
+		private void OnTriggerTypeChanged(TriggerType t)
+		{
+			if (ignore_ || param_ == null)
+				return;
+
+			param_.TriggerType = t.Value;
 		}
 	}
 
 
 	class BoolStorableParameterUI : UI.Panel, IUIFactoryWidget<IStorableParameter>
 	{
+		public BoolStorableParameterUI()
+		{
+			Layout = new UI.VerticalFlow();
+
+			Add(new UI.Label(S(
+				"This is a bool parameter. Use the sliders in the Range tab " +
+				"to control it. The parameter will be set to false when the " +
+				"value <= 0.5, true otherwise.")));
+		}
+
 		public void Set(IStorableParameter t)
 		{
+			// no-op
 		}
 	}
 
 
 	class ColorStorableParameterUI : UI.Panel, IUIFactoryWidget<IStorableParameter>
 	{
+		public ColorStorableParameterUI()
+		{
+		}
+
 		public void Set(IStorableParameter t)
 		{
+			// no-op
 		}
 	}
 
