@@ -477,7 +477,7 @@ namespace Synergy.NewUI
 
 		public ActionStorableParameterUI()
 		{
-			var panel = new UI.Panel(new UI.GridLayout(2));
+			var panel = new UI.Panel(new UI.GridLayout(2, 10));
 			panel.Add(new UI.Label(S("Trigger at")));
 			panel.Add(triggerAt_);
 			panel.Add(new UI.Label(S("Trigger type")));
@@ -597,15 +597,13 @@ namespace Synergy.NewUI
 		private readonly StorableList storable_ = new StorableList();
 		private readonly ParameterList parameter_ = new ParameterList();
 		private readonly UI.Tabs tabs_ = new UI.Tabs();
-		private readonly MovementPanel min_ = new MovementPanel(S("Minimum"));
-		private readonly MovementPanel max_ = new MovementPanel(S("Maximum"));
+		private readonly MovementUI movement_ = new MovementUI();
 		private readonly StorableParameterUIWidget ui_ = new StorableParameterUIWidget();
 
 		public StorableModifierPanel()
 		{
 			var rangePanel = new UI.Panel(new UI.VerticalFlow(30));
-			rangePanel.Add(min_);
-			rangePanel.Add(max_);
+			rangePanel.Add(movement_);
 
 			tabs_.AddTab(S("Range"), rangePanel);
 			tabs_.AddTab(S("Parameter"), ui_);
@@ -703,8 +701,7 @@ namespace Synergy.NewUI
 					modifier_.Parameter?.Name ?? "",
 					filter_.Get());
 
-				min_.Set(modifier_.Movement.Minimum);
-				max_.Set(modifier_.Movement.Maximum);
+				movement_.Set(modifier_.Movement);
 				ui_.Set(modifier_.Parameter);
 			});
 		}

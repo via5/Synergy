@@ -12,19 +12,13 @@ namespace Synergy.NewUI
 		private readonly FactoryComboBox<
 			LightPropertyFactory, ILightProperty> property_;
 
-		private readonly FactoryComboBox<EasingFactory, IEasing> easing_ =
-			new FactoryComboBox<EasingFactory, IEasing>();
-
 		private FactoryObjectWidget<
 			LightPropertyFactory,
 			ILightProperty,
 			LightPropertyUIFactory> ui_;
 
-		private readonly MovementPanel min_ = new MovementPanel(
-			S("Minimum"), MovementWidgets.SmallMovement);
-
-		private readonly MovementPanel max_ = new MovementPanel(
-			S("Maximum"), MovementWidgets.SmallMovement);
+		private readonly MovementUI movement_ = new MovementUI(
+			MovementWidgets.SmallMovement);
 
 		private LightModifier modifier_ = null;
 		private IgnoreFlag ignore_ = new IgnoreFlag();
@@ -48,19 +42,15 @@ namespace Synergy.NewUI
 			p.Add(atom_);
 			p.Add(new UI.Label(S("Property")));
 			p.Add(property_);
-			p.Add(new UI.Label(S("Easing")));
-			p.Add(easing_);
 			w.Add(p);
 
-			w.Add(min_);
-			w.Add(max_);
+			w.Add(movement_);
 
 			Layout = new UI.BorderLayout(20);
 			Add(w, UI.BorderLayout.Top);
 			Add(ui_, UI.BorderLayout.Center);
 
 			atom_.AtomSelectionChanged += OnAtomChanged;
-			easing_.FactoryTypeChanged += OnEasingChanged;
 		}
 
 		public override string Title
@@ -81,9 +71,7 @@ namespace Synergy.NewUI
 			{
 				atom_.Select(modifier_.Atom);
 				property_.Select(modifier_.Property);
-				easing_.Select(modifier_.Movement.Easing);
-				min_.Set(modifier_.Movement.Minimum);
-				max_.Set(modifier_.Movement.Maximum);
+				movement_.Set(modifier_.Movement);
 				ui_.Set(modifier_.Property);
 			});
 		}
@@ -103,14 +91,6 @@ namespace Synergy.NewUI
 
 			modifier_.Property = p;
 			ui_.Set(p);
-		}
-
-		private void OnEasingChanged(IEasing easing)
-		{
-			if (ignore_)
-				return;
-
-			modifier_.Movement.Easing = easing;
 		}
 	}
 

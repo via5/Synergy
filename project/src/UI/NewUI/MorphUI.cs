@@ -304,11 +304,8 @@ namespace Synergy.NewUI
 
 		private readonly UI.CheckBox enabled_ = new UI.CheckBox(S("Enabled"));
 
-		private readonly MovementPanel min_ = new MovementPanel(
-			S("Minimum"), MovementWidgets.SmallMovement);
-
-		private readonly MovementPanel max_ = new MovementPanel(
-			S("Maximum"), MovementWidgets.SmallMovement);
+		private readonly MovementUI movement_ = new MovementUI(
+			MovementWidgets.SmallMovement);
 
 		private MorphModifier modifier_ = null;
 		private SelectedMorph morph_ = null;
@@ -322,12 +319,14 @@ namespace Synergy.NewUI
 
 			Layout = new UI.VerticalFlow(40);
 
-			min_.ButtonsPanel.Add(new UI.Button(S("Copy to other morphs"), OnCopyMinimum));
-			max_.ButtonsPanel.Add(new UI.Button(S("Copy to other morphs"), OnCopyMaximum));
+			movement_.MinimumPanel.ButtonsPanel.Add(
+				new UI.Button(S("Copy to other morphs"), OnCopyMinimum));
+
+			movement_.MaximumPanel.ButtonsPanel.Add(
+				new UI.Button(S("Copy to other morphs"), OnCopyMaximum));
 
 			Add(top);
-			Add(min_);
-			Add(max_);
+			Add(movement_);
 
 			enabled_.Changed += OnEnabled;
 		}
@@ -341,8 +340,7 @@ namespace Synergy.NewUI
 				return;
 
 			enabled_.Checked = sm.Enabled;
-			min_.Set(sm.Movement.Minimum);
-			max_.Set(sm.Movement.Maximum);
+			movement_.Set(sm.Movement);
 		}
 
 		private void OnEnabled(bool b)

@@ -16,13 +16,8 @@ namespace Synergy.NewUI
 				movementType_ = new FactoryComboBox<
 					RigidbodyMovementTypeFactory, IRigidbodyMovementType>();
 
-		private readonly FactoryComboBox<EasingFactory, IEasing> easing_ =
-			new FactoryComboBox<EasingFactory, IEasing>();
-
 		private readonly DirectionPanel dir_ = new DirectionPanel();
-
-		private readonly MovementPanel min_ = new MovementPanel(S("Minimum"));
-		private readonly MovementPanel max_ = new MovementPanel(S("Maximum"));
+		private readonly MovementUI movement_ = new MovementUI();
 
 		private RigidbodyModifier modifier_ = null;
 		private bool ignore_ = false;
@@ -45,18 +40,13 @@ namespace Synergy.NewUI
 			w.Add(receiver_);
 			w.Add(new UI.Label(S("Move type")));
 			w.Add(movementType_);
-			w.Add(new UI.Label(S("Easing")));
-			w.Add(easing_);
 			Add(w);
 			Add(dir_);
-
-			Add(min_);
-			Add(max_);
+			Add(movement_);
 
 			atom_.AtomSelectionChanged += OnAtomChanged;
 			receiver_.RigidbodySelectionChanged += OnRigidbodyChanged;
 			movementType_.FactoryTypeChanged += OnMovementTypeChanged;
-			easing_.FactoryTypeChanged += OnEasingChanged;
 			dir_.Changed += OnDirectionChanged;
 		}
 
@@ -79,10 +69,8 @@ namespace Synergy.NewUI
 				atom_.Select(modifier_.Atom);
 				receiver_.Set(modifier_.Atom, modifier_.Receiver);
 				movementType_.Select(modifier_.Type);
-				easing_.Select(modifier_.Movement.Easing);
 				dir_.Set(modifier_.Direction);
-				min_.Set(modifier_.Movement.Minimum);
-				max_.Set(modifier_.Movement.Maximum);
+				movement_.Set(modifier_.Movement);
 			}
 		}
 
@@ -112,14 +100,6 @@ namespace Synergy.NewUI
 				return;
 
 			modifier_.Type = type;
-		}
-
-		private void OnEasingChanged(IEasing easing)
-		{
-			if (ignore_)
-				return;
-
-			modifier_.Movement.Easing = easing;
 		}
 
 		private void OnDirectionChanged(Vector3 v)

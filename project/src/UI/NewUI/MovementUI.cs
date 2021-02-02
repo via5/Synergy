@@ -231,4 +231,66 @@ namespace Synergy.NewUI
 			range_.Set(rf_.Range);
 		}
 	}
+
+
+	class MovementUI : UI.Panel
+	{
+		private Movement m_ = null;
+
+		private readonly IgnoreFlag ignore_ = new IgnoreFlag();
+		private readonly MovementPanel min_;
+		private readonly MovementPanel max_;
+		private readonly FactoryComboBox<EasingFactory, IEasing> easing_;
+
+		public MovementUI(int flags = MovementWidgets.NoFlags)
+		{
+			min_ = new MovementPanel(S("Min"), flags);
+			max_ = new MovementPanel(S("Max"), flags);
+			easing_ = new FactoryComboBox<EasingFactory, IEasing>();
+
+			Layout = new UI.VerticalFlow(20);
+
+			var easing = new UI.Panel(new UI.HorizontalFlow(
+				10, UI.FlowLayout.AlignLeft | UI.FlowLayout.AlignVCenter));
+
+			easing.Add(new UI.Label(S("Easing")));
+			easing.Add(easing_);
+
+			Add(easing);
+			Add(min_);
+			Add(max_);
+
+			easing_.FactoryTypeChanged += OnEasingChanged;
+		}
+
+		public MovementPanel MinimumPanel
+		{
+			get { return min_; }
+		}
+
+		public MovementPanel MaximumPanel
+		{
+			get { return max_; }
+		}
+
+		public void Set(Movement m)
+		{
+			m_ = m;
+
+			ignore_.Do(() =>
+			{
+				min_.Set(m_.Minimum);
+				max_.Set(m_.Maximum);
+				easing_.Select(m_.Easing);
+			});
+		}
+
+		private void OnEasingChanged(IEasing easing)
+		{
+			if (ignore_ || m_ == null)
+				return;
+
+			m_.Easing = easing;
+		}
+	}
 }
