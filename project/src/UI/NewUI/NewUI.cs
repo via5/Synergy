@@ -1,7 +1,4 @@
-﻿using Synergy.UI;
-using System;
-
-namespace Synergy.NewUI
+﻿namespace Synergy.NewUI
 {
 	class NewUI
 	{
@@ -11,6 +8,7 @@ namespace Synergy.NewUI
 		private StepTab stepTab_ = new StepTab();
 		private ModifiersTab modifiersTab_ = new ModifiersTab();
 		private PresetsTab presetsTab_ = new PresetsTab();
+		private OptionsTab optionsTab_ = new OptionsTab();
 
 		public static string S(string s)
 		{
@@ -22,6 +20,7 @@ namespace Synergy.NewUI
 			tabs_.AddTab(S("Step"), stepTab_);
 			tabs_.AddTab(S("Modifiers"), modifiersTab_);
 			tabs_.AddTab(S("Presets"), presetsTab_);
+			tabs_.AddTab(S("Options"), optionsTab_);
 
 			root_.ContentPanel.Layout = new UI.BorderLayout(20);
 			root_.ContentPanel.Add(steps_, UI.BorderLayout.Top);
@@ -32,12 +31,8 @@ namespace Synergy.NewUI
 			else
 				SelectStep(null);
 
-			//tabs_.Select(1);
-
 			steps_.SelectionChanged += OnStepSelected;
 			root_.DoLayoutIfNeeded();
-
-			//modifiersTab_.SelectTab(6);
 		}
 
 		public void SelectStep(Step s)
@@ -255,6 +250,70 @@ namespace Synergy.NewUI
 		public void LoadModifier(int flags)
 		{
 			OptionsUI.LoadModifier(flags);
+		}
+	}
+
+
+	class OptionsTab : UI.Panel
+	{
+		private readonly Options options_ = Synergy.Instance.Options;
+
+		public OptionsTab()
+		{
+			var overlapPanel = new UI.Panel(new UI.HorizontalFlow(10));
+			overlapPanel.Add(new UI.Label(S("Global overlap time")));
+			overlapPanel.Add(new UI.TextSlider(
+				options_.OverlapTime, 0, 2,
+				(f) => options_.OverlapTime = f));
+
+			var logPanel = new UI.Panel(new UI.HorizontalFlow(10));
+			logPanel.Add(new UI.Label(S("Log level")));
+			logPanel.Add(new UI.ComboBox<string>(
+				Options.GetLogLevelNames(),
+				Options.LogLevelToString(options_.LogLevel),
+				(s) => options_.LogLevel = Options.LogLevelFromString(s)));
+
+			Layout = new UI.VerticalFlow(10, false);
+
+			Add(new UI.CheckBox(
+				S("Reset positions on freeze"),
+				(b) => options_.ResetValuesOnFreeze = b,
+				options_.ResetValuesOnFreeze));
+
+			Add(new UI.CheckBox(
+				S("Reset counters on thaw"),
+				(b) => options_.ResetCountersOnThaw = b,
+				options_.ResetCountersOnThaw));
+
+			Add(new UI.Spacer(20));
+
+			Add(new UI.CheckBox(
+				"Pick animatable",
+				PickAnimatableChanged));
+
+			Add(new UI.Button(
+				S("Manage animatables"),
+				ManageAnimatables));
+
+			Add(new UI.Spacer(20));
+
+			Add(overlapPanel);
+
+			Add(new UI.Spacer(20));
+
+			Add(logPanel);
+			Add(new UI.CheckBox(
+				S("Log overlap"),
+				(b) => options_.LogOverlap = b,
+				options_.LogOverlap));
+		}
+
+		public void PickAnimatableChanged(bool b)
+		{
+		}
+
+		public void ManageAnimatables()
+		{
 		}
 	}
 }

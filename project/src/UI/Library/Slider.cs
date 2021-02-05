@@ -163,12 +163,21 @@ namespace Synergy.UI
 
 
 		public TextSlider(ValueCallback valueChanged = null)
+			: this(0, 0, 1, valueChanged)
+		{
+		}
+
+		public TextSlider(
+			float value, float min, float max,
+			ValueCallback valueChanged = null)
 		{
 			Layout = new BorderLayout(5);
 			Add(slider_, BorderLayout.Center);
 			Add(text_, BorderLayout.Right);
 
 			UpdateText();
+
+			Set(value, min, max);
 
 			text_.Edited += OnTextChanged;
 			slider_.ValueChanged += OnValueChanged;

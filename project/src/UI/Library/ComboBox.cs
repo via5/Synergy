@@ -622,6 +622,12 @@ namespace Synergy.UI
 				SelectionChanged += selectionChanged;
 		}
 
+		public ComboBox(List<ItemType> items, ItemType sel, ItemCallback selectionChanged)
+			: this(items, selectionChanged)
+		{
+			Select(sel);
+		}
+
 		private void OnOpened()
 		{
 			Opened?.Invoke();
