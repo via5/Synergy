@@ -66,9 +66,9 @@ namespace Synergy.NewUI
 		public ModifierControls()
 		{
 			modifiers_ = new ComboBox<ModifierContainer>(OnSelectionChanged);
-			add_ = new UI.ToolButton("+", AddModifier);
-			clone_ = new UI.ToolButton(S("+*"), () => CloneModifier(0));
-			clone0_ = new UI.ToolButton(S("+*0"), () => CloneModifier(Utilities.CloneZero));
+			add_ = new UI.ToolButton(UI.Utilities.AddSymbol, AddModifier);
+			clone_ = new UI.ToolButton(UI.Utilities.CloneSymbol, () => CloneModifier(0));
+			clone0_ = new UI.ToolButton(UI.Utilities.CloneZeroSymbol, () => CloneModifier(Utilities.CloneZero));
 			remove_ = new UI.ToolButton(UI.Utilities.RemoveSymbol, RemoveModifier);
 			rename_ = new UI.ToolButton(S("Rename"), OnRename);
 
@@ -200,7 +200,7 @@ namespace Synergy.NewUI
 			if (step_ == null)
 				modifiers_.Clear();
 			else
-				modifiers_.Items = step_.Modifiers;
+				modifiers_.SetItems(step_.Modifiers);
 		}
 
 		private void OnModifiersChanged()

@@ -131,7 +131,7 @@ namespace Synergy.UI
 	{
 		public override string TypeName { get { return "horflow"; } }
 
-		public HorizontalFlow(int spacing = 0, int align = AlignLeft|AlignTop)
+		public HorizontalFlow(int spacing = 0, int align = AlignLeft|AlignVCenter)
 			: base(spacing, align, false)
 		{
 		}

@@ -21,6 +21,7 @@ namespace Synergy.UI
 			public ItemType Object
 			{
 				get { return object_; }
+				set { object_ = value; }
 			}
 
 			public string Text
@@ -79,25 +80,33 @@ namespace Synergy.UI
 			}
 
 			if (itemIndex == -1)
-			{
-				Synergy.LogError(
-					"combobox: can't remove item '" + item.ToString() + "', " +
-					"not found");
-
 				return;
-			}
 
-			items_.RemoveAt(itemIndex);
+			RemoveItemAt(itemIndex);
+		}
+
+		public void RemoveItemAt(int index)
+		{
+			items_.RemoveAt(index);
 			UpdateChoices();
 
 			if (items_.Count == 0)
 				Select(-1);
 			else if (selection_ >= items_.Count)
 				Select(items_.Count - 1);
-			else if (selection_ > itemIndex)
+			else if (selection_ > index)
 				Select(selection_ - 1);
 			else
 				Select(selection_);
+		}
+
+		public void SetItemAt(int index, ItemType item)
+		{
+			if (index < 0 || index >= items_.Count)
+				return;
+
+			items_[index].Object = item;
+			UpdateItemText(index);
 		}
 
 		public List<ItemType> Items
@@ -110,11 +119,6 @@ namespace Synergy.UI
 					list.Add(i.Object);
 
 				return list;
-			}
-
-			set
-			{
-				SetItems(value, null);
 			}
 		}
 
@@ -244,16 +248,12 @@ namespace Synergy.UI
 
 			UpdateChoices();
 			UpdateLabel();
-
-			Style.Setup(this);
 		}
 
 		protected override void DoSetEnabled(bool b)
 		{
 			base.DoSetEnabled(b);
-
 			popup_.popup.topButton.interactable = b;
-			Style.Polish(this);
 		}
 
 		protected List<Item> InternalItems
@@ -261,7 +261,7 @@ namespace Synergy.UI
 			get { return items_; }
 		}
 
-		protected UIDynamicPopup Popup
+		public UIDynamicPopup Popup
 		{
 			get { return popup_; }
 		}
@@ -347,7 +347,7 @@ namespace Synergy.UI
 
 		public event Callback Opened;
 
-		private Text arrow_ = null;
+		private GameObject arrowObject_ = null;
 		private BorderGraphics borders_ = null;
 		private TextBox filter_ = null;
 		private bool filterable_ = false;
@@ -367,6 +367,11 @@ namespace Synergy.UI
 		public ComboBoxList(List<ItemType> items, ItemCallback selectionChanged)
 			: base(items, selectionChanged)
 		{
+		}
+
+		public GameObject Arrow
+		{
+			get { return arrowObject_; }
 		}
 
 		public bool Filterable
@@ -442,6 +447,7 @@ namespace Synergy.UI
 			Popup.popup.onOpenPopupHandlers += () =>
 			{
 				var rt2 = borders_.gameObject.GetComponent<RectTransform>();
+
 				Utilities.SetRectTransform(rt2, new Rectangle(
 					0, 0, new Size(
 					Popup.popup.popupPanel.rect.width,
@@ -454,73 +460,47 @@ namespace Synergy.UI
 				Utilities.Handler(() =>
 				{
 					// this handler is called before the popup, so visible is
-					// false when it's about to poen
+					// false when it's about to open
 					if (!Popup.popup.visible)
 						OnOpen();
 				});
 			};
 
-			var arrowObject = new GameObject();
-			arrowObject.transform.SetParent(WidgetObject.transform, false);
-			arrowObject.AddComponent<RectTransform>();
-			arrowObject.AddComponent<LayoutElement>();
+			arrowObject_ = new GameObject();
+			arrowObject_.transform.SetParent(WidgetObject.transform, false);
+			arrowObject_.AddComponent<RectTransform>();
+			arrowObject_.AddComponent<LayoutElement>();
 
-			arrow_ = arrowObject.AddComponent<Text>();
-			arrow_.alignment = TextAnchor.MiddleRight;
-			arrow_.color = Style.TextColor;
-			arrow_.raycastTarget = false;
-			arrow_.text = Utilities.DownArrow;
-			arrow_.fontSize = Style.DefaultFontSize;
-			arrow_.font = Style.DefaultFont;
-
-			var rt = Popup.popup.labelText.transform.parent.gameObject.GetComponent<RectTransform>();
-			rt.offsetMin = new Vector2(rt.offsetMin.x, rt.offsetMin.y);
-			rt.offsetMax = new Vector2(rt.offsetMax.x, rt.offsetMax.y);
-			rt.anchorMin = new Vector2(0, 1);
-			rt.anchorMax = new Vector2(0, 1);
-			rt.anchoredPosition = new Vector2(
-				rt.offsetMin.x + (rt.offsetMax.x - rt.offsetMin.x) / 2,
-				rt.offsetMin.y + (rt.offsetMax.y - rt.offsetMin.y) / 2);
-
-			rt = Popup.popup.topButton.gameObject.GetComponent<RectTransform>();
-			rt.offsetMin = new Vector2(rt.offsetMin.x - 12, rt.offsetMin.y - 6);
-			rt.offsetMax = new Vector2(rt.offsetMax.x + 8, rt.offsetMax.y + 6);
-			rt.anchoredPosition = new Vector2(
-				rt.offsetMin.x + (rt.offsetMax.x - rt.offsetMin.x) / 2,
-				rt.offsetMin.y + (rt.offsetMax.y - rt.offsetMin.y) / 2);
-
-
-			rt = Popup.popup.popupPanel;
-			rt.offsetMin = new Vector2(rt.offsetMin.x - 10, rt.offsetMin.y);
-			rt.offsetMax = new Vector2(rt.offsetMax.x + 5, rt.offsetMax.y - 5);
+			var arrowText = arrowObject_.AddComponent<Text>();
+			arrowText.alignment = TextAnchor.MiddleRight;
+			arrowText.raycastTarget = false;
+			arrowText.text = Utilities.DownArrow;
 
 			var go = new GameObject();
 			go.transform.SetParent(Popup.popup.popupPanel.transform, false);
+
 			borders_ = go.AddComponent<BorderGraphics>();
 			borders_.Borders = new Insets(2);
 			borders_.Color = BorderColor;
 
-
-			var text = Popup.popup.topButton.GetComponentInChildren<Text>();
+			var text = Popup.popup.topButton?.GetComponentInChildren<Text>();
 			if (text != null)
-			{
 				text.alignment = TextAnchor.MiddleLeft;
-				text.rectTransform.offsetMin = new Vector2(
-					text.rectTransform.offsetMin.x + 10,
-					text.rectTransform.offsetMin.y);
 
-				// avoid overlap with arrow
-				text.rectTransform.offsetMax = new Vector2(
-					text.rectTransform.offsetMax.x - 25,
-					text.rectTransform.offsetMax.y);
-			}
+			Style.Setup(this);
+		}
+
+		protected override void Polish()
+		{
+			base.Polish();
+			Style.Polish(this);
 		}
 
 		public override void UpdateBounds()
 		{
 			base.UpdateBounds();
 
-			var rect = arrow_.GetComponent<RectTransform>();
+			var rect = arrowObject_.GetComponent<RectTransform>();
 			rect.offsetMin = new Vector2(0, 0);
 			rect.offsetMax = new Vector2(Bounds.Width - 10, Bounds.Height);
 			rect.anchorMin = new Vector2(0, 0);
@@ -618,9 +598,9 @@ namespace Synergy.UI
 		{
 			buttons_ = new Panel(new VerticalFlow());
 			up_ = new CustomButton(Utilities.UpArrow, OnUp);
-			up_.FontSize = Style.ComboBoxNavTextSize;
+			up_.FontSize = Style.Theme.ComboBoxNavTextSize;
 			down_ = new CustomButton(Utilities.DownArrow, OnDown);
-			down_.FontSize = Style.ComboBoxNavTextSize;
+			down_.FontSize = Style.Theme.ComboBoxNavTextSize;
 			list_ = new ComboBoxList<ItemType>(items);
 
 			up_.MinimumSize = new Size(20, 20);
@@ -644,7 +624,6 @@ namespace Synergy.UI
 
 		private void OnOpened()
 		{
-			//UI.Utilities.DumpComponentsAndDown(list_.WidgetObject);
 			Opened?.Invoke();
 		}
 
@@ -685,10 +664,19 @@ namespace Synergy.UI
 			list_.RemoveItem(item);
 		}
 
+		public void RemoveItemAt(int index)
+		{
+			list_.RemoveItemAt(index);
+		}
+
+		public void SetItemAt(int index, ItemType item)
+		{
+			list_.SetItemAt(index, item);
+		}
+
 		public List<ItemType> Items
 		{
 			get { return list_.Items; }
-			set { list_.Items = value; }
 		}
 
 		public ItemType At(int index)

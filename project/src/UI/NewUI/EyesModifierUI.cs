@@ -113,12 +113,12 @@ namespace Synergy.NewUI
 		{
 			if (available)
 			{
-				list_.Items = new List<string>()
+				list_.SetItems(new List<string>()
 				{
 					S("Don't change"),
 					S("Enable"),
 					S("Disable")
-				};
+				});
 
 				list_.Enabled = true;
 
@@ -139,10 +139,10 @@ namespace Synergy.NewUI
 			}
 			else
 			{
-				list_.Items = new List<string>()
+				list_.SetItems(new List<string>()
 				{
 					S("Not found")
-				};
+				});
 
 				list_.Enabled = false;
 				list_.Select(0);
@@ -353,8 +353,8 @@ namespace Synergy.NewUI
 			ui_ = new FactoryObjectWidget<EyesTargetFactory, IEyesTarget, EyesTargetUIFactory>();
 
 			var buttons = new UI.Panel(new UI.HorizontalFlow(10));
-			buttons.Add(new UI.Button(S("+"), AddTarget));
-			buttons.Add(new UI.Button(S("-"), RemoveTarget));
+			buttons.Add(new UI.Button(UI.Utilities.AddSymbol, AddTarget));
+			buttons.Add(new UI.Button(UI.Utilities.RemoveSymbol, RemoveTarget));
 
 			var left = new UI.Panel(new UI.BorderLayout());
 			left.Add(targets_);

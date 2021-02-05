@@ -41,6 +41,14 @@ namespace Synergy.UI
 			Popup.popup.backgroundImage.gameObject.SetActive(false);
 			Popup.popup.onValueChangeHandlers += (string s) => { Root.SetFocus(this); };
 			Popup.popup.topBottomBuffer = 3;
+
+			Style.Setup(this);
+		}
+
+		protected override void Polish()
+		{
+			base.Polish();
+			Style.Polish(this);
 		}
 
 		public override void UpdateBounds()

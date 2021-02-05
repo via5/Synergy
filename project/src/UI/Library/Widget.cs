@@ -165,7 +165,7 @@ namespace Synergy.UI
 		private Insets margins_ = new Insets();
 		private Insets borders_ = new Insets();
 		private Insets padding_ = new Insets();
-		private Color borderColor_ = Style.TextColor;
+		private Color borderColor_ = Style.Theme.TextColor;
 		private Color bgColor_ = new Color(0, 0, 0, 0);
 		private Font font_ = null;
 		private int fontSize_ = -1;
@@ -295,7 +295,13 @@ namespace Synergy.UI
 		{
 			get
 			{
-				return enabled_;
+				if (!enabled_)
+					return false;
+
+				if (parent_ != null)
+					return parent_.Enabled;
+
+				return true;
 			}
 
 			set
@@ -303,7 +309,30 @@ namespace Synergy.UI
 				enabled_ = value;
 
 				if (widgetObject_ != null)
+				{
 					DoSetEnabled(enabled_);
+					PolishRecursive();
+				}
+			}
+		}
+
+		private void PolishRecursive()
+		{
+			Polish();
+			foreach (var c in children_)
+				c.PolishRecursive();
+		}
+
+		protected virtual void Polish()
+		{
+			// no-op
+		}
+
+		public bool StrictlyEnabled
+		{
+			get
+			{
+				return enabled_;
 			}
 		}
 

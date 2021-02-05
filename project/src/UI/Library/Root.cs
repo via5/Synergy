@@ -274,8 +274,8 @@ namespace Synergy.UI
 		public static float TextLength(Font font, int fontSize, string s)
 		{
 			var ts = ts_;
-			ts.font = font ?? Style.DefaultFont;
-			ts.fontSize = (fontSize < 0 ? Style.DefaultFontSize : fontSize);
+			ts.font = font ?? Style.Theme.DefaultFont;
+			ts.fontSize = (fontSize < 0 ? Style.Theme.DefaultFontSize : fontSize);
 
 			return tg_.GetPreferredWidth(s, ts);
 		}
@@ -283,8 +283,8 @@ namespace Synergy.UI
 		public static Size TextSize(Font font, int fontSize, string s)
 		{
 			var ts = ts_;
-			ts.font = font ?? Style.DefaultFont;
-			ts.fontSize = (fontSize < 0 ? Style.DefaultFontSize : fontSize);
+			ts.font = font ?? Style.Theme.DefaultFont;
+			ts.fontSize = (fontSize < 0 ? Style.Theme.DefaultFontSize : fontSize);
 
 			return new Size(
 				tg_.GetPreferredWidth(s, ts),
@@ -294,8 +294,8 @@ namespace Synergy.UI
 		public static Size FitText(Font font, int fontSize, string s, Size maxSize)
 		{
 			var ts = ts_;
-			ts.font = font ?? Style.DefaultFont;
-			ts.fontSize = (fontSize < 0 ? Style.DefaultFontSize : fontSize);
+			ts.font = font ?? Style.Theme.DefaultFont;
+			ts.fontSize = (fontSize < 0 ? Style.Theme.DefaultFontSize : fontSize);
 
 			var extents = new Vector2();
 

@@ -160,6 +160,11 @@ namespace Synergy.UI
 			placeholder_ = placeholder;
 		}
 
+		public CustomInputField InputField
+		{
+			get { return input_; }
+		}
+
 		public string Text
 		{
 			get
@@ -228,9 +233,9 @@ namespace Synergy.UI
 
 
 			var text = field.AddComponent<Text>();
-			text.color = Style.TextColor;
-			text.fontSize = Style.DefaultFontSize;
-			text.font = Style.DefaultFont;
+			text.color = Style.Theme.TextColor;
+			text.fontSize = Style.Theme.DefaultFontSize;
+			text.font = Style.Theme.DefaultFont;
 			text.alignment = TextAnchor.MiddleLeft;
 
 			input_ = field.AddComponent<CustomInputField>();
@@ -242,7 +247,7 @@ namespace Synergy.UI
 			input_.text = text_;
 			input_.onEndEdit.AddListener(OnEdited);
 			input_.onValueChanged.AddListener(OnValueChanged);
-			input_.lineType = InputField.LineType.SingleLine;
+			input_.lineType = CustomInputField.LineType.SingleLine;
 
 			var image = WidgetObject.AddComponent<Image>();
 			image.raycastTarget = false;
@@ -266,6 +271,17 @@ namespace Synergy.UI
 			input_.placeholder.GetComponent<Text>().text = placeholder_;
 
 			Style.Setup(this);
+		}
+
+		protected override void DoSetEnabled(bool b)
+		{
+			input_.interactable = b;
+		}
+
+		protected override void Polish()
+		{
+			base.Polish();
+			Style.Polish(this);
 		}
 
 		protected override Size DoGetPreferredSize(

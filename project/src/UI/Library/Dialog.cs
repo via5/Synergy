@@ -1,8 +1,4 @@
-﻿using System;
-using System.Reflection.Emit;
-using UnityEngine;
-
-namespace Synergy.UI
+﻿namespace Synergy.UI
 {
 	class Dialog : Panel
 	{
@@ -19,7 +15,7 @@ namespace Synergy.UI
 			title_ = new Label(title, Label.AlignCenter | Label.AlignVCenter);
 			content_ = new Panel();
 
-			BackgroundColor = Style.BackgroundColor;
+			BackgroundColor = Style.Theme.BackgroundColor;
 			Layout = new BorderLayout();
 			Borders = new Insets(1);
 			content_.Margins = new Insets(10, 20, 10, 10);

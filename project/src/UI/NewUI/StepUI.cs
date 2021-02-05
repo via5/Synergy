@@ -68,9 +68,9 @@ namespace Synergy.NewUI
 		public StepControls()
 		{
 			steps_ = new UI.ComboBox<Step>(OnSelectionChanged);
-			add_ = new UI.ToolButton("+", AddStep);
-			clone_ = new UI.ToolButton(S("+*"), () => CloneStep(0));
-			clone0_ = new UI.ToolButton(S("+*0"), () => CloneStep(Utilities.CloneZero));
+			add_ = new UI.ToolButton(UI.Utilities.AddSymbol, AddStep);
+			clone_ = new UI.ToolButton(UI.Utilities.CloneSymbol, () => CloneStep(0));
+			clone0_ = new UI.ToolButton(UI.Utilities.CloneZeroSymbol, () => CloneStep(Utilities.CloneZero));
 			remove_ = new UI.ToolButton(UI.Utilities.RemoveSymbol, RemoveStep);
 			up_ = new UI.ToolButton(UI.Utilities.UpArrow, () => MoveStep(-1));   // up arrow
 			down_ = new UI.ToolButton(UI.Utilities.DownArrow, () => MoveStep(+1)); // down arrow

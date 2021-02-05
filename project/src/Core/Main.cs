@@ -109,6 +109,8 @@ namespace Synergy
 
 				if (GetAtomById("synergyuitest") != null)
 					CreateTestStuff(GetAtomById("synergyuitest"));
+				else if (GetAtomById("synergyuitest1") != null)
+					CreateTestStuff(GetAtomById("synergyuitest1"));
 
 				ui_ = new MainUI();
 				ui_.Create();
@@ -122,7 +124,9 @@ namespace Synergy
 		{
 			var s = new Step();
 
-			var m = new StorableModifier(a, "geometry", "toggle:Tank Top");
+			var m = new StorableModifier(
+				a, "SweetTankStyle", "wrapName");
+
 			s.AddModifier(new ModifierContainer(m));
 
 			manager_.AddStep(s);

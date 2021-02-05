@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using UnityEngine;
 
 namespace Synergy.NewUI
 {
@@ -350,7 +352,7 @@ namespace Synergy.NewUI
 			for (int i = 0; i < typeNames.Count; ++i)
 				items.Add(new Filter(displayNames[i], typeNames[i]));
 
-			list_.Items = items;
+			list_.SetItems(items);
 
 			list_.SelectionChanged += (s) => Changed?.Invoke();
 			plugins_.Changed += (b) => Changed?.Invoke();
@@ -494,7 +496,7 @@ namespace Synergy.NewUI
 			for (int i = 0; i < names.Count; ++i)
 				items.Add(new TriggerType(names[i], values[i]));
 
-			triggerType_.Items = items;
+			triggerType_.SetItems(items);
 
 			triggerAt_.ValueChanged += OnTriggerAtChanged;
 			triggerType_.SelectionChanged += OnTriggerTypeChanged;
@@ -552,13 +554,47 @@ namespace Synergy.NewUI
 
 	class ColorStorableParameterUI : UI.Panel, IUIFactoryWidget<IStorableParameter>
 	{
+		private ColorStorableParameter param_ = null;
+		private readonly IgnoreFlag ignore_ = new IgnoreFlag();
+		private readonly UI.ColorPicker color1_, color2_;
+
 		public ColorStorableParameterUI()
 		{
+			color1_ = new UI.ColorPicker(S("Color 1"), OnColor1Changed);
+			color2_ = new UI.ColorPicker(S("Color 2"), OnColor2Changed);
+
+			Layout = new UI.HorizontalFlow(0);
+			Add(color1_);
+			Add(color2_);
 		}
 
 		public void Set(IStorableParameter t)
 		{
-			// no-op
+			param_ = t as ColorStorableParameter;
+			if (param_ == null)
+				return;
+
+			ignore_.Do(() =>
+			{
+				color1_.Color = param_.Color1;
+				color2_.Color = param_.Color2;
+			});
+		}
+
+		private void OnColor1Changed(Color c)
+		{
+			if (ignore_ || param_ == null)
+				return;
+
+			param_.Color1 = c;
+		}
+
+		private void OnColor2Changed(Color c)
+		{
+			if (ignore_ || param_ == null)
+				return;
+
+			param_.Color2 = c;
 		}
 	}
 
@@ -581,8 +617,221 @@ namespace Synergy.NewUI
 
 	class StringChooserStorableParameterUI : UI.Panel, IUIFactoryWidget<IStorableParameter>
 	{
+		private StringChooserStorableParameter param_ = null;
+		private readonly IgnoreFlag ignore_ = new IgnoreFlag();
+		private readonly UI.ListView<string> list_ = new UI.ListView<string>();
+		private readonly UI.ComboBox<string> av_ = new UI.ComboBox<string>();
+		private readonly UI.Button remove_, addAv_, moveUp_, moveDown_;
+		private readonly UI.TextBox value_ = new UI.TextBox();
+
+		public StringChooserStorableParameterUI()
+		{
+			remove_ = new UI.Button(UI.Utilities.RemoveSymbol, OnRemove);
+			addAv_ = new UI.Button(UI.Utilities.AddSymbol, OnAddPredefined);
+			moveUp_ = new UI.Button(UI.Utilities.UpArrow, OnMoveUp);
+			moveDown_ = new UI.Button(UI.Utilities.DownArrow, OnMoveDown);
+
+			var controls = new UI.Panel(new UI.HorizontalFlow(10));
+			controls.Add(new UI.Button(UI.Utilities.AddSymbol, OnAdd));
+			controls.Add(remove_);
+			controls.Add(moveUp_);
+			controls.Add(moveDown_);
+			controls.Add(new UI.Spacer(50));
+			controls.Add(new UI.Label("Predefined"));
+			controls.Add(av_);
+			controls.Add(addAv_);
+
+			var value = new UI.Panel(new UI.VerticalFlow());
+			value.Add(new UI.Label(S("Value")));
+			value.Add(value_);
+
+			var center = new UI.Panel(new UI.GridLayout(2, 20));
+			center.Add(list_);
+			center.Add(value);
+
+			Layout = new UI.BorderLayout(10);
+			Add(controls, UI.BorderLayout.Top);
+			Add(center, UI.BorderLayout.Center);
+
+			list_.SelectionIndexChanged += OnSelectionIndexChanged;
+			value_.Changed += OnValueChanged;
+		}
+
 		public void Set(IStorableParameter t)
 		{
+			param_ = t as StringChooserStorableParameter;
+			if (param_ == null)
+				return;
+
+			ignore_.Do(() =>
+			{
+				UpdateList();
+				RebuildAvailableList();
+
+				if (list_.Count > 0)
+					UpdateSelection(0);
+				else
+					UpdateSelection(-1);
+			});
+		}
+
+		public void Add(string value)
+		{
+			param_.AddString(value);
+
+			ignore_.Do(() =>
+			{
+				list_.AddItem(value);
+				list_.Select(list_.Count - 1);
+				av_.RemoveItem(value);
+
+				AvailableListChanged();
+				UpdateSelection(list_.Count - 1);
+			});
+		}
+
+		private void OnAdd()
+		{
+			if (param_ == null)
+				return;
+
+			Add(S("New string"));
+		}
+
+		private void OnRemove()
+		{
+			if (param_ == null)
+				return;
+
+			var sel = list_.SelectedIndex;
+			if (sel < 0)
+				return;
+
+			param_.RemoveStringAt(sel);
+
+			ignore_.Do(() =>
+			{
+				list_.RemoveItemAt(sel);
+				RebuildAvailableList();
+				UpdateSelection(list_.SelectedIndex);
+			});
+		}
+
+		private void OnMoveUp()
+		{
+			if (param_ == null)
+				return;
+
+			var i = list_.SelectedIndex;
+			if (i <= 0)
+				return;
+
+			var newList = param_.Strings;
+			var item = newList[i];
+
+			newList.RemoveAt(i);
+			newList.Insert(i - 1, item);
+
+			list_.SetItemAt(i - 1, newList[i - 1]);
+			list_.SetItemAt(i, newList[i]);
+
+			param_.Strings = newList;
+			list_.Select(i - 1);
+		}
+
+		private void OnMoveDown()
+		{
+			if (param_ == null)
+				return;
+
+			var i = list_.SelectedIndex;
+			if (i >= (list_.Count - 1))
+				return;
+
+			var newList = param_.Strings;
+			var item = newList[i];
+
+			newList.RemoveAt(i);
+			newList.Insert(i + 1, item);
+
+			list_.SetItemAt(i, newList[i]);
+			list_.SetItemAt(i + 1, newList[i + 1]);
+
+			param_.Strings = newList;
+			list_.Select(i + 1);
+		}
+
+		private void OnAddPredefined()
+		{
+			if (param_ == null)
+				return;
+
+			var sel = av_.SelectedIndex;
+			if (sel < 0)
+				return;
+
+			Add(av_.At(sel));
+		}
+
+		private void OnSelectionIndexChanged(int index)
+		{
+			if (ignore_)
+				return;
+
+			UpdateSelection(index);
+		}
+
+		private void OnValueChanged(string s)
+		{
+			if (ignore_ || param_ == null)
+				return;
+
+			var i = list_.SelectedIndex;
+			if (i < 0 || i >= param_.Strings.Count)
+				return;
+
+			param_.SetStringAt(i, s);
+			list_.SetItemAt(i, s);
+		}
+
+		private void UpdateList()
+		{
+			list_.SetItems(param_.Strings);
+		}
+
+		private void RebuildAvailableList()
+		{
+			av_.SetItems(param_.AvailableStrings.Except(param_.Strings).ToList());
+			AvailableListChanged();
+		}
+
+		private void AvailableListChanged()
+		{
+			av_.Enabled = (av_.Count > 0);
+			addAv_.Enabled = (av_.Count > 0);
+		}
+
+		private void UpdateSelection(int i)
+		{
+			ignore_.Do(() =>
+			{
+				bool validSelection = (i >= 0 && i < list_.Count);
+
+				remove_.Enabled = validSelection;
+				moveUp_.Enabled = validSelection && (i > 0);
+				moveDown_.Enabled = validSelection && (i < (list_.Count - 1));
+
+				if (validSelection)
+				{
+					value_.Text = list_.At(i);
+					value_.Enabled = true;
+				}
+				else
+				{
+					value_.Text = "";
+					value_.Enabled = false;
+				}
+			});
 		}
 	}
 

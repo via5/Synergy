@@ -71,6 +71,11 @@ namespace Synergy.UI
 		protected override void DoSetEnabled(bool b)
 		{
 			button_.button.interactable = b;
+		}
+
+		protected override void Polish()
+		{
+			base.Polish();
 			Style.Polish(this);
 		}
 

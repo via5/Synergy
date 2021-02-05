@@ -29,7 +29,7 @@ namespace Synergy.UI
 		{
 			Layout = new BorderLayout();
 			Borders = new Insets(1);
-			BackgroundColor = Style.BackgroundColor;
+			BackgroundColor = Style.Theme.BackgroundColor;
 			Padding = new Insets(5);
 			Visible = false;
 

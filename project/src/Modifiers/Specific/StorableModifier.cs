@@ -112,6 +112,56 @@ namespace Synergy
 		public abstract IEnumerable<string> GetParameterNames(JSONStorable s);
 
 		public abstract void PostLoad(JSONStorable s);
+
+		protected T SafeGet<T>(string what, Func<T> f)
+		{
+			try
+			{
+				return f();
+			}
+			catch (Exception e)
+			{
+				Synergy.LogError($"failed to get {what} from storable, " + e.ToString());
+				return default(T);
+			}
+		}
+
+		protected T SafeGet<T>(string what, T def, Func<T> f)
+		{
+			try
+			{
+				return f();
+			}
+			catch (Exception e)
+			{
+				Synergy.LogError($"failed to get {what} from storable, " + e.Message);
+				return def;
+			}
+		}
+
+		protected void SafeSet(string what, Action f)
+		{
+			try
+			{
+				f();
+			}
+			catch (Exception e)
+			{
+				Synergy.LogError($"failed to set {what} in storable, " + e.Message);
+			}
+		}
+
+		protected void SafeInvoke(string what, Action f)
+		{
+			try
+			{
+				f();
+			}
+			catch (Exception e)
+			{
+				Synergy.LogError($"failed to invoke {what} in storable, " + e.Message);
+			}
+		}
 	}
 
 
@@ -221,8 +271,11 @@ namespace Synergy
 			{
 				if (Parameter == null)
 					return base.PreferredRange;
-				else
+
+				return SafeGet("range", () =>
+				{
 					return new FloatRange(Parameter.min, Parameter.max);
+				});
 			}
 		}
 
@@ -230,20 +283,33 @@ namespace Synergy
 		{
 			get
 			{
-				return Parameter?.val ?? 0;
+				return SafeGet("val", () =>
+				{
+					return Parameter?.val ?? 0;
+				});
 			}
 		}
 
 		public override void Set(float magnitude, float normalizedMagnitude)
 		{
-			if (Parameter != null)
+			if (Parameter == null)
+				return;
+
+			SafeSet("val", () =>
+			{
 				Parameter.val = magnitude;
+			});
 		}
 
 		public override void Reset()
 		{
-			if (Parameter != null)
+			if (Parameter == null)
+				return;
+
+			SafeSet("val", () =>
+			{
 				Parameter.val = Parameter.defaultVal;
+			});
 		}
 
 		public override IEnumerable<string> GetStorableNames(Atom a, bool pluginsOnly)
@@ -293,14 +359,24 @@ namespace Synergy
 
 		public override void Set(float magnitude, float normalizedMagnitude)
 		{
-			if (Parameter != null)
+			if (Parameter == null)
+				return;
+
+			SafeSet("val", () =>
+			{
 				Parameter.val = (magnitude > 0.5f);
+			});
 		}
 
 		public override void Reset()
 		{
-			if (Parameter != null)
+			if (Parameter == null)
+				return;
+
+			SafeSet("val", () =>
+			{
 				Parameter.val = Parameter.defaultVal;
+			});
 		}
 
 		public override IEnumerable<string> GetStorableNames(Atom a, bool pluginsOnly)
@@ -373,15 +449,18 @@ namespace Synergy
 
 		public override void Set(float magnitude, float normalizedMagnitude)
 		{
-			if (Parameter != null)
-			{
-				var c = new Color(
-					Interpolate(c1_.r, c2_.r, magnitude),
-					Interpolate(c1_.g, c2_.g, magnitude),
-					Interpolate(c1_.b, c2_.b, magnitude));
+			if (Parameter == null)
+				return;
 
+			var c = new Color(
+				Interpolate(c1_.r, c2_.r, magnitude),
+				Interpolate(c1_.g, c2_.g, magnitude),
+				Interpolate(c1_.b, c2_.b, magnitude));
+
+			SafeSet("SetColor", () =>
+			{
 				Parameter.SetColor(c);
-			}
+			});
 		}
 
 		private float Interpolate(float a, float b, float magnitude)
@@ -391,8 +470,13 @@ namespace Synergy
 
 		public override void Reset()
 		{
-			if (Parameter != null)
+			if (Parameter == null)
+				return;
+
+			SafeSet("SetValToDefault", () =>
+			{
 				Parameter.SetValToDefault();
+			});
 		}
 
 		public override IEnumerable<string> GetStorableNames(Atom a, bool pluginsOnly)
@@ -477,6 +561,32 @@ namespace Synergy
 			set { strings_ = new List<string>(value); }
 		}
 
+		public void AddString(string s)
+		{
+			strings_.Add(s);
+		}
+
+		public void RemoveString(string s)
+		{
+			strings_.Remove(s);
+		}
+
+		public void RemoveStringAt(int index)
+		{
+			if (index >= strings_.Count)
+				return;
+
+			strings_.RemoveAt(index);
+		}
+
+		public void SetStringAt(int i, string s)
+		{
+			if (i < 0 || i >= strings_.Count)
+				return;
+
+			strings_[i] = s;
+		}
+
 		public abstract bool HasAvailableStrings { get; }
 		public abstract List<string> AvailableStrings { get; }
 
@@ -493,26 +603,30 @@ namespace Synergy
 
 		public override void Set(float magnitude, float normalizedMagnitude)
 		{
-			if (Parameter != null)
+			if (Parameter == null)
+				return;
+
+			if (strings_.Count == 0)
+				return;
+
+			var magPer = 1.0f / strings_.Count;
+
+			var i = Math.Min(
+				(int)Math.Floor(normalizedMagnitude / magPer),
+				strings_.Count - 1);
+
+			if (i != current_)
 			{
-				if (strings_.Count == 0)
-					return;
+				current_ = i;
 
-				var magPer = 1.0f / strings_.Count;
-
-				var i = Math.Min(
-					(int)Math.Floor(normalizedMagnitude / magPer),
-					strings_.Count - 1);
-
-				if (i != current_)
+				SafeSet("SetValue", () =>
 				{
-					current_ = i;
 					SetValue(strings_[i]);
-				}
-
-				if (normalizedMagnitude >= 0.95f)
-					current_ = -1;
+				});
 			}
+
+			if (normalizedMagnitude >= 0.95f)
+				current_ = -1;
 		}
 
 		protected abstract void SetValue(string s);
@@ -624,7 +738,13 @@ namespace Synergy
 
 		protected override void SetValue(string s)
 		{
-			Parameter.val = s;
+			if (Parameter == null)
+				return;
+
+			SafeSet("val", () =>
+			{
+				Parameter.val = s;
+			});
 		}
 	}
 
@@ -657,7 +777,13 @@ namespace Synergy
 
 		public override List<string> AvailableStrings
 		{
-			get { return Parameter?.choices ?? new List<string>(); }
+			get
+			{
+				return SafeGet("choices", new List<string>(), () =>
+				{
+					return Parameter?.choices ?? new List<string>();
+				});
+			}
 		}
 
 		public override IEnumerable<string> GetStorableNames(Atom a, bool pluginsOnly)
@@ -684,7 +810,10 @@ namespace Synergy
 
 		protected override void SetValue(string s)
 		{
-			Parameter.val = s;
+			SafeSet("val", () =>
+			{
+				Parameter.val = s;
+			});
 		}
 	}
 
@@ -865,7 +994,7 @@ namespace Synergy
 
 		public override void Set(float magnitude, float normalizedMagnitude)
 		{
-			if (param_ == null)
+			if (Parameter == null)
 				return;
 
 			if (Math.Abs(triggerMag_ - magnitude) < 0.05f)
@@ -892,7 +1021,11 @@ namespace Synergy
 			{
 				if (Bits.IsSet(triggerType_, TriggerUp))
 				{
-					param_.actionCallback?.Invoke();
+					SafeInvoke("actionCallback", () =>
+					{
+						Parameter.actionCallback?.Invoke();
+					});
+
 					SetState(StateGoingUpTriggered);
 				}
 				else
@@ -904,7 +1037,11 @@ namespace Synergy
 			{
 				if (Bits.IsSet(triggerType_, TriggerDown))
 				{
-					param_.actionCallback?.Invoke();
+					SafeInvoke("actionCallback", () =>
+					{
+						Parameter.actionCallback?.Invoke();
+					});
+
 					SetState(StateGoingDownTriggered);
 				}
 				else

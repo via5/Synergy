@@ -71,7 +71,7 @@ namespace Synergy.UI
 			Utilities.SetRectTransform(WidgetObject, b);
 
 			// make the sliders on the right a bit smaller
-			int offset = 20;
+			int offset = 25;
 
 
 			{
