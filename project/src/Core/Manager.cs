@@ -211,6 +211,7 @@ namespace Synergy
 				if (Bits.IsSet(flags, Utilities.PresetReplace))
 				{
 					FromJSON(node);
+					StepsChanged?.Invoke();
 				}
 				else if (Bits.IsSet(flags, Utilities.PresetAppend))
 				{

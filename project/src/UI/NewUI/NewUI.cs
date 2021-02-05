@@ -10,6 +10,7 @@ namespace Synergy.NewUI
 		private StepControls steps_ = new StepControls();
 		private StepTab stepTab_ = new StepTab();
 		private ModifiersTab modifiersTab_ = new ModifiersTab();
+		private PresetsTab presetsTab_ = new PresetsTab();
 
 		public static string S(string s)
 		{
@@ -18,16 +19,9 @@ namespace Synergy.NewUI
 
 		public NewUI()
 		{
-			//var cp = new UI.ColorPicker();
-			//cp.Borders = new Insets(2);
-			//
-			//root_.ContentPanel.Layout = new UI.VerticalFlow(10);
-			//root_.ContentPanel.Add(cp);
-			//root_.ContentPanel.Add(new TextBox("test", "placeholdeR"));
-
-
 			tabs_.AddTab(S("Step"), stepTab_);
 			tabs_.AddTab(S("Modifiers"), modifiersTab_);
+			tabs_.AddTab(S("Presets"), presetsTab_);
 
 			root_.ContentPanel.Layout = new UI.BorderLayout(20);
 			root_.ContentPanel.Add(steps_, UI.BorderLayout.Top);
@@ -38,23 +32,26 @@ namespace Synergy.NewUI
 			else
 				SelectStep(null);
 
-			tabs_.Select(1);
+			//tabs_.Select(1);
 
 			steps_.SelectionChanged += OnStepSelected;
 			root_.DoLayoutIfNeeded();
 
-			modifiersTab_.SelectTab(6);
+			//modifiersTab_.SelectTab(6);
 		}
 
 		public void SelectStep(Step s)
 		{
 			if (s == null)
 			{
-				tabs_.Visible = false;
+				tabs_.SetTabVisible(0, false);
+				tabs_.SetTabVisible(1, false);
 			}
 			else
 			{
-				tabs_.Visible = true;
+				tabs_.SetTabVisible(0, true);
+				tabs_.SetTabVisible(1, true);
+
 				stepTab_.SetStep(s);
 				modifiersTab_.SetStep(s);
 			}
@@ -163,6 +160,101 @@ namespace Synergy.NewUI
 		public override string ToString()
 		{
 			return creator_.DisplayName;
+		}
+	}
+
+
+	class PresetsTab : UI.Panel
+	{
+		private readonly UI.CheckBox usePlaceholder_ =
+			new UI.CheckBox(S("Save: use placeholder for atoms"));
+
+		public PresetsTab()
+		{
+			Layout = new UI.VerticalFlow(10, false);
+
+			Add(usePlaceholder_);
+			Add(new UI.Spacer(20));
+
+
+			Add(new UI.Button(
+				S("Full: save"),
+				SaveFull));
+
+			Add(new UI.Button(
+				S("Full: load, replace everything"),
+				() => LoadFull(Utilities.PresetReplace)));
+
+			Add(new UI.Button(
+				S("Full: load, append steps"),
+				() => LoadFull(Utilities.PresetAppend)));
+
+			Add(new UI.Spacer(20));
+
+
+			Add(new UI.Button(
+				S("Step: save current"),
+				SaveStep));
+
+			Add(new UI.Button(
+				S("Step: load, replace current"),
+				() => LoadStep(Utilities.PresetReplace)));
+
+			Add(new UI.Button(
+				S("Step: load, add modifiers to current step"),
+				() => LoadStep(Utilities.PresetMerge)));
+
+			Add(new UI.Button(
+				S("Step: load, append as new step"),
+				() => LoadStep(Utilities.PresetAppend)));
+
+			Add(new UI.Spacer(20));
+
+
+			Add(new UI.Button(
+				S("Modifier: save current"),
+				SaveModifier));
+
+			Add(new UI.Button(
+				S("Modifier: load, replace current"),
+				() => LoadModifier(Utilities.PresetReplace)));
+
+			Add(new UI.Button(
+				S("Modifier: load, append to current step"),
+				() => LoadModifier(Utilities.PresetAppend)));
+
+			Add(new UI.Spacer(20));
+		}
+
+
+		public void SaveFull()
+		{
+			OptionsUI.SaveFull(usePlaceholder_.Checked);
+		}
+
+		public void LoadFull(int flags)
+		{
+			OptionsUI.LoadFull(flags);
+		}
+
+		public void SaveStep()
+		{
+			OptionsUI.SaveStep(usePlaceholder_.Checked);
+		}
+
+		public void LoadStep(int flags)
+		{
+			OptionsUI.LoadStep(flags);
+		}
+
+		public void SaveModifier()
+		{
+			OptionsUI.SaveModifier(usePlaceholder_.Checked);
+		}
+
+		public void LoadModifier(int flags)
+		{
+			OptionsUI.LoadModifier(flags);
 		}
 	}
 }

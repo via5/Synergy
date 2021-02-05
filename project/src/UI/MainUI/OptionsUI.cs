@@ -119,13 +119,17 @@ namespace Synergy
 			get { return collapsible_; }
 		}
 
+		private void SaveFull()
+		{
+			SaveFull(usePlaceholder_.Value);
+		}
 
-		public void SaveFull()
+		public static void SaveFull(bool usePlaceholder)
 		{
 			FileManagerSecure.CreateDirectory(Utilities.PresetSavePath);
 
 			int flags = Utilities.FullPreset;
-			if (usePlaceholder_.Value)
+			if (usePlaceholder)
 				flags |= Utilities.PresetUsePlaceholder;
 
 			SuperController.singleton.GetMediaPathDialog(
@@ -147,7 +151,7 @@ namespace Synergy
 			browser.ActivateFileNameField();
 		}
 
-		public void LoadFull(int flags)
+		public static void LoadFull(int flags)
 		{
 			FileManagerSecure.CreateDirectory(Utilities.PresetSavePath);
 			var shortcuts = FileManagerSecure.GetShortCutsForDirectory(
@@ -168,12 +172,17 @@ namespace Synergy
 				false, true, false, null, false, shortcuts);
 		}
 
-		public void SaveStep()
+		private void SaveStep()
+		{
+			SaveStep(usePlaceholder_.Value);
+		}
+
+		public static void SaveStep(bool usePlaceholder)
 		{
 			FileManagerSecure.CreateDirectory(Utilities.PresetSavePath);
 
 			int flags = Utilities.StepPreset;
-			if (usePlaceholder_.Value)
+			if (usePlaceholder)
 				flags |= Utilities.PresetUsePlaceholder;
 
 			SuperController.singleton.GetMediaPathDialog(
@@ -194,7 +203,7 @@ namespace Synergy
 			browser.ActivateFileNameField();
 		}
 
-		public void LoadStep(int flags)
+		public static void LoadStep(int flags)
 		{
 			FileManagerSecure.CreateDirectory(Utilities.PresetSavePath);
 			var shortcuts = FileManagerSecure.GetShortCutsForDirectory(
@@ -215,12 +224,17 @@ namespace Synergy
 				false, true, false, null, false, shortcuts);
 		}
 
-		public void SaveModifier()
+		private void SaveModifier()
+		{
+			SaveModifier(usePlaceholder_.Value);
+		}
+
+		public static void SaveModifier(bool usePlaceholder)
 		{
 			FileManagerSecure.CreateDirectory(Utilities.PresetSavePath);
 
 			int flags = Utilities.ModifierPreset;
-			if (usePlaceholder_.Value)
+			if (usePlaceholder)
 				flags |= Utilities.PresetUsePlaceholder;
 
 			SuperController.singleton.GetMediaPathDialog(
@@ -241,7 +255,7 @@ namespace Synergy
 			browser.ActivateFileNameField();
 		}
 
-		public void LoadModifier(int flags)
+		public static void LoadModifier(int flags)
 		{
 			FileManagerSecure.CreateDirectory(Utilities.PresetSavePath);
 			var shortcuts = FileManagerSecure.GetShortCutsForDirectory(

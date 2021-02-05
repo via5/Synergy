@@ -750,14 +750,14 @@ namespace Synergy.UI
 
 		private void OnUp()
 		{
-			if (SelectedIndex < (Count - 1))
-				Select(SelectedIndex + 1);
+			if (SelectedIndex > 0)
+				Select(SelectedIndex - 1);
 		}
 
 		private void OnDown()
 		{
-			if (SelectedIndex > 0)
-				Select(SelectedIndex - 1);
+			if (SelectedIndex < (Count - 1))
+				Select(SelectedIndex + 1);
 		}
 	}
 }
