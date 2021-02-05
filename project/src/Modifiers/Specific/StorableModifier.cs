@@ -533,6 +533,9 @@ namespace Synergy
 		List<string> Strings { get; set; }
 		bool HasAvailableStrings { get; }
 		List<string> AvailableStrings { get; }
+		void AddString(string s);
+		void RemoveStringAt(int index);
+		void SetStringAt(int i, string s);
 	}
 
 

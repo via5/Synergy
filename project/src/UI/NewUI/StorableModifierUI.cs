@@ -599,47 +599,36 @@ namespace Synergy.NewUI
 	}
 
 
-	class UrlStorableParameterUI : UI.Panel, IUIFactoryWidget<IStorableParameter>
+	class StringListStorableParameterUI<ParameterType>
+		: UI.Panel, IUIFactoryWidget<IStorableParameter>
+		where ParameterType : class, IStringListStorableParameter
 	{
-		public void Set(IStorableParameter t)
-		{
-		}
-	}
-
-
-	class StringStorableParameterUI : UI.Panel, IUIFactoryWidget<IStorableParameter>
-	{
-		public void Set(IStorableParameter t)
-		{
-		}
-	}
-
-
-	class StringChooserStorableParameterUI : UI.Panel, IUIFactoryWidget<IStorableParameter>
-	{
-		private StringChooserStorableParameter param_ = null;
+		private ParameterType param_ = null;
 		private readonly IgnoreFlag ignore_ = new IgnoreFlag();
 		private readonly UI.ListView<string> list_ = new UI.ListView<string>();
 		private readonly UI.ComboBox<string> av_ = new UI.ComboBox<string>();
+		private readonly UI.Panel avPanel_ = new UI.Panel(new UI.HorizontalFlow(10));
 		private readonly UI.Button remove_, addAv_, moveUp_, moveDown_;
 		private readonly UI.TextBox value_ = new UI.TextBox();
 
-		public StringChooserStorableParameterUI()
+		public StringListStorableParameterUI()
 		{
 			remove_ = new UI.Button(UI.Utilities.RemoveSymbol, OnRemove);
 			addAv_ = new UI.Button(UI.Utilities.AddSymbol, OnAddPredefined);
 			moveUp_ = new UI.Button(UI.Utilities.UpArrow, OnMoveUp);
 			moveDown_ = new UI.Button(UI.Utilities.DownArrow, OnMoveDown);
 
+			avPanel_.Add(new UI.Spacer(50));
+			avPanel_.Add(new UI.Label("Predefined"));
+			avPanel_.Add(av_);
+			avPanel_.Add(addAv_);
+
 			var controls = new UI.Panel(new UI.HorizontalFlow(10));
 			controls.Add(new UI.Button(UI.Utilities.AddSymbol, OnAdd));
 			controls.Add(remove_);
 			controls.Add(moveUp_);
 			controls.Add(moveDown_);
-			controls.Add(new UI.Spacer(50));
-			controls.Add(new UI.Label("Predefined"));
-			controls.Add(av_);
-			controls.Add(addAv_);
+			controls.Add(avPanel_);
 
 			var value = new UI.Panel(new UI.VerticalFlow());
 			value.Add(new UI.Label(S("Value")));
@@ -659,12 +648,14 @@ namespace Synergy.NewUI
 
 		public void Set(IStorableParameter t)
 		{
-			param_ = t as StringChooserStorableParameter;
+			param_ = t as ParameterType;
 			if (param_ == null)
 				return;
 
 			ignore_.Do(() =>
 			{
+				avPanel_.Visible = param_.HasAvailableStrings;
+
 				UpdateList();
 				RebuildAvailableList();
 
@@ -833,6 +824,25 @@ namespace Synergy.NewUI
 				}
 			});
 		}
+	}
+
+
+
+	class UrlStorableParameterUI
+		: StringListStorableParameterUI<UrlStorableParameter>
+	{
+	}
+
+
+	class StringStorableParameterUI
+		: StringListStorableParameterUI<StringStorableParameter>
+	{
+	}
+
+
+	class StringChooserStorableParameterUI
+		: StringListStorableParameterUI<StringChooserStorableParameter>
+	{
 	}
 
 
