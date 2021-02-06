@@ -138,9 +138,10 @@ namespace Synergy.UI
 
 		protected override void LayoutImpl()
 		{
-			var r = new Rectangle(Parent.Bounds);
+			var av = Parent.AbsoluteClientBounds;
+			var r = av;
 
-			var bounds = new List<Rectangle>();
+			var bounds = new List<Rectangle?>();
 			float totalWidth = 0;
 
 			foreach (var w in Children)
@@ -182,16 +183,17 @@ namespace Synergy.UI
 				r.Left += wr.Width + Spacing;
 			}
 
-			if (totalWidth > Parent.Bounds.Width)
+			if (totalWidth > av.Width)
 			{
-				var excess = totalWidth - Parent.Bounds.Width;
+				var excess = totalWidth - av.Width;
 				float offset = 0;
 
 				for (int i = 0; i < bounds.Count; ++i)
 				{
-					var b = bounds[i];
-					if (b == null)
+					if (bounds[i] == null)
 						continue;
+
+					var b = bounds[i].Value;
 
 					b.Translate(-offset, 0);
 
@@ -202,6 +204,7 @@ namespace Synergy.UI
 						if (b.Width > ms.Width)
 						{
 							var d = Math.Min(b.Width - ms.Width, excess);
+
 							b.Width -= d;
 							excess -= d;
 							offset += d;
@@ -209,20 +212,27 @@ namespace Synergy.UI
 						}
 					}
 
+					bounds[i] = b;
 				}
 			}
 
 			if (Bits.IsSet(Alignment, AlignCenter))
 			{
 				float offset = (Parent.Bounds.Width / 2) - (totalWidth / 2);
-				foreach (var wr in bounds)
-					wr.Translate(offset, 0);
+				for (int i = 0; i < bounds.Count; ++i)
+				{
+					if (bounds[i] != null)
+						bounds[i] = bounds[i].Value.TranslateCopy(offset, 0);
+				}
 			}
 			else if (Bits.IsSet(Alignment, AlignRight))
 			{
 				float offset = Parent.Bounds.Width - totalWidth;
-				foreach (var wr in bounds)
-					wr.Translate(offset, 0);
+				for (int i = 0; i < bounds.Count; ++i)
+				{
+					if (bounds[i] != null)
+						bounds[i] = bounds[i].Value.TranslateCopy(offset, 0);
+				}
 			}
 			else // left
 			{
@@ -232,7 +242,7 @@ namespace Synergy.UI
 			for (int i = 0; i < Children.Count; ++i)
 			{
 				if (bounds[i] != null)
-					Children[i].Bounds = bounds[i];
+					Children[i].Bounds = bounds[i].Value;
 			}
 		}
 
@@ -274,7 +284,7 @@ namespace Synergy.UI
 		{
 			var r = new Rectangle(Parent.Bounds);
 
-			var bounds = new List<Rectangle>();
+			var bounds = new List<Rectangle?>();
 			float totalHeight = 0;
 
 			foreach (var w in Children)
@@ -323,9 +333,10 @@ namespace Synergy.UI
 
 				for (int i = 0; i < bounds.Count; ++i)
 				{
-					var b = bounds[i];
-					if (b == null)
+					if (bounds[i] == null)
 						continue;
+
+					var b = bounds[i].Value;
 
 					b.Translate(0, -offset);
 
@@ -336,6 +347,7 @@ namespace Synergy.UI
 						if (b.Height > ms.Height)
 						{
 							var d = Math.Min(b.Height - ms.Height, excess);
+
 							b.Height -= d;
 							excess -= d;
 							offset += d;
@@ -349,14 +361,20 @@ namespace Synergy.UI
 			if (Bits.IsSet(Alignment, AlignVCenter))
 			{
 				float offset = (Parent.Bounds.Height / 2) - (totalHeight / 2);
-				foreach (var wr in bounds)
-					wr.Translate(0, offset);
+				for (int i = 0; i < bounds.Count; ++i)
+				{
+					if (bounds[i] != null)
+						bounds[i] = bounds[i].Value.TranslateCopy(0, offset);
+				}
 			}
 			else if (Bits.IsSet(Alignment, AlignBottom))
 			{
 				float offset = Parent.Bounds.Height - totalHeight;
-				foreach (var wr in bounds)
-					wr.Translate(0, offset);
+				for (int i = 0; i < bounds.Count; ++i)
+				{
+					if (bounds[i] != null)
+						bounds[i] = bounds[i].Value.TranslateCopy(0, offset);
+				}
 			}
 			else // left
 			{
@@ -366,7 +384,7 @@ namespace Synergy.UI
 			for (int i = 0; i < Children.Count; ++i)
 			{
 				if (bounds[i] != null)
-					Children[i].Bounds = bounds[i];
+					Children[i].Bounds = bounds[i].Value;
 			}
 		}
 

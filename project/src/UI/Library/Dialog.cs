@@ -18,7 +18,12 @@
 			BackgroundColor = Style.Theme.BackgroundColor;
 			Layout = new BorderLayout();
 			Borders = new Insets(1);
+
 			content_.Margins = new Insets(10, 20, 10, 10);
+			title_.Wrap = false;
+			title_.BackgroundColor = Style.Theme.DialogTitleBackgroundColor;
+			title_.Padding = new Insets(0, 5, 0, 10);
+			MinimumSize = new Size(600, 200);
 
 			Add(title_, BorderLayout.Top);
 			Add(content_, BorderLayout.Center);
@@ -86,6 +91,9 @@
 			AddButton(buttons, No, S("No"));
 			AddButton(buttons, Apply, S("Apply"));
 			AddButton(buttons, Close, S("Close"));
+
+			Borders = new Insets(0, 1, 0, 0);
+			Padding = new Insets(0, 20, 0, 0);
 		}
 
 		private void AddButton(int buttons, int id, string text)

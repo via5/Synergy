@@ -187,12 +187,13 @@ namespace Synergy.NewUI
 
 		private void OnRename()
 		{
+			var m = Selected;
+			if (m == null)
+				return;
+
 			InputDialog.GetInput(
-				GetRoot(), S("Rename modifier"), S("Modifier name"), Selected.Name,
-				(v) =>
-				{
-					Selected.UserDefinedName = v;
-				});
+				GetRoot(), S("Rename modifier"), S("Modifier name"), m.Name,
+				(v) => { m.UserDefinedName = v; });
 		}
 
 		private void UpdateModifiers()

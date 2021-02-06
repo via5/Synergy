@@ -142,8 +142,8 @@ namespace Synergy.NewUI
 				if (s != null)
 				{
 					var ns = Synergy.Instance.Manager.AddStep(s.Clone(flags));
-					steps_.AddItem(s);
-					steps_.Select(s);
+					steps_.AddItem(ns);
+					steps_.Select(ns);
 				}
 			});
 		}
@@ -201,10 +201,8 @@ namespace Synergy.NewUI
 				return;
 
 			InputDialog.GetInput(
-				GetRoot(), S("Rename step"), S("Step name"), s.Name, (v) =>
-				{
-					s.UserDefinedName = v;
-				});
+				GetRoot(), S("Rename step"), S("Step name"), s.Name,
+				(v) => { s.UserDefinedName = v; });
 		}
 
 		private void OnProgressionChanged(IStepProgression p)
@@ -266,12 +264,6 @@ namespace Synergy.NewUI
 			enabled_.Checked = s.Enabled;
 			paused_.Checked = s.Paused;
 			halfMove_.Checked = s.HalfMove;
-		}
-
-		private void OnNameChanged(string s)
-		{
-			if (step_ != null)
-				step_.UserDefinedName = s;
 		}
 
 		private void OnEnabled(bool b)

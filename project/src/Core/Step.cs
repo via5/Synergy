@@ -1,7 +1,6 @@
-﻿using LeapInternal;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
+using System.Text.RegularExpressions;
 
 namespace Synergy
 {
@@ -98,6 +97,7 @@ namespace Synergy
 			s.Clear();
 
 			s.enabled_.Value = enabled_.Value;
+			s.name_ = CloneName();
 
 			if (!Bits.IsSet(cloneFlags, Utilities.CloneZero))
 			{
@@ -110,6 +110,38 @@ namespace Synergy
 
 			foreach (var m in modifiers_)
 				s.AddModifier(m.Clone(cloneFlags));
+		}
+
+		private string CloneName()
+		{
+			if (name_ == null)
+				return null;
+
+			var re = new Regex("(.+) \\((\\d+)\\)");
+			var m = re.Match(name_);
+
+			string prefix;
+			int first;
+
+			if (m.Success)
+			{
+				prefix = m.Groups[1].Value;
+				int.TryParse(m.Groups[2].Value, out first);
+			}
+			else
+			{
+				prefix = name_;
+				first = 2;
+			}
+
+			for (int i = first; i < 50; ++i)
+			{
+				string newName = prefix + " (" + i.ToString() + ")";
+				if (Synergy.Instance.Manager.FindStep(newName) == null)
+					return newName;
+			}
+
+			return null;
 		}
 
 		public void Added()

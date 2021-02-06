@@ -63,6 +63,11 @@ namespace Synergy
 		}
 
 
+		public Options()
+		{
+			newUI_ = (SuperController.singleton.GetAtomByUid("synergyuitest") != null);
+		}
+
 		public bool ResetValuesOnFreeze
 		{
 			get { return resetValuesOnFreeze_; }

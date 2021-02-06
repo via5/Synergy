@@ -243,19 +243,13 @@ namespace Synergy.UI
 		}
 	}
 
-	class Point
+	struct Point
 	{
 		public float X, Y;
 
-		public Point()
-			: this(0, 0)
+		public static Point Zero
 		{
-		}
-
-		public Point(Point p)
-		{
-			X = p.X;
-			Y = p.Y;
+			get { return new Point(0, 0); }
 		}
 
 		public Point(float x, float y)
@@ -270,13 +264,13 @@ namespace Synergy.UI
 		}
 	}
 
-	class Size
+	struct Size
 	{
 		public float Width, Height;
 
-		public Size()
-			: this(0, 0)
+		public static Size Zero
 		{
+			get { return new Size(0, 0); }
 		}
 
 		public Size(float w, float h)
@@ -311,12 +305,13 @@ namespace Synergy.UI
 	}
 
 
-	class Rectangle
+	struct Rectangle
 	{
 		public float Left, Top, Right, Bottom;
 
-		public Rectangle()
+		public static Rectangle Zero
 		{
+			get { return FromPoints(0, 0, 0, 0); }
 		}
 
 		public Rectangle(Rectangle r)
@@ -392,10 +387,7 @@ namespace Synergy.UI
 		public Rectangle TranslateCopy(Point p)
 		{
 			var r = new Rectangle(this);
-
-			if (p != null)
-				r.Translate(p.X, p.Y);
-
+			r.Translate(p.X, p.Y);
 			return r;
 		}
 
@@ -408,8 +400,7 @@ namespace Synergy.UI
 
 		public void Translate(Point p)
 		{
-			if (p != null)
-				Translate(p.X, p.Y);
+			Translate(p.X, p.Y);
 		}
 
 		public void Translate(float dx, float dy)
@@ -465,13 +456,13 @@ namespace Synergy.UI
 	}
 
 
-	class Insets
+	struct Insets
 	{
 		public float Left, Top, Right, Bottom;
 
-		public Insets()
-			: this(0, 0, 0, 0)
+		public static Insets Zero
 		{
+			get { return new Insets(0); }
 		}
 
 		public Insets(float all)

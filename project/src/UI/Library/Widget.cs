@@ -345,7 +345,7 @@ namespace Synergy.UI
 
 			set
 			{
-				margins_ = value ?? new Insets(0);
+				margins_ = value;
 				NeedsLayout("margins changed");
 			}
 		}
@@ -359,10 +359,10 @@ namespace Synergy.UI
 
 			set
 			{
-				borders_ = value ?? new Insets(0);
+				borders_ = value;
 
 				if (borderGraphics_ != null)
-					borderGraphics_.Borders = value ?? new Insets(0);
+					borderGraphics_.Borders = value;
 
 				NeedsLayout("borders changed");
 			}
@@ -377,7 +377,7 @@ namespace Synergy.UI
 
 			set
 			{
-				padding_ = value ?? new Insets(0);
+				padding_ = value;
 				NeedsLayout("padding changed");
 			}
 		}

@@ -18,6 +18,7 @@ namespace Synergy.UI
 		private string text_;
 		private int align_;
 		private Text textObject_ = null;
+		private bool wrap_ = true;
 
 		public Label(string t = "", int align = AlignLeft|AlignVCenter)
 		{
@@ -61,12 +62,27 @@ namespace Synergy.UI
 			}
 		}
 
+		public bool Wrap
+		{
+			get
+			{
+				return wrap_;
+			}
+
+			set
+			{
+				wrap_ = value;
+				NeedsLayout("wrap changed");
+			}
+		}
+
 
 		protected override void DoCreate()
 		{
 			textObject_ = WidgetObject.AddComponent<Text>();
 			textObject_.text = text_;
-			textObject_.horizontalOverflow = HorizontalWrapMode.Wrap;
+			textObject_.horizontalOverflow =
+				(wrap_ ? HorizontalWrapMode.Wrap : HorizontalWrapMode.Overflow);
 			textObject_.maskable = true;
 
 			Style.Setup(this);

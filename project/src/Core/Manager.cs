@@ -122,6 +122,17 @@ namespace Synergy
 			return steps_[i];
 		}
 
+		public Step FindStep(string name)
+		{
+			foreach (var s in steps_)
+			{
+				if (s.Name == name)
+					return s;
+			}
+
+			return null;
+		}
+
 		public int IndexOfStep(Step s)
 		{
 			return steps_.IndexOf(s);

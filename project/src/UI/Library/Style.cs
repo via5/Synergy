@@ -137,6 +137,11 @@ namespace Synergy.UI
 		{
 			get { return 12; }
 		}
+
+		public Color DialogTitleBackgroundColor
+		{
+			get { return new Color(0.10f, 0.10f, 0.10f); }
+		}
 	}
 
 
