@@ -14,7 +14,7 @@ namespace Synergy.NewUI
 		private readonly DelayWidgets delay_ = new DelayWidgets();
 
 		private Step step_ = null;
-		private bool ignore_ = false;
+		private IgnoreFlag ignore_ = new IgnoreFlag();
 
 		public StepTab()
 		{
@@ -35,13 +35,13 @@ namespace Synergy.NewUI
 		{
 			step_ = s;
 
-			using (new ScopedFlag((bool b) => ignore_ = b))
+			ignore_.Do(() =>
 			{
 				info_.Set(s);
 				duration_.Set(s?.Duration);
 				repeat_.Set(s?.Repeat);
 				delay_.Set(s?.Delay);
-			}
+			});
 		}
 
 		private void OnDurationTypeChanged(IDuration d)
@@ -63,7 +63,7 @@ namespace Synergy.NewUI
 		private readonly UI.Button add_, clone_, clone0_, remove_, up_, down_;
 		private readonly UI.Button rename_;
 		private readonly FactoryComboBox<StepProgressionFactory, IStepProgression> progression_;
-		private bool ignore_ = false;
+		private IgnoreFlag ignore_ = new IgnoreFlag();
 
 		public StepControls()
 		{
@@ -126,17 +126,17 @@ namespace Synergy.NewUI
 
 		public void AddStep()
 		{
-			using (new ScopedFlag(b => ignore_ = b))
+			ignore_.Do(() =>
 			{
 				var s = Synergy.Instance.Manager.AddStep();
 				steps_.AddItem(s);
 				steps_.Select(s);
-			}
+			});
 		}
 
 		public void CloneStep(int flags)
 		{
-			using (new ScopedFlag(b => ignore_ = b))
+			ignore_.Do(() =>
 			{
 				var s = steps_.Selected;
 				if (s != null)
@@ -145,7 +145,7 @@ namespace Synergy.NewUI
 					steps_.AddItem(s);
 					steps_.Select(s);
 				}
-			}
+			});
 		}
 
 		public void RemoveStep()
@@ -164,11 +164,11 @@ namespace Synergy.NewUI
 				if (d.Button != UI.MessageDialog.Yes)
 					return;
 
-				using (new ScopedFlag(b => ignore_ = b))
+				ignore_.Do(() =>
 				{
 					Synergy.Instance.Manager.DeleteStep(s);
 					steps_.RemoveItem(s);
-				}
+				});
 			});
 		}
 

@@ -61,7 +61,7 @@ namespace Synergy.NewUI
 		private readonly UI.Button add_, clone_, clone0_, remove_, rename_;
 
 		private Step step_ = null;
-		private bool ignore_ = false;
+		private IgnoreFlag ignore_ = new IgnoreFlag();
 
 		public ModifierControls()
 		{
@@ -130,7 +130,7 @@ namespace Synergy.NewUI
 
 		public void AddModifier()
 		{
-			using (new ScopedFlag(b => ignore_ = b))
+			ignore_.Do(() =>
 			{
 				if (step_ != null)
 				{
@@ -138,12 +138,12 @@ namespace Synergy.NewUI
 					modifiers_.AddItem(m);
 					modifiers_.Select(m);
 				}
-			}
+			});
 		}
 
 		public void CloneModifier(int flags)
 		{
-			using (new ScopedFlag(b => ignore_ = b))
+			ignore_.Do(() =>
 			{
 				var m = Selected;
 				if (step_ != null && m != null)
@@ -153,7 +153,7 @@ namespace Synergy.NewUI
 					modifiers_.AddItem(m2);
 					modifiers_.Select(m2);
 				}
-			}
+			});
 		}
 
 		public void RemoveModifier()
@@ -172,11 +172,11 @@ namespace Synergy.NewUI
 				if (d.Button != UI.MessageDialog.Yes)
 					return;
 
-				using (new ScopedFlag(b => ignore_ = b))
+				ignore_.Do(() =>
 				{
 					step_.DeleteModifier(m);
 					modifiers_.RemoveItem(m);
-				}
+				});
 			});
 		}
 
@@ -311,7 +311,7 @@ namespace Synergy.NewUI
 		private readonly UI.CheckBox enabled_;
 		private readonly UI.Button disableOthers_, enableAll_;
 		private ModifierContainer mc_ = null;
-		private bool ignore_ = false;
+		private IgnoreFlag ignore_ = new IgnoreFlag();
 
 		public ModifierInfo()
 		{
@@ -338,12 +338,12 @@ namespace Synergy.NewUI
 
 		public void Set(ModifierContainer m)
 		{
-			using (new ScopedFlag((b) => ignore_ = b))
+			ignore_.Do(() =>
 			{
 				mc_ = m;
 				enabled_.Checked = m.Enabled;
 				type_.Select(m.Modifier);
-			}
+			});
 		}
 
 		private void OnEnabledChanged(bool b)
@@ -502,7 +502,7 @@ namespace Synergy.NewUI
 	{
 		private readonly ComboBox<ModifierContainer> others_;
 		private OtherModifierSyncedModifier sync_ = null;
-		private bool ignore_ = false;
+		private IgnoreFlag ignore_ = new IgnoreFlag();
 
 		public OtherModifierSyncedModifierUI()
 		{
@@ -524,11 +524,11 @@ namespace Synergy.NewUI
 		{
 			sync_ = o as OtherModifierSyncedModifier;
 
-			using (new ScopedFlag((bool b) => ignore_ = b))
+			ignore_.Do(() =>
 			{
 				UpdateList();
 				others_.Select(sync_.OtherModifierContainer);
-			}
+			});
 		}
 
 		private void UpdateList()
@@ -737,7 +737,7 @@ namespace Synergy.NewUI
 		private readonly UI.TextSlider z_ = new UI.TextSlider();
 		private readonly UI.Panel sliders_ = new Panel();
 
-		private bool ignore_ = false;
+		private IgnoreFlag ignore_ = new IgnoreFlag();
 
 		public DirectionPanel()
 		{
@@ -793,7 +793,7 @@ namespace Synergy.NewUI
 
 		public void Set(Vector3 v)
 		{
-			using (new ScopedFlag((b) => ignore_ = b))
+			ignore_.Do(() =>
 			{
 				var dirString = Utilities.DirectionString(v);
 				if (dirString == "")
@@ -804,7 +804,7 @@ namespace Synergy.NewUI
 				x_.Set(v.x, -1, 1);
 				y_.Set(v.y, -1, 1);
 				z_.Set(v.z, -1, 1);
-			}
+			});
 		}
 
 		private void OnTypeChanged(string s)

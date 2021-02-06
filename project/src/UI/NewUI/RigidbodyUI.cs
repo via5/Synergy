@@ -20,7 +20,7 @@ namespace Synergy.NewUI
 		private readonly MovementUI movement_ = new MovementUI();
 
 		private RigidbodyModifier modifier_ = null;
-		private bool ignore_ = false;
+		private IgnoreFlag ignore_ = new IgnoreFlag();
 
 
 		public RigidbodyModifierPanel()
@@ -64,14 +64,14 @@ namespace Synergy.NewUI
 		{
 			modifier_ = m as RigidbodyModifier;
 
-			using (new ScopedFlag((b) => ignore_ = b))
+			ignore_.Do(() =>
 			{
 				atom_.Select(modifier_.Atom);
 				receiver_.Set(modifier_.Atom, modifier_.Receiver);
 				movementType_.Select(modifier_.Type);
 				dir_.Set(modifier_.Direction);
 				movement_.Set(modifier_.Movement);
-			}
+			});
 		}
 
 		private void OnAtomChanged(Atom a)
@@ -82,8 +82,10 @@ namespace Synergy.NewUI
 			modifier_.Atom = a;
 			modifier_.Receiver = receiver_.SelectedRigidbody;
 
-			using (new ScopedFlag((b) => ignore_ = b))
+			ignore_.Do(() =>
+			{
 				receiver_.Set(modifier_.Atom, modifier_.Receiver);
+			});
 		}
 
 		private void OnRigidbodyChanged(Rigidbody rb)

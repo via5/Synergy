@@ -38,7 +38,7 @@ namespace Synergy.NewUI
 		private readonly TextBox text_ = new TextBox();
 		private float reset_ = 0;
 		private float last_ = 0;
-		private bool ignore_ = false;
+		private IgnoreFlag ignore_ = new IgnoreFlag();
 
 		public MovementWidgets(int flags = NoFlags)
 			: this(null, flags)
@@ -79,12 +79,12 @@ namespace Synergy.NewUI
 
 		public void Set(float f)
 		{
-			using (new ScopedFlag((b) => ignore_ = b))
+			ignore_.Do(() =>
 			{
 				reset_ = f;
 				last_ = f;
 				text_.Text = f.ToString("0.00");
-			}
+			});
 		}
 
 		private SmallButton CreateButton(string t, float d)
@@ -146,7 +146,7 @@ namespace Synergy.NewUI
 		private readonly UI.Button randomizeHalf_;
 
 		private RandomizableFloat rf_ = null;
-		private bool ignore_ = false;
+		private IgnoreFlag ignore_ = new IgnoreFlag();
 
 		public MovementPanel(
 			string caption, int flags = MovementWidgets.NoFlags)
@@ -190,9 +190,13 @@ namespace Synergy.NewUI
 		public void Set(RandomizableFloat f)
 		{
 			rf_ = f;
-			value_.Set(f.Initial);
-			range_.Set(f.Range);
-			interval_.Set(f.Interval);
+
+			ignore_.Do(() =>
+			{
+				value_.Set(f.Initial);
+				range_.Set(f.Range);
+				interval_.Set(f.Interval);
+			});
 		}
 
 		private void OnValueChanged(float f)

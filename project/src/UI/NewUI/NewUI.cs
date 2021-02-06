@@ -75,7 +75,7 @@
 		private readonly RandomDurationWidgets duration_ = new RandomDurationWidgets();
 
 		private Delay delay_ = null;
-		private bool ignore_ = false;
+		private IgnoreFlag ignore_ = new IgnoreFlag();
 
 		public DelayWidgets()
 		{
@@ -102,13 +102,13 @@
 		{
 			delay_ = d;
 
-			using (new ScopedFlag((b) => ignore_ = b))
+			ignore_.Do(() =>
 			{
 				duration_.Set(delay_.SingleDuration);
 				halfWay_.Checked = delay_.Halfway;
 				endForwards_.Checked = delay_.EndForwards;
 				endBackwards_.Checked = delay_.EndBackwards;
-			}
+			});
 		}
 
 		private void OnHalfwayChanged(bool b)

@@ -552,7 +552,7 @@ namespace Synergy
 		private int oldFocus_ = -1;
 
 		private bool inCallback_ = false;
-		private bool ignore_ = false;
+		private IgnoreFlag ignore_ = new IgnoreFlag();
 		private string placeholder_ = "";
 
 
@@ -646,19 +646,13 @@ namespace Synergy
 					});
 				}
 
-				ignore_ = true;
-
-				try
+				ignore_.Do(() =>
 				{
 					storable_.valNoCallback = value;
 
 					if (input_ != null)
 						input_.text = value;
-				}
-				finally
-				{
-					ignore_ = false;
-				}
+				});
 			}
 		}
 

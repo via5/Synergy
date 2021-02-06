@@ -185,7 +185,7 @@ namespace Synergy.NewUI
 		private readonly FactoryComboBox<DurationFactory, IDuration> type_;
 		private DurationWidgets widgets_ = null;
 		private IDuration duration_ = null;
-		private bool ignore_ = false;
+		private IgnoreFlag ignore_ = new IgnoreFlag();
 
 		public DurationPanel()
 		{
@@ -203,7 +203,7 @@ namespace Synergy.NewUI
 
 		public void Set(IDuration d)
 		{
-			using (new ScopedFlag((b) => ignore_ = b))
+			ignore_.Do(() =>
 			{
 				duration_ = d;
 
@@ -211,7 +211,7 @@ namespace Synergy.NewUI
 					SetWidgets(DurationWidgets.Create(d));
 
 				type_.Select(d);
-			}
+			});
 		}
 
 		private void SetWidgets(DurationWidgets p)
