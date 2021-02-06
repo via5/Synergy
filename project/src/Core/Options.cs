@@ -15,6 +15,7 @@ namespace Synergy
 		private float overlapTime_ = 1;
 		private int logLevel_ = LogLevelInfo;
 		private bool logOverlap_ = false;
+		private bool newUI_ = false;
 
 		public static List<string> GetLogLevelNames()
 		{
@@ -98,6 +99,17 @@ namespace Synergy
 			set { logOverlap_ = value; }
 		}
 
+		public bool NewUI
+		{
+			get { return newUI_; }
+		}
+
+		public void SetNewUI(bool b)
+		{
+			newUI_ = b;
+			Synergy.Instance.UI.NeedsReset("new ui " + b.ToString());
+		}
+
 		public J.Node ToJSON()
 		{
 			var o = new J.Object();
@@ -105,6 +117,7 @@ namespace Synergy
 			o.Add("resetValuesOnFreeze", resetValuesOnFreeze_);
 			o.Add("resetCountersOnThaw", resetCountersOnThaw_);
 			o.Add("overlapTime", overlapTime_);
+			o.Add("newUI", newUI_);
 
 			return o;
 		}
@@ -118,6 +131,7 @@ namespace Synergy
 			o.Opt("resetValuesOnFreeze", ref resetValuesOnFreeze_);
 			o.Opt("resetCountersOnThaw", ref resetCountersOnThaw_);
 			o.Opt("overlapTime", ref overlapTime_);
+			o.Opt("newUI", ref newUI_);
 
 			return true;
 		}

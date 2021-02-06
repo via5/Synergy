@@ -49,6 +49,11 @@ namespace Synergy.UI
 
 			MainObject.AddComponent<MouseHandler>();
 		}
+
+		public new void Destroy()
+		{
+			base.Destroy();
+		}
 	}
 
 
@@ -70,6 +75,11 @@ namespace Synergy.UI
 		public override Root GetRoot()
 		{
 			return root_;
+		}
+
+		public new void Destroy()
+		{
+			base.Destroy();
 		}
 	}
 
@@ -168,6 +178,20 @@ namespace Synergy.UI
 				tg_ = text.cachedTextGenerator;
 				ts_ = text.GetGenerationSettings(new Vector2());
 			}
+		}
+
+		public void Destroy()
+		{
+			var scriptUI = Synergy.Instance.UITransform.GetComponentInChildren<MVRScriptUI>();
+			Style.RevertRoot(scriptUI);
+
+			content_?.Destroy();
+			floating_?.Destroy();
+			overlay_?.Destroy();
+			tooltips_?.Destroy();
+
+			openedPopup_ = null;
+			focused_ = null;
 		}
 
 		public Panel ContentPanel

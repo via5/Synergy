@@ -35,6 +35,11 @@
 			root_.DoLayoutIfNeeded();
 		}
 
+		public void Destroy()
+		{
+			root_.Destroy();
+		}
+
 		public void SelectStep(Step s)
 		{
 			if (s == null)
@@ -306,6 +311,12 @@
 				S("Log overlap"),
 				(b) => options_.LogOverlap = b,
 				options_.LogOverlap));
+
+			Add(new UI.Spacer(20));
+
+			Add(new UI.Button(
+				S("Switch to old UI"),
+				() => options_.SetNewUI(false)));
 		}
 
 		public void PickAnimatableChanged(bool b)

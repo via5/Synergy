@@ -158,28 +158,34 @@ namespace Synergy
 
 		private void ResetUI()
 		{
-			if (Synergy.Instance.DefaultAtom.name == "synergyuitest")
-			{
-				if (nui_ == null)
-					nui_ = new NewUI.NewUI();
-				return;
-			}
-
 			Synergy.LogVerbose("resetting ui");
 
 			ReselectStepAndModifier();
-
 			widgets_.RemoveFromUI();
 			step_.RemoveFromUI();
 			modifier_.RemoveFromUI();
 			monitor_.RemoveFromUI();
 
-			if (inMonitor_)
-				AddMonitorToUI();
-			else if (inManageAnimatables_)
-				AddManageAnimatablesToUI();
+			if (Synergy.Instance.Options.NewUI)
+			{
+				if (nui_ == null)
+					nui_ = new NewUI.NewUI();
+			}
 			else
-				AddMainToUI();
+			{
+				if (nui_ != null)
+				{
+					nui_.Destroy();
+					nui_ = null;
+				}
+
+				if (inMonitor_)
+					AddMonitorToUI();
+				else if (inManageAnimatables_)
+					AddManageAnimatablesToUI();
+				else
+					AddMainToUI();
+			}
 
 			needsReset_ = false;
 			Synergy.LogVerbose("done resetting ui");

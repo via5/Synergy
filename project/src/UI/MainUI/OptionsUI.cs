@@ -112,6 +112,13 @@ namespace Synergy
 
 
 			collapsible_.Add(new SmallSpacer(flags));
+
+			collapsible_.Add(new Button(
+				"Switch to new UI",
+				() => { options_.SetNewUI(true); },
+				flags));
+
+			collapsible_.Add(new SmallSpacer(flags));
 		}
 
 		public Collapsible Collapsible

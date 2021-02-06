@@ -143,6 +143,7 @@ namespace Synergy.UI
 	class Style
 	{
 		private static Theme theme_ = new Theme();
+		private static Color originalBackground_ = new Color();
 
 		private class Info
 		{
@@ -318,28 +319,40 @@ namespace Synergy.UI
 			});
 		}
 
-
-		public static void SetupRoot(Component scriptUI)
+		public static void UnclampScrollView(GameObject scrollView)
 		{
-			AdjustRoot(scriptUI);
-			PolishRoot(scriptUI);
+			ForComponent<ScrollRect>(scrollView, (sr) =>
+			{
+				sr.movementType = ScrollRect.MovementType.Elastic;
+			});
 		}
 
-		public static void AdjustRoot(Component scriptUI)
+
+		public static void SetupRoot(Component scriptUI)
 		{
 			ForChildRecursive(scriptUI, "Scroll View", (scrollView) =>
 			{
 				// clamp the whole script ui
 				ClampScrollView(scrollView);
+
+				// main background color
+				ForComponent<Image>(scrollView, (bg) =>
+				{
+					originalBackground_ = bg.color;
+					bg.color = theme_.BackgroundColor;
+				});
 			});
 		}
 
-		public static void PolishRoot(Component scriptUI)
+		public static void RevertRoot(Component scriptUI)
 		{
 			ForChildRecursive(scriptUI, "Scroll View", (scrollView) =>
 			{
+				// unclamp the whole script ui
+				UnclampScrollView(scrollView);
+
 				// main background color
-				scrollView.GetComponent<Image>().color = theme_.BackgroundColor;
+				scrollView.GetComponent<Image>().color = originalBackground_;
 			});
 		}
 

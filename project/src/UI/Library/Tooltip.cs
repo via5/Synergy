@@ -48,6 +48,11 @@ namespace Synergy.UI
 				c.raycastTarget = false;
 		}
 
+		public new void Destroy()
+		{
+			base.Destroy();
+		}
+
 		public string Text
 		{
 			get { return label_.Text; }
@@ -67,6 +72,12 @@ namespace Synergy.UI
 		{
 			root_ = root;
 			root_.FloatingPanel.Add(widget_);
+		}
+
+		public void Destroy()
+		{
+			Hide();
+			widget_.Destroy();
 		}
 
 		public void WidgetEntered(Widget w)
