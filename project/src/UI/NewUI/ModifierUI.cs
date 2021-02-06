@@ -366,15 +366,18 @@ namespace Synergy.NewUI
 
 			enabled_.Tooltip.Text = S("Whether this modifier is executed");
 
-			Layout = new UI.VerticalFlow(20);
-
 			var p = new UI.Panel(new UI.HorizontalFlow(10));
-			p.Add(new UI.Label(S("Modifier type")));
-			p.Add(type_);
 			p.Add(enabled_);
 			p.Add(disableOthers_);
 			p.Add(enableAll_);
-			Add(p);
+
+			var left = new UI.Panel(new UI.BorderLayout(10));
+			left.Add(new UI.Label(S("Modifier type")), UI.BorderLayout.Left);
+			left.Add(type_, UI.BorderLayout.Center);
+
+			Layout = new UI.BorderLayout(20);
+			Add(left, UI.BorderLayout.Center);
+			Add(p, UI.BorderLayout.Right);
 
 			enabled_.Changed += OnEnabledChanged;
 		}
