@@ -114,34 +114,10 @@ namespace Synergy
 
 		private string CloneName()
 		{
-			if (name_ == null)
-				return null;
-
-			var re = new Regex("(.+) \\((\\d+)\\)");
-			var m = re.Match(name_);
-
-			string prefix;
-			int first;
-
-			if (m.Success)
+			return Utilities.CloneName(name_, (newName) =>
 			{
-				prefix = m.Groups[1].Value;
-				int.TryParse(m.Groups[2].Value, out first);
-			}
-			else
-			{
-				prefix = name_;
-				first = 2;
-			}
-
-			for (int i = first; i < 50; ++i)
-			{
-				string newName = prefix + " (" + i.ToString() + ")";
-				if (Synergy.Instance.Manager.FindStep(newName) == null)
-					return newName;
-			}
-
-			return null;
+				return (Synergy.Instance.Manager.FindStep(newName) == null);
+			});
 		}
 
 		public void Added()
@@ -202,7 +178,11 @@ namespace Synergy
 
 			set
 			{
-				name_ = value;
+				if (string.IsNullOrEmpty(value))
+					name_ = null;
+				else
+					name_ = value;
+
 				StepNameChanged?.Invoke(this);
 			}
 		}
@@ -211,15 +191,10 @@ namespace Synergy
 		{
 			get
 			{
-				if (name_ == null)
-				{
-					var i = Synergy.Instance.Manager.IndexOfStep(this);
-					return "Step " + (i + 1).ToString();
-				}
-				else
-				{
+				if (name_ != null)
 					return name_;
-				}
+
+				return "Step";
 			}
 		}
 
@@ -451,6 +426,17 @@ namespace Synergy
 		public int IndexOfModifier(ModifierContainer m)
 		{
 			return modifiers_.IndexOf(m);
+		}
+
+		public ModifierContainer FindModifier(string name)
+		{
+			foreach (var m in modifiers_)
+			{
+				if (m.Name == name)
+					return m;
+			}
+
+			return null;
 		}
 
 		public void EnableAll()

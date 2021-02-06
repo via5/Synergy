@@ -160,6 +160,38 @@ namespace Synergy
 		private static Rigidbody centerEye_ = null;
 		private static bool centerEyeChecked_ = false;
 
+		public static string CloneName(string original, Func<string, bool> valid)
+		{
+			if (original == null)
+				return null;
+
+			var re = new Regex("(.+) \\((\\d+)\\)");
+			var m = re.Match(original);
+
+			string prefix;
+			int first;
+
+			if (m.Success)
+			{
+				prefix = m.Groups[1].Value;
+				int.TryParse(m.Groups[2].Value, out first);
+			}
+			else
+			{
+				prefix = original;
+				first = 2;
+			}
+
+			for (int i = first; i < 50; ++i)
+			{
+				string newName = prefix + " (" + i.ToString() + ")";
+				if (valid(newName))
+					return newName;
+			}
+
+			return null;
+		}
+
 		public static Vector3 CenterEyePosition()
 		{
 			if (centerEye_ == null && !centerEyeChecked_)

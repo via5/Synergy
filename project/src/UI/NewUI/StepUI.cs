@@ -56,10 +56,34 @@ namespace Synergy.NewUI
 
 	class StepControls : UI.Panel
 	{
+		class StepItem
+		{
+			public Step step;
+
+			public StepItem(Step s)
+			{
+				step = s;
+			}
+
+			public override string ToString()
+			{
+				if (step == null)
+					return "?";
+
+				string s = step.Name;
+
+				var i = Synergy.Instance.Manager.IndexOfStep(step);
+				if (i >= 0)
+					s = "#" + (i + 1).ToString() + " " + s;
+
+				return s;
+			}
+		}
+
 		public delegate void StepCallback(Step s);
 		public event StepCallback SelectionChanged;
 
-		private readonly UI.ComboBox<Step> steps_;
+		private readonly UI.ComboBox<StepItem> steps_;
 		private readonly UI.Button add_, clone_, clone0_, remove_, up_, down_;
 		private readonly UI.Button rename_;
 		private readonly FactoryComboBox<StepProgressionFactory, IStepProgression> progression_;
@@ -67,7 +91,7 @@ namespace Synergy.NewUI
 
 		public StepControls()
 		{
-			steps_ = new UI.ComboBox<Step>(OnSelectionChanged);
+			steps_ = new UI.ComboBox<StepItem>(OnSelectionChanged);
 			add_ = new UI.ToolButton(UI.Utilities.AddSymbol, AddStep);
 			clone_ = new UI.ToolButton(UI.Utilities.CloneSymbol, () => CloneStep(0));
 			clone0_ = new UI.ToolButton(UI.Utilities.CloneZeroSymbol, () => CloneStep(Utilities.CloneZero));
@@ -120,7 +144,7 @@ namespace Synergy.NewUI
 		{
 			get
 			{
-				return steps_.Selected;
+				return steps_.Selected?.step;
 			}
 		}
 
@@ -129,8 +153,7 @@ namespace Synergy.NewUI
 			ignore_.Do(() =>
 			{
 				var s = Synergy.Instance.Manager.AddStep();
-				steps_.AddItem(s);
-				steps_.Select(s);
+				steps_.AddItem(new StepItem(s), true);
 			});
 		}
 
@@ -138,19 +161,19 @@ namespace Synergy.NewUI
 		{
 			ignore_.Do(() =>
 			{
-				var s = steps_.Selected;
+				var s = steps_.Selected?.step;
+
 				if (s != null)
 				{
 					var ns = Synergy.Instance.Manager.AddStep(s.Clone(flags));
-					steps_.AddItem(ns);
-					steps_.Select(ns);
+					steps_.AddItem(new StepItem(ns), true);
 				}
 			});
 		}
 
 		public void RemoveStep()
 		{
-			var s = steps_.Selected;
+			var s = steps_.Selected?.step;
 			if (s == null)
 				return;
 
@@ -167,7 +190,7 @@ namespace Synergy.NewUI
 				ignore_.Do(() =>
 				{
 					Synergy.Instance.Manager.DeleteStep(s);
-					steps_.RemoveItem(s);
+					steps_.RemoveItem(steps_.Selected);
 				});
 			});
 		}
@@ -176,9 +199,15 @@ namespace Synergy.NewUI
 		{
 		}
 
-		private void OnSelectionChanged(Step s)
+		private void OnSelectionChanged(StepItem s)
 		{
-			SelectionChanged?.Invoke(s);
+			// invalid IR?
+			// SelectionChanged?.Invoke(s?.step);
+
+			if (s?.step == null)
+				SelectionChanged?.Invoke(null);
+			else
+				SelectionChanged?.Invoke(s.step);
 		}
 
 		private void OnStepsChanged()
@@ -196,7 +225,7 @@ namespace Synergy.NewUI
 
 		private void OnRename()
 		{
-			var s = steps_.Selected;
+			var s = steps_.Selected?.step;
 			if (s == null)
 				return;
 
@@ -215,9 +244,22 @@ namespace Synergy.NewUI
 
 		private void UpdateSteps()
 		{
-			steps_.SetItems(
-				new List<Step>(Synergy.Instance.Manager.Steps),
-				steps_.Selected);
+			var items = new List<StepItem>();
+
+			var sel = steps_.Selected?.step;
+			StepItem selItem = null;
+
+			foreach (var s in Synergy.Instance.Manager.Steps)
+			{
+				var si = new StepItem(s);
+
+				items.Add(si);
+
+				if (s == sel)
+					selItem = si;
+			}
+
+			steps_.SetItems(items, selItem);
 		}
 	}
 

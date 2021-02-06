@@ -286,7 +286,7 @@ namespace Synergy
 
 			for (int i = 0; i < manager_.Steps.Count; ++i)
 			{
-				var name = manager_.Steps[i].Name;
+				var name = "#" + (i + 1).ToString() + " " + manager_.Steps[i].Name;
 				stepNames.Add(name);
 
 				if (currentStep_ == i)
@@ -322,7 +322,7 @@ namespace Synergy
 
 			for (int j = 0; j < CurrentStep.Modifiers.Count; ++j)
 			{
-				var name = CurrentStep.Modifiers[j].Name;
+				var name = "#" + (j + 1).ToString() + " " + CurrentStep.Modifiers[j].Name;
 				modifierNames.Add(name);
 
 				if (j == currentModifier_)

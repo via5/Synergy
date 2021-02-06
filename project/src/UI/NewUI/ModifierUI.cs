@@ -1,4 +1,5 @@
-﻿using Synergy.UI;
+﻿using Battlehub.UIControls;
+using Synergy.UI;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -54,10 +55,34 @@ namespace Synergy.NewUI
 
 	class ModifierControls : UI.Panel
 	{
+		class ModifierItem
+		{
+			public ModifierContainer mc;
+
+			public ModifierItem(ModifierContainer m)
+			{
+				mc = m;
+			}
+
+			public override string ToString()
+			{
+				if (mc?.ParentStep == null)
+					return "?";
+
+				string s = mc.Name;
+
+				var i = mc.ParentStep.IndexOfModifier(mc);
+				if (i >= 0)
+					s = "#" + (i + 1).ToString() + " " + s;
+
+				return s;
+			}
+		}
+
 		public delegate void ModifierCallback(ModifierContainer m);
 		public event ModifierCallback SelectionChanged;
 
-		private readonly UI.ComboBox<ModifierContainer> modifiers_;
+		private readonly UI.ComboBox<ModifierItem> modifiers_;
 		private readonly UI.Button add_, clone_, clone0_, remove_, rename_;
 
 		private Step step_ = null;
@@ -65,7 +90,7 @@ namespace Synergy.NewUI
 
 		public ModifierControls()
 		{
-			modifiers_ = new ComboBox<ModifierContainer>(OnSelectionChanged);
+			modifiers_ = new ComboBox<ModifierItem>(OnSelectionChanged);
 			add_ = new UI.ToolButton(UI.Utilities.AddSymbol, AddModifier);
 			clone_ = new UI.ToolButton(UI.Utilities.CloneSymbol, () => CloneModifier(0));
 			clone0_ = new UI.ToolButton(UI.Utilities.CloneZeroSymbol, () => CloneModifier(Utilities.CloneZero));
@@ -105,7 +130,7 @@ namespace Synergy.NewUI
 		{
 			get
 			{
-				return modifiers_.Selected;
+				return modifiers_.Selected?.mc;
 			}
 		}
 
@@ -135,8 +160,7 @@ namespace Synergy.NewUI
 				if (step_ != null)
 				{
 					var m = step_.AddEmptyModifier();
-					modifiers_.AddItem(m);
-					modifiers_.Select(m);
+					modifiers_.AddItem(new ModifierItem(m), true);
 				}
 			});
 		}
@@ -150,8 +174,7 @@ namespace Synergy.NewUI
 				{
 					var m2 = m.Clone(flags);
 					step_.AddModifier(m2);
-					modifiers_.AddItem(m2);
-					modifiers_.Select(m2);
+					modifiers_.AddItem(new ModifierItem(m2), true);
 				}
 			});
 		}
@@ -175,14 +198,20 @@ namespace Synergy.NewUI
 				ignore_.Do(() =>
 				{
 					step_.DeleteModifier(m);
-					modifiers_.RemoveItem(m);
+					modifiers_.RemoveItem(modifiers_.Selected);
 				});
 			});
 		}
 
-		private void OnSelectionChanged(ModifierContainer m)
+		private void OnSelectionChanged(ModifierItem m)
 		{
-			SelectionChanged?.Invoke(m);
+			// invalid IR?
+			// SelectionChanged?.Invoke(m?.mc);
+
+			if (m?.mc == null)
+				SelectionChanged?.Invoke(null);
+			else
+				SelectionChanged?.Invoke(m.mc);
 		}
 
 		private void OnRename()
@@ -199,9 +228,26 @@ namespace Synergy.NewUI
 		private void UpdateModifiers()
 		{
 			if (step_ == null)
+			{
 				modifiers_.Clear();
-			else
-				modifiers_.SetItems(step_.Modifiers);
+				return;
+			}
+
+			var items = new List<ModifierItem>();
+			var sel = modifiers_.Selected?.mc;
+			ModifierItem selItem = null;
+
+			foreach (var m in step_.Modifiers)
+			{
+				var mi = new ModifierItem(m);
+
+				items.Add(mi);
+
+				if (m == sel)
+					selItem = mi;
+			}
+
+			modifiers_.SetItems(items, selItem);
 		}
 
 		private void OnModifiersChanged()

@@ -105,21 +105,8 @@ namespace Synergy
 		{
 			get
 			{
-				if (parent_?.ParentStep == null)
-				{
-					return "Modifier";
-				}
-				else
-				{
-					var i = parent_.ParentStep.IndexOfModifier(this);
-					return (i + 1).ToString() + ") " + MakeName();
-				}
+				return MakeName();
 			}
-		}
-
-		public override string ToString()
-		{
-			return Name;
 		}
 
 		public int TickCalls

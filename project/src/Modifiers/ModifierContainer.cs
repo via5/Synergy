@@ -39,9 +39,21 @@
 		private void CopyTo(ModifierContainer m, int cloneFlags)
 		{
 			m.parent_ = parent_;
+			m.name_ = CloneName();
 			m.Modifier = Modifier?.Clone(cloneFlags);
 			m.ModifierSync = ModifierSync?.Clone(cloneFlags);
 			m.enabled_.Value = enabled_.Value;
+		}
+
+		private string CloneName()
+		{
+			return Utilities.CloneName(name_, (newName) =>
+			{
+				if (parent_ == null)
+					return true;
+
+				return (parent_.FindModifier(newName) == null);
+			});
 		}
 
 		public void DeferredInit()
@@ -109,7 +121,11 @@
 
 			set
 			{
-				name_ = value;
+				if (string.IsNullOrEmpty(value))
+					name_ = null;
+				else
+					name_ = value;
+
 				FireNameChanged();
 			}
 		}
@@ -118,29 +134,13 @@
 		{
 			get
 			{
-				if (name_ == null)
-				{
-					if (Modifier == null)
-					{
-						if (parent_ == null)
-						{
-							return "Modifier";
-						}
-						else
-						{
-							var i = parent_.IndexOfModifier(this);
-							return "Modifier " + (i + 1).ToString();
-						}
-					}
-					else
-					{
-						return Modifier.Name;
-					}
-				}
-				else
-				{
+				if (name_ != null)
 					return name_;
-				}
+
+				if (Modifier != null)
+					return Modifier.Name;
+
+				return "Empty modifier";
 			}
 		}
 

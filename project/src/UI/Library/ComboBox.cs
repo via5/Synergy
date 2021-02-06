@@ -55,10 +55,13 @@ namespace Synergy.UI
 				SelectionChanged += selectionChanged;
 		}
 
-		public void AddItem(ItemType i)
+		public void AddItem(ItemType i, bool select=false)
 		{
 			AddItemNoUpdate(new Item(i));
 			UpdateChoices();
+
+			if (select)
+				Select(i);
 		}
 
 		private bool ItemsEqual(ItemType a, ItemType b)
@@ -660,9 +663,9 @@ namespace Synergy.UI
 		}
 
 
-		public void AddItem(ItemType i)
+		public void AddItem(ItemType i, bool select=false)
 		{
-			list_.AddItem(i);
+			list_.AddItem(i, select);
 		}
 
 		public void RemoveItem(ItemType item)
