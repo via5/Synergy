@@ -122,14 +122,9 @@ namespace Synergy
 
 		private void CreateTestStuff(Atom a)
 		{
-			var s = new Step();
-
-			var m = new StorableModifier(
-				a, "SweetTankStyle", "wrapName");
-
-			s.AddModifier(new ModifierContainer(m));
-
-			manager_.AddStep(s);
+			manager_.AddStep(new Step("1"));
+			manager_.AddStep(new Step("2"));
+			manager_.AddStep(new Step("3"));
 		}
 
 		public Timer CreateTimer(float seconds, Timer.Callback f, int flags = 0)

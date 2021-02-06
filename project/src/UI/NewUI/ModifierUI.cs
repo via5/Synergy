@@ -55,51 +55,30 @@ namespace Synergy.NewUI
 
 	class ModifierControls : UI.Panel
 	{
-		class ModifierItem
-		{
-			public ModifierContainer mc;
-
-			public ModifierItem(ModifierContainer m)
-			{
-				mc = m;
-			}
-
-			public override string ToString()
-			{
-				if (mc?.ParentStep == null)
-					return "?";
-
-				string s = mc.Name;
-
-				var i = mc.ParentStep.IndexOfModifier(mc);
-				if (i >= 0)
-					s = "#" + (i + 1).ToString() + " " + s;
-
-				return s;
-			}
-		}
-
 		public delegate void ModifierCallback(ModifierContainer m);
 		public event ModifierCallback SelectionChanged;
 
-		private readonly UI.ComboBox<ModifierItem> modifiers_;
-		private readonly UI.Button add_, clone_, clone0_, remove_, rename_;
+		private readonly UI.ComboBox<ModifierContainer> modifiers_;
+		private readonly UI.Button add_, clone_, clone0_, cloneSync_;
+		private readonly UI.Button remove_, rename_;
 
 		private Step step_ = null;
 		private IgnoreFlag ignore_ = new IgnoreFlag();
 
 		public ModifierControls()
 		{
-			modifiers_ = new ComboBox<ModifierItem>(OnSelectionChanged);
+			modifiers_ = new ComboBox<ModifierContainer>(OnSelectionChanged);
 			add_ = new UI.ToolButton(UI.Utilities.AddSymbol, AddModifier);
 			clone_ = new UI.ToolButton(UI.Utilities.CloneSymbol, () => CloneModifier(0));
 			clone0_ = new UI.ToolButton(UI.Utilities.CloneZeroSymbol, () => CloneModifier(Utilities.CloneZero));
+			cloneSync_ = new UI.ToolButton(UI.Utilities.CloneSyncSymbol, () => CloneModifierSync(Utilities.CloneZero));
 			remove_ = new UI.ToolButton(UI.Utilities.RemoveSymbol, RemoveModifier);
 			rename_ = new UI.ToolButton(S("Rename"), OnRename);
 
 			add_.Tooltip.Text = S("Add a new modifier");
 			clone_.Tooltip.Text = S("Clone this modifier");
 			clone0_.Tooltip.Text = S("Clone this modifier and zero all values");
+			cloneSync_.Tooltip.Text = S("Clone this modifier, zero all values and sync the new modifier to this one");
 			remove_.Tooltip.Text = S("Remove this modifier");
 
 			modifiers_.NavButtons = true;
@@ -108,6 +87,7 @@ namespace Synergy.NewUI
 			p.Add(add_);
 			p.Add(clone_);
 			p.Add(clone0_);
+			p.Add(cloneSync_);
 			p.Add(remove_);
 			p.Add(rename_);
 
@@ -130,7 +110,7 @@ namespace Synergy.NewUI
 		{
 			get
 			{
-				return modifiers_.Selected?.mc;
+				return modifiers_.Selected;
 			}
 		}
 
@@ -151,6 +131,7 @@ namespace Synergy.NewUI
 			}
 
 			UpdateModifiers();
+			UpdateButtons();
 		}
 
 		public void AddModifier()
@@ -160,7 +141,7 @@ namespace Synergy.NewUI
 				if (step_ != null)
 				{
 					var m = step_.AddEmptyModifier();
-					modifiers_.AddItem(new ModifierItem(m), true);
+					modifiers_.AddItem(m, true);
 				}
 			});
 		}
@@ -174,9 +155,31 @@ namespace Synergy.NewUI
 				{
 					var m2 = m.Clone(flags);
 					step_.AddModifier(m2);
-					modifiers_.AddItem(new ModifierItem(m2), true);
+					modifiers_.AddItem(m2, true);
 				}
 			});
+		}
+
+		public void CloneModifierSync(int flags)
+		{
+			var m = Selected;
+			var s = m?.ParentStep;
+
+			if (m == null || s == null)
+				return;
+
+			var m2 = m.Clone(flags);
+			m2.ModifierSync = new OtherModifierSyncedModifier(m);
+
+			// would fire ModifiersChanged and update the combobox, but wouldn't
+			// select the new step; it's simpler to ignore it and add it
+			// manually
+			ignore_.Do(() =>
+			{
+				s.AddModifier(m2);
+			});
+
+			modifiers_.AddItem(m2, true);
 		}
 
 		public void RemoveModifier()
@@ -203,15 +206,10 @@ namespace Synergy.NewUI
 			});
 		}
 
-		private void OnSelectionChanged(ModifierItem m)
+		private void OnSelectionChanged(ModifierContainer m)
 		{
-			// invalid IR?
-			// SelectionChanged?.Invoke(m?.mc);
-
-			if (m?.mc == null)
-				SelectionChanged?.Invoke(null);
-			else
-				SelectionChanged?.Invoke(m.mc);
+			SelectionChanged?.Invoke(m);
+			UpdateButtons();
 		}
 
 		private void OnRename()
@@ -233,21 +231,7 @@ namespace Synergy.NewUI
 				return;
 			}
 
-			var items = new List<ModifierItem>();
-			var sel = modifiers_.Selected?.mc;
-			ModifierItem selItem = null;
-
-			foreach (var m in step_.Modifiers)
-			{
-				var mi = new ModifierItem(m);
-
-				items.Add(mi);
-
-				if (m == sel)
-					selItem = mi;
-			}
-
-			modifiers_.SetItems(items, selItem);
+			modifiers_.SetItems(step_.Modifiers, modifiers_.Selected);
 		}
 
 		private void OnModifiersChanged()
@@ -256,11 +240,23 @@ namespace Synergy.NewUI
 				return;
 
 			UpdateModifiers();
+			UpdateButtons();
 		}
 
 		private void OnModifierNameChanged(IModifier m)
 		{
 			modifiers_.UpdateItemsText();
+		}
+
+		private void UpdateButtons()
+		{
+			var hasSel = (Selected != null);
+
+			clone_.Enabled = hasSel;
+			clone0_.Enabled = hasSel;
+			cloneSync_.Enabled = hasSel;
+			remove_.Enabled = hasSel;
+			rename_.Enabled = hasSel;
 		}
 	}
 
@@ -556,20 +552,30 @@ namespace Synergy.NewUI
 			others_ = new ComboBox<ModifierContainer>(OnSelectionChanged);
 
 			var p = new UI.Panel(new UI.HorizontalFlow(20));
-			p.Add(new UI.Label(S("Modifier")));
+			p.Add(new UI.Label(S("Other modifier")));
 			p.Add(others_);
 
 			Layout = new UI.BorderLayout(20);
-			Add(new UI.Label(S(
-				"This modifier is synced to the duration of another " +
-				"modifier.")),
-				BorderLayout.Top);
-			Add(p, BorderLayout.Center);
+			Add(p, BorderLayout.Top);
 		}
 
 		public void Set(IModifierSync o)
 		{
+			var oldStep = sync_?.ParentModifierContainer?.ParentStep;
+			if (oldStep != null)
+			{
+				oldStep.ModifiersChanged -= OnModifiersChanged;
+				oldStep.ModifierNameChanged -= OnModifierNameChanged;
+			}
+
 			sync_ = o as OtherModifierSyncedModifier;
+
+			var newStep = sync_?.ParentModifierContainer?.ParentStep;
+			if (newStep != null)
+			{
+				newStep.ModifiersChanged += OnModifiersChanged;
+				newStep.ModifierNameChanged += OnModifierNameChanged;
+			}
 
 			ignore_.Do(() =>
 			{
@@ -599,6 +605,19 @@ namespace Synergy.NewUI
 				return;
 
 			sync_.OtherModifierContainer = mc;
+		}
+
+		private void OnModifiersChanged()
+		{
+			if (ignore_)
+				return;
+
+			UpdateList();
+		}
+
+		private void OnModifierNameChanged(IModifier m)
+		{
+			others_.UpdateItemsText();
 		}
 	}
 

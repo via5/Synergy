@@ -9,6 +9,7 @@ namespace Synergy.UI
 		public const string AddSymbol = "+";
 		public const string CloneSymbol = "+*";
 		public const string CloneZeroSymbol = "+*0";
+		public const string CloneSyncSymbol = "+*S";
 		public const string RemoveSymbol = "\x2013";  // en dash
 		public const string UpArrow = "\x25b2";
 		public const string DownArrow = "\x25bc";

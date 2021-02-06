@@ -48,6 +48,12 @@ namespace Synergy
 			Clear();
 		}
 
+		public Step(string name)
+			: this()
+		{
+			name_ = name;
+		}
+
 		public void DeferredInit()
 		{
 			foreach (var m in modifiers_)
@@ -196,6 +202,17 @@ namespace Synergy
 
 				return "Step";
 			}
+		}
+
+		public override string ToString()
+		{
+			string s = Name;
+
+			var i = Synergy.Instance.Manager.IndexOfStep(this);
+			if (i >= 0)
+				s = "#" + (i + 1).ToString() + " " + s;
+
+			return s;
 		}
 
 		public List<ModifierContainer> Modifiers
@@ -539,11 +556,6 @@ namespace Synergy
 				enabled_.Value = false;
 				return false;
 			}
-		}
-
-		public override string ToString()
-		{
-			return Name;
 		}
 
 		private bool NeedsTickPaused()

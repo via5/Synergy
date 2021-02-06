@@ -150,10 +150,15 @@
 			get { return button_; }
 		}
 
-		private void OnButtonClicked(int id)
+		public void CloseDialog(int id)
 		{
 			button_ = id;
 			CloseDialog();
+		}
+
+		private void OnButtonClicked(int id)
+		{
+			CloseDialog(id);
 		}
 	}
 
@@ -181,6 +186,8 @@
 				: base(r, OK | Cancel, title)
 		{
 			textbox_ = new UI.TextBox(initialValue);
+			textbox_.Submitted += OnSubmit;
+			textbox_.Cancelled += OnCancelled;
 
 			ContentPanel.Layout = new VerticalFlow(10);
 			ContentPanel.Add(new UI.Label(text));
@@ -213,6 +220,16 @@
 
 				h(d.Text);
 			});
+		}
+
+		private void OnSubmit(string s)
+		{
+			CloseDialog(OK);
+		}
+
+		private void OnCancelled()
+		{
+			CloseDialog(Cancel);
 		}
 	}
 }

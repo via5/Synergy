@@ -147,6 +147,12 @@ namespace Synergy.UI
 		// for each character
 		public event StringCallback Changed;
 
+		// on enter, after Edited is fired
+		public event StringCallback Submitted;
+
+		// on escape
+		public event Callback Cancelled;
+
 
 		private string text_ = "";
 		private string placeholder_ = "";
@@ -370,6 +376,12 @@ namespace Synergy.UI
 				if (ignore_)
 					return;
 
+				if (input_.wasCanceled)
+				{
+					Cancelled?.Invoke();
+					return;
+				}
+
 				if (Validate != null)
 				{
 					var v = new Validation();
@@ -393,6 +405,9 @@ namespace Synergy.UI
 				}
 
 				Edited?.Invoke(text_);
+
+				if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+					Submitted?.Invoke(text_);
 			});
 		}
 	}

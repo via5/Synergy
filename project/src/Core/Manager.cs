@@ -114,6 +114,39 @@ namespace Synergy
 			s.StepNameChanged -= OnStepNameChanged;
 		}
 
+		public void MoveStep(Step s, int d)
+		{
+			var i = IndexOfStep(s);
+			if (i < 0)
+			{
+				Synergy.LogError("MoveStep step " + s.Name + " not found");
+				return;
+			}
+
+			if (d > 0)
+			{
+				while (d > 0 && i < (steps_.Count - 1))
+				{
+					var temp = steps_[i + 1];
+					steps_[i + 1] = s;
+					steps_[i] = temp;
+					--d;
+				}
+			}
+			else if (d < 0)
+			{
+				while (d < 0 && i > 0)
+				{
+					var temp = steps_[i - 1];
+					steps_[i - 1] = s;
+					steps_[i] = temp;
+					++d;
+				}
+			}
+
+			StepProgression?.StepsChanged();
+		}
+
 		public Step GetStep(int i)
 		{
 			if (i < 0 || i >= steps_.Count)

@@ -56,34 +56,10 @@ namespace Synergy.NewUI
 
 	class StepControls : UI.Panel
 	{
-		class StepItem
-		{
-			public Step step;
-
-			public StepItem(Step s)
-			{
-				step = s;
-			}
-
-			public override string ToString()
-			{
-				if (step == null)
-					return "?";
-
-				string s = step.Name;
-
-				var i = Synergy.Instance.Manager.IndexOfStep(step);
-				if (i >= 0)
-					s = "#" + (i + 1).ToString() + " " + s;
-
-				return s;
-			}
-		}
-
 		public delegate void StepCallback(Step s);
 		public event StepCallback SelectionChanged;
 
-		private readonly UI.ComboBox<StepItem> steps_;
+		private readonly UI.ComboBox<Step> steps_;
 		private readonly UI.Button add_, clone_, clone0_, remove_, up_, down_;
 		private readonly UI.Button rename_;
 		private readonly FactoryComboBox<StepProgressionFactory, IStepProgression> progression_;
@@ -91,13 +67,13 @@ namespace Synergy.NewUI
 
 		public StepControls()
 		{
-			steps_ = new UI.ComboBox<StepItem>(OnSelectionChanged);
+			steps_ = new UI.ComboBox<Step>(OnSelectionChanged);
 			add_ = new UI.ToolButton(UI.Utilities.AddSymbol, AddStep);
 			clone_ = new UI.ToolButton(UI.Utilities.CloneSymbol, () => CloneStep(0));
 			clone0_ = new UI.ToolButton(UI.Utilities.CloneZeroSymbol, () => CloneStep(Utilities.CloneZero));
 			remove_ = new UI.ToolButton(UI.Utilities.RemoveSymbol, RemoveStep);
-			up_ = new UI.ToolButton(UI.Utilities.UpArrow, () => MoveStep(-1));   // up arrow
-			down_ = new UI.ToolButton(UI.Utilities.DownArrow, () => MoveStep(+1)); // down arrow
+			up_ = new UI.ToolButton(UI.Utilities.UpArrow, () => MoveStep(-1));
+			down_ = new UI.ToolButton(UI.Utilities.DownArrow, () => MoveStep(+1));
 			rename_ = new UI.Button(S("Rename"), OnRename);
 			progression_ = new FactoryComboBox<StepProgressionFactory, IStepProgression>(
 				OnProgressionChanged);
@@ -130,7 +106,9 @@ namespace Synergy.NewUI
 			Synergy.Instance.Manager.StepNameChanged += OnStepNameChanged;
 
 			progression_.Select(Synergy.Instance.Manager.StepProgression);
+
 			UpdateSteps();
+			UpdateButtons();
 		}
 
 		public override void Dispose()
@@ -144,7 +122,7 @@ namespace Synergy.NewUI
 		{
 			get
 			{
-				return steps_.Selected?.step;
+				return steps_.Selected;
 			}
 		}
 
@@ -153,7 +131,7 @@ namespace Synergy.NewUI
 			ignore_.Do(() =>
 			{
 				var s = Synergy.Instance.Manager.AddStep();
-				steps_.AddItem(new StepItem(s), true);
+				steps_.AddItem(s, true);
 			});
 		}
 
@@ -161,19 +139,19 @@ namespace Synergy.NewUI
 		{
 			ignore_.Do(() =>
 			{
-				var s = steps_.Selected?.step;
+				var s = steps_.Selected;
 
 				if (s != null)
 				{
 					var ns = Synergy.Instance.Manager.AddStep(s.Clone(flags));
-					steps_.AddItem(new StepItem(ns), true);
+					steps_.AddItem(ns, true);
 				}
 			});
 		}
 
 		public void RemoveStep()
 		{
-			var s = steps_.Selected?.step;
+			var s = steps_.Selected;
 			if (s == null)
 				return;
 
@@ -197,17 +175,20 @@ namespace Synergy.NewUI
 
 		public void MoveStep(int d)
 		{
+			var s = steps_.Selected;
+			if (s == null)
+				return;
+
+			Synergy.Instance.Manager.MoveStep(s, d);
+
+			UpdateSteps();
+			UpdateButtons();
 		}
 
-		private void OnSelectionChanged(StepItem s)
+		private void OnSelectionChanged(Step s)
 		{
-			// invalid IR?
-			// SelectionChanged?.Invoke(s?.step);
-
-			if (s?.step == null)
-				SelectionChanged?.Invoke(null);
-			else
-				SelectionChanged?.Invoke(s.step);
+			SelectionChanged?.Invoke(s);
+			UpdateButtons();
 		}
 
 		private void OnStepsChanged()
@@ -216,6 +197,7 @@ namespace Synergy.NewUI
 				return;
 
 			UpdateSteps();
+			UpdateButtons();
 		}
 
 		private void OnStepNameChanged(Step s)
@@ -225,7 +207,7 @@ namespace Synergy.NewUI
 
 		private void OnRename()
 		{
-			var s = steps_.Selected?.step;
+			var s = steps_.Selected;
 			if (s == null)
 				return;
 
@@ -244,22 +226,26 @@ namespace Synergy.NewUI
 
 		private void UpdateSteps()
 		{
-			var items = new List<StepItem>();
+			steps_.SetItems(Synergy.Instance.Manager.Steps, steps_.Selected);
+		}
 
-			var sel = steps_.Selected?.step;
-			StepItem selItem = null;
+		private void UpdateButtons()
+		{
+			var m = Synergy.Instance.Manager;
+			var s = Selected;
+			var i = m.IndexOfStep(s);
 
-			foreach (var s in Synergy.Instance.Manager.Steps)
-			{
-				var si = new StepItem(s);
+			var hasSel = (s != null);
+			var first = (i == 0);
+			var last = (i == (m.Steps.Count - 1));
 
-				items.Add(si);
+			clone_.Enabled = hasSel;
+			clone0_.Enabled = hasSel;
+			remove_.Enabled = hasSel;
+			rename_.Enabled = hasSel;
 
-				if (s == sel)
-					selItem = si;
-			}
-
-			steps_.SetItems(items, selItem);
+			up_.Enabled = m.Steps.Count > 0 && !first;
+			down_.Enabled = m.Steps.Count > 0 && !last;
 		}
 	}
 

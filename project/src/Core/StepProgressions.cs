@@ -12,6 +12,7 @@ namespace Synergy
 		void Removed();
 		void StepInserted(int at, Step s);
 		void StepDeleted(int at);
+		void StepsChanged();
 		bool IsStepRunning(Step s);
 		bool IsStepActive(Step s);
 		void ForceRun(Step s);
@@ -75,7 +76,7 @@ namespace Synergy
 			// no-op
 		}
 
-		protected virtual void StepsChanged()
+		public virtual void StepsChanged()
 		{
 			foreach (var s in manager_.Steps)
 				s.Reset();
@@ -179,7 +180,7 @@ namespace Synergy
 			return o_.IsActive(Steps.IndexOf(s));
 		}
 
-		protected override void StepsChanged()
+		public override void StepsChanged()
 		{
 			base.StepsChanged();
 			o_.ItemsChanged();
@@ -263,7 +264,7 @@ namespace Synergy
 			s.Resume();
 		}
 
-		protected override void StepsChanged()
+		public override void StepsChanged()
 		{
 			base.StepsChanged();
 

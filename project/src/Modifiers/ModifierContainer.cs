@@ -146,7 +146,16 @@
 
 		public override string ToString()
 		{
-			return Name;
+			if (ParentStep == null)
+				return "?";
+
+			string s = Name;
+
+			var i = ParentStep.IndexOfModifier(this);
+			if (i >= 0)
+				s = "#" + (i + 1).ToString() + " " + s;
+
+			return s;
 		}
 
 		public IModifierSync ModifierSync
