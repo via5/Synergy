@@ -122,9 +122,9 @@ namespace Synergy
 
 		private void CreateTestStuff(Atom a)
 		{
-			manager_.AddStep(new Step("1"));
-			manager_.AddStep(new Step("2"));
-			manager_.AddStep(new Step("3"));
+			//manager_.AddStep(new Step("1"));
+			//manager_.AddStep(new Step("2"));
+			//manager_.AddStep(new Step("3"));
 		}
 
 		public Timer CreateTimer(float seconds, Timer.Callback f, int flags = 0)

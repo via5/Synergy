@@ -62,7 +62,6 @@ namespace Synergy.NewUI
 		private readonly UI.ComboBox<Step> steps_;
 		private readonly UI.Button add_, clone_, clone0_, remove_, up_, down_;
 		private readonly UI.Button rename_;
-		private readonly FactoryComboBox<StepProgressionFactory, IStepProgression> progression_;
 		private IgnoreFlag ignore_ = new IgnoreFlag();
 
 		public StepControls()
@@ -75,8 +74,6 @@ namespace Synergy.NewUI
 			up_ = new UI.ToolButton(UI.Utilities.UpArrow, () => MoveStep(-1));
 			down_ = new UI.ToolButton(UI.Utilities.DownArrow, () => MoveStep(+1));
 			rename_ = new UI.Button(S("Rename"), OnRename);
-			progression_ = new FactoryComboBox<StepProgressionFactory, IStepProgression>(
-				OnProgressionChanged);
 
 			add_.Tooltip.Text = S("Add a new step");
 			clone_.Tooltip.Text = S("Clone this step");
@@ -95,17 +92,14 @@ namespace Synergy.NewUI
 			p.Add(up_);
 			p.Add(down_);
 			p.Add(rename_);
-			p.Add(progression_);
 
-			Layout = new UI.HorizontalFlow(20);
-			Add(new UI.Label(S("Steps")));
-			Add(steps_);
-			Add(p);
+			Layout = new UI.BorderLayout(20);
+			Add(new UI.Label(S("Steps")), UI.BorderLayout.Left);
+			Add(steps_, UI.BorderLayout.Center);
+			Add(p, UI.BorderLayout.Right);
 
 			Synergy.Instance.Manager.StepsChanged += OnStepsChanged;
 			Synergy.Instance.Manager.StepNameChanged += OnStepNameChanged;
-
-			progression_.Select(Synergy.Instance.Manager.StepProgression);
 
 			UpdateSteps();
 			UpdateButtons();
@@ -216,14 +210,6 @@ namespace Synergy.NewUI
 				(v) => { s.UserDefinedName = v; });
 		}
 
-		private void OnProgressionChanged(IStepProgression p)
-		{
-			if (ignore_)
-				return;
-
-			Synergy.Instance.Manager.StepProgression = p;
-		}
-
 		private void UpdateSteps()
 		{
 			steps_.SetItems(Synergy.Instance.Manager.Steps, steps_.Selected);
@@ -252,13 +238,14 @@ namespace Synergy.NewUI
 
 	class StepInfo : UI.Panel
 	{
+		private readonly FactoryComboBox<StepProgressionFactory, IStepProgression> progression_;
 		private readonly UI.CheckBox enabled_, paused_, halfMove_;
 		private readonly UI.Button disableOthers_, enableAll_;
 		private Step step_ = null;
 
 		public StepInfo()
 		{
-			Layout = new UI.HorizontalFlow(10);
+			progression_ = new FactoryComboBox<StepProgressionFactory, IStepProgression>();
 
 			enabled_ = new UI.CheckBox(S("Enabled"));
 			paused_ = new UI.CheckBox(S("Paused"));
@@ -274,15 +261,28 @@ namespace Synergy.NewUI
 				"Whether this step should stop halfway before executing " +
 				"the next step");
 
-			Add(enabled_);
-			Add(paused_);
-			Add(halfMove_);
-			Add(disableOthers_);
-			Add(enableAll_);
+
+			var buttons = new UI.Panel(new UI.HorizontalFlow(10));
+			buttons.Add(enabled_);
+			buttons.Add(paused_);
+			buttons.Add(halfMove_);
+			buttons.Add(disableOthers_);
+			buttons.Add(enableAll_);
+
+			var progression = new UI.Panel(new UI.HorizontalFlow(10));
+			progression.Add(new UI.Label(S("Step progression")));
+			progression.Add(progression_);
+
+			Layout = new UI.VerticalFlow(10);
+			Add(progression);
+			Add(buttons);
 
 			enabled_.Changed += OnEnabled;
 			paused_.Changed += OnPaused;
 			halfMove_.Changed += OnHalfMove;
+
+			progression_.Select(Synergy.Instance.Manager.StepProgression);
+			progression_.FactoryTypeChanged += OnProgressionChanged;
 		}
 
 		public void Set(Step s)
@@ -325,6 +325,11 @@ namespace Synergy.NewUI
 		{
 			Synergy.Instance.Manager.EnableAllSteps();
 			enabled_.Checked = true;
+		}
+
+		private void OnProgressionChanged(IStepProgression p)
+		{
+			Synergy.Instance.Manager.StepProgression = p;
 		}
 	}
 }

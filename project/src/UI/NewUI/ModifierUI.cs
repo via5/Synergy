@@ -6,26 +6,21 @@ using UnityEngine;
 
 namespace Synergy.NewUI
 {
-	class ModifiersTab : UI.Panel
+	class ModifierTab : UI.Panel
 	{
-		private readonly ModifierControls controls_ = new ModifierControls();
 		private readonly ModifierPanel modifier_ = new ModifierPanel();
 
-		public ModifiersTab()
+		public ModifierTab()
 		{
 			Layout = new UI.BorderLayout(10);
 
-			Add(controls_, UI.BorderLayout.Top);
 			Add(modifier_, UI.BorderLayout.Center);
-
-			controls_.SelectionChanged += OnModifierSelected;
 
 			SelectModifier(null);
 		}
 
 		public void SetStep(Step s)
 		{
-			controls_.Set(s);
 		}
 
 		public void SelectTab(int i)
@@ -44,11 +39,6 @@ namespace Synergy.NewUI
 				modifier_.Visible = true;
 				modifier_.Set(m);
 			}
-		}
-
-		private void OnModifierSelected(ModifierContainer m)
-		{
-			SelectModifier(m);
 		}
 	}
 
@@ -250,8 +240,11 @@ namespace Synergy.NewUI
 
 		private void UpdateButtons()
 		{
+			var hasStep = (step_ != null);
 			var hasSel = (Selected != null);
 
+			modifiers_.Enabled = hasStep;
+			add_.Enabled = hasStep;
 			clone_.Enabled = hasSel;
 			clone0_.Enabled = hasSel;
 			cloneSync_.Enabled = hasSel;

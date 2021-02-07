@@ -5,10 +5,13 @@
 		private UI.Root root_ = new UI.Root();
 		private UI.Tabs tabs_ = new UI.Tabs();
 		private StepControls steps_ = new StepControls();
+		private ModifierControls modifiers_ = new ModifierControls();
+		private WelcomeTab welcomeTab_ = new WelcomeTab();
 		private StepTab stepTab_ = new StepTab();
-		private ModifiersTab modifiersTab_ = new ModifiersTab();
+		private ModifierTab modifierTab_ = new ModifierTab();
 		private PresetsTab presetsTab_ = new PresetsTab();
 		private OptionsTab optionsTab_ = new OptionsTab();
+		private bool showWelcome_ = false;
 
 		public static string S(string s)
 		{
@@ -17,21 +20,33 @@
 
 		public NewUI()
 		{
+			tabs_.AddTab(S("Welcome"), welcomeTab_);
 			tabs_.AddTab(S("Step"), stepTab_);
-			tabs_.AddTab(S("Modifiers"), modifiersTab_);
+			tabs_.AddTab(S("Modifier"), modifierTab_);
 			tabs_.AddTab(S("Presets"), presetsTab_);
 			tabs_.AddTab(S("Options"), optionsTab_);
 
+			var top = new UI.Panel(new UI.VerticalFlow(10));
+			top.Add(steps_);
+			top.Add(modifiers_);
+
 			root_.ContentPanel.Layout = new UI.BorderLayout(20);
-			root_.ContentPanel.Add(steps_, UI.BorderLayout.Top);
+			root_.ContentPanel.Add(top, UI.BorderLayout.Top);
 			root_.ContentPanel.Add(tabs_, UI.BorderLayout.Center);
 
 			if (Synergy.Instance.Manager.Steps.Count > 0)
+			{
 				SelectStep(Synergy.Instance.Manager.Steps[0]);
+			}
 			else
+			{
+				showWelcome_ = true;
 				SelectStep(null);
+			}
 
 			steps_.SelectionChanged += OnStepSelected;
+			modifiers_.SelectionChanged += OnModifierSelected;
+
 			root_.DoLayoutIfNeeded();
 		}
 
@@ -44,17 +59,20 @@
 		{
 			if (s == null)
 			{
-				tabs_.SetTabVisible(0, false);
-				tabs_.SetTabVisible(1, false);
+				tabs_.SetTabVisible(stepTab_, false);
+				tabs_.SetTabVisible(modifierTab_, false);
 			}
 			else
 			{
-				tabs_.SetTabVisible(0, true);
-				tabs_.SetTabVisible(1, true);
+				tabs_.SetTabVisible(stepTab_, true);
+				tabs_.SetTabVisible(modifierTab_, true);
 
 				stepTab_.SetStep(s);
-				modifiersTab_.SetStep(s);
+				modifierTab_.SetStep(s);
 			}
+
+			UpdateWelcomeTab();
+			modifiers_.Set(s);
 		}
 
 		public void Tick()
@@ -65,6 +83,38 @@
 		private void OnStepSelected(Step s)
 		{
 			SelectStep(s);
+		}
+
+		private void OnModifierSelected(ModifierContainer m)
+		{
+			modifierTab_.SelectModifier(m);
+			UpdateWelcomeTab();
+		}
+
+		private void UpdateWelcomeTab()
+		{
+			// hide on load if there's at least one step, see ctor above
+			//
+			// if not, keep it visible until there's one step with one modifier,
+			// then select the modifier tab automatically
+			//
+			// after that, keep it hidden and don't interfere
+
+			if (showWelcome_)
+			{
+				var sel = steps_.Selected;
+				var stepCount = Synergy.Instance.Manager.Steps.Count;
+
+				showWelcome_ =
+					sel == null ||
+					stepCount == 0 ||
+					(stepCount == 1 && sel.Modifiers.Count == 0);
+
+				if (!showWelcome_)
+					tabs_.Select(modifierTab_);
+			}
+
+			tabs_.SetTabVisible(welcomeTab_, showWelcome_);
 		}
 	}
 
@@ -160,6 +210,23 @@
 		public override string ToString()
 		{
 			return creator_.DisplayName;
+		}
+	}
+
+
+	class WelcomeTab : UI.Panel
+	{
+		public WelcomeTab()
+		{
+			Layout = new UI.VerticalFlow();
+
+			var add = UI.Utilities.AddSymbol;
+
+			Add(new UI.Label(S(
+				"Welcome to Synergy. Press the " + add + " button next to " +
+				"\"Steps\" to add the first step, then press the " + add + " " +
+				"button next to \"Modifiers\" to add a modifier in that " +
+				"step.")));
 		}
 	}
 
