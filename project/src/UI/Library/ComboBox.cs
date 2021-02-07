@@ -355,6 +355,7 @@ namespace Synergy.UI
 		private TextBox filter_ = null;
 		private bool filterable_ = false;
 		private bool accuratePreferredSize_ = true;
+		private int popupHeight_ = -1;
 
 
 		public ComboBoxList(List<ItemType> items = null)
@@ -387,6 +388,22 @@ namespace Synergy.UI
 		{
 			get { return accuratePreferredSize_; }
 			set { accuratePreferredSize_ = value; }
+		}
+
+		public int PopupHeight
+		{
+			get
+			{
+				return popupHeight_;
+			}
+
+			set
+			{
+				popupHeight_ = value;
+
+				if (Popup != null)
+					Popup.popupPanelHeight = value;
+			}
 		}
 
 		public override void SetItems(List<ItemType> items, ItemType sel = null)
@@ -446,6 +463,9 @@ namespace Synergy.UI
 			{
 				Popup.popup.useFiltering = false;
 			}
+
+			if (popupHeight_ >= 0)
+				Popup.popupPanelHeight = popupHeight_;
 
 			Popup.popup.onOpenPopupHandlers += () =>
 			{
@@ -662,6 +682,11 @@ namespace Synergy.UI
 			set { list_.AccuratePreferredSize = value; }
 		}
 
+		public int PopupHeight
+		{
+			get { return list_.PopupHeight; }
+			set { list_.PopupHeight = value; }
+		}
 
 		public void AddItem(ItemType i, bool select=false)
 		{

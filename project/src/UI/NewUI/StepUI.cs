@@ -83,6 +83,7 @@ namespace Synergy.NewUI
 			down_.Tooltip.Text = S("Move this step later in the execution order");
 
 			steps_.NavButtons = true;
+			steps_.PopupHeight = 800;
 
 			var p = new Panel(new UI.HorizontalFlow(20));
 			p.Add(add_);

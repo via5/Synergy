@@ -72,6 +72,7 @@ namespace Synergy.NewUI
 			remove_.Tooltip.Text = S("Remove this modifier");
 
 			modifiers_.NavButtons = true;
+			modifiers_.PopupHeight = 800;
 
 			var p = new Panel(new UI.HorizontalFlow(20));
 			p.Add(add_);
