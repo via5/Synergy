@@ -23,7 +23,9 @@ namespace Synergy
 		private List<IParameter> parameters_ = null;
 
 		private bool deferredInitDone_ = false;
+		private bool waitForUI_ = false;
 		private bool deferredUIDone_ = false;
+		private Timer waitForUITimer_ = null;
 
 
 		public Synergy()
@@ -73,6 +75,7 @@ namespace Synergy
 
 			deferredInitDone_ = false;
 			deferredUIDone_ = false;
+			waitForUI_ = false;
 
 			SuperController.singleton.StartCoroutine(DeferredInit());
 		}
@@ -95,6 +98,53 @@ namespace Synergy
 			deferredInitDone_ = true;
 		}
 
+		public override void InitUI()
+		{
+			base.InitUI();
+
+			// InitUI() seems to be called multiple times
+			if (ui_ != null || options_ == null || waitForUI_)
+				return;
+
+			if (global::Synergy.UI.Root.IsReady())
+			{
+				CreateUI();
+			}
+			else
+			{
+				// vam doesn't actually set up the size of the scrollview inside
+				// the scrip ui until a person is selected, so start a timer and
+				// check
+				waitForUI_ = true;
+				waitForUITimer_ = CreateTimer(0.5f, WaitForUI, Timer.Repeat);
+			}
+		}
+
+		private void WaitForUI()
+		{
+			if (!global::Synergy.UI.Root.IsReady())
+			{
+				// still not ready
+				return;
+			}
+
+			// ready, kill timer and create ui
+
+			waitForUITimer_.Destroy();
+			waitForUITimer_ = null;
+
+			CreateUI();
+		}
+
+		private void CreateUI()
+		{
+			Utilities.Handler(() =>
+			{
+				ui_ = new MainUI();
+				ui_.Create();
+			});
+		}
+
 		public void Start()
 		{
 			deferredInitDone_ = false;
@@ -102,8 +152,6 @@ namespace Synergy
 
 			Utilities.Handler(() =>
 			{
-				//LogError("===starting===");
-
 				RegisterString(new JSONStorableString("dummy", ""));
 				SetStringParamValue("dummy", "dummy");
 
@@ -111,9 +159,6 @@ namespace Synergy
 					CreateTestStuff(GetAtomById("synergyuitest"));
 				else if (GetAtomById("synergyuitest1") != null)
 					CreateTestStuff(GetAtomById("synergyuitest1"));
-
-				ui_ = new MainUI();
-				ui_.Create();
 
 				LogVerbose("OK");
 				enabled_ = true;
@@ -219,7 +264,25 @@ namespace Synergy
 
 		private void DoUpdate(float deltaTime)
 		{
+			if (!enabled_)
+				return;
+
+			// ui_ can be null while the ui timer is running
+
+			if (ui_ != null)
+			{
+				if (deferredInitDone_ && !deferredUIDone_)
+				{
+					ui_.DeferredInit();
+					deferredUIDone_ = true;
+				}
+			}
+
 			timers_.TickTimers(deltaTime);
+			timers_.CheckTimers();
+
+			if (ui_ != null)
+				ui_.Update();
 		}
 
 		public void FixedUpdate()
@@ -262,24 +325,6 @@ namespace Synergy
 
 			if (set)
 				manager_.Set();
-		}
-
-		public void OnGUI()
-		{
-			if (!enabled_)
-				return;
-
-			Utilities.Handler(() =>
-			{
-				if (deferredInitDone_ && !deferredUIDone_)
-				{
-					ui_.DeferredInit();
-					deferredUIDone_ = true;
-				}
-
-				timers_.CheckTimers();
-				ui_.Update();
-			});
 		}
 
 		public void OnEnable()
@@ -351,10 +396,13 @@ namespace Synergy
 
 		static public void Log(int level, string s, bool force=false)
 		{
-			if (instance_ != null && level > instance_.options_.LogLevel)
+			if (instance_.options_ != null)
 			{
-				if (!force)
-					return;
+				if (instance_ != null && level > instance_.options_.LogLevel)
+				{
+					if (!force)
+						return;
+				}
 			}
 
 			string prefix = "[" + Time.realtimeSinceStartup.ToString("0.00") + "] ";

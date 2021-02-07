@@ -87,6 +87,8 @@ namespace Synergy.UI
 	class Root
 	{
 		static public Transform PluginParent = null;
+
+		static private RectTransform scrollViewRT_ = null;
 		static private TextGenerator tg_ = new TextGenerator();
 		static private TextGenerationSettings ts_ = new TextGenerationSettings();
 
@@ -140,6 +142,30 @@ namespace Synergy.UI
 
 			AttachTo(scriptUI);
 			Style.SetupRoot(scriptUI);
+		}
+
+		public static bool IsReady()
+		{
+			if (scrollViewRT_ == null)
+			{
+				var scriptUI = Synergy.Instance.UITransform
+					.GetComponentInChildren<MVRScriptUI>();
+
+				if (scriptUI == null)
+					return false;
+
+				var scrollView = scriptUI.GetComponentInChildren<ScrollRect>();
+				if (scrollView == null)
+					return false;
+
+				scrollViewRT_ = scrollView.GetComponent<RectTransform>();
+				if (scrollViewRT_ == null)
+					return false;
+			}
+
+			return
+				scrollViewRT_.rect.width > 0 &&
+				scrollViewRT_.rect.height > 0;
 		}
 
 		public void AttachTo(MVRScriptUI scriptUI)
