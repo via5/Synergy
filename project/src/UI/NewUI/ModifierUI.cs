@@ -183,41 +183,62 @@ namespace Synergy.NewUI
 
 			if (syncedToThis.Count > 0)
 			{
-				var d = new UI.Dialog(GetRoot(), S("Delete modifier"));
+				var d = new UI.TaskDialog(
+					GetRoot(), S("Delete modifier"), S(
+					"There are {0} modifiers synced to '{1}'.",
+					syncedToThis.Count, m.Name));
 
-				var p = d.ContentPanel;
+				const int Delete = 1;
+				const int DeleteAll = 2;
+				const int Cancel = 3;
 
-				p.Layout = new UI.VerticalFlow(10);
-				p.Add(new UI.Label(S(
-					"There are {0} modifiers synced to this one.",
-					syncedToThis.Count)));
+				d.AddButton(Delete, S("Only delete this modifier"));
+				d.AddButton(DeleteAll, S("Delete all"));
+				d.AddButton(Cancel, S("Cancel"));
 
-				p.Add(new UI.Button(S("Delete all\nbleh bleh")));
-				p.Add(new UI.Button(S("Make independent")));
-				p.Add(new UI.Button(S("Sync with another")));
-				p.Add(new UI.Button(S("Cancel")));
+				d.RunDialog((button) =>
+				{
+					if (button == Delete)
+					{
+						RemoveModifiers(new List<ModifierContainer>() { m });
+					}
+					else if (button == DeleteAll)
+					{
+						var list = new List<ModifierContainer>();
+						list.Add(m);
+						list.AddRange(syncedToThis);
 
-				d.RunDialog();
+						RemoveModifiers(list);
+					}
+				});
 			}
 			else
 			{
 				var d = new UI.MessageDialog(
 					GetRoot(), UI.MessageDialog.Yes | UI.MessageDialog.No,
 					S("Delete modifier"),
-					S("Are you sure you want to delete modifier {0}?", m.Name));
+					S("Are you sure you want to delete modifier '{0}'?", m.Name));
 
-				d.RunDialog(() =>
+				d.RunDialog((button) =>
 				{
-					if (d.Button != UI.MessageDialog.Yes)
+					if (button != UI.MessageDialog.Yes)
 						return;
 
-					ignore_.Do(() =>
-					{
-						modifiers_.RemoveItem(modifiers_.Selected);
-						step_.DeleteModifier(m);
-					});
+					RemoveModifiers(new List<ModifierContainer>() { m });
 				});
 			}
+		}
+
+		private void RemoveModifiers(List<ModifierContainer> list)
+		{
+			ignore_.Do(() =>
+			{
+				foreach (var m in list)
+				{
+					modifiers_.RemoveItem(m);
+					step_.DeleteModifier(m);
+				}
+			});
 		}
 
 		private void OnSelectionChanged(ModifierContainer m)

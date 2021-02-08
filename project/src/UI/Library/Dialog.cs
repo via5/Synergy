@@ -2,12 +2,13 @@
 {
 	class Dialog : Panel
 	{
-		public delegate void CloseHandler();
+		public delegate void CloseHandler(int result);
 		public event CloseHandler Closed;
 
 		private readonly Root root_;
 		private readonly Label title_;
 		private readonly Panel content_;
+		private int result_ = -1;
 
 		public Dialog(Root r, string title)
 		{
@@ -34,6 +35,11 @@
 			get { return content_; }
 		}
 
+		public int Result
+		{
+			get { return result_; }
+		}
+
 		public void RunDialog(CloseHandler h = null)
 		{
 			root_.OverlayVisible = true;
@@ -53,12 +59,13 @@
 				Closed += h;
 		}
 
-		public void CloseDialog()
+		public void CloseDialog(int result=-1)
 		{
+			result_ = result;
 			root_.OverlayVisible = false;
 			Destroy();
 
-			Closed?.Invoke();
+			Closed?.Invoke(result_);
 		}
 
 		protected override Size DoGetMinimumSize()
@@ -111,6 +118,7 @@
 	}
 
 
+
 	class DialogWithButtons : Dialog
 	{
 		// sync with ButtonBox
@@ -123,7 +131,6 @@
 
 		private readonly ButtonBox buttons_;
 		private readonly UI.Panel center_;
-		private int button_ = -1;
 
 		public DialogWithButtons(Root r, int buttons, string title)
 			: base(r, title)
@@ -143,17 +150,6 @@
 		public override Widget ContentPanel
 		{
 			get { return center_; }
-		}
-
-		public int Button
-		{
-			get { return button_; }
-		}
-
-		public void CloseDialog(int id)
-		{
-			button_ = id;
-			CloseDialog();
 		}
 
 		private void OnButtonClicked(int id)
@@ -213,9 +209,9 @@
 		{
 			var d = new InputDialog(r, title, text, initialValue);
 
-			d.RunDialog(() =>
+			d.RunDialog((button) =>
 			{
-				if (d.Button != OK)
+				if (button != OK)
 					return;
 
 				h(d.Text);
@@ -230,6 +226,39 @@
 		private void OnCancelled()
 		{
 			CloseDialog(Cancel);
+		}
+	}
+
+
+	class TaskDialog : Dialog
+	{
+		public TaskDialog(Root r, string title, string mainText, string secondaryText="")
+			: base(r, title)
+		{
+			ContentPanel.Layout = new UI.VerticalFlow(10);
+
+			ContentPanel.Add(new UI.Label(mainText));
+
+			if (secondaryText != "")
+				ContentPanel.Add(new UI.Label(secondaryText));
+		}
+
+		public void AddButton(int id, string text, string description="")
+		{
+			var s = text;
+			if (description != "")
+				text += "\n" + description;
+
+			var b = new UI.Button(s);
+			b.Alignment = UI.Label.AlignLeft | UI.Label.AlignVCenter;
+			b.Padding = new Insets(10, 0, 0, 0);
+
+			b.Clicked += () =>
+			{
+				CloseDialog(id);
+			};
+
+			ContentPanel.Add(b);
 		}
 	}
 }

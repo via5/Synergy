@@ -19,12 +19,24 @@
 
 
 		public ModifierContainer()
-			: this(null)
+			: this(null, null, null)
 		{
 		}
 
-		public ModifierContainer(IModifier m, IModifierSync sync=null)
+		public ModifierContainer(string name)
+			: this(name, null, null)
 		{
+			UserDefinedName = name;
+		}
+
+		public ModifierContainer(IModifier m, IModifierSync sync = null)
+			: this(null, m, sync)
+		{
+		}
+
+		public ModifierContainer(string name, IModifier m, IModifierSync sync)
+		{
+			UserDefinedName = name;
 			Modifier = m;
 			ModifierSync = sync ?? new DurationSyncedModifier();
 		}

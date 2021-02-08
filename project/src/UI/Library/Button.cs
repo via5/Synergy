@@ -154,9 +154,24 @@ namespace Synergy.UI
 		{
 			base.UpdateBounds();
 
+			// padding must go inside the button so it's applied to the text
+			// instead of around the button itself
+
+			// remove padding around the button itself
 			var rt = button_.GetComponent<RectTransform>();
-			rt.offsetMin = new Vector2(rt.offsetMin.x - 2, rt.offsetMin.y - 1);
-			rt.offsetMax = new Vector2(rt.offsetMax.x + 2, rt.offsetMax.y);
+
+			rt.offsetMin = new Vector2(
+				rt.offsetMin.x - 2 - Padding.Left,
+				rt.offsetMin.y - 1 - Padding.Bottom);
+
+			rt.offsetMax = new Vector2(
+				rt.offsetMax.x + 2 - Padding.Right,
+				rt.offsetMax.y - Padding.Top);
+
+			// add padding around the text instead
+			rt = button_.buttonText.GetComponent<RectTransform>();
+			rt.offsetMin = new Vector2(Padding.Left, Padding.Bottom);
+			rt.offsetMax = new Vector2(Padding.Right, Padding.Top);
 		}
 
 		protected override Size DoGetPreferredSize(

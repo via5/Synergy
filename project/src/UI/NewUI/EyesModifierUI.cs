@@ -424,9 +424,9 @@ namespace Synergy.NewUI
 				S("Remove target"),
 				S("Are you sure you want to delete target {0}?", t.tc.Name));
 
-			d.RunDialog(() =>
+			d.RunDialog((button) =>
 			{
-				if (d.Button != UI.MessageDialog.Yes)
+				if (button != UI.MessageDialog.Yes)
 					return;
 
 				modifier_.RemoveTarget(t.tc);

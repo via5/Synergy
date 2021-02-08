@@ -155,9 +155,9 @@ namespace Synergy.NewUI
 				S("Delete step"),
 				S("Are you sure you want to delete step '{0}'?", s.Name));
 
-			d.RunDialog(() =>
+			d.RunDialog((button) =>
 			{
-				if (d.Button != UI.MessageDialog.Yes)
+				if (button != UI.MessageDialog.Yes)
 					return;
 
 				ignore_.Do(() =>
