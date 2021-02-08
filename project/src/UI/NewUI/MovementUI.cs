@@ -52,22 +52,42 @@ namespace Synergy.NewUI
 			Layout = hf;
 
 			Add(text_);
+
+			string minText;
+
+			if (Bits.IsSet(flags, SmallMovement))
+				minText = "9.99";
+			else
+				minText = "9999.99";
+
 			text_.MinimumSize = new Size(
-				Root.TextLength(Font, FontSize, "9999.99") + 20, DontCare);
+				Root.TextLength(Font, FontSize, minText) + 20, DontCare);
 
 			if (!Bits.IsSet(flags, SmallMovement))
+			{
 				Add(CreateButton("-100", -100));
+				Add(CreateButton("-10", -10));
+			}
 
-			Add(CreateButton("-10",  -10));
-			Add(CreateButton("-1",   -1));
+			Add(CreateButton("-1", -1));
 			Add(CreateButton("-.1", -0.1f));
-			Add(CreateButton("0",     0));
-			Add(CreateButton("+.1", +0.1f));
-			Add(CreateButton("+1",   +1));
-			Add(CreateButton("+10",  +10));
+
+			if (Bits.IsSet(flags, SmallMovement))
+				Add(CreateButton("-.01", -0.01f));
+
+			Add(CreateButton("0", 0));
+
+			if (Bits.IsSet(flags, SmallMovement))
+				Add(CreateButton("+.01", +0.01f));
+
+			Add(CreateButton("+.1", 0.1f));
+			Add(CreateButton("+1", 1));
 
 			if (!Bits.IsSet(flags, SmallMovement))
+			{
+				Add(CreateButton("+10", 10));
 				Add(CreateButton("+100", +100));
+			}
 
 			Add(new ToolButton(S("R"), OnReset));
 

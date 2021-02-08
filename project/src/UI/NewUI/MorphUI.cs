@@ -685,8 +685,6 @@ namespace Synergy.NewUI
 
 		private void GetCategories()
 		{
-			Synergy.LogError("MorphCategoryListView: getting cats");
-
 			cats_.Clear();
 
 			if (atom_ == null)
@@ -958,8 +956,6 @@ namespace Synergy.NewUI
 
 		private void GetMorphs()
 		{
-			Synergy.LogError("MorphListView: getting morphs");
-
 			morphs_.Clear();
 			if (atom_ == null)
 				return;

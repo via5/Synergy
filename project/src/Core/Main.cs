@@ -169,7 +169,8 @@ namespace Synergy
 		{
 			var s = manager_.AddStep(new Step("1"));
 
-			var m = new EyesModifier();
+			var m = new MorphModifier(SuperController.singleton.GetAtomByUid("Person"));
+			m.AddMorph("Mouth Open");
 			s.AddModifier(new ModifierContainer(m));
 		}
 
