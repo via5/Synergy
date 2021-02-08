@@ -69,9 +69,10 @@ namespace Synergy.NewUI
 
 		private void OnAtomSelected(Atom atom)
 		{
-			if (ignore_)
+			if (ignore_ || modifier_ == null)
 				return;
 
+			modifier_.Atom = atom;
 			addMorphs_.Atom = atom;
 		}
 
@@ -251,7 +252,8 @@ namespace Synergy.NewUI
 		public OrderedMorphProgressionUI(string text)
 		{
 			hold_ = new CheckBox(S("Hold halfway"), OnHoldHawayChanged);
-			var p = new UI.Panel(new UI.HorizontalFlow(20));
+
+			var p = new UI.Panel(new UI.VerticalFlow(20));
 			p.Add(hold_);
 
 			Layout = new UI.BorderLayout(40);

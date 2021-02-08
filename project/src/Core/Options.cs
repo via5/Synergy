@@ -15,7 +15,7 @@ namespace Synergy
 		private float overlapTime_ = 1;
 		private int logLevel_ = LogLevelInfo;
 		private bool logOverlap_ = false;
-		private bool newUI_ = false;
+		private bool newUI_ = true;
 
 		public static List<string> GetLogLevelNames()
 		{
@@ -65,7 +65,7 @@ namespace Synergy
 
 		public Options()
 		{
-			newUI_ = (SuperController.singleton.GetAtomByUid("synergyuitest") != null);
+			//newUI_ = (SuperController.singleton.GetAtomByUid("synergyuitest") != null);
 		}
 
 		public bool ResetValuesOnFreeze

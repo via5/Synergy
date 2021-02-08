@@ -63,7 +63,7 @@ namespace Synergy.UI
 				panel_.Layout = new BorderLayout();
 				panel_.Add(widget_, BorderLayout.Center);
 
-				button_.Alignment = Label.AlignCenter | Label.AlignBottom;
+				button_.Alignment = Label.AlignCenter | Label.AlignVCenter;
 				button_.Clicked += () => { tabs_.SelectImpl(this); };
 			}
 
@@ -90,7 +90,34 @@ namespace Synergy.UI
 			public void SetSelected(bool b)
 			{
 				selected_ = b;
-				button_.MinimumSize = new Size(DontCare, b ? 50 : 40);
+
+				if (selected_)
+				{
+					button_.MinimumSize =
+						Style.Metrics.ButtonMinimumSize +
+						Style.Metrics.SelectedTabPadding;
+
+					button_.BackgroundColor =
+						Style.Theme.SelectedTabBackgroundColor;
+
+					button_.HighlightBackgroundColor =
+						Style.Theme.SelectedTabBackgroundColor;
+
+					button_.TextColor =
+						Style.Theme.SelectedTabTextColor;
+				}
+				else
+				{
+					button_.MinimumSize = new Size(DontCare, DontCare);
+
+					button_.BackgroundColor =
+						Style.Theme.ButtonBackgroundColor;
+
+					button_.HighlightBackgroundColor =
+						Style.Theme.HighlightBackgroundColor;
+
+					button_.TextColor = Style.Theme.TextColor;
+				}
 			}
 		}
 
@@ -112,7 +139,7 @@ namespace Synergy.UI
 
 			top_.Layout = new HorizontalFlow(2, HorizontalFlow.AlignBottom);
 			stack_.Layout = new BorderLayout();
-			stack_.Borders = new Insets(2);
+			stack_.Borders = new Insets(1);
 			stack_.Padding = new Insets(20);
 		}
 

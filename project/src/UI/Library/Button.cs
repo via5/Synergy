@@ -6,6 +6,30 @@ namespace Synergy.UI
 {
 	class Button : Widget
 	{
+		public struct Polishing
+		{
+			public Color textColor, disabledTextColor;
+			public Color backgroundColor, disabledBackgroundColor;
+			public Color highlightBackgroundColor;
+
+			public static Polishing Default
+			{
+				get
+				{
+					var p = new Polishing();
+
+					p.textColor = Style.Theme.TextColor;
+					p.disabledTextColor = Style.Theme.DisabledTextColor;
+					p.backgroundColor = Style.Theme.ButtonBackgroundColor;
+					p.disabledBackgroundColor = Style.Theme.DisabledButtonBackgroundColor;
+					p.highlightBackgroundColor = Style.Theme.HighlightBackgroundColor;
+
+					return p;
+				}
+			}
+		}
+
+
 		public override string TypeName { get { return "button"; } }
 
 		public event Callback Clicked;
@@ -13,6 +37,7 @@ namespace Synergy.UI
 		private string text_ = "";
 		private UIDynamicButton button_ = null;
 		private int align_ = Label.AlignCenter | Label.AlignVCenter;
+		private Polishing polishing_ = Polishing.Default;
 
 		public Button(string t = "", Callback clicked = null)
 		{
@@ -48,7 +73,51 @@ namespace Synergy.UI
 			set
 			{
 				align_ = value;
-				NeedsLayout("alignment changed");
+
+				if (button_ != null)
+					button_.buttonText.alignment = Label.ToTextAnchor(align_);
+			}
+		}
+
+		public Color TextColor
+		{
+			get
+			{
+				return polishing_.textColor;
+			}
+
+			set
+			{
+				polishing_.textColor = value;
+				Polish();
+			}
+		}
+
+		public Color BackgroundColor
+		{
+			get
+			{
+				return polishing_.backgroundColor;
+			}
+
+			set
+			{
+				polishing_.backgroundColor = value;
+				Polish();
+			}
+		}
+
+		public Color HighlightBackgroundColor
+		{
+			get
+			{
+				return polishing_.highlightBackgroundColor;
+			}
+
+			set
+			{
+				polishing_.highlightBackgroundColor = value;
+				Polish();
 			}
 		}
 
@@ -65,7 +134,7 @@ namespace Synergy.UI
 			button_.buttonText.text = text_;
 			button_.buttonText.alignment = Label.ToTextAnchor(align_);
 
-			Style.Setup(this);
+			Style.Setup(this, polishing_);
 		}
 
 		protected override void DoSetEnabled(bool b)
@@ -76,7 +145,9 @@ namespace Synergy.UI
 		protected override void Polish()
 		{
 			base.Polish();
-			Style.Polish(this);
+
+			if (WidgetObject != null)
+				Style.Polish(this, polishing_);
 		}
 
 		public override void UpdateBounds()
@@ -91,12 +162,18 @@ namespace Synergy.UI
 		protected override Size DoGetPreferredSize(
 			float maxWidth, float maxHeight)
 		{
-			return new Size(Root.TextLength(Font, FontSize, text_) + 20, 40);
+			var s = Root.FitText(
+				Font, FontSize, text_, new Size(maxWidth, maxHeight));
+
+			s += Style.Metrics.ButtonPadding;
+
+			return Size.Max(s, Style.Metrics.ButtonMinimumSize);
 		}
 
 		protected override Size DoGetMinimumSize()
 		{
-			return new Size(150, 40);
+			var s = Root.TextSize(Font, FontSize, text_);
+			return Size.Max(s, Style.Metrics.ButtonMinimumSize);
 		}
 
 		private void OnClicked()
@@ -105,6 +182,7 @@ namespace Synergy.UI
 			{
 				Root.SetFocus(this);
 				Clicked?.Invoke();
+				button_.button.OnDeselect(new UnityEngine.EventSystems.BaseEventData(null));
 			});
 		}
 	}

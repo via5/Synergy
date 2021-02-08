@@ -282,10 +282,10 @@ namespace Synergy
 
 		public MorphModifier()
 		{
+			Progression = new SequentialMorphProgression();
+
 			if (!Utilities.AtomHasMorphs(Atom))
 				Atom = null;
-
-			Progression = new SequentialMorphProgression();
 		}
 
 		public MorphModifier(Atom a, DAZMorph m = null)
@@ -543,24 +543,27 @@ namespace Synergy
 
 			var fixedList = new List<SelectedMorph>();
 
-			foreach (var sm in morphs_)
+			if (Atom != null)
 			{
-				var newMorph = Utilities.FindMorphInNewAtom(Atom, sm.Morph);
-				if (newMorph == null)
+				foreach (var sm in morphs_)
 				{
-					Synergy.LogWarning(
-						"morph " + sm.Morph.displayName + " doesn't exist in " +
-						Atom.uid);
+					var newMorph = Utilities.FindMorphInNewAtom(Atom, sm.Morph);
+					if (newMorph == null)
+					{
+						Synergy.LogWarning(
+							"morph " + sm.Morph.displayName + " doesn't exist in " +
+							Atom.uid);
 
-					sm.Removed();
-					continue;
+						sm.Removed();
+						continue;
+					}
+
+					sm.Reset();
+					sm.Atom = Atom;
+					sm.Morph = newMorph;
+
+					fixedList.Add(sm);
 				}
-
-				sm.Reset();
-				sm.Atom = Atom;
-				sm.Morph = newMorph;
-
-				fixedList.Add(sm);
 			}
 
 			morphs_.Clear();

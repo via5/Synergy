@@ -282,7 +282,8 @@ namespace Synergy.UI
 
 		protected override void LayoutImpl()
 		{
-			var r = new Rectangle(Parent.Bounds);
+			var av = Parent.AbsoluteClientBounds;
+			var r = av;
 
 			var bounds = new List<Rectangle?>();
 			float totalHeight = 0;

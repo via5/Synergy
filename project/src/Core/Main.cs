@@ -167,9 +167,15 @@ namespace Synergy
 
 		private void CreateTestStuff(Atom a)
 		{
-			//manager_.AddStep(new Step("1"));
-			//manager_.AddStep(new Step("2"));
-			//manager_.AddStep(new Step("3"));
+			var s = manager_.AddStep(new Step("1"));
+
+			var m1 = s.AddEmptyModifier();
+			var m2 = s.AddModifier(new ModifierContainer(
+				null, new OtherModifierSyncedModifier(m1)));
+			var m3 = s.AddModifier(new ModifierContainer(
+				null, new OtherModifierSyncedModifier(m1)));
+			var m4 = s.AddModifier(new ModifierContainer(
+				null, new OtherModifierSyncedModifier(m1)));
 		}
 
 		public Timer CreateTimer(float seconds, Timer.Callback f, int flags = 0)

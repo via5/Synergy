@@ -55,6 +55,16 @@
 			root_.Destroy();
 		}
 
+		public Step SelectedStep
+		{
+			get { return steps_.Selected; }
+		}
+
+		public ModifierContainer SelectedModifier
+		{
+			get { return modifiers_.Selected; }
+		}
+
 		public void SelectStep(Step s)
 		{
 			if (s == null)

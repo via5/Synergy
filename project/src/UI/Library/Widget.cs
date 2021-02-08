@@ -157,7 +157,6 @@ namespace Synergy.UI
 		private GameObject mainObject_ = null;
 		private GameObject widgetObject_ = null;
 		private GameObject graphicsObject_ = null;
-		private GameObject bgObject_ = null;
 		private BorderGraphics borderGraphics_ = null;
 
 		private bool visible_ = true;
@@ -165,8 +164,7 @@ namespace Synergy.UI
 		private Insets margins_ = new Insets();
 		private Insets borders_ = new Insets();
 		private Insets padding_ = new Insets();
-		private Color borderColor_ = Style.Theme.TextColor;
-		private Color bgColor_ = new Color(0, 0, 0, 0);
+		private Color borderColor_ = Style.Theme.BorderColor;
 		private Font font_ = null;
 		private int fontSize_ = -1;
 		private readonly Tooltip tooltip_;
@@ -194,7 +192,6 @@ namespace Synergy.UI
 				mainObject_ = null;
 				widgetObject_ = null;
 				graphicsObject_ = null;
-				bgObject_ = null;
 				borderGraphics_ = null;
 			}
 		}
@@ -400,20 +397,6 @@ namespace Synergy.UI
 
 				if (borderGraphics_ != null)
 					borderGraphics_.Color = value;
-			}
-		}
-
-		public Color BackgroundColor
-		{
-			get
-			{
-				return bgColor_;
-			}
-
-			set
-			{
-				bgColor_ = value;
-				SetBackground();
 			}
 		}
 
@@ -682,21 +665,6 @@ namespace Synergy.UI
 			Created?.Invoke();
 		}
 
-		private void SetBackground()
-		{
-			if (mainObject_ == null)
-				return;
-
-			if (bgObject_ == null && bgColor_.a > 0)
-			{
-				bgObject_ = new GameObject();
-				bgObject_.transform.SetParent(mainObject_.transform, false);
-				bgObject_.AddComponent<Image>();
-			}
-
-			SetBackgroundBounds();
-		}
-
 		private void SetMainObjectBounds()
 		{
 			var r = RelativeBounds;
@@ -712,21 +680,8 @@ namespace Synergy.UI
 			layoutElement.ignoreLayout = true;
 		}
 
-		private void SetBackgroundBounds()
+		private void SetBackground()
 		{
-			if (bgObject_ == null)
-				return;
-
-			bgObject_.transform.SetAsFirstSibling();
-
-			var image = bgObject_.GetComponent<Image>();
-			image.color = bgColor_;
-			image.raycastTarget = false;
-
-			var r = new Rectangle(0, 0, Bounds.Size);
-			r.Deflate(Margins);
-
-			Utilities.SetRectTransform(bgObject_, r);
 		}
 
 		private void SetBorderBounds()
@@ -747,7 +702,6 @@ namespace Synergy.UI
 			SetBackground();
 
 			SetMainObjectBounds();
-			SetBackgroundBounds();
 			SetBorderBounds();
 			SetWidgetObjectBounds();
 
@@ -825,6 +779,9 @@ namespace Synergy.UI
 
 	class Panel : Widget
 	{
+		private GameObject bgObject_ = null;
+		private Color bgColor_ = new Color(0, 0, 0, 0);
+
 		public Panel(string name = "")
 			: base(name)
 		{
@@ -833,6 +790,76 @@ namespace Synergy.UI
 		public Panel(Layout ly)
 		{
 			Layout = ly;
+		}
+
+		public Color BackgroundColor
+		{
+			get
+			{
+				return bgColor_;
+			}
+
+			set
+			{
+				bgColor_ = value;
+				SetBackgroundColor();
+			}
+		}
+
+		protected override void DoCreate()
+		{
+			base.DoCreate();
+			SetBackground();
+		}
+
+		public override void UpdateBounds()
+		{
+			base.UpdateBounds();
+			SetBackgroundBounds();
+		}
+
+		protected override void Destroy()
+		{
+			if (bgObject_ != null)
+				bgObject_ = null;
+
+			base.Destroy();
+		}
+
+		private void SetBackground()
+		{
+			SetBackgroundBounds();
+			SetBackgroundColor();
+		}
+
+		private void SetBackgroundBounds()
+		{
+			if (bgObject_ == null)
+				return;
+
+			bgObject_.transform.SetAsFirstSibling();
+
+			var image = bgObject_.GetComponent<Image>();
+			image.color = bgColor_;
+			image.raycastTarget = false;
+
+			var r = new Rectangle(0, 0, Bounds.Size);
+			r.Deflate(Margins);
+
+			Utilities.SetRectTransform(bgObject_, r);
+		}
+
+		private void SetBackgroundColor()
+		{
+			if (MainObject == null)
+				return;
+
+			if (bgObject_ == null && bgColor_.a > 0)
+			{
+				bgObject_ = new GameObject();
+				bgObject_.transform.SetParent(MainObject.transform, false);
+				bgObject_.AddComponent<Image>();
+			}
 		}
 	}
 

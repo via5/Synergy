@@ -397,12 +397,13 @@ namespace Synergy
 			return true;
 		}
 
-		public void AddModifier(ModifierContainer m)
+		public ModifierContainer AddModifier(ModifierContainer m)
 		{
 			m.ParentStep = this;
 			modifiers_.Add(m);
 			m.Added();
 			ModifiersChanged?.Invoke();
+			return m;
 		}
 
 		public ModifierContainer AddEmptyModifier()
@@ -454,6 +455,19 @@ namespace Synergy
 			}
 
 			return null;
+		}
+
+		public List<ModifierContainer> SyncedTo(ModifierContainer mc)
+		{
+			var list = new List<ModifierContainer>();
+
+			foreach (var m in modifiers_)
+			{
+				if (m.ModifierSync.SyncedTo(mc))
+					list.Add(m);
+			}
+
+			return list;
 		}
 
 		public void EnableAll()

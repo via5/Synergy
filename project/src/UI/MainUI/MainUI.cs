@@ -137,7 +137,10 @@ namespace Synergy
 		{
 			get
 			{
-				return Synergy.Instance.Manager.GetStep(currentStep_);
+				if (nui_ != null)
+					return nui_.SelectedStep;
+				else
+					return Synergy.Instance.Manager.GetStep(currentStep_);
 			}
 		}
 
@@ -145,6 +148,9 @@ namespace Synergy
 		{
 			get
 			{
+				if (nui_ != null)
+					return nui_.SelectedModifier;
+
 				var s = CurrentStep;
 				if (s == null)
 					return null;

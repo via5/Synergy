@@ -7,24 +7,39 @@ namespace Synergy.UI
 {
 	class Metrics
 	{
-		public static float CursorHeight
+		public float CursorHeight
 		{
 			get { return 45; }
 		}
 
-		public static float TooltipDelay
+		public float TooltipDelay
 		{
 			get { return 0.5f; }
 		}
 
-		public static float MaxTooltipWidth
+		public float MaxTooltipWidth
 		{
 			get { return 400; }
 		}
 
-		public static float TooltipBorderOffset
+		public float TooltipBorderOffset
 		{
 			get { return 10; }
+		}
+
+		public Size ButtonMinimumSize
+		{
+			get { return new Size(150, 40); }
+		}
+
+		public Size ButtonPadding
+		{
+			get { return new Size(20, 0); }
+		}
+
+		public Size SelectedTabPadding
+		{
+			get { return new Size(0, 5); }
 		}
 	}
 
@@ -52,6 +67,11 @@ namespace Synergy.UI
 			get { return 28; }
 		}
 
+
+		public Color BorderColor
+		{
+			get { return new Color(0.5f, 0.5f, 0.5f); }
+		}
 
 		public Color TextColor
 		{
@@ -142,12 +162,33 @@ namespace Synergy.UI
 		{
 			get { return new Color(0.10f, 0.10f, 0.10f); }
 		}
+
+		public Color SelectedTabBackgroundColor
+		{
+			get { return new Color(0.3f, 0.3f, 0.3f); }
+		}
+
+		public Color SelectedTabTextColor
+		{
+			get { return TextColor; }
+		}
+
+		public Color TabBackgroundColor
+		{
+			get { return ButtonBackgroundColor; }
+		}
+
+		public Color TabTextColor
+		{
+			get { return TextColor; }
+		}
 	}
 
 
 	class Style
 	{
 		private static Theme theme_ = new Theme();
+		private static Metrics metrics_ = new Metrics();
 		private static Color originalBackground_ = new Color();
 
 		private class Info
@@ -207,12 +248,16 @@ namespace Synergy.UI
 			get { return theme_; }
 		}
 
+		static public Metrics Metrics
+		{
+			get { return metrics_; }
+		}
 
 		private static void ForComponent<T>(Component o, Action<T> f)
 		{
 			if (o == null)
 			{
-				Synergy.LogError("ForComponent null");
+				Synergy.LogErrorST("ForComponent null");
 				return;
 			}
 
@@ -223,7 +268,7 @@ namespace Synergy.UI
 		{
 			if (o == null)
 			{
-				Synergy.LogError("ForComponent null");
+				Synergy.LogErrorST("ForComponent null");
 				return;
 			}
 
@@ -231,7 +276,7 @@ namespace Synergy.UI
 
 			if (c == null)
 			{
-				Synergy.LogError(
+				Synergy.LogErrorST(
 					"component " + typeof(T).ToString() + " not found " +
 					"in " + o.name);
 
@@ -245,7 +290,7 @@ namespace Synergy.UI
 		{
 			if (o == null)
 			{
-				Synergy.LogError("ForComponentInChildren null");
+				Synergy.LogErrorST("ForComponentInChildren null");
 				return;
 			}
 
@@ -256,7 +301,7 @@ namespace Synergy.UI
 		{
 			if (o == null)
 			{
-				Synergy.LogError("ForComponentInChildren null");
+				Synergy.LogErrorST("ForComponentInChildren null");
 				return;
 			}
 
@@ -264,7 +309,7 @@ namespace Synergy.UI
 
 			if (c == null)
 			{
-				Synergy.LogError(
+				Synergy.LogErrorST(
 					"component " + typeof(T).ToString() + " not found in " +
 					"children of " + o.name);
 
@@ -278,7 +323,7 @@ namespace Synergy.UI
 		{
 			if (parent == null)
 			{
-				Synergy.LogError("ForChildRecursive null");
+				Synergy.LogErrorST("ForChildRecursive null");
 				return;
 			}
 
@@ -286,7 +331,7 @@ namespace Synergy.UI
 
 			if (c == null)
 			{
-				Synergy.LogError(
+				Synergy.LogErrorST(
 					"child " + name + " not found in " + parent.name);
 
 				return;
@@ -556,10 +601,10 @@ namespace Synergy.UI
 			});
 		}
 
-		public static void Setup(Button b)
+		public static void Setup(Button b, Button.Polishing p)
 		{
 			Adjust(b);
-			Polish(b);
+			Polish(b, p);
 		}
 
 		public static void Adjust(Button b)
@@ -570,11 +615,11 @@ namespace Synergy.UI
 			});
 		}
 
-		public static void Polish(Button b)
+		public static void Polish(Button b, Button.Polishing p)
 		{
 			ForComponent<UIDynamicButton>(b.WidgetObject, (button) =>
 			{
-				Polish(button, new Info(b));
+				Polish(button, p, new Info(b));
 			});
 		}
 
@@ -658,7 +703,7 @@ namespace Synergy.UI
 			// no-op
 		}
 
-		private static void Polish(UnityEngine.UI.Button e, Info info)
+		private static void Polish(UnityEngine.UI.Button e, Button.Polishing p, Info info)
 		{
 			ForComponent<Image>(e, (i) =>
 			{
@@ -668,9 +713,9 @@ namespace Synergy.UI
 			ForComponentInChildren<UIStyleText>(e, (st) =>
 			{
 				if (info.Enabled)
-					st.color = theme_.TextColor;
+					st.color = p.textColor;
 				else
-					st.color = theme_.DisabledTextColor;
+					st.color = p.disabledTextColor;
 
 				if (info.SetFont)
 					st.fontSize = info.FontSize;
@@ -680,10 +725,10 @@ namespace Synergy.UI
 
 			ForComponent<UIStyleButton>(e, (sb) =>
 			{
-				sb.normalColor = theme_.ButtonBackgroundColor;
-				sb.highlightedColor = theme_.HighlightBackgroundColor;
-				sb.pressedColor = theme_.HighlightBackgroundColor;
-				sb.disabledColor = theme_.DisabledButtonBackgroundColor;
+				sb.normalColor = p.backgroundColor;
+				sb.highlightedColor = p.highlightBackgroundColor;
+				sb.pressedColor = p.highlightBackgroundColor;
+				sb.disabledColor = p.disabledBackgroundColor;
 				sb.UpdateStyle();
 			});
 		}
@@ -694,9 +739,9 @@ namespace Synergy.UI
 			Adjust(e.button, info);
 		}
 
-		private static void Polish(UIDynamicButton e, Info info)
+		private static void Polish(UIDynamicButton e, Button.Polishing p, Info info)
 		{
-			Polish(e.button, info);
+			Polish(e.button, p, info);
 
 			if (e.buttonText == null)
 			{
@@ -917,7 +962,7 @@ namespace Synergy.UI
 				if (e.topButton == null)
 					Synergy.LogError("UIPopup has no topButton");
 				else
-					Polish(e.topButton, info);
+					Polish(e.topButton, Button.Polishing.Default, info);
 
 				// popupButtonPrefab is the prefab used to create items in the
 				// popup
@@ -929,7 +974,7 @@ namespace Synergy.UI
 				{
 					ForComponent<UnityEngine.UI.Button>(e.popupButtonPrefab, (prefab) =>
 					{
-						Polish(prefab, info);
+						Polish(prefab, Button.Polishing.Default, info);
 					});
 				}
 
@@ -1019,7 +1064,9 @@ namespace Synergy.UI
 				{
 					ForComponent<UnityEngine.UI.Button>(c, (button) =>
 					{
-						Polish(button, info.WithSetFont(false));
+						Polish(
+							button, Button.Polishing.Default,
+							info.WithSetFont(false));
 					});
 				});
 			}

@@ -179,22 +179,45 @@ namespace Synergy.NewUI
 			if (m == null)
 				return;
 
-			var d = new UI.MessageDialog(
-				GetRoot(), UI.MessageDialog.Yes | UI.MessageDialog.No,
-				S("Delete modifier"),
-				S("Are you sure you want to delete modifier {0}?", m.Name));
+			var syncedToThis = m.ParentStep.SyncedTo(m);
 
-			d.RunDialog(() =>
+			if (syncedToThis.Count > 0)
 			{
-				if (d.Button != UI.MessageDialog.Yes)
-					return;
+				var d = new UI.Dialog(GetRoot(), S("Delete modifier"));
 
-				ignore_.Do(() =>
+				var p = d.ContentPanel;
+
+				p.Layout = new UI.VerticalFlow(10);
+				p.Add(new UI.Label(S(
+					"There are {0} modifiers synced to this one.",
+					syncedToThis.Count)));
+
+				p.Add(new UI.Button(S("Delete all\nbleh bleh")));
+				p.Add(new UI.Button(S("Make independent")));
+				p.Add(new UI.Button(S("Sync with another")));
+				p.Add(new UI.Button(S("Cancel")));
+
+				d.RunDialog();
+			}
+			else
+			{
+				var d = new UI.MessageDialog(
+					GetRoot(), UI.MessageDialog.Yes | UI.MessageDialog.No,
+					S("Delete modifier"),
+					S("Are you sure you want to delete modifier {0}?", m.Name));
+
+				d.RunDialog(() =>
 				{
-					step_.DeleteModifier(m);
-					modifiers_.RemoveItem(modifiers_.Selected);
+					if (d.Button != UI.MessageDialog.Yes)
+						return;
+
+					ignore_.Do(() =>
+					{
+						modifiers_.RemoveItem(modifiers_.Selected);
+						step_.DeleteModifier(m);
+					});
 				});
-			});
+			}
 		}
 
 		private void OnSelectionChanged(ModifierContainer m)
@@ -587,10 +610,13 @@ namespace Synergy.NewUI
 
 			list.Add(null);
 
-			foreach (var mc in sync_.ParentStep.Modifiers)
+			if (sync_.ParentStep != null)
 			{
-				if (mc != sync_.ParentModifierContainer)
-					list.Add(mc);
+				foreach (var mc in sync_.ParentStep.Modifiers)
+				{
+					if (mc != sync_.ParentModifierContainer)
+						list.Add(mc);
+				}
 			}
 
 			others_.SetItems(list, sync_.OtherModifierContainer);

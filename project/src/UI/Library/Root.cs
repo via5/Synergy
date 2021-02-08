@@ -336,9 +336,15 @@ namespace Synergy.UI
 			ts.font = font ?? Style.Theme.DefaultFont;
 			ts.fontSize = (fontSize < 0 ? Style.Theme.DefaultFontSize : fontSize);
 
-			return new Size(
-				tg_.GetPreferredWidth(s, ts),
-				tg_.GetPreferredHeight(s, ts));
+			var size = Size.Zero;
+
+			foreach (var line in s.Split('\n'))
+			{
+				size.Width = Math.Max(size.Width, tg_.GetPreferredWidth(line, ts));
+				size.Height += tg_.GetPreferredHeight(line, ts);
+			}
+
+			return size;
 		}
 
 		public static Size FitText(Font font, int fontSize, string s, Size maxSize)
@@ -375,10 +381,13 @@ namespace Synergy.UI
 			ts.generateOutOfBounds = false;
 			ts.resizeTextForBestFit = false;
 
-			var w = tg_.GetPreferredWidth(s, ts);
-			var h = tg_.GetPreferredHeight(s, ts);
+			var size = Size.Zero;
 
-			var size = new Size(w, h);
+			foreach (var line in s.Split('\n'))
+			{
+				size.Width = Math.Max(size.Width, tg_.GetPreferredWidth(line, ts));
+				size.Height += tg_.GetPreferredHeight(line, ts);
+			}
 
 			if (maxSize.Width != Widget.DontCare)
 				size.Width = Math.Min(size.Width, maxSize.Width);

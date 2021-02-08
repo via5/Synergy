@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace Synergy.UI
 {
-	class Label : Widget
+	class Label : Panel
 	{
 		public override string TypeName { get { return "label"; } }
 
@@ -79,6 +79,8 @@ namespace Synergy.UI
 
 		protected override void DoCreate()
 		{
+			base.DoCreate();
+
 			textObject_ = WidgetObject.AddComponent<Text>();
 			textObject_.text = text_;
 			textObject_.horizontalOverflow =

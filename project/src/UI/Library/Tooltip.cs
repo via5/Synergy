@@ -90,11 +90,12 @@ namespace Synergy.UI
 				Hide();
 				active_ = w;
 
-				timer_ = Synergy.Instance.CreateTimer(Metrics.TooltipDelay, () =>
-				{
-					timer_ = null;
-					Show(active_);
-				});
+				timer_ = Synergy.Instance.CreateTimer(
+					Style.Metrics.TooltipDelay, () =>
+					{
+						timer_ = null;
+						Show(active_);
+					});
 			}
 		}
 
@@ -111,7 +112,7 @@ namespace Synergy.UI
 
 			// size of text
 			var size = Root.FitText(null, -1, widget_.Text, new Size(
-				Metrics.MaxTooltipWidth, Widget.DontCare));
+				Style.Metrics.MaxTooltipWidth, Widget.DontCare));
 
 			// widget is size of text plus its insets
 			size += widget_.Insets.Size;
@@ -120,10 +121,11 @@ namespace Synergy.UI
 			var mp = root_.MousePosition;
 
 			// preferred position is just below the cursor
-			var p = new Point(mp.X, mp.Y + Metrics.CursorHeight);
+			var p = new Point(mp.X, mp.Y + Style.Metrics.CursorHeight);
 
 			// available rectangle, offset from the edges
-			var av = root_.Bounds.DeflateCopy(Metrics.TooltipBorderOffset);
+			var av = root_.Bounds.DeflateCopy(
+				Style.Metrics.TooltipBorderOffset);
 
 
 			if (p.X + size.Width >= av.Width)

@@ -9,6 +9,7 @@ namespace Synergy
 		IModifierSync Clone(int cloneFlags = 0);
 		void Removed();
 		void OtherModifierRemoved(ModifierContainer mc);
+		bool SyncedTo(ModifierContainer mc);
 
 		void Resume();
 		bool Tick(float deltaTime);
@@ -71,6 +72,11 @@ namespace Synergy
 		public virtual void OtherModifierRemoved(ModifierContainer mc)
 		{
 			// no-op
+		}
+
+		public virtual bool SyncedTo(ModifierContainer mc)
+		{
+			return false;
 		}
 
 		public abstract bool Finished { get; }
@@ -765,6 +771,11 @@ namespace Synergy
 				OtherModifierContainer = null;
 			else
 				index_ = -1;
+		}
+
+		public override bool SyncedTo(ModifierContainer mc)
+		{
+			return (OtherModifierContainer == mc);
 		}
 
 		public override void Reset()
