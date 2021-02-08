@@ -353,8 +353,8 @@ namespace Synergy.NewUI
 			ui_ = new FactoryObjectWidget<EyesTargetFactory, IEyesTarget, EyesTargetUIFactory>();
 
 			var buttons = new UI.Panel(new UI.HorizontalFlow(10));
-			buttons.Add(new UI.Button(UI.Utilities.AddSymbol, AddTarget));
-			buttons.Add(new UI.Button(UI.Utilities.RemoveSymbol, RemoveTarget));
+			buttons.Add(new UI.ToolButton(UI.Utilities.AddSymbol, AddTarget));
+			buttons.Add(new UI.ToolButton(UI.Utilities.RemoveSymbol, RemoveTarget));
 
 			var left = new UI.Panel(new UI.BorderLayout());
 			left.Add(targets_);
@@ -434,6 +434,11 @@ namespace Synergy.NewUI
 			});
 		}
 
+		public void NameChanged()
+		{
+			targets_.UpdateItemsText();
+		}
+
 		private void OnSelection(Target t)
 		{
 			UpdateSelection(t);
@@ -480,6 +485,9 @@ namespace Synergy.NewUI
 					enabled_.Checked = t.tc.Enabled;
 					type_.Select(t.tc.Target);
 					ui_.Set(t.tc.Target);
+
+					if (ui_.FactoryWidget != null)
+						((IEyesTargetUI)ui_.FactoryWidget).SetUI(this);
 				}
 			});
 		}
@@ -511,7 +519,32 @@ namespace Synergy.NewUI
 	}
 
 
-	class RigidbodyEyesTargetUI : UI.Panel, IUIFactoryWidget<IEyesTarget>
+	interface IEyesTargetUI : IUIFactoryWidget<IEyesTarget>
+	{
+		void SetUI(EyesTargetsUI ui);
+	}
+
+
+	abstract class BasicEyesTargetUI : UI.Panel, IEyesTargetUI
+	{
+		protected EyesTargetsUI ui_ = null;
+
+		public abstract void Set(IEyesTarget t);
+
+		public void SetUI(EyesTargetsUI ui)
+		{
+			ui_ = ui;
+		}
+
+		public void FireNameChanged()
+		{
+			if (ui_ != null)
+				ui_.NameChanged();
+		}
+	}
+
+
+	class RigidbodyEyesTargetUI : BasicEyesTargetUI
 	{
 		private RigidbodyEyesTarget target_ = null;
 
@@ -552,7 +585,7 @@ namespace Synergy.NewUI
 			receiver_.RigidbodySelectionChanged += OnReceiverChanged;
 		}
 
-		public void Set(IEyesTarget t)
+		public override void Set(IEyesTarget t)
 		{
 			target_ = t as RigidbodyEyesTarget;
 			if (target_ == null)
@@ -575,6 +608,7 @@ namespace Synergy.NewUI
 
 			target_.Atom = a;
 			receiver_.Set(a, target_.Receiver);
+			FireNameChanged();
 		}
 
 		private void OnReceiverChanged(Rigidbody rb)
@@ -583,6 +617,7 @@ namespace Synergy.NewUI
 				return;
 
 			target_.Receiver = rb;
+			FireNameChanged();
 		}
 
 		private void OnOffsetXChanged(float f)
@@ -611,7 +646,7 @@ namespace Synergy.NewUI
 	}
 
 
-	class RandomEyesTargetUI : UI.Panel, IUIFactoryWidget<IEyesTarget>
+	class RandomEyesTargetUI : BasicEyesTargetUI
 	{
 		private RandomEyesTarget target_ = null;
 
@@ -670,7 +705,7 @@ namespace Synergy.NewUI
 			receiver_.RigidbodySelectionChanged += OnReceiverChanged;
 		}
 
-		public void Set(IEyesTarget t)
+		public override void Set(IEyesTarget t)
 		{
 			target_ = t as RandomEyesTarget;
 			if (target_ == null)
@@ -696,6 +731,7 @@ namespace Synergy.NewUI
 
 			target_.Atom = a;
 			receiver_.Set(a, target_.RelativeTo);
+			FireNameChanged();
 		}
 
 		private void OnReceiverChanged(Rigidbody rb)
@@ -704,6 +740,7 @@ namespace Synergy.NewUI
 				return;
 
 			target_.RelativeTo = rb;
+			FireNameChanged();
 		}
 
 		private void OnOffsetXChanged(float f)
@@ -756,7 +793,7 @@ namespace Synergy.NewUI
 	}
 
 
-	class PlayerEyesTargetUI : UI.Panel, IUIFactoryWidget<IEyesTarget>
+	class PlayerEyesTargetUI : BasicEyesTargetUI
 	{
 		public PlayerEyesTargetUI()
 		{
@@ -764,7 +801,7 @@ namespace Synergy.NewUI
 			Add(new UI.Label(S("This Person atom will be looking at the player.")));
 		}
 
-		public void Set(IEyesTarget t)
+		public override void Set(IEyesTarget t)
 		{
 		}
 	}

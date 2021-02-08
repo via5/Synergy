@@ -31,6 +31,11 @@ namespace Synergy.NewUI
 		{
 		}
 
+		public IUIFactoryWidget<ObjectType> FactoryWidget
+		{
+			get { return widget_; }
+		}
+
 		public void Set(ObjectType o)
 		{
 			if (o == null)

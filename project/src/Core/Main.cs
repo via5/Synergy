@@ -169,14 +169,8 @@ namespace Synergy
 		{
 			var s = manager_.AddStep(new Step("1"));
 
-			var m1 = s.AddModifier(new ModifierContainer("master"));
-
-			var m2 = s.AddModifier(new ModifierContainer(
-				"s1", null, new OtherModifierSyncedModifier(m1)));
-			var m3 = s.AddModifier(new ModifierContainer(
-				"s2", null, new OtherModifierSyncedModifier(m1)));
-			var m4 = s.AddModifier(new ModifierContainer(
-				"s3", null, new OtherModifierSyncedModifier(m1)));
+			var m = new EyesModifier();
+			s.AddModifier(new ModifierContainer(m));
 		}
 
 		public Timer CreateTimer(float seconds, Timer.Callback f, int flags = 0)

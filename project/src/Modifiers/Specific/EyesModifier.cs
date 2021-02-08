@@ -380,7 +380,15 @@ namespace Synergy
 		{
 			get
 			{
-				return "Random";
+				string s = "R";
+
+				if (atom_ != null)
+					s += " " + atom_.uid;
+
+				if (rel_ != null)
+					s += " " + rel_.name;
+
+				return s;
 			}
 		}
 
@@ -1214,7 +1222,7 @@ namespace Synergy
 
 		private bool EnsureBlink()
 		{
-			if (blink_ == null)
+			if (blink_ == null && Atom != null)
 			{
 				var ec = Atom.GetStorableByID("EyelidControl");
 				if (ec == null)
