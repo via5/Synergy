@@ -24,7 +24,9 @@
 			title_.Wrap = false;
 			title_.BackgroundColor = Style.Theme.DialogTitleBackgroundColor;
 			title_.Padding = new Insets(0, 5, 0, 10);
+
 			MinimumSize = new Size(600, 200);
+			MaximumSize = r.Bounds.Size * 0.8f;
 
 			Add(title_, BorderLayout.Top);
 			Add(content_, BorderLayout.Center);

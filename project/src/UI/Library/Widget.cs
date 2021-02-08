@@ -457,7 +457,7 @@ namespace Synergy.UI
 			var s = new Size();
 
 			if (layout_ != null)
-				s = layout_.PreferredSize;
+				s = layout_.GetPreferredSize(maxWidth, maxHeight);
 
 			s = Size.Max(s, DoGetPreferredSize(maxWidth, maxHeight));
 			s = Size.Max(s, MinimumSize);
@@ -579,7 +579,7 @@ namespace Synergy.UI
 			w.parent_ = this;
 			children_.Add(w);
 			layout_?.Add(w, d);
-			NeedsLayout("widget added (" + w.DebugLine + ")");
+			NeedsLayout("widget added (" + w.TypeName + ")");
 			return w;
 		}
 
@@ -597,7 +597,7 @@ namespace Synergy.UI
 			layout_.Remove(w);
 			w.parent_ = null;
 
-			NeedsLayout("widget removed (" + w.DebugLine + ")");
+			NeedsLayout("widget removed (" + w.TypeName + ")");
 
 			w.Destroy();
 		}

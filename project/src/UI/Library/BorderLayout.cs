@@ -106,12 +106,12 @@ namespace Synergy.UI
 			DoCenter(center);
 		}
 
-		protected override Size GetPreferredSize()
+		protected override Size DoGetPreferredSize(float maxWidth, float maxHeight)
 		{
-			var left = SideWidth(Left, DontCare);
-			var right = SideWidth(Right, DontCare);
-			var top = SideHeight(Top, DontCare);
-			var bottom = SideHeight(Bottom, DontCare);
+			var left = SideWidth(Left, maxHeight);
+			var right = SideWidth(Right, maxHeight);
+			var top = SideHeight(Top, maxWidth);
+			var bottom = SideHeight(Bottom, maxWidth);
 
 			var center = new Size();
 			foreach (var w in sides_[Center])
@@ -119,7 +119,7 @@ namespace Synergy.UI
 				if (!w.Visible)
 					continue;
 
-				center = Size.Max(center, w.GetRealPreferredSize(DontCare, DontCare));
+				center = Size.Max(center, w.GetRealPreferredSize(maxWidth, maxHeight));
 			}
 
 			int hn =

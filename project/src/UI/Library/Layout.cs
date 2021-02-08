@@ -28,11 +28,6 @@ namespace Synergy.UI
 			get { return children_; }
 		}
 
-		public Size PreferredSize
-		{
-			get { return GetPreferredSize(); }
-		}
-
 		public virtual float Spacing
 		{
 			get { return spacing_; }
@@ -64,6 +59,11 @@ namespace Synergy.UI
 			RemoveImpl(w);
 		}
 
+		public Size GetPreferredSize(float maxWidth, float maxHeight)
+		{
+			return DoGetPreferredSize(maxWidth, maxHeight);
+		}
+
 		public void DoLayout()
 		{
 			LayoutImpl();
@@ -84,7 +84,7 @@ namespace Synergy.UI
 			// no-op
 		}
 
-		protected virtual Size GetPreferredSize()
+		protected virtual Size DoGetPreferredSize(float maxWidth, float maxHeight)
 		{
 			return new Size(Widget.DontCare, Widget.DontCare);
 		}
@@ -246,7 +246,7 @@ namespace Synergy.UI
 			}
 		}
 
-		protected override Size GetPreferredSize()
+		protected override Size DoGetPreferredSize(float maxWidth, float maxHeight)
 		{
 			float totalWidth = 0;
 			float tallest = 0;
@@ -260,7 +260,7 @@ namespace Synergy.UI
 				if (i > 0)
 					totalWidth += Spacing;
 
-				var ps = w.GetRealPreferredSize(DontCare, DontCare);
+				var ps = w.GetRealPreferredSize(maxWidth, maxHeight);
 
 				totalWidth += ps.Width;
 				tallest = Math.Max(tallest, ps.Height);
@@ -389,7 +389,7 @@ namespace Synergy.UI
 			}
 		}
 
-		protected override Size GetPreferredSize()
+		protected override Size DoGetPreferredSize(float maxWidth, float maxHeight)
 		{
 			float totalHeight = 0;
 			float widest = 0;
@@ -403,7 +403,7 @@ namespace Synergy.UI
 				if (i > 0)
 					totalHeight += Spacing;
 
-				var ps = w.GetRealPreferredSize(DontCare, DontCare);
+				var ps = w.GetRealPreferredSize(maxWidth, maxHeight);
 
 				totalHeight += ps.Height;
 				widest = Math.Max(widest, ps.Width);

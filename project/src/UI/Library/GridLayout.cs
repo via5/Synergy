@@ -265,7 +265,7 @@ namespace Synergy.UI
 		protected override void LayoutImpl()
 		{
 			var r = new Rectangle(Parent.Bounds);
-			var d = GetCellPreferredSizes();
+			var d = GetCellPreferredSizes(DontCare, DontCare);
 
 
 			var extraWidth = new List<float>();
@@ -409,7 +409,8 @@ namespace Synergy.UI
 		}
 
 
-		private PreferredSizesData GetCellPreferredSizes()
+		private PreferredSizesData GetCellPreferredSizes(
+			float maxWidth, float maxHeight)
 		{
 			var d = new PreferredSizesData(widgets_.ColumnCount, widgets_.RowCount);
 
@@ -430,7 +431,7 @@ namespace Synergy.UI
 						if (!w.Visible)
 							continue;
 
-						var ps = w.GetRealPreferredSize(DontCare, DontCare);
+						var ps = w.GetRealPreferredSize(maxWidth, maxHeight);
 						cellPs.Width = Math.Max(cellPs.Width, ps.Width);
 						cellPs.Height = Math.Max(cellPs.Height, ps.Height);
 					}
@@ -469,9 +470,9 @@ namespace Synergy.UI
 			return d;
 		}
 
-		protected override Size GetPreferredSize()
+		protected override Size DoGetPreferredSize(float maxWidth, float maxHeight)
 		{
-			return GetCellPreferredSizes().ps;
+			return GetCellPreferredSizes(maxWidth, maxHeight).ps;
 		}
 	}
 }

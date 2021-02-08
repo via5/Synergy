@@ -299,6 +299,11 @@ namespace Synergy.UI
 			return new Size(a.Width + b.Width, a.Height + b.Height);
 		}
 
+		public static Size operator *(Size s, float f)
+		{
+			return new Size(s.Width * f, s.Height * f);
+		}
+
 		public override string ToString()
 		{
 			return Width.ToString() + "*" + Height.ToString();

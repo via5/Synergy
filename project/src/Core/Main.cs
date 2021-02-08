@@ -170,8 +170,11 @@ namespace Synergy
 			var s = manager_.AddStep(new Step("1"));
 
 			var m = new MorphModifier(SuperController.singleton.GetAtomByUid("Person"));
+			var mc = new ModifierContainer(m);
+			mc.UserDefinedName = "23";
+
 			m.AddMorph("Mouth Open");
-			s.AddModifier(new ModifierContainer(m));
+			s.AddModifier(mc);
 		}
 
 		public Timer CreateTimer(float seconds, Timer.Callback f, int flags = 0)
