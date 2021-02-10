@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Synergy.UI
+namespace SynergyUI
 {
 	class Metrics
 	{
@@ -257,7 +257,7 @@ namespace Synergy.UI
 		{
 			if (o == null)
 			{
-				Synergy.LogErrorST("ForComponent null");
+				Glue.LogErrorST("ForComponent null");
 				return;
 			}
 
@@ -268,7 +268,7 @@ namespace Synergy.UI
 		{
 			if (o == null)
 			{
-				Synergy.LogErrorST("ForComponent null");
+				Glue.LogErrorST("ForComponent null");
 				return;
 			}
 
@@ -276,7 +276,7 @@ namespace Synergy.UI
 
 			if (c == null)
 			{
-				Synergy.LogErrorST(
+				Glue.LogErrorST(
 					"component " + typeof(T).ToString() + " not found " +
 					"in " + o.name);
 
@@ -290,7 +290,7 @@ namespace Synergy.UI
 		{
 			if (o == null)
 			{
-				Synergy.LogErrorST("ForComponentInChildren null");
+				Glue.LogErrorST("ForComponentInChildren null");
 				return;
 			}
 
@@ -301,7 +301,7 @@ namespace Synergy.UI
 		{
 			if (o == null)
 			{
-				Synergy.LogErrorST("ForComponentInChildren null");
+				Glue.LogErrorST("ForComponentInChildren null");
 				return;
 			}
 
@@ -309,7 +309,7 @@ namespace Synergy.UI
 
 			if (c == null)
 			{
-				Synergy.LogErrorST(
+				Glue.LogErrorST(
 					"component " + typeof(T).ToString() + " not found in " +
 					"children of " + o.name);
 
@@ -323,7 +323,7 @@ namespace Synergy.UI
 		{
 			if (parent == null)
 			{
-				Synergy.LogErrorST("ForChildRecursive null");
+				Glue.LogErrorST("ForChildRecursive null");
 				return;
 			}
 
@@ -331,7 +331,7 @@ namespace Synergy.UI
 
 			if (c == null)
 			{
-				Synergy.LogErrorST(
+				Glue.LogErrorST(
 					"child " + name + " not found in " + parent.name);
 
 				return;
@@ -496,7 +496,7 @@ namespace Synergy.UI
 
 			if (labelTextParent == null)
 			{
-				Synergy.LogError("ComboBox has no labelText parent");
+				Glue.LogError("ComboBox has no labelText parent");
 			}
 			else
 			{
@@ -515,7 +515,7 @@ namespace Synergy.UI
 
 			if (cb.Popup?.popup?.topButton == null)
 			{
-				Synergy.LogError("ComboBox has no topButton");
+				Glue.LogError("ComboBox has no topButton");
 			}
 			else
 			{
@@ -545,7 +545,7 @@ namespace Synergy.UI
 
 			if (cb.Popup.popup.popupPanel == null)
 			{
-				Synergy.LogError("ComboBox has no popupPanel");
+				Glue.LogError("ComboBox has no popupPanel");
 			}
 			else
 			{
@@ -657,7 +657,7 @@ namespace Synergy.UI
 		{
 			var input = e.InputField;
 			if (input == null)
-				Synergy.LogError("TextBox has no InputField");
+				Glue.LogError("TextBox has no InputField");
 			else
 				Adjust(input, new Info(e));
 		}
@@ -675,7 +675,7 @@ namespace Synergy.UI
 
 			var input = e.InputField;
 			if (input == null)
-				Synergy.LogError("TextBox has no InputField");
+				Glue.LogError("TextBox has no InputField");
 			else
 				Polish(input, new Info(e));
 		}
@@ -752,7 +752,7 @@ namespace Synergy.UI
 
 			if (e.buttonText == null)
 			{
-				Synergy.LogError("UIDynamicButton has no buttonText");
+				Glue.LogError("UIDynamicButton has no buttonText");
 			}
 			else
 			{
@@ -771,7 +771,7 @@ namespace Synergy.UI
 
 			if (e.popup == null)
 			{
-				Synergy.LogError("UIDynamicPopup has no popup");
+				Glue.LogError("UIDynamicPopup has no popup");
 			}
 			else
 			{
@@ -786,7 +786,7 @@ namespace Synergy.UI
 		private static void Polish(UIDynamicPopup e, Info info)
 		{
 			if (e.popup == null)
-				Synergy.LogError("UIDynamicPopup has no popup");
+				Glue.LogError("UIDynamicPopup has no popup");
 			else
 				Polish(e.popup, info);
 		}
@@ -821,7 +821,7 @@ namespace Synergy.UI
 			var text = input.textComponent;
 			if (text == null)
 			{
-				Synergy.LogError("InputField has no textComponent");
+				Glue.LogError("InputField has no textComponent");
 			}
 			else
 			{
@@ -843,7 +843,7 @@ namespace Synergy.UI
 			// placeholder
 			if (input.placeholder == null)
 			{
-				Synergy.LogError("InputField has no placeholder");
+				Glue.LogError("InputField has no placeholder");
 			}
 			else
 			{
@@ -879,7 +879,7 @@ namespace Synergy.UI
 				// popup
 				if (e.topButton == null)
 				{
-					Synergy.LogError("UIPopup has no topButton");
+					Glue.LogError("UIPopup has no topButton");
 				}
 				else
 				{
@@ -890,7 +890,7 @@ namespace Synergy.UI
 				// popup
 				if (e.popupButtonPrefab == null)
 				{
-					Synergy.LogError("UIPopup has no popupButtonPrefab");
+					Glue.LogError("UIPopup has no popupButtonPrefab");
 				}
 				else
 				{
@@ -946,7 +946,7 @@ namespace Synergy.UI
 				// background color of the popup, behind the items
 				if (e.popupPanel == null)
 				{
-					Synergy.LogError("UIPopup has no popupPanel");
+					Glue.LogError("UIPopup has no popupPanel");
 				}
 				else
 				{
@@ -967,7 +967,7 @@ namespace Synergy.UI
 				// topButton is the actual combobox the user clicks to open the
 				// popup
 				if (e.topButton == null)
-					Synergy.LogError("UIPopup has no topButton");
+					Glue.LogError("UIPopup has no topButton");
 				else
 					Polish(e.topButton, Button.Polishing.Default, info);
 
@@ -975,7 +975,7 @@ namespace Synergy.UI
 				// popup
 				if (e.popupButtonPrefab == null)
 				{
-					Synergy.LogError("UIPopup has no popupButtonPrefab");
+					Glue.LogError("UIPopup has no popupButtonPrefab");
 				}
 				else
 				{
@@ -1006,7 +1006,7 @@ namespace Synergy.UI
 		private static void Adjust(UIDynamicColorPicker picker, Info info)
 		{
 			if (picker.colorPicker == null)
-				Synergy.LogError("UIDynamicColorPicker has no colorPicker");
+				Glue.LogError("UIDynamicColorPicker has no colorPicker");
 			else
 				Adjust(picker.colorPicker, info);
 
@@ -1042,7 +1042,7 @@ namespace Synergy.UI
 			// label on top
 			if (picker.labelText == null)
 			{
-				Synergy.LogError("UIDynamicColorPicker has no labelText");
+				Glue.LogError("UIDynamicColorPicker has no labelText");
 			}
 			else
 			{
@@ -1052,7 +1052,7 @@ namespace Synergy.UI
 
 
 			if (picker.colorPicker == null)
-				Synergy.LogError("UIDynamicColorPicker has no colorPicker");
+				Glue.LogError("UIDynamicColorPicker has no colorPicker");
 			else
 				Polish(picker.colorPicker, info);
 
@@ -1086,17 +1086,17 @@ namespace Synergy.UI
 
 
 			if (picker.redSlider == null)
-				Synergy.LogError("HSVColorPIcker has no redSlider");
+				Glue.LogError("HSVColorPIcker has no redSlider");
 			else
 				sliders.Add(picker.redSlider);
 
 			if (picker.greenSlider == null)
-				Synergy.LogError("HSVColorPIcker has no greenSlider");
+				Glue.LogError("HSVColorPIcker has no greenSlider");
 			else
 				sliders.Add(picker.greenSlider);
 
 			if (picker.blueSlider == null)
-				Synergy.LogError("HSVColorPIcker has no blueSlider");
+				Glue.LogError("HSVColorPIcker has no blueSlider");
 			else
 				sliders.Add(picker.blueSlider);
 
@@ -1114,7 +1114,7 @@ namespace Synergy.UI
 
 				if (parent == null)
 				{
-					Synergy.LogError("color picker slider " + slider.name + " has no parent");
+					Glue.LogError("color picker slider " + slider.name + " has no parent");
 				}
 				else
 				{
@@ -1189,7 +1189,7 @@ namespace Synergy.UI
 
 				if (parent == null)
 				{
-					Synergy.LogError("color picker slider " + slider.name + " has no parent");
+					Glue.LogError("color picker slider " + slider.name + " has no parent");
 				}
 				else
 				{
@@ -1222,7 +1222,7 @@ namespace Synergy.UI
 
 							if (field.textComponent == null)
 							{
-								Synergy.LogError("InputField has no textComponent");
+								Glue.LogError("InputField has no textComponent");
 							}
 							else
 							{

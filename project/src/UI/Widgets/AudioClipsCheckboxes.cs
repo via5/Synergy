@@ -104,7 +104,7 @@ namespace Synergy
 			Utilities.AddAudioClip((NamedAudioClip clip) =>
 			{
 				AddClip(clip);
-				sc_.UI.NeedsReset("audio clips changed");
+				sc_.MainUI.NeedsReset("audio clips changed");
 			});
 		}
 

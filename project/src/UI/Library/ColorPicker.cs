@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace Synergy.UI
+namespace SynergyUI
 {
 	class ColorPicker : Widget
 	{
@@ -40,7 +40,7 @@ namespace Synergy.UI
 		protected override GameObject CreateGameObject()
 		{
 			return UnityEngine.Object.Instantiate(
-				Synergy.Instance.manager.configurableColorPickerPrefab).gameObject;
+				Glue.PluginManager.configurableColorPickerPrefab).gameObject;
 		}
 
 		protected override void DoCreate()

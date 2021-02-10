@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Synergy.UI
+namespace SynergyUI
 {
 	class Stack : Widget
 	{
@@ -206,7 +206,7 @@ namespace Synergy.UI
 			var i = IndexOfWidget(w);
 			if (i == -1)
 			{
-				Synergy.LogError("Select: widget not found");
+				Glue.LogError("Select: widget not found");
 				return;
 			}
 
@@ -237,7 +237,7 @@ namespace Synergy.UI
 			var i = IndexOfWidget(w);
 			if (i == -1)
 			{
-				Synergy.LogError("SetTabVisible: widget not found");
+				Glue.LogError("SetTabVisible: widget not found");
 				return;
 			}
 

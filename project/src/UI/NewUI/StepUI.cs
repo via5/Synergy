@@ -1,5 +1,5 @@
 ﻿using JetBrains.Annotations;
-using Synergy.UI;
+using UI = SynergyUI;
 using System;
 using System.Collections.Generic;
 
@@ -85,7 +85,7 @@ namespace Synergy.NewUI
 			steps_.NavButtons = true;
 			steps_.PopupHeight = 800;
 
-			var p = new Panel(new UI.HorizontalFlow(20));
+			var p = new UI.Panel(new UI.HorizontalFlow(20));
 			p.Add(add_);
 			p.Add(clone_);
 			p.Add(clone0_);
@@ -206,7 +206,7 @@ namespace Synergy.NewUI
 			if (s == null)
 				return;
 
-			InputDialog.GetInput(
+			UI.InputDialog.GetInput(
 				GetRoot(), S("Rename step"), S("Step name"), s.Name,
 				(v) => { s.UserDefinedName = v; });
 		}

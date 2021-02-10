@@ -1,5 +1,4 @@
-﻿using Battlehub.UIControls;
-using Synergy.UI;
+﻿using UI = SynergyUI;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -57,7 +56,7 @@ namespace Synergy.NewUI
 
 		public ModifierControls()
 		{
-			modifiers_ = new ComboBox<ModifierContainer>(OnSelectionChanged);
+			modifiers_ = new UI.ComboBox<ModifierContainer>(OnSelectionChanged);
 			add_ = new UI.ToolButton(UI.Utilities.AddSymbol, AddModifier);
 			clone_ = new UI.ToolButton(UI.Utilities.CloneSymbol, () => CloneModifier(0));
 			clone0_ = new UI.ToolButton(UI.Utilities.CloneZeroSymbol, () => CloneModifier(Utilities.CloneZero));
@@ -74,7 +73,7 @@ namespace Synergy.NewUI
 			modifiers_.NavButtons = true;
 			modifiers_.PopupHeight = 800;
 
-			var p = new Panel(new UI.HorizontalFlow(20));
+			var p = new UI.Panel(new UI.HorizontalFlow(20));
 			p.Add(add_);
 			p.Add(clone_);
 			p.Add(clone0_);
@@ -253,7 +252,7 @@ namespace Synergy.NewUI
 			if (m == null)
 				return;
 
-			InputDialog.GetInput(
+			UI.InputDialog.GetInput(
 				GetRoot(), S("Rename modifier"), S("Modifier name"), m.Name,
 				(v) => { m.UserDefinedName = v; });
 		}
@@ -398,7 +397,7 @@ namespace Synergy.NewUI
 		{
 			type_ = new FactoryComboBox<ModifierFactory, IModifier>(
 				OnTypeChanged);
-			enabled_ = new CheckBox(S("Enabled"));
+			enabled_ = new UI.CheckBox(S("Enabled"));
 			disableOthers_ = new UI.Button(S("Disable others"), OnDisableOthers);
 			enableAll_ = new UI.Button(S("Enable all"), OnEnableAll);
 
@@ -483,14 +482,14 @@ namespace Synergy.NewUI
 			ui_ = new FactoryObjectWidget<
 				ModifierSyncFactory, IModifierSync, ModifierSyncUIFactory>();
 
-			Layout = new BorderLayout(20);
+			Layout = new UI.BorderLayout(20);
 
-			var p = new Panel(new HorizontalFlow(20));
+			var p = new UI.Panel(new UI.HorizontalFlow(20));
 			p.Add(new UI.Label(S("Sync type")));
 			p.Add(type_);
 
-			Add(p, BorderLayout.Top);
-			Add(ui_, BorderLayout.Center);
+			Add(p, UI.BorderLayout.Top);
+			Add(ui_, UI.BorderLayout.Center);
 		}
 
 		public void Set(ModifierContainer mc)
@@ -552,7 +551,7 @@ namespace Synergy.NewUI
 			Layout = new UI.BorderLayout();
 			Add(new UI.Label(
 				S("This modifier is synchronized with the step duration.")),
-				BorderLayout.Top);
+				UI.BorderLayout.Top);
 		}
 
 		public void Set(IModifierSync o)
@@ -572,7 +571,7 @@ namespace Synergy.NewUI
 				"This modifier is synchronized with the step progress. For " +
 				"ramp durations, the modifier will be at 50% when ramping " +
 				"up finishes.")),
-				BorderLayout.Top);
+				UI.BorderLayout.Top);
 		}
 
 		public void Set(IModifierSync o)
@@ -584,20 +583,20 @@ namespace Synergy.NewUI
 
 	class OtherModifierSyncedModifierUI : UI.Panel, IUIFactoryWidget<IModifierSync>
 	{
-		private readonly ComboBox<ModifierContainer> others_;
+		private readonly UI.ComboBox<ModifierContainer> others_;
 		private OtherModifierSyncedModifier sync_ = null;
 		private IgnoreFlag ignore_ = new IgnoreFlag();
 
 		public OtherModifierSyncedModifierUI()
 		{
-			others_ = new ComboBox<ModifierContainer>(OnSelectionChanged);
+			others_ = new UI.ComboBox<ModifierContainer>(OnSelectionChanged);
 
 			var p = new UI.Panel(new UI.HorizontalFlow(20));
 			p.Add(new UI.Label(S("Other modifier")));
 			p.Add(others_);
 
 			Layout = new UI.BorderLayout(20);
-			Add(p, BorderLayout.Top);
+			Add(p, UI.BorderLayout.Top);
 		}
 
 		public void Set(IModifierSync o)
@@ -681,7 +680,7 @@ namespace Synergy.NewUI
 
 			Add(new UI.Label(S(
 				"This modifier has its own duration and delay.")),
-				BorderLayout.Top);
+				UI.BorderLayout.Top);
 			Add(tabs_);
 
 
@@ -729,13 +728,13 @@ namespace Synergy.NewUI
 		public delegate bool AtomPredicate(Atom atom);
 		private readonly AtomPredicate pred_;
 
-		private readonly ComboBox<string> cb_;
+		private readonly UI.ComboBox<string> cb_;
 		private readonly GotoButton goto_;
 
 		public AtomComboBox(AtomPredicate pred = null)
 		{
 			pred_ = pred;
-			cb_ = new ComboBox<string>();
+			cb_ = new UI.ComboBox<string>();
 			goto_ = new GotoButton(OnGoto);
 
 			Layout = new UI.BorderLayout(5);
@@ -841,17 +840,17 @@ namespace Synergy.NewUI
 		public delegate void DirectionCallback(Vector3 v);
 		public event DirectionCallback Changed;
 
-		private readonly UI.ComboBox<string> type_ = new ComboBox<string>();
+		private readonly UI.ComboBox<string> type_ = new UI.ComboBox<string>();
 		private readonly UI.TextSlider x_ = new UI.TextSlider();
 		private readonly UI.TextSlider y_ = new UI.TextSlider();
 		private readonly UI.TextSlider z_ = new UI.TextSlider();
-		private readonly UI.Panel sliders_ = new Panel();
+		private readonly UI.Panel sliders_ = new UI.Panel();
 
 		private IgnoreFlag ignore_ = new IgnoreFlag();
 
 		public DirectionPanel()
 		{
-			var gl = new GridLayout(2);
+			var gl = new UI.GridLayout(2);
 			gl.HorizontalStretch = new List<bool>()
 			{
 				false, true,
@@ -864,7 +863,7 @@ namespace Synergy.NewUI
 			type_.AddItem(S("Z"));
 			type_.AddItem(S("Custom"));
 
-			gl = new GridLayout(6);
+			gl = new UI.GridLayout(6);
 			gl.Spacing = 20;
 
 			// only stretch the sliders
@@ -888,7 +887,7 @@ namespace Synergy.NewUI
 			y_.ValueChanged += OnChanged;
 			z_.ValueChanged += OnChanged;
 
-			var typePanel = new UI.Panel(new VerticalFlow(0, false));
+			var typePanel = new UI.Panel(new UI.VerticalFlow(0, false));
 			typePanel.Add(type_);
 
 			Add(new UI.Label(S("Direction  ")));

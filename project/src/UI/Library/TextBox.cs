@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace Synergy.UI
+namespace SynergyUI
 {
 	class CustomInputField : InputField
 	{
@@ -322,7 +322,7 @@ namespace Synergy.UI
 			var old = input_.selectionColor;
 			input_.selectionColor = new Color(0, 0, 0, 0);
 
-			Synergy.Instance.CreateTimer(Timer.Immediate, () =>
+			TimerManager.Instance.CreateTimer(Timer.Immediate, () =>
 			{
 				input_.caretPosition = c;
 				input_.selectionAnchorPosition = c;

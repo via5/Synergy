@@ -121,7 +121,7 @@
 			if (currentStep_ != null)
 			{
 				Synergy.Instance.Manager.DeleteStep(currentStep_);
-				Synergy.Instance.UI.NeedsReset("step deleted");
+				Synergy.Instance.MainUI.NeedsReset("step deleted");
 			}
 		}
 
@@ -154,7 +154,7 @@
 			if (currentStep_ != null)
 			{
 				currentStep_.Duration = d;
-				Synergy.Instance.UI.NeedsReset("step duration type changed");
+				Synergy.Instance.MainUI.NeedsReset("step duration type changed");
 			}
 		}
 

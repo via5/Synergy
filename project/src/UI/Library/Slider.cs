@@ -4,7 +4,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Synergy.UI
+namespace SynergyUI
 {
 	class Slider : Widget
 	{
@@ -109,7 +109,7 @@ namespace Synergy.UI
 		protected override GameObject CreateGameObject()
 		{
 			return UnityEngine.Object.Instantiate(
-				Synergy.Instance.manager.configurableSliderPrefab).gameObject;
+				Glue.PluginManager.configurableSliderPrefab).gameObject;
 		}
 
 		protected override void DoCreate()
@@ -127,7 +127,7 @@ namespace Synergy.UI
 
 			slider_.labelText.gameObject.SetActive(false);
 			slider_.sliderValueTextFromFloat.gameObject.SetActive(false);
-			UI.Utilities.FindChildRecursive(WidgetObject, "Panel").SetActive(false);
+			Utilities.FindChildRecursive(WidgetObject, "Panel").SetActive(false);
 
 			var rt = slider_.slider.GetComponent<RectTransform>();
 			rt.offsetMin = new Vector2(
@@ -157,7 +157,7 @@ namespace Synergy.UI
 	}
 
 
-	class TextSlider : UI.Panel
+	class TextSlider : Panel
 	{
 		public delegate void ValueCallback(float f);
 		public event ValueCallback ValueChanged;

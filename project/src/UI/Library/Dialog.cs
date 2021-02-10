@@ -1,4 +1,4 @@
-﻿namespace Synergy.UI
+﻿namespace SynergyUI
 {
 	class Dialog : Panel
 	{
@@ -110,7 +110,7 @@
 			if (!Bits.IsSet(buttons, id))
 				return;
 
-			Add(new UI.Button(text, () => OnButton(id)));
+			Add(new Button(text, () => OnButton(id)));
 		}
 
 		private void OnButton(int id)
@@ -132,7 +132,7 @@
 		public const int Apply  = 0x20;
 
 		private readonly ButtonBox buttons_;
-		private readonly UI.Panel center_;
+		private readonly Panel center_;
 
 		public DialogWithButtons(Root r, int buttons, string title)
 			: base(r, title)
@@ -140,7 +140,7 @@
 			buttons_ = new ButtonBox(buttons);
 			buttons_.ButtonClicked += OnButtonClicked;
 
-			center_ = new UI.Panel(new BorderLayout());
+			center_ = new Panel(new BorderLayout());
 
 			base.ContentPanel.Layout = new BorderLayout();
 			base.ContentPanel.Add(center_, BorderLayout.Center);
@@ -167,7 +167,7 @@
 			: base(r, buttons, title)
 		{
 			ContentPanel.Add(
-				new UI.Label(text, UI.Label.AlignLeft | UI.Label.AlignTop),
+				new Label(text, Label.AlignLeft | Label.AlignTop),
 				BorderLayout.Center);
 		}
 	}
@@ -177,18 +177,18 @@
 	{
 		public delegate void TextHandler(string value);
 
-		private readonly UI.TextBox textbox_;
+		private readonly TextBox textbox_;
 
 		public InputDialog(
 			Root r, string title, string text, string initialValue)
 				: base(r, OK | Cancel, title)
 		{
-			textbox_ = new UI.TextBox(initialValue);
+			textbox_ = new TextBox(initialValue);
 			textbox_.Submitted += OnSubmit;
 			textbox_.Cancelled += OnCancelled;
 
 			ContentPanel.Layout = new VerticalFlow(10);
-			ContentPanel.Add(new UI.Label(text));
+			ContentPanel.Add(new Label(text));
 			ContentPanel.Add(textbox_);
 
 			Created += () =>
@@ -237,12 +237,12 @@
 		public TaskDialog(Root r, string title, string mainText, string secondaryText="")
 			: base(r, title)
 		{
-			ContentPanel.Layout = new UI.VerticalFlow(10);
+			ContentPanel.Layout = new VerticalFlow(10);
 
-			ContentPanel.Add(new UI.Label(mainText));
+			ContentPanel.Add(new Label(mainText));
 
 			if (secondaryText != "")
-				ContentPanel.Add(new UI.Label(secondaryText));
+				ContentPanel.Add(new Label(secondaryText));
 		}
 
 		public void AddButton(int id, string text, string description="")
@@ -251,8 +251,8 @@
 			if (description != "")
 				text += "\n" + description;
 
-			var b = new UI.Button(s);
-			b.Alignment = UI.Label.AlignLeft | UI.Label.AlignVCenter;
+			var b = new Button(s);
+			b.Alignment = Label.AlignLeft | Label.AlignVCenter;
 			b.Padding = new Insets(10, 0, 0, 0);
 
 			b.Clicked += () =>

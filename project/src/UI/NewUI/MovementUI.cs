@@ -1,4 +1,4 @@
-﻿using Synergy.UI;
+﻿using UI = SynergyUI;
 using System;
 using System.Collections.Generic;
 
@@ -11,15 +11,15 @@ namespace Synergy.NewUI
 		{
 		}
 
-		protected override Size DoGetPreferredSize(
+		protected override UI.Size DoGetPreferredSize(
 			float maxWidth, float maxHeight)
 		{
 			return DoGetMinimumSize();
 		}
 
-		protected override Size DoGetMinimumSize()
+		protected override UI.Size DoGetMinimumSize()
 		{
-			var s = Root.TextSize(Font, FontSize, Text);
+			var s = UI.Root.TextSize(Font, FontSize, Text);
 			s.Width += 10;
 			s.Height = 40;
 			return s;
@@ -35,7 +35,7 @@ namespace Synergy.NewUI
 		public delegate void ValueCallback(float f);
 		public event ValueCallback Changed;
 
-		private readonly TextBox text_ = new TextBox();
+		private readonly UI.TextBox text_ = new UI.TextBox();
 		private float reset_ = 0;
 		private float last_ = 0;
 		private IgnoreFlag ignore_ = new IgnoreFlag();
@@ -60,8 +60,8 @@ namespace Synergy.NewUI
 			else
 				minText = "9999.99";
 
-			text_.MinimumSize = new Size(
-				Root.TextLength(Font, FontSize, minText) + 20, DontCare);
+			text_.MinimumSize = new UI.Size(
+				UI.Root.TextLength(Font, FontSize, minText) + 20, DontCare);
 
 			if (!Bits.IsSet(flags, SmallMovement))
 			{
@@ -89,7 +89,7 @@ namespace Synergy.NewUI
 				Add(CreateButton("+100", +100));
 			}
 
-			Add(new ToolButton(S("R"), OnReset));
+			Add(new UI.ToolButton(S("R"), OnReset));
 
 			text_.Edited += OnTextChanged;
 
@@ -174,7 +174,7 @@ namespace Synergy.NewUI
 			value_ = new MovementWidgets(flags);
 			range_ = new MovementWidgets(flags);
 			interval_ = new MovementWidgets(flags);
-			buttonsPanel_ = new Panel(new UI.HorizontalFlow(10));
+			buttonsPanel_ = new UI.Panel(new UI.HorizontalFlow(10));
 			randomizeHalf_ = new UI.Button(S("Randomize half"), OnRandomizeHalf);
 
 			var gl = new UI.GridLayout(2);
@@ -193,7 +193,7 @@ namespace Synergy.NewUI
 			p.Add(new UI.Label(S("Interval")));
 			p.Add(interval_);
 
-			Layout = new VerticalFlow(10);
+			Layout = new UI.VerticalFlow(10);
 			Add(buttonsPanel_);
 			Add(p);
 

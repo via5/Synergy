@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
+using UI = SynergyUI;
 
 namespace Synergy
 {
@@ -18,14 +19,14 @@ namespace Synergy
 		private bool frozen_ = false;
 		private Manager manager_ = null;
 		private Options options_ = null;
-		private TimerManager timers_ = null;
+		private UI.TimerManager timers_ = null;
 		private MainUI ui_ = null;
 		private List<IParameter> parameters_ = null;
 
 		private bool deferredInitDone_ = false;
 		private bool waitForUI_ = false;
 		private bool deferredUIDone_ = false;
-		private Timer waitForUITimer_ = null;
+		private UI.Timer waitForUITimer_ = null;
 
 
 		public Synergy()
@@ -38,7 +39,7 @@ namespace Synergy
 			get { return instance_; }
 		}
 
-		public MainUI UI
+		public MainUI MainUI
 		{
 			get { return ui_; }
 		}
@@ -68,7 +69,7 @@ namespace Synergy
 			enabled_ = false;
 			frozen_ = false;
 			options_ = new Options();
-			timers_ = new TimerManager();
+			timers_ = new UI.TimerManager();
 			ui_ = null;
 			parameters_ = new List<IParameter>();
 			manager_ = new Manager();
@@ -106,7 +107,7 @@ namespace Synergy
 			if (ui_ != null || options_ == null || waitForUI_)
 				return;
 
-			if (global::Synergy.UI.Root.IsReady())
+			if (UI.Root.IsReady())
 			{
 				CreateUI();
 			}
@@ -116,13 +117,13 @@ namespace Synergy
 				// the scrip ui until a person is selected, so start a timer and
 				// check
 				waitForUI_ = true;
-				waitForUITimer_ = CreateTimer(0.5f, WaitForUI, Timer.Repeat);
+				waitForUITimer_ = CreateTimer(0.5f, WaitForUI, UI.Timer.Repeat);
 			}
 		}
 
 		private void WaitForUI()
 		{
-			if (!global::Synergy.UI.Root.IsReady())
+			if (!UI.Root.IsReady())
 			{
 				// still not ready
 				return;
@@ -172,12 +173,12 @@ namespace Synergy
 			s.AddModifier(new ModifierContainer(new AudioModifier()));
 		}
 
-		public Timer CreateTimer(float seconds, Timer.Callback f, int flags = 0)
+		public UI.Timer CreateTimer(float seconds, UI.Timer.Callback f, int flags = 0)
 		{
 			return timers_.CreateTimer(seconds, f, flags);
 		}
 
-		public void RemoveTimer(Timer t)
+		public void RemoveTimer(UI.Timer t)
 		{
 			timers_.RemoveTimer(t);
 		}

@@ -1,10 +1,21 @@
 ﻿using System.Collections.Generic;
 
-namespace Synergy
+namespace SynergyUI
 {
 	class TimerManager
 	{
+		private static TimerManager instance_ = null;
 		private readonly List<Timer> timers_ = new List<Timer>();
+
+		public TimerManager()
+		{
+			instance_ = this;
+		}
+
+		public static TimerManager Instance
+		{
+			get { return instance_; }
+		}
 
 		public Timer CreateTimer(float seconds, Timer.Callback f, int flags = 0)
 		{

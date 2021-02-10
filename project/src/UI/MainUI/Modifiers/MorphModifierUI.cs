@@ -370,7 +370,7 @@ namespace Synergy
 				return;
 
 			progression_.Duration = d;
-			Synergy.Instance.UI.NeedsReset("morph natpro duration changed");
+			Synergy.Instance.MainUI.NeedsReset("morph natpro duration changed");
 		}
 	}
 

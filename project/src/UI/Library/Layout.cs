@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Synergy.UI
+namespace SynergyUI
 {
 	interface LayoutData
 	{
@@ -38,7 +38,7 @@ namespace Synergy.UI
 		{
 			if (Contains(w))
 			{
-				Synergy.LogError("layout already has widget " + w.Name);
+				Glue.LogError("layout already has widget " + w.Name);
 				return;
 			}
 
@@ -50,7 +50,7 @@ namespace Synergy.UI
 		{
 			if (!children_.Remove(w))
 			{
-				Synergy.LogError(
+				Glue.LogError(
 					"can't remove '" + w.Name + "' from layout, not found");
 
 				return;

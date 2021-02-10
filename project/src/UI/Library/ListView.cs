@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Synergy.UI
+namespace SynergyUI
 {
 	class ListView<ItemType> : TypedListImpl<ItemType>
 		where ItemType : class
@@ -28,7 +28,7 @@ namespace Synergy.UI
 		protected override GameObject CreateGameObject()
 		{
 			return UnityEngine.Object.Instantiate(
-				Synergy.Instance.manager.configurableScrollablePopupPrefab)
+				Glue.PluginManager.configurableScrollablePopupPrefab)
 					.gameObject;
 		}
 

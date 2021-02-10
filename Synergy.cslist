@@ -27,6 +27,7 @@ project\src\UI\Library\CheckBox.cs
 project\src\UI\Library\ColorPicker.cs
 project\src\UI\Library\ComboBox.cs
 project\src\UI\Library\Dialog.cs
+project\src\UI\Library\Glue.cs
 project\src\UI\Library\GridLayout.cs
 project\src\UI\Library\Label.cs
 project\src\UI\Library\Layout.cs
@@ -36,6 +37,7 @@ project\src\UI\Library\Slider.cs
 project\src\UI\Library\Style.cs
 project\src\UI\Library\Tabs.cs
 project\src\UI\Library\TextBox.cs
+project\src\UI\Library\Timer.cs
 project\src\UI\Library\Tooltip.cs
 project\src\UI\Library\Utilities.cs
 project\src\UI\Library\Widget.cs
@@ -90,5 +92,4 @@ project\src\Utilities\JsonUtilities.cs
 project\src\Utilities\Overlapper.cs
 project\src\Utilities\Parameters.cs
 project\src\Utilities\Range.cs
-project\src\Utilities\Timer.cs
 project\src\Utilities\Utilities.cs

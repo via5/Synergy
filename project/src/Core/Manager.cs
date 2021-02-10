@@ -270,7 +270,7 @@ namespace Synergy
 			{
 				if (Bits.IsSet(flags, Utilities.PresetReplace))
 				{
-					var s = Synergy.Instance.UI.CurrentStep;
+					var s = Synergy.Instance.MainUI.CurrentStep;
 					if (s == null)
 					{
 						Synergy.LogError("no current step");
@@ -289,7 +289,7 @@ namespace Synergy
 				}
 				else if (Bits.IsSet(flags, Utilities.PresetMerge))
 				{
-					var s = Synergy.Instance.UI.CurrentStep;
+					var s = Synergy.Instance.MainUI.CurrentStep;
 					if (s == null)
 					{
 						Synergy.LogError("no current step");
@@ -311,7 +311,7 @@ namespace Synergy
 			{
 				if (Bits.IsSet(flags, Utilities.PresetReplace))
 				{
-					var m = Synergy.Instance.UI.CurrentModifier;
+					var m = Synergy.Instance.MainUI.CurrentModifier;
 					if (m == null)
 					{
 						Synergy.LogError("no current modifier");
@@ -322,7 +322,7 @@ namespace Synergy
 				}
 				else if (Bits.IsSet(flags, Utilities.PresetAppend))
 				{
-					var s = Synergy.Instance.UI.CurrentStep;
+					var s = Synergy.Instance.MainUI.CurrentStep;
 					if (s == null)
 					{
 						Synergy.LogError("no current step");
@@ -352,7 +352,7 @@ namespace Synergy
 			}
 			else if (Bits.IsSet(flags, Utilities.StepPreset))
 			{
-				var s = Synergy.Instance.UI.CurrentStep;
+				var s = Synergy.Instance.MainUI.CurrentStep;
 				if (s == null)
 					return;
 
@@ -362,7 +362,7 @@ namespace Synergy
 			}
 			else if (Bits.IsSet(flags, Utilities.ModifierPreset))
 			{
-				var m = Synergy.Instance.UI.CurrentModifier;
+				var m = Synergy.Instance.MainUI.CurrentModifier;
 				if (m == null)
 					return;
 

@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Synergy.UI
+namespace SynergyUI
 {
 	class Tooltip
 	{
@@ -90,7 +90,7 @@ namespace Synergy.UI
 				Hide();
 				active_ = w;
 
-				timer_ = Synergy.Instance.CreateTimer(
+				timer_ = TimerManager.Instance.CreateTimer(
 					Style.Metrics.TooltipDelay, () =>
 					{
 						timer_ = null;

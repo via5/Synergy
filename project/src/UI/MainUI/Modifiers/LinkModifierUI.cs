@@ -69,7 +69,7 @@ namespace Synergy
 				return;
 
 			modifier_.RemoveController(mc_);
-			Synergy.Instance.UI.NeedsReset("link target removed");
+			Synergy.Instance.MainUI.NeedsReset("link target removed");
 		}
 
 		private void ControllerChanged(FreeControllerV3 fc)
@@ -195,7 +195,7 @@ namespace Synergy
 			modifier_.AddController(mc);
 			controllers_.Add(new LinkModifierControllerUI(modifier_, mc));
 
-			Synergy.Instance.UI.NeedsReset("link target added");
+			Synergy.Instance.MainUI.NeedsReset("link target added");
 		}
 	}
 }

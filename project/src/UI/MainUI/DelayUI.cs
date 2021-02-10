@@ -140,7 +140,7 @@ namespace Synergy
 			if (currentDelay_ != null)
 			{
 				currentDelay_.SingleDuration = d;
-				Synergy.Instance.UI.NeedsReset("single delay type changed");
+				Synergy.Instance.MainUI.NeedsReset("single delay type changed");
 			}
 		}
 
@@ -149,7 +149,7 @@ namespace Synergy
 			if (currentDelay_ != null)
 			{
 				currentDelay_.HalfwayDuration = d;
-				Synergy.Instance.UI.NeedsReset("halfway delay type changed");
+				Synergy.Instance.MainUI.NeedsReset("halfway delay type changed");
 			}
 		}
 
@@ -158,7 +158,7 @@ namespace Synergy
 			if (currentDelay_ != null)
 			{
 				currentDelay_.EndForwardsDuration = d;
-				Synergy.Instance.UI.NeedsReset("end forwards delay type changed");
+				Synergy.Instance.MainUI.NeedsReset("end forwards delay type changed");
 			}
 		}
 
@@ -167,7 +167,7 @@ namespace Synergy
 			if (currentDelay_ != null)
 			{
 				currentDelay_.EndBackwardsDuration = d;
-				Synergy.Instance.UI.NeedsReset("end backwards delay type changed");
+				Synergy.Instance.MainUI.NeedsReset("end backwards delay type changed");
 			}
 		}
 
@@ -194,7 +194,7 @@ namespace Synergy
 			if (currentDelay_ != null)
 			{
 				currentDelay_.SameDelay = b;
-				Synergy.Instance.UI.NeedsReset("same delay changed");
+				Synergy.Instance.MainUI.NeedsReset("same delay changed");
 			}
 		}
 	}

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.RegularExpressions;
+using UI = SynergyUI;
 
 namespace Synergy
 {
@@ -197,7 +197,7 @@ namespace Synergy
 		private readonly MorphCategory root_;
 		private readonly Textbox search_;
 		private readonly StringList show_;
-		private Timer searchTimer_ = null;
+		private UI.Timer searchTimer_ = null;
 		private bool dirty_ = true;
 		private HashSet<DAZMorph> selection_ = new HashSet<DAZMorph>();
 
@@ -372,7 +372,7 @@ namespace Synergy
 		{
 			searchTimer_ = null;
 			dirty_ = true;
-			sc_.UI.NeedsReset("morph search changed");
+			sc_.MainUI.NeedsReset("morph search changed");
 		}
 
 		private void UpdateList()

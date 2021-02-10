@@ -173,7 +173,7 @@ namespace Synergy
 					Synergy.Instance.Manager.LoadPreset(
 						path, Utilities.FullPreset | flags);
 
-					Synergy.Instance.UI.NeedsReset("complete preset loaded");
+					Synergy.Instance.MainUI.NeedsReset("complete preset loaded");
 				},
 				Utilities.CompletePresetExtension, Utilities.PresetSavePath,
 				false, true, false, null, false, shortcuts);
@@ -225,7 +225,7 @@ namespace Synergy
 					Synergy.Instance.Manager.LoadPreset(
 						path, Utilities.StepPreset | flags);
 
-					Synergy.Instance.UI.NeedsReset("step preset loaded");
+					Synergy.Instance.MainUI.NeedsReset("step preset loaded");
 				},
 				Utilities.StepPresetExtension, Utilities.PresetSavePath,
 				false, true, false, null, false, shortcuts);
@@ -277,7 +277,7 @@ namespace Synergy
 					Synergy.Instance.Manager.LoadPreset(
 						path, Utilities.ModifierPreset | flags);
 
-					Synergy.Instance.UI.NeedsReset("modifier preset loaded");
+					Synergy.Instance.MainUI.NeedsReset("modifier preset loaded");
 				},
 				Utilities.ModifierPresetExtension, Utilities.PresetSavePath,
 				false, true, false, null, false, shortcuts);
@@ -297,12 +297,12 @@ namespace Synergy
 		private void PickAnimatableChanged(bool b)
 		{
 			options_.PickAnimatable = b;
-			Synergy.Instance.UI.NeedsReset("pick animatable changed");
+			Synergy.Instance.MainUI.NeedsReset("pick animatable changed");
 		}
 
 		private void ManageAnimatables()
 		{
-			Synergy.Instance.UI.ToggleManageAnimatables();
+			Synergy.Instance.MainUI.ToggleManageAnimatables();
 		}
 
 		private void OverlapTimeChanged(float f)

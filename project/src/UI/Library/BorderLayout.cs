@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Synergy.UI
+namespace SynergyUI
 {
 	class BorderLayout : Layout
 	{
@@ -71,7 +71,7 @@ namespace Synergy.UI
 
 			if (d.side < 0 || d.side > 5)
 			{
-				Synergy.LogError(
+				Glue.LogError(
 					"bad border layout side " + d.side.ToString());
 
 				return;
@@ -89,7 +89,7 @@ namespace Synergy.UI
 					return;
 			}
 
-			Synergy.LogError(
+			Glue.LogError(
 				"border layout: can't remove '" + w.Name + "', not found");
 		}
 

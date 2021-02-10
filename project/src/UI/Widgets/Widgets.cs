@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using System.Collections.Generic;
 using System;
+using UI = SynergyUI;
 
 namespace Synergy
 {
@@ -640,7 +641,7 @@ namespace Synergy
 			{
 				if (inCallback_)
 				{
-					Synergy.Instance.CreateTimer(Timer.Immediate, () =>
+					Synergy.Instance.CreateTimer(UI.Timer.Immediate, () =>
 					{
 						Value = value;
 					});
@@ -684,7 +685,7 @@ namespace Synergy
 
 			if (oldCaret_ != -1)
 			{
-				Synergy.Instance.CreateTimer(Timer.Immediate, () =>
+				Synergy.Instance.CreateTimer(UI.Timer.Immediate, () =>
 				{
 					input_.caretPosition = oldCaret_;
 					input_.selectionAnchorPosition = oldAnchor_;

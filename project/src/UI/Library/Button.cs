@@ -1,8 +1,8 @@
-﻿using System;
+﻿using UI = SynergyUI;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Synergy.UI
+namespace SynergyUI
 {
 	class Button : Widget
 	{
@@ -124,7 +124,7 @@ namespace Synergy.UI
 		protected override GameObject CreateGameObject()
 		{
 			return UnityEngine.Object.Instantiate(
-				Synergy.Instance.manager.configurableButtonPrefab).gameObject;
+				Glue.PluginManager.configurableButtonPrefab).gameObject;
 		}
 
 		protected override void DoCreate()

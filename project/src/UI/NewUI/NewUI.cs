@@ -1,4 +1,6 @@
-﻿namespace Synergy.NewUI
+﻿using UI = SynergyUI;
+
+namespace Synergy.NewUI
 {
 	class NewUI
 	{

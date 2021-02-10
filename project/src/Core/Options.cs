@@ -112,7 +112,7 @@ namespace Synergy
 		public void SetNewUI(bool b)
 		{
 			newUI_ = b;
-			Synergy.Instance.UI.NeedsReset("new ui " + b.ToString());
+			Synergy.Instance.MainUI.NeedsReset("new ui " + b.ToString());
 		}
 
 		public J.Node ToJSON()

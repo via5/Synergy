@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace Synergy.UI
+namespace SynergyUI
 {
 	class CheckBox : Widget
 	{
@@ -43,7 +43,7 @@ namespace Synergy.UI
 		protected override GameObject CreateGameObject()
 		{
 			return UnityEngine.Object.Instantiate(
-				Synergy.Instance.manager.configurableTogglePrefab).gameObject;
+				Glue.PluginManager.configurableTogglePrefab).gameObject;
 		}
 
 		protected override void DoCreate()

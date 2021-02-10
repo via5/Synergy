@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using UnityEngine;
+using UI = SynergyUI;
 
 namespace Synergy.NewUI
 {
@@ -174,7 +174,7 @@ namespace Synergy.NewUI
 		private AudioModifier modifier_ = null;
 		private bool active_ = false;
 		private bool dirty_ = true;
-		private Timer timer_ = null;
+		private UI.Timer timer_ = null;
 		private int timerTries_ = 0;
 		private readonly List<ClipItem> needsUpdate_ = new List<ClipItem>();
 		private readonly IgnoreFlag ignore_ = new IgnoreFlag();
@@ -456,7 +456,7 @@ namespace Synergy.NewUI
 	{
 		private NamedAudioClip clip_ = null;
 		private AudioSourceControl source_ = null;
-		private Timer timer_ = null;
+		private UI.Timer timer_ = null;
 
 		private readonly UI.Label current_ = new UI.Label();
 		private readonly UI.Slider seek_ = new UI.Slider();
@@ -480,7 +480,7 @@ namespace Synergy.NewUI
 			seek_.ValueChanged += OnSeek;
 
 			timer_ = Synergy.Instance.CreateTimer(
-				0.1f, OnTimer, Timer.Repeat);
+				0.1f, OnTimer, UI.Timer.Repeat);
 		}
 
 		public AudioSourceControl AudioSource

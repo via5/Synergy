@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Experimental.PlayerLoop;
 using UnityEngine.UI;
 
-namespace Synergy.UI
+namespace SynergyUI
 {
 	class TypedListImpl<ItemType> : Widget
 		where ItemType : class
@@ -335,7 +334,7 @@ namespace Synergy.UI
 				}
 
 				if (sel == -1)
-					Synergy.LogError("combobox: selected item '" + s + "' not found");
+					Glue.LogError("combobox: selected item '" + s + "' not found");
 
 				Select(sel);
 			});
@@ -446,7 +445,7 @@ namespace Synergy.UI
 		protected override GameObject CreateGameObject()
 		{
 			return UnityEngine.Object.Instantiate(
-				Synergy.Instance.manager.configurableFilterablePopupPrefab).gameObject;
+				Glue.PluginManager.configurableFilterablePopupPrefab).gameObject;
 		}
 
 		protected override void DoCreate()
@@ -543,7 +542,7 @@ namespace Synergy.UI
 			{
 				// the popup hasn't processed the event yet and it will steal
 				// focus when it does, so focus the filter after that
-				Synergy.Instance.CreateTimer(Timer.Immediate, () =>
+				TimerManager.Instance.CreateTimer(Timer.Immediate, () =>
 				{
 					filter_.Focus();
 				});

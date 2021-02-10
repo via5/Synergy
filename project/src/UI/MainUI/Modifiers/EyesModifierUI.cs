@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UI = SynergyUI;
 
 namespace Synergy
 {
@@ -329,7 +330,7 @@ namespace Synergy
 				return;
 
 			modifier_.RemoveTarget(container_);
-			Synergy.Instance.UI.NeedsReset("eyes target removed");
+			Synergy.Instance.MainUI.NeedsReset("eyes target removed");
 		}
 
 		private void TypeChanged(IEyesTarget t)
@@ -341,7 +342,7 @@ namespace Synergy
 			stale_ = true;
 			NameChanged();
 
-			Synergy.Instance.UI.NeedsReset("eyes target type changed");
+			Synergy.Instance.MainUI.NeedsReset("eyes target type changed");
 		}
 
 		private void UpdateWidgets()
@@ -620,7 +621,7 @@ namespace Synergy
 			var t = modifier_.AddTarget();
 			targets_.Add(new EyesModifierTargetUIContainer(modifier_, t));
 
-			Synergy.Instance.UI.NeedsReset("eyes target added");
+			Synergy.Instance.MainUI.NeedsReset("eyes target added");
 		}
 
 		private void PreviewsChanged(bool b)
@@ -1080,7 +1081,7 @@ namespace Synergy
 		private EyesModifier modifier_ = null;
 		private readonly List<EyesPreviewContainer> previews_ =
 			new List<EyesPreviewContainer>();
-		private Timer timer_ = null;
+		private UI.Timer timer_ = null;
 
 		public EyesPreviews()
 		{
@@ -1148,7 +1149,7 @@ namespace Synergy
 				return;
 
 			timer_ = Synergy.Instance.CreateTimer(
-				0.1f, () => Update(), Timer.Repeat);
+				0.1f, () => Update(), UI.Timer.Repeat);
 
 			foreach (var t in modifier_.Targets)
 				previews_.Add(new EyesPreviewContainer());

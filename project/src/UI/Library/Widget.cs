@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace Synergy.UI
+namespace SynergyUI
 {
 	class BorderGraphics : MaskableGraphic
 	{
@@ -198,7 +198,7 @@ namespace Synergy.UI
 
 		public static string S(string s, params object[] ps)
 		{
-			return Strings.Get(s, ps);
+			return Glue.GetString(s, ps);
 		}
 
 		public Layout Layout
@@ -563,7 +563,7 @@ namespace Synergy.UI
 		}
 
 
-		public void AddGeneric(UI.IWidget w, LayoutData d = null)
+		public void AddGeneric(IWidget w, LayoutData d = null)
 		{
 			Add((Widget)w, d);
 		}
@@ -582,7 +582,7 @@ namespace Synergy.UI
 		{
 			if (!children_.Remove(w))
 			{
-				Synergy.LogError(
+				Glue.LogError(
 					"can't remove widget '" + w.Name + "' from " +
 					"'" + Name + "', not found");
 
@@ -601,7 +601,7 @@ namespace Synergy.UI
 		{
 			if (parent_ == null)
 			{
-				Synergy.LogError("can't remove '" + Name + ", no parent");
+				Glue.LogError("can't remove '" + Name + ", no parent");
 				return;
 			}
 
@@ -719,7 +719,7 @@ namespace Synergy.UI
 
 		public void Dump(int indent = 0)
 		{
-			Synergy.LogError(new string(' ', indent * 2) + DebugLine);
+			Glue.LogError(new string(' ', indent * 2) + DebugLine);
 
 			foreach (var w in children_)
 				w.Dump(indent + 1);

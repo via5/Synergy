@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEditor;
 
-namespace Synergy.UI
+namespace SynergyUI
 {
 	class MouseHandler : MonoBehaviour, IPointerClickHandler, IPointerUpHandler, IPointerDownHandler
 	{
@@ -138,7 +138,7 @@ namespace Synergy.UI
 			floating_ = new RootPanel(this);
 			tooltips_ = new TooltipManager(this);
 
-			var scriptUI = Synergy.Instance.UITransform.GetComponentInChildren<MVRScriptUI>();
+			var scriptUI = Glue.ScriptUI;
 
 			AttachTo(scriptUI);
 			Style.SetupRoot(scriptUI);
@@ -148,8 +148,7 @@ namespace Synergy.UI
 		{
 			if (scrollViewRT_ == null)
 			{
-				var scriptUI = Synergy.Instance.UITransform
-					.GetComponentInChildren<MVRScriptUI>();
+				var scriptUI = Glue.ScriptUI;
 
 				if (scriptUI == null)
 					return false;
@@ -173,7 +172,7 @@ namespace Synergy.UI
 			var scrollView = scriptUI.GetComponentInChildren<ScrollRect>();
 			if (scrollView == null)
 			{
-				Synergy.LogError("no scrollrect in attach");
+				Glue.LogError("no scrollrect in attach");
 				return;
 			}
 
@@ -190,14 +189,14 @@ namespace Synergy.UI
 
 			var image = scriptUI.GetComponentInChildren<Image>();
 			if (image == null)
-				Synergy.LogError("no image in attach");
+				Glue.LogError("no image in attach");
 			else
 				canvas_ = image.canvas;
 
 			var text = scriptUI.GetComponentInChildren<Text>();
 			if (text == null)
 			{
-				Synergy.LogError("no text in attach");
+				Glue.LogError("no text in attach");
 			}
 			else
 			{
@@ -208,7 +207,7 @@ namespace Synergy.UI
 
 		public void Destroy()
 		{
-			var scriptUI = Synergy.Instance.UITransform.GetComponentInChildren<MVRScriptUI>();
+			var scriptUI = Glue.ScriptUI;
 			Style.RevertRoot(scriptUI);
 
 			content_?.Destroy();
@@ -256,7 +255,7 @@ namespace Synergy.UI
 
 				var t = Time.realtimeSinceStartup - start;
 
-				Synergy.LogVerbose("layout: " + t.ToString("0.000") + "s");
+				Glue.LogVerbose("layout: " + t.ToString("0.000") + "s");
 
 				dirty_ = false;
 			}
@@ -266,7 +265,7 @@ namespace Synergy.UI
 		{
 			if (!dirty_)
 			{
-				Synergy.LogVerbose("needs layout: " + why);
+				Glue.LogVerbose("needs layout: " + why);
 				dirty_ = true;
 			}
 		}

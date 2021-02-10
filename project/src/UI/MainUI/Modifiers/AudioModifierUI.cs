@@ -103,7 +103,7 @@ namespace Synergy
 			if (modifier_ != null)
 			{
 				modifier_.Delay = d;
-				Synergy.Instance.UI.NeedsReset("audio delay type changed");
+				Synergy.Instance.MainUI.NeedsReset("audio delay type changed");
 			}
 		}
 

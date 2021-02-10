@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UI = SynergyUI;
 
 namespace Synergy.NewUI
 {

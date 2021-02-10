@@ -159,7 +159,7 @@ namespace Synergy
 				if (currentModifier_.ParentStep != null)
 				{
 					currentModifier_.ParentStep.DeleteModifier(currentModifier_);
-					Synergy.Instance.UI.NeedsReset("modifier deleted");
+					Synergy.Instance.MainUI.NeedsReset("modifier deleted");
 				}
 			}
 		}
@@ -234,7 +234,7 @@ namespace Synergy
 				return;
 
 			currentModifier_.ModifierSync = s;
-			Synergy.Instance.UI.NeedsReset("modifier sync type changed");
+			Synergy.Instance.MainUI.NeedsReset("modifier sync type changed");
 		}
 
 		private void EnabledChanged(bool b)
@@ -378,7 +378,7 @@ namespace Synergy
 				return;
 
 			unsynced_.Duration = d;
-			Synergy.Instance.UI.NeedsReset("modifier sync duration changed");
+			Synergy.Instance.MainUI.NeedsReset("modifier sync duration changed");
 		}
 
 		private void CopyToAll()
@@ -500,7 +500,7 @@ namespace Synergy
 				{
 					sync_.OtherModifierContainer = mc;
 
-					Synergy.Instance.UI.NeedsReset(
+					Synergy.Instance.MainUI.NeedsReset(
 						"modifier sync with modifier changed");
 
 					return;

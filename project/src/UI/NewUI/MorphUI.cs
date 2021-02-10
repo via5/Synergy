@@ -1,4 +1,4 @@
-﻿using Synergy.UI;
+﻿using UI = SynergyUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -115,14 +115,14 @@ namespace Synergy.NewUI
 				IMorphProgression,
 				MorphProgressionUIFactory>();
 
-			Layout = new BorderLayout(20);
+			Layout = new UI.BorderLayout(20);
 
-			var p = new Panel(new HorizontalFlow(20));
+			var p = new UI.Panel(new UI.HorizontalFlow(20));
 			p.Add(new UI.Label(S("Progression type")));
 			p.Add(type_);
 
-			Add(p, BorderLayout.Top);
-			Add(ui_, BorderLayout.Center);
+			Add(p, UI.BorderLayout.Top);
+			Add(ui_, UI.BorderLayout.Center);
 		}
 
 		public void Set(MorphModifier m)
@@ -193,7 +193,7 @@ namespace Synergy.NewUI
 			Add(new UI.Label(S(
 				"Morphs will use their own copy of the duration and " +
 				"delay set below.")),
-				BorderLayout.Top);
+				UI.BorderLayout.Top);
 			Add(tabs_);
 
 
@@ -231,7 +231,7 @@ namespace Synergy.NewUI
 			Layout = new UI.BorderLayout();
 			Add(new UI.Label(
 				S("All morphs will be set concurrently.")),
-				BorderLayout.Top);
+				UI.BorderLayout.Top);
 		}
 
 		public void Set(IMorphProgression o)
@@ -251,14 +251,14 @@ namespace Synergy.NewUI
 
 		public OrderedMorphProgressionUI(string text)
 		{
-			hold_ = new CheckBox(S("Hold halfway"), OnHoldHawayChanged);
+			hold_ = new UI.CheckBox(S("Hold halfway"), OnHoldHawayChanged);
 
 			var p = new UI.Panel(new UI.VerticalFlow(20));
 			p.Add(hold_);
 
 			Layout = new UI.BorderLayout(40);
-			Add(new UI.Label(text), BorderLayout.Top);
-			Add(p, BorderLayout.Center);
+			Add(new UI.Label(text), UI.BorderLayout.Top);
+			Add(p, UI.BorderLayout.Center);
 		}
 
 		public void Set(IMorphProgression o)
@@ -491,7 +491,7 @@ namespace Synergy.NewUI
 		public event StringCallback SearchChanged;
 
 		private readonly UI.TextBox textbox_;
-		private Timer timer_ = null;
+		private UI.Timer timer_ = null;
 
 		public SearchTextBox()
 		{
@@ -1050,10 +1050,10 @@ namespace Synergy.NewUI
 			search_.SearchChanged += OnSearchChanged;
 			top.Add(search_);
 
-			onlyLatest_ = new CheckBox("Latest", OnLatestChanged, true);
+			onlyLatest_ = new UI.CheckBox("Latest", OnLatestChanged, true);
 			top.Add(onlyLatest_);
 
-			onlyFavorites_ = new CheckBox("Favorites", OnFavoritesChanged);
+			onlyFavorites_ = new UI.CheckBox("Favorites", OnFavoritesChanged);
 			top.Add(onlyFavorites_);
 
 			var mainPanel = new UI.Panel();

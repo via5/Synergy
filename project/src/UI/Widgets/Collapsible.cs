@@ -111,7 +111,7 @@ namespace Synergy
 			callback_?.Invoke(Expanded);
 			UpdateButton();
 
-			sc_.UI.NeedsReset(
+			sc_.MainUI.NeedsReset(
 				"collapsible " + Text + " " +
 				(Expanded ? "expanded" : "collapsed"));
 		}

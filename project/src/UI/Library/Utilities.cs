@@ -1,9 +1,58 @@
-﻿using Leap.Unity;
-using System;
+﻿using System;
 using UnityEngine;
 
-namespace Synergy.UI
+namespace SynergyUI
 {
+	class Bits
+	{
+		public static bool IsSet(int flag, int bits)
+		{
+			return ((flag & bits) == bits);
+		}
+	}
+
+	public class IgnoreFlag
+	{
+		private bool ignore_ = false;
+
+		public static implicit operator bool(IgnoreFlag f)
+		{
+			return f.ignore_;
+		}
+
+		public void Do(Action a)
+		{
+			try
+			{
+				ignore_ = true;
+				a();
+			}
+			finally
+			{
+				ignore_ = false;
+			}
+		}
+	}
+
+	public class ScopedFlag : IDisposable
+	{
+		private readonly Action<bool> a_;
+		private readonly bool start_;
+
+		public ScopedFlag(Action<bool> a, bool start = true)
+		{
+			a_ = a;
+			start_ = start;
+
+			a_(start_);
+		}
+
+		public void Dispose()
+		{
+			a_(!start_);
+		}
+	}
+
 	class Utilities
 	{
 		public const string AddSymbol = "+";
@@ -22,7 +71,7 @@ namespace Synergy.UI
 			}
 			catch (Exception e)
 			{
-				Synergy.LogError(e.ToString());
+				Glue.LogError(e.ToString());
 			}
 		}
 
@@ -144,7 +193,7 @@ namespace Synergy.UI
 		public static void DumpComponents(GameObject o, int indent = 0)
 		{
 			foreach (var c in o.GetComponents(typeof(Component)))
-				Synergy.LogError(new string(' ', indent * 2) + c.ToString());
+				Glue.LogError(new string(' ', indent * 2) + c.ToString());
 		}
 
 		public static void DumpComponentsAndUp(Component c)
@@ -154,21 +203,21 @@ namespace Synergy.UI
 
 		public static void DumpComponentsAndUp(GameObject o)
 		{
-			Synergy.LogError(o.name);
+			Glue.LogError(o.name);
 
 			var rt = o.GetComponent<RectTransform>();
 			if (rt != null)
 			{
-				Synergy.LogError("  rect: " + rt.rect.ToString());
-				Synergy.LogError("  offsetMin: " + rt.offsetMin.ToString());
-				Synergy.LogError("  offsetMax: " + rt.offsetMax.ToString());
-				Synergy.LogError("  anchorMin: " + rt.anchorMin.ToString());
-				Synergy.LogError("  anchorMax: " + rt.anchorMax.ToString());
-				Synergy.LogError("  anchorPos: " + rt.anchoredPosition.ToString());
+				Glue.LogError("  rect: " + rt.rect.ToString());
+				Glue.LogError("  offsetMin: " + rt.offsetMin.ToString());
+				Glue.LogError("  offsetMax: " + rt.offsetMax.ToString());
+				Glue.LogError("  anchorMin: " + rt.anchorMin.ToString());
+				Glue.LogError("  anchorMax: " + rt.anchorMax.ToString());
+				Glue.LogError("  anchorPos: " + rt.anchoredPosition.ToString());
 			}
 
 			DumpComponents(o);
-			Synergy.LogError("---");
+			Glue.LogError("---");
 
 			var parent = o?.transform?.parent?.gameObject;
 			if (parent != null)
@@ -183,19 +232,19 @@ namespace Synergy.UI
 		public static void DumpComponentsAndDown(
 			GameObject o, bool dumpRt = false, int indent = 0)
 		{
-			Synergy.LogError(new string(' ', indent * 2) + o.name);
+			Glue.LogError(new string(' ', indent * 2) + o.name);
 
 			if (dumpRt)
 			{
 				var rt = o.GetComponent<RectTransform>();
 				if (rt != null)
 				{
-					Synergy.LogError(new string(' ', indent * 2) + "->rect: " + rt.rect.ToString());
-					Synergy.LogError(new string(' ', indent * 2) + "->offsetMin: " + rt.offsetMin.ToString());
-					Synergy.LogError(new string(' ', indent * 2) + "->offsetMax: " + rt.offsetMax.ToString());
-					Synergy.LogError(new string(' ', indent * 2) + "->anchorMin: " + rt.anchorMin.ToString());
-					Synergy.LogError(new string(' ', indent * 2) + "->anchorMax: " + rt.anchorMax.ToString());
-					Synergy.LogError(new string(' ', indent * 2) + "->anchorPos: " + rt.anchoredPosition.ToString());
+					Glue.LogError(new string(' ', indent * 2) + "->rect: " + rt.rect.ToString());
+					Glue.LogError(new string(' ', indent * 2) + "->offsetMin: " + rt.offsetMin.ToString());
+					Glue.LogError(new string(' ', indent * 2) + "->offsetMax: " + rt.offsetMax.ToString());
+					Glue.LogError(new string(' ', indent * 2) + "->anchorMin: " + rt.anchorMin.ToString());
+					Glue.LogError(new string(' ', indent * 2) + "->anchorMax: " + rt.anchorMax.ToString());
+					Glue.LogError(new string(' ', indent * 2) + "->anchorPos: " + rt.anchoredPosition.ToString());
 				}
 			}
 
@@ -219,11 +268,11 @@ namespace Synergy.UI
 
 			if (rt == null)
 			{
-				Synergy.LogError(new string(' ', indent * 2) + o.name);
+				Glue.LogError(new string(' ', indent * 2) + o.name);
 			}
 			else
 			{
-				Synergy.LogError(new string(' ', indent * 2) + o.name + " " +
+				Glue.LogError(new string(' ', indent * 2) + o.name + " " +
 					"omin=" + rt.offsetMin.ToString() + " " +
 					"omax=" + rt.offsetMax.ToString() + " " +
 					"amin=" + rt.anchorMin.ToString() + " " +
@@ -237,7 +286,7 @@ namespace Synergy.UI
 
 		public static void DumpChildren(GameObject o, int indent = 0)
 		{
-			Synergy.LogError(new string(' ', indent * 2) + o.name);
+			Glue.LogError(new string(' ', indent * 2) + o.name);
 
 			foreach (Transform c in o.transform)
 				DumpChildren(c.gameObject, indent + 1);

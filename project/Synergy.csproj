@@ -76,6 +76,7 @@
     <Compile Include="src\UI\Library\ColorPicker.cs" />
     <Compile Include="src\UI\Library\ComboBox.cs" />
     <Compile Include="src\UI\Library\Dialog.cs" />
+    <Compile Include="src\UI\Library\Glue.cs" />
     <Compile Include="src\UI\Library\GridLayout.cs" />
     <Compile Include="src\UI\Library\Label.cs" />
     <Compile Include="src\UI\Library\Layout.cs" />
@@ -85,6 +86,7 @@
     <Compile Include="src\UI\Library\Style.cs" />
     <Compile Include="src\UI\Library\Tabs.cs" />
     <Compile Include="src\UI\Library\TextBox.cs" />
+    <Compile Include="src\UI\Library\Timer.cs" />
     <Compile Include="src\UI\Library\Tooltip.cs" />
     <Compile Include="src\UI\Library\Utilities.cs" />
     <Compile Include="src\UI\Library\Widget.cs" />
@@ -140,7 +142,6 @@
     <Compile Include="src\Utilities\Overlapper.cs" />
     <Compile Include="src\Utilities\Parameters.cs" />
     <Compile Include="src\Utilities\Range.cs" />
-    <Compile Include="src\Utilities\Timer.cs" />
     <Compile Include="src\Utilities\Utilities.cs" />
   </ItemGroup>
   <ItemGroup>

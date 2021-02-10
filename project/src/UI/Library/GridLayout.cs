@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Synergy.UI
+namespace SynergyUI
 {
 	class GridLayout : Layout
 	{
@@ -246,13 +246,13 @@ namespace Synergy.UI
 
 			if (d.row < 0)
 			{
-				Synergy.LogError("gridlayout: bad row");
+				Glue.LogError("gridlayout: bad row");
 				return;
 			}
 
 			if (d.col < 0)
 			{
-				Synergy.LogError("gridlayout: bad col");
+				Glue.LogError("gridlayout: bad col");
 				return;
 			}
 
