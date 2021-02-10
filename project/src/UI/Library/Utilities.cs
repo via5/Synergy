@@ -107,6 +107,14 @@ namespace SynergyUI
 			}
 		}
 
+		public static void TimeThis(string what, Action a)
+		{
+			var start = Time.realtimeSinceStartup;
+			a();
+			var end = Time.realtimeSinceStartup;
+			Glue.LogError(what + ": " + (end - start) + "s");
+		}
+
 		public static void BringToTop(GameObject o)
 		{
 			BringToTop(o.transform);

@@ -275,20 +275,12 @@ namespace SynergyUI
 
 			using (new ScopedFlag((b) => updatingChoices_ = b))
 			{
-				var display = new List<string>();
-				var hashes = new List<string>();
-
-				foreach (var i in items_)
+				popup_.popup.numPopupValues = items_.Count;
+				for (int i = 0; i < items_.Count; ++i)
 				{
-					display.Add(i.Text);
-					hashes.Add(i.GetHashCode().ToString());
-				}
-
-				popup_.popup.numPopupValues = display.Count;
-				for (int i = 0; i < display.Count; ++i)
-				{
-					popup_.popup.setDisplayPopupValue(i, display[i]);
-					popup_.popup.setPopupValue(i, hashes[i]);
+					var item = items_[i];
+					popup_.popup.setDisplayPopupValue(i, item.Text);
+					popup_.popup.setPopupValue(i, item.GetHashCode().ToString());
 				}
 			}
 		}
@@ -553,7 +545,7 @@ namespace SynergyUI
 
 		Transform FilterParent()
 		{
-			return Utilities.FindChildRecursive(Popup.popup, "PopupPanel").transform;
+			return Utilities.FindChildRecursive(Popup.popup, "PopupPanel")?.transform;
 		}
 
 		private void UpdateFilterBounds()
@@ -562,6 +554,9 @@ namespace SynergyUI
 				return;
 
 			var parent = FilterParent();
+			if (parent == null)
+				return;
+
 			var rt = parent.GetComponent<RectTransform>();
 			var r = rt.rect;
 			var h = filter_.GetRealPreferredSize(DontCare, DontCare).Height;

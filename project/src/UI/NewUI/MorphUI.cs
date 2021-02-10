@@ -546,6 +546,14 @@ namespace Synergy.NewUI
 			var pat = Regex.Escape(searchText).Replace("\\*", ".*");
 			this.search = new Regex(pat, RegexOptions.IgnoreCase);
 		}
+
+		public bool Restricted
+		{
+			get
+			{
+				return (searchText != "" || Bits.IsSet(flags, FavoritesOnly));
+			}
+		}
 	}
 
 
@@ -712,7 +720,6 @@ namespace Synergy.NewUI
 			}
 
 			cats_.AddRange(d.Values.ToList());
-
 			Utilities.NatSort(cats_);
 
 			var all = new Category("");
@@ -768,13 +775,66 @@ namespace Synergy.NewUI
 			}
 		}
 
+		public class DummyMorph : Morph
+		{
+			private string s_;
+
+			public DummyMorph(string s)
+				: base(null)
+			{
+				s_ = s;
+			}
+
+			public override string ToString()
+			{
+				return s_;
+			}
+		}
+
+		class MorphList
+		{
+			private readonly List<Morph> list_ = new List<Morph>();
+			private bool mustSort_ = false;
+
+			public Morph Find(DAZMorph m)
+			{
+				foreach (var s in list_)
+				{
+					if (s.morph == m)
+						return s;
+				}
+
+				return null;
+			}
+
+			public void Add(Morph m)
+			{
+				list_.Add(m);
+				mustSort_ = true;
+			}
+
+			public List<Morph> SortedList
+			{
+				get
+				{
+					if (mustSort_)
+					{
+						Utilities.NatSort(list_);
+						mustSort_ = false;
+					}
+
+					return list_;
+				}
+			}
+		}
+
 
 		public delegate void MorphCallback(Morph m);
 		public event MorphCallback MorphSelected;
 
 		private readonly UI.ListView<Morph> list_;
-		private readonly Dictionary<string, List<Morph>> morphs_ =
-			new Dictionary<string, List<Morph>>();
+		private readonly Dictionary<string, MorphList> morphs_ =
+			new Dictionary<string, MorphList>();
 		private MorphFilter filter_;
 		private Atom atom_ = null;
 
@@ -834,20 +894,14 @@ namespace Synergy.NewUI
 		{
 			var cat = MorphCategoryListView.MakeCategoryName(m);
 
-			List<Morph> list = null;
+			MorphList list = null;
 			if (!morphs_.TryGetValue(cat, out list))
 			{
 				Synergy.LogError("can't find category '" + cat + "'");
 				return null;
 			}
 
-			foreach (var s in list)
-			{
-				if (s.morph == m)
-					return s;
-			}
-
-			return null;
+			return list.Find(m);
 		}
 
 		private bool ShouldShow(string category, MorphFilter filter, Morph m)
@@ -895,11 +949,6 @@ namespace Synergy.NewUI
 			return false;
 		}
 
-		public void Clear()
-		{
-			list_.Clear();
-		}
-
 		public void Update(Atom atom, string category, MorphFilter filter)
 		{
 			if (morphs_.Count == 0 || atom_ != atom)
@@ -917,25 +966,32 @@ namespace Synergy.NewUI
 			}
 			else if (category == "")
 			{
-				// all
-				foreach (var pair in morphs_)
+				if (filter.Restricted)
 				{
-					foreach (var m in pair.Value)
+					// all
+					foreach (var pair in morphs_)
 					{
-						if (!ShouldShow(category, filter, m))
-							continue;
+						foreach (var m in pair.Value.SortedList)
+						{
+							if (!ShouldShow(category, filter, m))
+								continue;
 
-						items.Add(m);
+							items.Add(m);
+						}
 					}
+				}
+				else
+				{
+					items.Add(new DummyMorph(Strings.Get("(only for search)")));
 				}
 			}
 			else
 			{
-				List<Morph> list = null;
+				MorphList list = null;
 
 				if (morphs_.TryGetValue(category, out list))
 				{
-					foreach (var m in list)
+					foreach (var m in list.SortedList)
 					{
 						if (!ShouldShow(category, filter, m))
 							continue;
@@ -964,19 +1020,16 @@ namespace Synergy.NewUI
 			{
 				var cat = MorphCategoryListView.MakeCategoryName(morph);
 
-				List<Morph> list = null;
+				MorphList list = null;
 
 				if (!morphs_.TryGetValue(cat, out list))
 				{
-					list = new List<Morph>();
+					list = new MorphList();
 					morphs_.Add(cat, list);
 				}
 
 				list.Add(new Morph(morph));
 			}
-
-			foreach (var m in morphs_)
-				Utilities.NatSort(m.Value);
 		}
 
 		private void OnSelection(Morph m)
@@ -1148,12 +1201,12 @@ namespace Synergy.NewUI
 		{
 			var m = morphs_.Selected;
 
-			if (m != null && m.active)
+			if (m?.morph != null && m.active)
 				toggle_.Text = S("Remove morph");
 			else
 				toggle_.Text = S("Add morph");
 
-			toggle_.Enabled = (m != null);
+			toggle_.Enabled = (m?.morph != null);
 		}
 
 		private MorphFilter CreateFilter()
