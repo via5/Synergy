@@ -175,7 +175,7 @@ namespace Synergy
 			if (Synergy.Instance.Options.NewUI)
 			{
 				if (nui_ == null)
-					nui_ = new NewUI.NewUI();
+					nui_ = NewUI.NewUI.Create();
 			}
 			else
 			{

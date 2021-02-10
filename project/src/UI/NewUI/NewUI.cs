@@ -20,7 +20,21 @@ namespace Synergy.NewUI
 			return Strings.Get(s);
 		}
 
-		public NewUI()
+		public static NewUI Create()
+		{
+			UI.Glue.Set(
+				() => Synergy.Instance.manager,
+				() => Synergy.Instance.UITransform.GetComponentInChildren<MVRScriptUI>(),
+				(s, ps) => Strings.Get(s, ps),
+				(s) => Synergy.LogVerbose(s),
+				(s) => Synergy.LogInfo(s),
+				(s) => Synergy.LogWarning(s),
+				(s) => Synergy.LogError(s));
+
+			return new NewUI();
+		}
+
+		private NewUI()
 		{
 			tabs_.AddTab(S("Welcome"), welcomeTab_);
 			tabs_.AddTab(S("Step"), stepTab_);
