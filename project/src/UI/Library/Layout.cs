@@ -93,6 +93,17 @@ namespace SynergyUI
 	}
 
 
+	class AbsoluteLayout : Layout
+	{
+		public override string TypeName { get { return "abs"; } }
+
+		protected override void LayoutImpl()
+		{
+			// no-op
+		}
+	}
+
+
 	abstract class FlowLayout : Layout
 	{
 		public const int AlignTop = 0x01;

@@ -169,6 +169,8 @@ namespace SynergyUI
 		private int fontSize_ = -1;
 		private readonly Tooltip tooltip_;
 
+		private bool dirty_ = true;
+
 
 		public Widget(string name = "")
 		{
@@ -275,7 +277,12 @@ namespace SynergyUI
 				if (visible_ != value)
 				{
 					visible_ = value;
-					NeedsLayout("visibility changed");
+
+					if (mainObject_ != null)
+						mainObject_.SetActive(visible_);
+
+					if (dirty_)
+						NeedsLayout("visibility changed");
 				}
 			}
 		}
@@ -350,8 +357,11 @@ namespace SynergyUI
 
 			set
 			{
-				margins_ = value;
-				NeedsLayout("margins changed");
+				if (margins_ != value)
+				{
+					margins_ = value;
+					NeedsLayout("margins changed");
+				}
 			}
 		}
 
@@ -364,12 +374,15 @@ namespace SynergyUI
 
 			set
 			{
-				borders_ = value;
+				if (borders_ != value)
+				{
+					borders_ = value;
 
-				if (borderGraphics_ != null)
-					borderGraphics_.Borders = value;
+					if (borderGraphics_ != null)
+						borderGraphics_.Borders = value;
 
-				NeedsLayout("borders changed");
+					NeedsLayout("borders changed");
+				}
 			}
 		}
 
@@ -382,8 +395,11 @@ namespace SynergyUI
 
 			set
 			{
-				padding_ = value;
-				NeedsLayout("padding changed");
+				if (padding_ != value)
+				{
+					padding_ = value;
+					NeedsLayout("padding changed");
+				}
 			}
 		}
 
@@ -460,6 +476,16 @@ namespace SynergyUI
 			}
 		}
 
+		public List<Widget> Children
+		{
+			get { return new List<Widget>(children_); }
+		}
+
+		public Widget Parent
+		{
+			get { return parent_; }
+		}
+
 		public Size GetRealPreferredSize(float maxWidth, float maxHeight)
 		{
 			var s = new Size();
@@ -495,8 +521,11 @@ namespace SynergyUI
 
 			set
 			{
-				minSize_ = value;
-				NeedsLayout("min size changed");
+				if (minSize_ != value)
+				{
+					NeedsLayout("min size changed");
+					minSize_ = value;
+				}
 			}
 		}
 
@@ -509,8 +538,11 @@ namespace SynergyUI
 
 			set
 			{
-				maxSize_ = value;
-				NeedsLayout("max size changed");
+				if (maxSize_ != value)
+				{
+					maxSize_ = value;
+					NeedsLayout("max size changed");
+				}
 			}
 		}
 
@@ -619,7 +651,12 @@ namespace SynergyUI
 			layout_?.DoLayout();
 
 			foreach (var w in children_)
-				w.DoLayout();
+			{
+				if (w.Visible)
+					w.DoLayout();
+			}
+
+			dirty_ = false;
 		}
 
 		public virtual void Create()
@@ -708,7 +745,13 @@ namespace SynergyUI
 
 		public void NeedsLayout(string why)
 		{
-			NeedsLayoutImpl(TypeName + ": " + why);
+			if (parent_ != null && parent_.Layout is AbsoluteLayout)
+				return;
+
+			if (Visible)
+				NeedsLayoutImpl(TypeName + ": " + why);
+			else
+				dirty_ = true;
 		}
 
 		protected virtual void NeedsLayoutImpl(string why)

@@ -78,6 +78,15 @@ namespace Synergy
 			deferredUIDone_ = false;
 			waitForUI_ = false;
 
+			UI.Glue.Set(
+				() => Instance.manager,
+				() => Instance.UITransform.GetComponentInChildren<MVRScriptUI>(),
+				(s, ps) => Strings.Get(s, ps),
+				(s) => LogVerbose(s),
+				(s) => LogInfo(s),
+				(s) => LogWarning(s),
+				(s) => LogError(s));
+
 			SuperController.singleton.StartCoroutine(DeferredInit());
 		}
 

@@ -40,6 +40,46 @@ namespace SynergyUI
 		}
 	}
 
+	// a panel with an absolute layout to avoid relayouts when selecting tabs
+	//
+	class TabButtons : Panel
+	{
+		public TabButtons()
+		{
+			Layout = new AbsoluteLayout();
+		}
+
+		public override void UpdateBounds()
+		{
+			var av = AbsoluteClientBounds;
+			float left = av.Left;
+
+			foreach (var b in Children)
+			{
+				if (!b.Visible)
+					continue;
+
+				var ps = b.GetRealPreferredSize(av.Width, av.Height);
+
+				b.Bounds = Rectangle.FromSize(
+					left, av.Bottom - ps.Height, ps.Width, ps.Height);
+
+				left += ps.Width;
+			}
+
+			base.UpdateBounds();
+		}
+
+		protected override Size DoGetMinimumSize()
+		{
+			var m = Style.Metrics;
+
+			return new Size(
+				DontCare,
+				m.ButtonMinimumSize.Height + m.SelectedTabPadding.Height);
+		}
+	}
+
 
 	class Tabs : Widget
 	{
@@ -126,7 +166,7 @@ namespace SynergyUI
 		public event SelectionCallback SelectionChanged;
 
 
-		private readonly Panel top_ = new Panel();
+		private readonly TabButtons top_ = new TabButtons();
 		private readonly Stack stack_ = new Stack();
 		private readonly List<Tab> tabs_ = new List<Tab>();
 
@@ -137,7 +177,6 @@ namespace SynergyUI
 			Add(top_, BorderLayout.Top);
 			Add(stack_, BorderLayout.Center);
 
-			top_.Layout = new HorizontalFlow(2, HorizontalFlow.AlignBottom);
 			stack_.Layout = new BorderLayout();
 			stack_.Borders = new Insets(1);
 			stack_.Padding = new Insets(20);
@@ -272,6 +311,9 @@ namespace SynergyUI
 					tabs_[i].SetSelected(false);
 				}
 			}
+
+			if (top_.MainObject != null)
+				top_.UpdateBounds();
 
 			SelectionChanged?.Invoke(sel);
 		}

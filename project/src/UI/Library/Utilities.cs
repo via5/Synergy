@@ -53,6 +53,38 @@ namespace SynergyUI
 		}
 	}
 
+	public static class HashHelper
+	{
+		public static int GetHashCode<T1, T2>(T1 arg1, T2 arg2)
+		{
+			unchecked
+			{
+				return 31 * arg1.GetHashCode() + arg2.GetHashCode();
+			}
+		}
+
+		public static int GetHashCode<T1, T2, T3>(T1 arg1, T2 arg2, T3 arg3)
+		{
+			unchecked
+			{
+				int hash = arg1.GetHashCode();
+				hash = 31 * hash + arg2.GetHashCode();
+				return 31 * hash + arg3.GetHashCode();
+			}
+		}
+
+		public static int GetHashCode<T1, T2, T3, T4>(T1 arg1, T2 arg2, T3 arg3, T4 arg4)
+		{
+			unchecked
+			{
+				int hash = arg1.GetHashCode();
+				hash = 31 * hash + arg2.GetHashCode();
+				hash = 31 * hash + arg3.GetHashCode();
+				return 31 * hash + arg4.GetHashCode();
+			}
+		}
+	}
+
 	class Utilities
 	{
 		public const string AddSymbol = "+";
@@ -353,6 +385,29 @@ namespace SynergyUI
 			return new Size(s.Width * f, s.Height * f);
 		}
 
+		public override int GetHashCode()
+		{
+			return HashHelper.GetHashCode(Width, Height);
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (obj is Insets)
+				return (this == (Size)obj);
+			else
+				return false;
+		}
+
+		public static bool operator ==(Size a, Size b)
+		{
+			return (a.Width == b.Width) && (a.Height == b.Height);
+		}
+
+		public static bool operator !=(Size a, Size b)
+		{
+			return !(a == b);
+		}
+
 		public override string ToString()
 		{
 			return Width.ToString() + "*" + Height.ToString();
@@ -550,6 +605,33 @@ namespace SynergyUI
 				a.Top + b.Top,
 				a.Right + b.Right,
 				a.Bottom + b.Bottom);
+		}
+
+		public override int GetHashCode()
+		{
+			return HashHelper.GetHashCode(Left, Top, Right, Bottom);
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (obj is Insets)
+				return (this == (Insets)obj);
+			else
+				return false;
+		}
+
+		public static bool operator ==(Insets a, Insets b)
+		{
+			return (
+				a.Left == b.Left &&
+				a.Top == b.Top &&
+				a.Right == b.Right &&
+				a.Bottom == b.Bottom);
+		}
+
+		public static bool operator !=(Insets a, Insets b)
+		{
+			return !(a == b);
 		}
 
 		public override string ToString()
