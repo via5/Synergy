@@ -316,7 +316,7 @@ namespace Synergy.NewUI
 		{
 			var top = new UI.Panel(new UI.HorizontalFlow());
 			top.Add(enabled_);
-			top.Add(new UI.Spacer());
+			top.Add(new UI.HorizontalStretch());
 			top.Add(new UI.Button(S("Remove morph"), OnRemove));
 
 			Layout = new UI.VerticalFlow(40);

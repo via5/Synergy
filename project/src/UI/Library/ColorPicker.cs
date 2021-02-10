@@ -123,6 +123,12 @@ namespace Synergy.UI
 			return new Size(480, 320);
 		}
 
+		protected override void DoPolish()
+		{
+			base.DoPolish();
+			Style.Polish(this);
+		}
+
 		private void OnChanged(Color color)
 		{
 			Utilities.Handler(() =>

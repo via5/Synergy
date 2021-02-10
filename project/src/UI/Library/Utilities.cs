@@ -453,6 +453,11 @@ namespace Synergy.UI
 			return r;
 		}
 
+		public UnityEngine.Rect ToRect()
+		{
+			return new Rect(Left, Top, Width, Height);
+		}
+
 		public override string ToString()
 		{
 			return

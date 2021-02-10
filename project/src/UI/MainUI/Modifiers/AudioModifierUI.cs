@@ -116,7 +116,7 @@ namespace Synergy
 		private void ClipsChanged(List<NamedAudioClip> clips)
 		{
 			if (modifier_ != null)
-				modifier_.Clips = clips;
+				modifier_.SetClips(clips);
 		}
 	}
 }

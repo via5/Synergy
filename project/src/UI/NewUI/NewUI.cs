@@ -34,6 +34,9 @@
 			root_.ContentPanel.Add(top, UI.BorderLayout.Top);
 			root_.ContentPanel.Add(tabs_, UI.BorderLayout.Center);
 
+			steps_.SelectionChanged += OnStepSelected;
+			modifiers_.SelectionChanged += OnModifierSelected;
+
 			if (Synergy.Instance.Manager.Steps.Count > 0)
 			{
 				SelectStep(Synergy.Instance.Manager.Steps[0]);
@@ -43,9 +46,6 @@
 				showWelcome_ = true;
 				SelectStep(null);
 			}
-
-			steps_.SelectionChanged += OnStepSelected;
-			modifiers_.SelectionChanged += OnModifierSelected;
 
 			root_.DoLayoutIfNeeded();
 		}

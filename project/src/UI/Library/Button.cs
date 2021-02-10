@@ -142,12 +142,10 @@ namespace Synergy.UI
 			button_.button.interactable = b;
 		}
 
-		protected override void Polish()
+		protected override void DoPolish()
 		{
-			base.Polish();
-
-			if (WidgetObject != null)
-				Style.Polish(this, polishing_);
+			base.DoPolish();
+			Style.Polish(this, polishing_);
 		}
 
 		public override void UpdateBounds()

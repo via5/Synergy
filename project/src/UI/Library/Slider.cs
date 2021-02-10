@@ -144,6 +144,12 @@ namespace Synergy.UI
 			return new Size(100, 40);
 		}
 
+		protected override void DoPolish()
+		{
+			base.DoPolish();
+			Style.Polish(this);
+		}
+
 		private void OnChanged(float v)
 		{
 			ValueChanged?.Invoke(v);

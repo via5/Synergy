@@ -80,12 +80,6 @@ namespace Synergy
 			{
 				return new List<NamedAudioClip>(clips_);
 			}
-
-			set
-			{
-				clips_ = new List<NamedAudioClip>(value);
-				Reshuffle();
-			}
 		}
 
 		public NamedAudioClip CurrentClip
@@ -327,6 +321,17 @@ namespace Synergy
 			}
 		}
 
+		public void SetClips(List<NamedAudioClip> clips)
+		{
+			if (currentClip_ != null && !clips.Contains(currentClip_))
+			{
+				StopAudio();
+				needsDelay_ = false;
+				currentClip_ = null;
+			}
+
+			clips_ = new List<NamedAudioClip>(clips);
+		}
 
 		protected override string MakeName()
 		{

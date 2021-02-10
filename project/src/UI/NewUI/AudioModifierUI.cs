@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace Synergy.NewUI
 {
@@ -194,7 +195,7 @@ namespace Synergy.NewUI
 			right.MinimumSize = new UI.Size(300, DontCare);
 			right.MaximumSize = new UI.Size(300, DontCare);
 			right.Add(selected_);
-			right.Add(new UI.Spacer());
+			right.Add(new UI.VerticalStretch());
 			right.Add(player_);
 
 			var bl = new UI.BorderLayout(20);
@@ -204,6 +205,8 @@ namespace Synergy.NewUI
 			Add(right, UI.BorderLayout.Right);
 
 			list_.SelectionChanged += OnSelectionChanged;
+
+			UpdateWidgets();
 		}
 
 		public void SetActive(bool b)
@@ -309,7 +312,7 @@ namespace Synergy.NewUI
 			list_.UpdateItemsText();
 			UpdateWidgets();
 
-			modifier_.Clips = list;
+			modifier_.SetClips(list);
 		}
 
 		private bool IsLoaded(ClipItem item)
@@ -400,9 +403,10 @@ namespace Synergy.NewUI
 		private void UpdateList()
 		{
 			dirty_ = false;
-			list_.Clear();
 
-			if (!DoUpdateList())
+			DoUpdateList();
+
+			if (list_.Count == 0)
 				list_.AddItem(new NoClipsItem());
 		}
 
@@ -425,26 +429,25 @@ namespace Synergy.NewUI
 			});
 		}
 
-		private bool DoUpdateList()
+		private void DoUpdateList()
 		{
+			var items = new List<ClipItem>();
+
 			var cm = URLAudioClipManager.singleton;
-			if (cm == null)
-				return false;
-
-			var clips = cm.GetCategoryClips("web");
-			if (clips == null)
-				return false;
-
-			if (clips.Count == 0)
-				return false;
-
-			foreach (var c in clips)
+			if (cm != null)
 			{
-				var sel = (modifier_ != null && modifier_.Clips.Contains(c));
-				list_.AddItem(new ClipItem(c, sel));
+				var clips = cm.GetCategoryClips("web");
+				if (clips != null)
+				{
+					foreach (var c in clips)
+					{
+						var sel = (modifier_ != null && modifier_.Clips.Contains(c));
+						items.Add(new ClipItem(c, sel));
+					}
+				}
 			}
 
-			return true;
+			list_.SetItems(items);
 		}
 	}
 
@@ -463,14 +466,14 @@ namespace Synergy.NewUI
 
 		public AudioPlayer()
 		{
-			Layout = new UI.VerticalFlow();
+			Layout = new UI.VerticalFlow(5);
 
 			var p = new UI.Panel(new UI.HorizontalFlow(10));
-			p.Add(new UI.Button(S("Play"), OnPlay));
-			p.Add(new UI.Button(S("Stop"), OnStop));
+			p.Add(new UI.ToolButton(S("Play"), OnPlay));
+			p.Add(new UI.ToolButton(S("Stop"), OnStop));
 
-			Add(p);
 			Add(current_);
+			Add(p);
 			Add(seek_);
 			Add(time_);
 
@@ -494,10 +497,17 @@ namespace Synergy.NewUI
 
 		private void OnPlay()
 		{
-			if (source_ == null || clip_ == null)
+			if (source_ == null)
+			{
+				Synergy.LogWarning("no atom selected");
 				return;
+			}
 
-			Synergy.LogError("playing " + clip_.displayName);
+			if (clip_ == null)
+			{
+				Synergy.LogWarning("no clip selected");
+				return;
+			}
 
 			source_.PlayNow(clip_);
 
@@ -508,7 +518,10 @@ namespace Synergy.NewUI
 		private void OnStop()
 		{
 			if (source_ == null)
+			{
+				Synergy.LogWarning("no atom selected");
 				return;
+			}
 
 			source_.Stop();
 		}

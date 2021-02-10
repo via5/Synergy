@@ -315,12 +315,20 @@ namespace Synergy.UI
 
 		private void PolishRecursive()
 		{
-			Polish();
+			if (WidgetObject != null)
+				Polish();
+
 			foreach (var c in children_)
 				c.PolishRecursive();
 		}
 
-		protected virtual void Polish()
+		public void Polish()
+		{
+			if (WidgetObject != null)
+				DoPolish();
+		}
+
+		protected virtual void DoPolish()
 		{
 			// no-op
 		}
@@ -460,7 +468,7 @@ namespace Synergy.UI
 				s = layout_.GetPreferredSize(maxWidth, maxHeight);
 
 			s = Size.Max(s, DoGetPreferredSize(maxWidth, maxHeight));
-			s = Size.Max(s, MinimumSize);
+			s = Size.Max(s, GetRealMinimumSize());
 
 			if (maxSize_.Width >= 0)
 				s.Width = Math.Min(s.Width, maxSize_.Width);
@@ -475,20 +483,7 @@ namespace Synergy.UI
 
 		public Size GetRealMinimumSize()
 		{
-			if (minSize_.Width == DontCare || minSize_.Height == DontCare)
-			{
-				var ms = DoGetMinimumSize();
-
-				var s = new Size();
-				s.Width = minSize_.Width == DontCare ? ms.Width : minSize_.Width;
-				s.Height = minSize_.Height == DontCare ? ms.Height : minSize_.Height;
-
-				return s;
-			}
-			else
-			{
-				return minSize_;
-			}
+			return Size.Max(DoGetMinimumSize(), minSize_);
 		}
 
 		public Size MinimumSize
@@ -864,29 +859,59 @@ namespace Synergy.UI
 	}
 
 
-	class Spacer : UI.Widget
+	class Spacer : Panel
 	{
-		private int size = -1;
+		private int size_;
 
-		public Spacer(int size = -1)
+		public Spacer(int size)
 		{
-			this.size = size;
+			size_ = size;
 		}
 
 		protected override Size DoGetPreferredSize(float maxWidth, float maxHeight)
 		{
-			if (size == -1)
-				return new Size(maxWidth, maxHeight);
-			else
-				return new Size(size, size);
+			return new Size(size_, size_);
 		}
 
 		protected override Size DoGetMinimumSize()
 		{
-			if (size == -1)
-				return new Size(0, 0);
-			else
-				return new Size(size, size);
+			return new Size(size_, size_);
+		}
+	}
+
+
+	class HorizontalStretch : Panel
+	{
+		public HorizontalStretch()
+		{
+		}
+
+		protected override Size DoGetPreferredSize(float maxWidth, float maxHeight)
+		{
+			return new Size(maxWidth, DontCare);
+		}
+
+		protected override Size DoGetMinimumSize()
+		{
+			return new Size(0, 0);
+		}
+	}
+
+
+	class VerticalStretch : Panel
+	{
+		public VerticalStretch()
+		{
+		}
+
+		protected override Size DoGetPreferredSize(float maxWidth, float maxHeight)
+		{
+			return new Size(DontCare, maxHeight);
+		}
+
+		protected override Size DoGetMinimumSize()
+		{
+			return new Size(0, 0);
 		}
 	}
 }

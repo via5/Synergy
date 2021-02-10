@@ -513,9 +513,9 @@ namespace Synergy.UI
 			Style.Setup(this);
 		}
 
-		protected override void Polish()
+		protected override void DoPolish()
 		{
-			base.Polish();
+			base.DoPolish();
 			Style.Polish(this);
 		}
 

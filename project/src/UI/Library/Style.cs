@@ -691,8 +691,15 @@ namespace Synergy.UI
 			// background color of the whole widget
 			e.backgroundImage.color = new Color(0, 0, 0, 0);
 
-			// color of the text on the toggle
-			e.textColor = theme_.TextColor;
+			if (info.Enabled)
+			{
+				// color of the text on the toggle
+				e.textColor = theme_.TextColor;
+			}
+			else
+			{
+				e.textColor = theme_.DisabledTextColor;
+			}
 
 			// there doesn't seem to be any way to change the checkmark color,
 			// so the box will have to stay white for now
@@ -1188,7 +1195,7 @@ namespace Synergy.UI
 				{
 					ForChildRecursive(parent, "Panel", (panel) =>
 					{
-						ForComponent<Image>(parent, (bg) =>
+						ForComponent<Image>(panel, (bg) =>
 						{
 							bg.color = new Color(0, 0, 0, 0);
 						});

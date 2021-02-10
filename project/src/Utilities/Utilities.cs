@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Leap.Unity;
 using System.Text.RegularExpressions;
+using MVR.FileManagementSecure;
 
 namespace Synergy
 {
@@ -76,6 +77,11 @@ namespace Synergy
 		public static string PresetSavePath
 		{
 			get { return "Saves\\Synergy"; }
+		}
+
+		public static string AudioPath
+		{
+			get { return "Custom\\Audio"; }
 		}
 
 		public static string CompletePresetExtension
@@ -495,6 +501,11 @@ namespace Synergy
 				var sc = SuperController.singleton;
 				var cm = URLAudioClipManager.singleton;
 
+				var shortcuts = FileManagerSecure.GetShortCutsForDirectory(
+					AudioPath);
+
+				Synergy.LogError(shortcuts.Count.ToString());
+
 				sc.GetMediaPathDialog((string path) =>
 				{
 					if (string.IsNullOrEmpty(path))
@@ -518,7 +529,7 @@ namespace Synergy
 					}
 
 					f(clip);
-				});
+				}, "mp3|wav|ogg", AudioPath, true, true, false, null, false, shortcuts);
 			}
 			catch (Exception e)
 			{
@@ -572,7 +583,7 @@ namespace Synergy
 
 					f(list);
 
-				}, sc.currentLoadDir);
+				}, AudioPath);
 			}
 			catch (Exception e)
 			{

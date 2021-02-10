@@ -284,9 +284,9 @@ namespace Synergy.UI
 			input_.interactable = b;
 		}
 
-		protected override void Polish()
+		protected override void DoPolish()
 		{
-			base.Polish();
+			base.DoPolish();
 			Style.Polish(this);
 		}
 

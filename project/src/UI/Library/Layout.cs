@@ -186,39 +186,52 @@ namespace Synergy.UI
 			if (totalWidth > av.Width)
 			{
 				var excess = totalWidth - av.Width;
-				float offset = 0;
+				bool zeroOnly = true;
 
-				for (int i = 0; i < bounds.Count; ++i)
+				for (int j = 0; j < 2; ++j)
 				{
-					if (bounds[i] == null)
-						continue;
+					float offset = 0;
 
-					var b = bounds[i].Value;
-
-					b.Translate(-offset, 0);
-
-					if (excess > 0)
+					for (int i = 0; i < bounds.Count; ++i)
 					{
-						var ms = Children[i].GetRealMinimumSize();
+						if (bounds[i] == null)
+							continue;
 
-						if (b.Width > ms.Width)
+						var b = bounds[i].Value;
+
+						b.Translate(-offset, 0);
+
+						if (excess > 0.1f)
 						{
-							var d = Math.Min(b.Width - ms.Width, excess);
+							var ms = Children[i].GetRealMinimumSize();
 
-							b.Width -= d;
-							excess -= d;
-							offset += d;
-							totalWidth -= d;
+							if (!zeroOnly || ms.Width == 0)
+							{
+								if (b.Width > ms.Width)
+								{
+									var d = Math.Min(b.Width - ms.Width, excess);
+
+									b.Width -= d;
+									excess -= d;
+									offset += d;
+									totalWidth -= d;
+								}
+							}
 						}
+
+						bounds[i] = b;
 					}
 
-					bounds[i] = b;
+					if (excess <= 0.1f)
+						break;
+
+					zeroOnly = false;
 				}
 			}
 
 			if (Bits.IsSet(Alignment, AlignCenter))
 			{
-				float offset = (Parent.Bounds.Width / 2) - (totalWidth / 2);
+				float offset = (av.Width / 2) - (totalWidth / 2);
 				for (int i = 0; i < bounds.Count; ++i)
 				{
 					if (bounds[i] != null)
@@ -227,7 +240,7 @@ namespace Synergy.UI
 			}
 			else if (Bits.IsSet(Alignment, AlignRight))
 			{
-				float offset = Parent.Bounds.Width - totalWidth;
+				float offset = av.Width - totalWidth;
 				for (int i = 0; i < bounds.Count; ++i)
 				{
 					if (bounds[i] != null)
@@ -327,41 +340,55 @@ namespace Synergy.UI
 				r.Top += wr.Height + Spacing;
 			}
 
-			if (totalHeight > Parent.Bounds.Height)
+			if (totalHeight > av.Height)
 			{
-				var excess = totalHeight - Parent.Bounds.Height;
-				float offset = 0;
+				var excess = totalHeight - av.Height;
+				bool zeroOnly = true;
 
-				for (int i = 0; i < bounds.Count; ++i)
+				for (int j = 0; j < 2; ++j)
 				{
-					if (bounds[i] == null)
-						continue;
+					float offset = 0;
 
-					var b = bounds[i].Value;
-
-					b.Translate(0, -offset);
-
-					if (excess > 0)
+					for (int i = 0; i < bounds.Count; ++i)
 					{
-						var ms = Children[i].GetRealMinimumSize();
+						if (bounds[i] == null)
+							continue;
 
-						if (b.Height > ms.Height)
+						var b = bounds[i].Value;
+
+						b.Translate(0, -offset);
+
+						if (excess > 0.1f)
 						{
-							var d = Math.Min(b.Height - ms.Height, excess);
+							var ms = Children[i].GetRealMinimumSize();
 
-							b.Height -= d;
-							excess -= d;
-							offset += d;
-							totalHeight -= d;
+							if (!zeroOnly || ms.Height == 0)
+							{
+								if (b.Height > ms.Height)
+								{
+									var d = Math.Min(b.Height - ms.Height, excess);
+
+									b.Height -= d;
+									excess -= d;
+									offset += d;
+									totalHeight -= d;
+								}
+							}
 						}
+
+						bounds[i] = b;
 					}
 
+					if (excess <= 0.1f)
+						break;
+
+					zeroOnly = false;
 				}
 			}
 
 			if (Bits.IsSet(Alignment, AlignVCenter))
 			{
-				float offset = (Parent.Bounds.Height / 2) - (totalHeight / 2);
+				float offset = (av.Height / 2) - (totalHeight / 2);
 				for (int i = 0; i < bounds.Count; ++i)
 				{
 					if (bounds[i] != null)
@@ -370,14 +397,14 @@ namespace Synergy.UI
 			}
 			else if (Bits.IsSet(Alignment, AlignBottom))
 			{
-				float offset = Parent.Bounds.Height - totalHeight;
+				float offset = av.Height - totalHeight;
 				for (int i = 0; i < bounds.Count; ++i)
 				{
 					if (bounds[i] != null)
 						bounds[i] = bounds[i].Value.TranslateCopy(0, offset);
 				}
 			}
-			else // left
+			else // top
 			{
 				// no-op
 			}

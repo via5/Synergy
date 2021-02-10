@@ -75,6 +75,11 @@ namespace Synergy.UI
 			Style.Setup(this);
 		}
 
+		protected override void DoSetEnabled(bool b)
+		{
+			toggle_.toggle.interactable = b;
+		}
+
 		protected override Size DoGetPreferredSize(
 			float maxWidth, float maxHeight)
 		{
@@ -85,6 +90,12 @@ namespace Synergy.UI
 		{
 			var w = Root.TextLength(Font, FontSize, text_);
 			return new Size(w + 20 + 40, 40);
+		}
+
+		protected override void DoPolish()
+		{
+			base.DoPolish();
+			Style.Polish(this);
 		}
 
 		private void OnClicked(bool b)
