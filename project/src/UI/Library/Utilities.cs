@@ -352,6 +352,29 @@ namespace SynergyUI
 		{
 			return new Point(-p.X, -p.Y);
 		}
+
+		public override int GetHashCode()
+		{
+			return HashHelper.GetHashCode(X, Y);
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (obj is Point)
+				return (this == (Point)obj);
+			else
+				return false;
+		}
+
+		public static bool operator ==(Point a, Point b)
+		{
+			return (a.X == b.X) && (a.Y == b.Y);
+		}
+
+		public static bool operator !=(Point a, Point b)
+		{
+			return !(a == b);
+		}
 	}
 
 	struct Size
@@ -400,7 +423,7 @@ namespace SynergyUI
 
 		public override bool Equals(object obj)
 		{
-			if (obj is Insets)
+			if (obj is Size)
 				return (this == (Size)obj);
 			else
 				return false;

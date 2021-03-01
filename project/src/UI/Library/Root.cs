@@ -132,6 +132,14 @@ namespace SynergyUI
 		private bool dirty_ = true;
 		private Canvas canvas_;
 
+		public static Point NoMousePos
+		{
+			get
+			{
+				return new Point(float.MaxValue, float.MaxValue);
+			}
+		}
+
 		public Root()
 		{
 			content_ = new RootPanel(this);
@@ -186,15 +194,6 @@ namespace SynergyUI
 
 			PluginParent = scriptUI.fullWidthUIContent;
 
-
-			var image = scriptUI.GetComponentInChildren<Image>();
-			if (image == null)
-				Glue.LogError("no image in attach");
-			else
-				canvas_ = image.canvas;
-
-			if (canvas_ == null)
-				Glue.LogError("canvas is null");
 
 			var text = scriptUI.GetComponentInChildren<Text>();
 			if (text == null)
@@ -288,6 +287,15 @@ namespace SynergyUI
 		{
 			get
 			{
+				if (canvas_ == null)
+				{
+					FindCanvas();
+
+					if (canvas_ == null)
+						return NoMousePos;
+				}
+
+
 				var mp = Input.mousePosition;
 
 				Vector2 pp;
@@ -300,6 +308,18 @@ namespace SynergyUI
 
 				return new Point(pp.x, pp.y);
 			}
+		}
+
+		private void FindCanvas()
+		{
+			var image = Glue.ScriptUI.GetComponentInChildren<Image>();
+			if (image == null)
+				Glue.LogError("no image in attach");
+			else
+				canvas_ = image.canvas;
+
+			if (canvas_ == null)
+				Glue.LogError("canvas is null");
 		}
 
 		private void ShowOverlay()

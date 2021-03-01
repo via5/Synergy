@@ -108,6 +108,11 @@ namespace SynergyUI
 
 		public void Show(Widget w)
 		{
+			// current mouse position
+			var mp = root_.MousePosition;
+			if (mp == Root.NoMousePos)
+				return;
+
 			active_ = w;
 			widget_.Text = w.Tooltip.Text;
 
@@ -117,9 +122,6 @@ namespace SynergyUI
 
 			// widget is size of text plus its insets
 			size += widget_.Insets.Size;
-
-			// current mouse position
-			var mp = root_.MousePosition;
 
 			// preferred position is just below the cursor
 			var p = new Point(mp.X, mp.Y + Style.Metrics.CursorHeight);
