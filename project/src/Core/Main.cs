@@ -300,6 +300,15 @@ namespace Synergy
 
 		private void DoFixedUpdate(float deltaTime)
 		{
+			// this happens when the top menu is opened
+			//
+			// when the simulation is paused, unity doesn't reset forces on
+			// each frame, so Set() must not be called because the forces will
+			// compound until the menu is closed, at which point everything will
+			// explode
+			if (!Physics.autoSimulation)
+				return;
+
 			bool tick = true;
 			bool set = true;
 
