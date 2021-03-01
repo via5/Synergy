@@ -728,6 +728,7 @@ namespace Synergy.NewUI
 		public delegate bool AtomPredicate(Atom atom);
 		private readonly AtomPredicate pred_;
 
+		private readonly IgnoreFlag ignore_ = new IgnoreFlag();
 		private readonly UI.ComboBox<string> cb_;
 		private readonly GotoButton goto_;
 
@@ -741,12 +742,7 @@ namespace Synergy.NewUI
 			Add(cb_, UI.BorderLayout.Center);
 			Add(goto_, UI.BorderLayout.Right);
 
-			cb_.SelectionChanged += (string uid) =>
-			{
-				goto_.Enabled = (SelectedAtom != null);
-				AtomSelectionChanged?.Invoke(SelectedAtom);
-			};
-
+			cb_.SelectionChanged += OnSelectionChanged;
 			cb_.Opened += OnOpen;
 			cb_.Filterable = true;
 
@@ -754,6 +750,15 @@ namespace Synergy.NewUI
 
 			SuperController.singleton.onAtomUIDRenameHandlers +=
 				OnAtomUIDChanged;
+		}
+
+		private void OnSelectionChanged(string uid)
+		{
+			if (ignore_)
+				return;
+
+			goto_.Enabled = (SelectedAtom != null);
+			AtomSelectionChanged?.Invoke(SelectedAtom);
 		}
 
 		public Atom SelectedAtom
@@ -830,7 +835,11 @@ namespace Synergy.NewUI
 			}
 
 			items.Sort();
-			cb_.SetItems(items, sel);
+
+			ignore_.Do(() =>
+			{
+				cb_.SetItems(items, sel);
+			});
 		}
 	}
 

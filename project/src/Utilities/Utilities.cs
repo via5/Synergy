@@ -344,11 +344,7 @@ namespace Synergy
 			if (mui == null)
 				return null;
 
-			var m = mui.GetMorphByUid(morphUID);
-			if (m == null)
-				Synergy.LogWarning(morphUID + " not found");
-
-			return m;
+			return mui.GetMorphByUid(morphUID);
 		}
 
 		public static bool AtomHasMorphs(Atom atom)
@@ -361,6 +357,24 @@ namespace Synergy
 			return (mui.GetMorphs().Count > 0);
 		}
 
+		public static DAZMorph FindMorph(
+			Atom atom, GenerateDAZMorphsControlUI mui, DAZMorph m)
+		{
+			var nm = mui.GetMorphByUid(m.uid);
+			if (nm != null)
+				return nm;
+
+			nm = mui.GetMorphByDisplayName(m.displayName);
+			if (nm != null)
+				return nm;
+
+			Synergy.LogWarning(
+				"morph '" + m.displayName + "' doesn't " +
+				"exist in " + atom.uid);
+
+			return null;
+		}
+
 		public static DAZMorph FindMorphInNewAtom(
 			Atom newAtom, DAZMorph oldMorph)
 		{
@@ -368,7 +382,7 @@ namespace Synergy
 			if (mui == null)
 				return null;
 
-			return mui.GetMorphByUid(oldMorph.uid);
+			return FindMorph(newAtom, mui, oldMorph);
 		}
 
 		public static List<DAZMorph> FindMorphsInNewAtom(
@@ -382,9 +396,7 @@ namespace Synergy
 
 			foreach (var oldMorph in oldMorphs)
 			{
-				var newMorph = mui.GetMorphByUid(oldMorph.uid);
-				if (newMorph == null)
-					newMorph = mui.GetMorphByDisplayName(oldMorph.displayName);
+				var newMorph = FindMorph(newAtom, mui, oldMorph);
 
 				if (newMorph != null)
 					list.Add(newMorph);

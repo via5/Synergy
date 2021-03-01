@@ -51,9 +51,31 @@ namespace SynergyUI
 
 		public void Update()
 		{
-			if (MainObject == null)
-				return;
+			if (MainObject != null)
+			{
+				UpdateChildren();
+				DoLayout();
+				UpdateBounds();
+			}
+		}
 
+		public override void UpdateBounds()
+		{
+			UpdateChildren();
+			base.UpdateBounds();
+		}
+
+		protected override Size DoGetMinimumSize()
+		{
+			var m = Style.Metrics;
+
+			return new Size(
+				DontCare,
+				m.ButtonMinimumSize.Height + m.SelectedTabPadding.Height);
+		}
+
+		private void UpdateChildren()
+		{
 			var av = AbsoluteClientBounds;
 			float left = av.Left;
 
@@ -69,21 +91,6 @@ namespace SynergyUI
 
 				left += ps.Width;
 			}
-		}
-
-		public override void UpdateBounds()
-		{
-			Update();
-			base.UpdateBounds();
-		}
-
-		protected override Size DoGetMinimumSize()
-		{
-			var m = Style.Metrics;
-
-			return new Size(
-				DontCare,
-				m.ButtonMinimumSize.Height + m.SelectedTabPadding.Height);
 		}
 	}
 

@@ -548,14 +548,11 @@ namespace Synergy
 					var newMorph = Utilities.FindMorphInNewAtom(Atom, sm.Morph);
 					if (newMorph == null)
 					{
-						Synergy.LogWarning(
-							"morph " + sm.Morph.displayName + " doesn't exist in " +
-							Atom.uid);
-
 						sm.Removed();
 						continue;
 					}
 
+					sm.ResetMorphValue();
 					sm.Reset();
 					sm.Atom = Atom;
 					sm.Morph = newMorph;

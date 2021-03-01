@@ -24,7 +24,6 @@ namespace Synergy
 		private List<IParameter> parameters_ = null;
 
 		private bool deferredInitDone_ = false;
-		private bool waitForUI_ = false;
 		private bool deferredUIDone_ = false;
 		private UI.Timer waitForUITimer_ = null;
 
@@ -76,7 +75,6 @@ namespace Synergy
 
 			deferredInitDone_ = false;
 			deferredUIDone_ = false;
-			waitForUI_ = false;
 
 			UI.Glue.Set(
 				() => Instance.manager,
@@ -120,7 +118,6 @@ namespace Synergy
 				// vam doesn't actually set up the size of the scrollview inside
 				// the scrip ui until a person is selected, so start a timer and
 				// check
-				waitForUI_ = true;
 				waitForUITimer_ = CreateTimer(0.5f, WaitForUI, UI.Timer.Repeat);
 			}
 		}

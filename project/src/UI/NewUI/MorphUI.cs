@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using SynergyUI;
 
 namespace Synergy.NewUI
 {
@@ -62,8 +63,7 @@ namespace Synergy.NewUI
 				atom_.Select(modifier_.Atom);
 				progression_.Set(modifier_);
 				morphs_.Set(modifier_);
-				addMorphs_.Atom = modifier_.Atom;
-				addMorphs_.SelectedMorphs = modifier_.Morphs;
+				addMorphs_.Set(modifier_.Atom, modifier_.Morphs);
 			});
 		}
 
@@ -73,14 +73,15 @@ namespace Synergy.NewUI
 				return;
 
 			modifier_.Atom = atom;
-			addMorphs_.Atom = atom;
+			morphs_.Set(modifier_);
+			addMorphs_.Set(modifier_.Atom, modifier_.Morphs);
 		}
 
 		private void OnMorphsChanged(List<DAZMorph> morphs)
 		{
 			modifier_.SetMorphs(morphs);
 			morphs_.SelectedMorphs = modifier_.Morphs;
-			addMorphs_.SelectedMorphs = modifier_.Morphs;
+			addMorphs_.Set(modifier_.Atom, modifier_.Morphs);
 		}
 
 		private void OnTabSelected(int index)
@@ -1139,38 +1140,23 @@ namespace Synergy.NewUI
 			UpdateToggleButton();
 		}
 
-		public Atom Atom
+		public void Set(Atom atom, List<SelectedMorph> morphs)
 		{
-			get
-			{
-				return atom_;
-			}
+			if (atom_ == atom && ignoreMorphChanged_)
+				return;
 
-			set
-			{
-				atom_ = value;
-				NeedsUpdate();
-				SetStack();
-			}
-		}
+			atom_ = atom;
 
-		public List<SelectedMorph> SelectedMorphs
-		{
-			set
-			{
-				if (ignoreMorphChanged_)
-					return;
+			foreach (var s in selection_)
+				morphs_.SetActive(s, false);
 
-				foreach (var s in selection_)
-					morphs_.SetActive(s, false);
+			selection_.Clear();
 
-				selection_.Clear();
+			foreach (var sm in morphs)
+				selection_.Add(sm.Morph);
 
-				foreach (var sm in value)
-					selection_.Add(sm.Morph);
-
-				NeedsUpdate();
-			}
+			NeedsUpdate();
+			SetStack();
 		}
 
 		public void SetActive(bool b)
