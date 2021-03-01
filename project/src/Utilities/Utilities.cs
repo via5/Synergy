@@ -338,15 +338,6 @@ namespace Synergy
 			return mui.GetMorphs();
 		}
 
-		public static DAZMorph GetAtomMorph(Atom atom, string morphUID)
-		{
-			var mui = GetMUI(atom);
-			if (mui == null)
-				return null;
-
-			return mui.GetMorphByUid(morphUID);
-		}
-
 		public static bool AtomHasMorphs(Atom atom)
 		{
 			var mui = GetMUI(atom);
@@ -371,6 +362,26 @@ namespace Synergy
 			Synergy.LogWarning(
 				"morph '" + m.displayName + "' doesn't " +
 				"exist in " + atom.uid);
+
+			return null;
+		}
+
+		public static DAZMorph FindMorph(Atom atom, string morphUID)
+		{
+			var mui = GetMUI(atom);
+			if (mui == null)
+				return null;
+
+			var m = mui.GetMorphByUid(morphUID);
+			if (m != null)
+				return m;
+
+			// try normalized, will convert .latest to .version for packaged
+			// morphs
+			string normalized = SuperController.singleton.NormalizeLoadPath(morphUID);
+			m = mui.GetMorphByUid(normalized);
+			if (m != null)
+				return m;
 
 			return null;
 		}

@@ -237,6 +237,9 @@ namespace Synergy.NewUI
 					modifiers_.RemoveItem(m);
 					step_.DeleteModifier(m);
 				}
+
+				// the index of the current modifier may have changed
+				modifiers_.UpdateItemsText();
 			});
 		}
 
