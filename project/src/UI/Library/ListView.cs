@@ -1,13 +1,61 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Events;
+using UnityEngine.EventSystems;
 
 namespace SynergyUI
 {
-	class ListView<ItemType> : TypedList<ItemType>
+	// needs an interface because components cannot be generics
+	//
+	interface IListView
+	{
+		void OnItemActivatedInternal();
+	}
+
+
+	// added to the list viewport
+	//
+	class ListViewComponent : MonoBehaviour
+	{
+		public IListView List = null;
+	}
+
+
+	// added to the item prefab
+	//
+	class ListViewItem : MonoBehaviour, IPointerClickHandler
+	{
+		public void OnPointerClick(PointerEventData eventData)
+		{
+			if (eventData.button == PointerEventData.InputButton.Left)
+			{
+				if (eventData.clickCount == 2)
+				{
+					var lists = GetComponentsInParent<ListViewComponent>();
+					if (lists.Length == 0)
+					{
+						Glue.LogError("ListViewItem: no ListViewComponent in parents");
+						return;
+					}
+
+					var list = lists[0];
+					if (list.List == null)
+						Glue.LogError("ListViewItem: parent list is null");
+					else
+						list.List.OnItemActivatedInternal();
+				}
+			}
+		}
+	}
+
+
+	class ListView<ItemType> : TypedList<ItemType>, IListView
 		where ItemType : class
 	{
 		public override string TypeName { get { return "list"; } }
+
+		public event ItemCallback ItemActivated;
 
 		public ListView(List<ItemType> items = null)
 			: this(items, null)
@@ -42,7 +90,41 @@ namespace SynergyUI
 			Popup.popup.onValueChangeHandlers += (string s) => { Root.SetFocus(this); };
 			Popup.popup.topBottomBuffer = 3;
 
+			AddItemComponents();
+
 			Style.Setup(this);
+		}
+
+		private void AddItemComponents()
+		{
+			// adding ListViewItem component to prefab
+			var go = Popup.popup.popupButtonPrefab?.gameObject;
+			if (go == null)
+			{
+				Glue.LogError("ListView: prefab object null");
+			}
+			else
+			{
+				var item = go.AddComponent<ListViewItem>();
+				if (item == null)
+					Glue.LogError("ListView: can't add ListViewItem component");
+			}
+
+			// adding the component on this doesn't work, GetComponentsInParent()
+			// can't find it, but it's fine when in the viewport
+			var viewport = Utilities.FindChildRecursive(WidgetObject, "Viewport");
+			if (viewport == null)
+			{
+				Glue.LogError("ListView: no viewport");
+			}
+			else
+			{
+				var c = viewport.AddComponent<ListViewComponent>();
+				if (c == null)
+					Glue.LogError("ListView: can't add component");
+				else
+					c.List = this;
+			}
 		}
 
 		protected override void DoPolish()
@@ -67,6 +149,15 @@ namespace SynergyUI
 			float maxWidth, float maxHeight)
 		{
 			return new Size(300, 200);
+		}
+
+		public void OnItemActivatedInternal()
+		{
+			var s = Selected;
+			if (s == null)
+				Glue.LogError("selected null");
+			else
+				ItemActivated?.Invoke(s);
 		}
 	}
 }

@@ -831,6 +831,7 @@ namespace Synergy.NewUI
 
 		public delegate void MorphCallback(Morph m);
 		public event MorphCallback MorphSelected;
+		public event MorphCallback MorphActivated;
 
 		private readonly UI.ListView<Morph> list_;
 		private readonly Dictionary<string, MorphList> morphs_ =
@@ -842,6 +843,7 @@ namespace Synergy.NewUI
 		{
 			list_ = new UI.ListView<Morph>();
 			list_.SelectionChanged += OnSelection;
+			list_.ItemActivated += OnItemActivated;
 		}
 
 		public UI.ListView<Morph> List
@@ -1036,6 +1038,11 @@ namespace Synergy.NewUI
 		{
 			MorphSelected?.Invoke(m);
 		}
+
+		private void OnItemActivated(Morph m)
+		{
+			MorphActivated?.Invoke(m);
+		}
 	}
 
 
@@ -1070,6 +1077,7 @@ namespace Synergy.NewUI
 
 			morphs_ = new MorphListView();
 			morphs_.MorphSelected += OnMorphSelected;
+			morphs_.MorphActivated += OnMorphActivated;
 
 			var morphs = new UI.Panel(new UI.BorderLayout());
 			var mp = new UI.Panel(new UI.BorderLayout());
@@ -1270,6 +1278,11 @@ namespace Synergy.NewUI
 		private void OnMorphSelected(MorphListView.Morph m)
 		{
 			UpdateToggleButton();
+		}
+
+		private void OnMorphActivated(MorphListView.Morph m)
+		{
+			OnToggleMorph();
 		}
 
 		private void OnSearchChanged(string s)
