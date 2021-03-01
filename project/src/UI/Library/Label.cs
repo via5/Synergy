@@ -41,10 +41,10 @@ namespace SynergyUI
 
 					if (Root.TextLength(Font, FontSize, text_) > Bounds.Width)
 						NeedsLayout("text changed");
-				}
 
-				if (textObject_ != null)
-					textObject_.text = value;
+					if (textObject_ != null)
+						textObject_.text = value;
+				}
 			}
 		}
 

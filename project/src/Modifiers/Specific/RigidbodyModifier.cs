@@ -197,8 +197,16 @@ namespace Synergy
 
 		public Vector3 Direction
 		{
-			get { return direction_; }
-			set { direction_ = value; }
+			get
+			{
+				return direction_;
+			}
+
+			set
+			{
+				direction_ = value;
+				FireNameChanged();
+			}
 		}
 
 		public override FloatRange PreferredRange

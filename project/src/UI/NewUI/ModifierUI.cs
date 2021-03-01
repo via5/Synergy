@@ -904,15 +904,8 @@ namespace Synergy.NewUI
 		{
 			ignore_.Do(() =>
 			{
-				var dirString = Utilities.DirectionString(v);
-				if (dirString == "")
-					dirString = S("Custom");
-
-				type_.Select(dirString);
-
-				x_.Set(v.x, -1, 1);
-				y_.Set(v.y, -1, 1);
-				z_.Set(v.z, -1, 1);
+				SetImpl(v);
+				ShowSliders(type_.SelectedIndex == 3);
 			});
 		}
 
@@ -949,8 +942,25 @@ namespace Synergy.NewUI
 
 		private void Change(Vector3 v)
 		{
-			Set(v);
+			ignore_.Do(() =>
+			{
+				SetImpl(v);
+			});
+
 			Changed?.Invoke(v);
+		}
+
+		private void SetImpl(Vector3 v)
+		{
+			var dirString = Utilities.DirectionString(v);
+			if (dirString == "")
+				dirString = S("Custom");
+
+			type_.Select(dirString);
+
+			x_.Set(v.x, -1, 1);
+			y_.Set(v.y, -1, 1);
+			z_.Set(v.z, -1, 1);
 		}
 
 		private void ShowSliders(bool b)

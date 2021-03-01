@@ -49,8 +49,11 @@ namespace SynergyUI
 			Layout = new AbsoluteLayout();
 		}
 
-		public override void UpdateBounds()
+		public void Update()
 		{
+			if (MainObject == null)
+				return;
+
 			var av = AbsoluteClientBounds;
 			float left = av.Left;
 
@@ -66,7 +69,11 @@ namespace SynergyUI
 
 				left += ps.Width;
 			}
+		}
 
+		public override void UpdateBounds()
+		{
+			Update();
 			base.UpdateBounds();
 		}
 
@@ -257,7 +264,6 @@ namespace SynergyUI
 			if (i < 0 || i >= tabs_.Count)
 				return;
 
-
 			if (!b && i == Selected)
 			{
 				if (i < (tabs_.Count - 1))
@@ -269,6 +275,7 @@ namespace SynergyUI
 			}
 
 			tabs_[i].Button.Visible = b;
+			NeedsLayout("SetTabVisible");
 		}
 
 		public void SetTabVisible(Widget w, bool b)
@@ -312,9 +319,7 @@ namespace SynergyUI
 				}
 			}
 
-			if (top_.MainObject != null)
-				top_.UpdateBounds();
-
+			top_.Update();
 			SelectionChanged?.Invoke(sel);
 		}
 	}

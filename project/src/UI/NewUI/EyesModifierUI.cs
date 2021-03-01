@@ -358,7 +358,7 @@ namespace Synergy.NewUI
 			buttons.Add(new UI.ToolButton(UI.Utilities.RemoveSymbol, RemoveTarget));
 
 			var left = new UI.Panel(new UI.BorderLayout());
-			left.Add(targets_);
+			left.Add(targets_, UI.BorderLayout.Center);
 
 			var controls = new UI.Panel(new UI.HorizontalFlow(10));
 			controls.Add(new UI.Label(S("Type")));

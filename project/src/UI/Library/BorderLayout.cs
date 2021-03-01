@@ -67,7 +67,10 @@ namespace SynergyUI
 		{
 			var d = data as Data;
 			if (d == null)
+			{
+				Glue.LogErrorST("BorderLayout: missing layout data");
 				d = DefaultSide;
+			}
 
 			if (d.side < 0 || d.side > 5)
 			{

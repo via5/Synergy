@@ -28,13 +28,14 @@ namespace SynergyUI
 		public TooltipWidget()
 		{
 			Layout = new BorderLayout();
+
 			Borders = new Insets(1);
 			BackgroundColor = Style.Theme.BackgroundColor;
 			Padding = new Insets(5);
 			Visible = false;
 
 			label_ = new Label();
-			Add(label_);
+			Add(label_, BorderLayout.Center);
 
 			Tooltip.Text = "";
 			label_.Tooltip.Text = "";
@@ -144,6 +145,8 @@ namespace SynergyUI
 			widget_.Bounds = new Rectangle(p.X, p.Y, size);
 			widget_.Visible = true;
 			widget_.BringToTop();
+			widget_.DoLayout();
+			widget_.UpdateBounds();
 		}
 
 		public void Hide()

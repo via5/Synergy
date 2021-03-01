@@ -111,10 +111,6 @@ namespace Synergy
 			});
 
 
-			// InitUI() seems to be called multiple times
-			if (ui_ != null || options_ == null || waitForUI_)
-				return;
-
 			if (UI.Root.IsReady())
 			{
 				CreateUI();
@@ -176,9 +172,9 @@ namespace Synergy
 
 		private void CreateTestStuff(Atom a)
 		{
-			var s = manager_.AddStep(new Step("1"));
-
-			s.AddModifier(new ModifierContainer(new MorphModifier()));
+			//var s = manager_.AddStep(new Step("1"));
+			//
+			//s.AddModifier(new ModifierContainer(new MorphModifier()));
 		}
 
 		public UI.Timer CreateTimer(float seconds, UI.Timer.Callback f, int flags = 0)
