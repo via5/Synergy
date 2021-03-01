@@ -52,7 +52,11 @@ namespace Synergy.NewUI
 
 			if (type_ == "")
 			{
-				list = new List<string>(atom.GetStorableIDs());
+				foreach (var st in atom.GetStorableIDs())
+				{
+					if (!pluginsOnly_ || Utilities.StorableIsPlugin(st))
+						list.Add(st);
+				}
 			}
 			else
 			{
@@ -133,7 +137,7 @@ namespace Synergy.NewUI
 		{
 			ignore_.Do(() =>
 			{
-				if (atom_ == atom && filter_ != null && filter_.Equals(filter))
+				if (!stale_ && atom_ == atom && filter_ != null && filter_.Equals(filter))
 				{
 					list_.Select(storableID);
 				}
@@ -229,7 +233,7 @@ namespace Synergy.NewUI
 			Atom atom, JSONStorable storable, string parameterID,
 			StorableFilter filter)
 		{
-			if (atom_ == atom && storable_ == storable && (filter_ != null && filter_.Equals(filter)))
+			if (!stale_ && atom_ == atom && storable_ == storable && (filter_ != null && filter_.Equals(filter)))
 			{
 				list_.Select(parameterID);
 			}
@@ -609,15 +613,15 @@ namespace Synergy.NewUI
 		private readonly UI.ListView<string> list_ = new UI.ListView<string>();
 		private readonly UI.ComboBox<string> av_ = new UI.ComboBox<string>();
 		private readonly UI.Panel avPanel_ = new UI.Panel(new UI.HorizontalFlow(10));
-		private readonly UI.Button remove_, addAv_, moveUp_, moveDown_;
+		private readonly UI.ToolButton remove_, addAv_, moveUp_, moveDown_;
 		private readonly UI.TextBox value_ = new UI.TextBox();
 
 		public StringListStorableParameterUI()
 		{
-			remove_ = new UI.Button(UI.Utilities.RemoveSymbol, OnRemove);
-			addAv_ = new UI.Button(UI.Utilities.AddSymbol, OnAddPredefined);
-			moveUp_ = new UI.Button(UI.Utilities.UpArrow, OnMoveUp);
-			moveDown_ = new UI.Button(UI.Utilities.DownArrow, OnMoveDown);
+			remove_ = new UI.ToolButton(UI.Utilities.RemoveSymbol, OnRemove);
+			addAv_ = new UI.ToolButton(UI.Utilities.AddSymbol, OnAddPredefined);
+			moveUp_ = new UI.ToolButton(UI.Utilities.UpArrow, OnMoveUp);
+			moveDown_ = new UI.ToolButton(UI.Utilities.DownArrow, OnMoveDown);
 
 			avPanel_.Add(new UI.Spacer(50));
 			avPanel_.Add(new UI.Label("Predefined"));
@@ -625,7 +629,7 @@ namespace Synergy.NewUI
 			avPanel_.Add(addAv_);
 
 			var controls = new UI.Panel(new UI.HorizontalFlow(10));
-			controls.Add(new UI.Button(UI.Utilities.AddSymbol, OnAdd));
+			controls.Add(new UI.ToolButton(UI.Utilities.AddSymbol, OnAdd));
 			controls.Add(remove_);
 			controls.Add(moveUp_);
 			controls.Add(moveDown_);

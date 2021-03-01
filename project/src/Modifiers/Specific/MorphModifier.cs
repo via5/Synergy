@@ -532,8 +532,6 @@ namespace Synergy
 			morphs_.Clear();
 			morphs_.AddRange(fixedMorphs);
 
-			Synergy.LogError("new morphs: " + morphs.Count.ToString());
-
 			Progression.MorphsChanged();
 		}
 

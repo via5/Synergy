@@ -104,13 +104,12 @@ namespace Synergy
 					yield break;
 			}
 
-			manager_.DeferredInit();
-			deferredInitDone_ = true;
-		}
+			CreateTimer(1, () =>
+			{
+				manager_.DeferredInit();
+				deferredInitDone_ = true;
+			});
 
-		public override void InitUI()
-		{
-			base.InitUI();
 
 			// InitUI() seems to be called multiple times
 			if (ui_ != null || options_ == null || waitForUI_)

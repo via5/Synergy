@@ -184,7 +184,13 @@ namespace Synergy
 
 		public override string Name
 		{
-			get { return param_?.name ?? ""; }
+			get
+			{
+				if (!string.IsNullOrEmpty(paramName_))
+					return paramName_;
+				else
+					return param_?.name ?? "";
+			}
 		}
 
 		public T Parameter
@@ -952,7 +958,13 @@ namespace Synergy
 
 		public override string Name
 		{
-			get { return param_?.name ?? ""; }
+			get
+			{
+				if (!string.IsNullOrEmpty(paramName_))
+					return paramName_;
+				else
+					return param_?.name ?? "";
+			}
 		}
 
 		public float TriggerMagnitude
@@ -1499,7 +1511,7 @@ namespace Synergy
 			if (Parameter == null)
 				s += "none";
 			else
-				s += Parameter.GetDisplayName();
+				s += Parameter.Name;
 
 			return s;
 		}

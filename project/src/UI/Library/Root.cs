@@ -193,6 +193,9 @@ namespace SynergyUI
 			else
 				canvas_ = image.canvas;
 
+			if (canvas_ == null)
+				Glue.LogError("canvas is null");
+
 			var text = scriptUI.GetComponentInChildren<Text>();
 			if (text == null)
 			{
