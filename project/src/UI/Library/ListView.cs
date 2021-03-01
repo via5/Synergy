@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 namespace SynergyUI
 {
-	class ListView<ItemType> : TypedListImpl<ItemType>
+	class ListView<ItemType> : TypedList<ItemType>
 		where ItemType : class
 	{
 		public override string TypeName { get { return "list"; } }
