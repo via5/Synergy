@@ -20,6 +20,7 @@ namespace Synergy
 
 	interface IEyesTarget : IFactoryObject
 	{
+		void AtomChanged(Atom atom);
 		IEyesTarget Clone(int cloneFlags);
 		Vector3 Position { get; }
 		bool Valid { get; }
@@ -33,6 +34,7 @@ namespace Synergy
 		public abstract string GetFactoryTypeName();
 		public abstract string GetDisplayName();
 
+		public abstract void AtomChanged(Atom atom);
 		public abstract IEyesTarget Clone(int cloneFlags);
 		public abstract Vector3 Position { get; }
 		public abstract bool Valid { get; }
@@ -72,6 +74,11 @@ namespace Synergy
 		public static Rigidbody GetPreferredTarget(Atom a)
 		{
 			return null;
+		}
+
+		public override void AtomChanged(Atom atom)
+		{
+			// no-op
 		}
 
 		public override IEyesTarget Clone(int cloneFlags)
@@ -168,6 +175,11 @@ namespace Synergy
 				return c;
 
 			return null;
+		}
+
+		public override void AtomChanged(Atom atom)
+		{
+			// no-op
 		}
 
 		public override IEyesTarget Clone(int cloneFlags)
@@ -356,6 +368,15 @@ namespace Synergy
 				return c;
 
 			return null;
+		}
+
+		public override void AtomChanged(Atom atom)
+		{
+			if (atom != null && atom_ == null && rel_ == null)
+			{
+				atom_ = atom;
+				rel_ = GetPreferredTarget(atom);
+			}
 		}
 
 		public override IEyesTarget Clone(int cloneFlags)
@@ -645,12 +666,27 @@ namespace Synergy
 
 	class EyesTargetContainer : IJsonable
 	{
+		private EyesModifier parent_ = null;
 		private bool enabled_ = true;
 		private IEyesTarget target_ = null;
 
 		public EyesTargetContainer(IEyesTarget t = null)
 		{
 			target_ = t;
+		}
+
+		public EyesModifier ParentModifier
+		{
+			get
+			{
+				return parent_;
+			}
+
+			set
+			{
+				parent_ = value;
+				AtomChanged();
+			}
 		}
 
 		public EyesTargetContainer Clone(int cloneFlags)
@@ -682,6 +718,9 @@ namespace Synergy
 			set
 			{
 				target_ = value;
+
+				if (parent_ != null && target_ != null)
+					target_.AtomChanged(parent_.Atom);
 			}
 		}
 
@@ -694,6 +733,12 @@ namespace Synergy
 				else
 					return target_.Name;
 			}
+		}
+
+		public void AtomChanged()
+		{
+			if (parent_ != null && target_ != null)
+				target_.AtomChanged(parent_.Atom);
 		}
 
 		public J.Node ToJSON()
@@ -919,7 +964,7 @@ namespace Synergy
 
 			m.targets_.Clear();
 			foreach (var t in targets_)
-				m.targets_.Add(t.Clone(cloneFlags));
+				AddTarget(t.Clone(cloneFlags));
 
 			m.saccadeTime_ = saccadeTime_.Clone(cloneFlags);
 
@@ -951,11 +996,14 @@ namespace Synergy
 				t = new EyesTargetContainer();
 
 			targets_.Add(t);
+			t.ParentModifier = this;
+
 			return t;
 		}
 
 		public void RemoveTarget(EyesTargetContainer t)
 		{
+			t.ParentModifier = null;
 			targets_.Remove(t);
 		}
 
@@ -1386,7 +1434,7 @@ namespace Synergy
 				{
 					var tc = new EyesTargetContainer();
 					if (tc.FromJSON(node))
-						targets_.Add(tc);
+						AddTarget(tc);
 				});
 			}
 
@@ -1407,6 +1455,13 @@ namespace Synergy
 		{
 			gaze_.Atom = Atom;
 			blink_ = null;
+
+			// this would be nice, but it wouldn't be picked up by the UI, so
+			// AtomChanged() is only called in AddTarget() through setting
+			// the ParentModifier property
+			//
+			//foreach (var t in targets_)
+			//	t.AtomChanged();
 
 			if (Atom == null)
 			{
