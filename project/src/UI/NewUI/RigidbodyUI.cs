@@ -81,7 +81,6 @@ namespace Synergy.NewUI
 				return;
 
 			modifier_.Atom = a;
-			modifier_.Receiver = receiver_.SelectedRigidbody;
 
 			ignore_.Do(() =>
 			{
