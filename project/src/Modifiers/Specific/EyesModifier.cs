@@ -1202,6 +1202,9 @@ namespace Synergy
 
 		private void CheckGaze()
 		{
+			if (!ParentContainer.Enabled)
+				return;
+
 			bool e;
 
 			if (gazeSetting_ == SettingEnable)
@@ -1222,6 +1225,9 @@ namespace Synergy
 
 		private bool EnsureBlink()
 		{
+			if (!ParentContainer.Enabled)
+				return true;
+
 			if (blink_ == null && Atom != null)
 			{
 				var ec = Atom.GetStorableByID("EyelidControl");

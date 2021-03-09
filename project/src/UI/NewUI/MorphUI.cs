@@ -195,7 +195,7 @@ namespace Synergy.NewUI
 				"Morphs will use their own copy of the duration and " +
 				"delay set below.")),
 				UI.BorderLayout.Top);
-			Add(tabs_);
+			Add(tabs_, UI.BorderLayout.Center);
 
 
 			tabs_.AddTab(S("Duration"), duration_);

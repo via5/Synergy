@@ -684,7 +684,7 @@ namespace Synergy.NewUI
 			Add(new UI.Label(S(
 				"This modifier has its own duration and delay.")),
 				UI.BorderLayout.Top);
-			Add(tabs_);
+			Add(tabs_, UI.BorderLayout.Center);
 
 
 			tabs_.AddTab(S("Duration"), duration_);
