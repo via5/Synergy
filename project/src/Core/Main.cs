@@ -171,7 +171,10 @@ namespace Synergy
 		{
 			var s = manager_.AddStep(new Step("1"));
 
-			s.AddModifier(new ModifierContainer(new MorphModifier()));
+			s.AddModifier(new ModifierContainer(
+				new RigidbodyModifier(), new UnsyncedModifier()));
+
+			s.AddModifier(new ModifierContainer(new RigidbodyModifier()));
 		}
 
 		public UI.Timer CreateTimer(float seconds, UI.Timer.Callback f, int flags = 0)

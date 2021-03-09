@@ -5,7 +5,7 @@ namespace SynergyUI
 {
 	class CheckBox : Widget
 	{
-		public override string TypeName { get { return "checkbox"; } }
+		public override string TypeName { get { return "CheckBox"; } }
 
 		public delegate void ChangedCallback(bool b);
 		public event ChangedCallback Changed;

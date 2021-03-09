@@ -128,7 +128,7 @@ namespace SynergyUI
 
 	class TextBox : Widget
 	{
-		public override string TypeName { get { return "textbox"; } }
+		public override string TypeName { get { return "TextBox"; } }
 
 		public class Validation
 		{

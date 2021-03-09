@@ -5,10 +5,10 @@ namespace SynergyUI
 {
 	class ColorPicker : Widget
 	{
+		public override string TypeName { get { return "ColorPicker"; } }
+
 		public delegate void ColorCallback(Color c);
 		public event ColorCallback Changed;
-
-		public override string TypeName { get { return "color"; } }
 
 		private string text_ = null;
 		private Color color_ = Color.white;

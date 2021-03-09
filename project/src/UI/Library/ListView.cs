@@ -53,7 +53,7 @@ namespace SynergyUI
 	class ListView<ItemType> : TypedList<ItemType>, IListView
 		where ItemType : class
 	{
-		public override string TypeName { get { return "list"; } }
+		public override string TypeName { get { return "ListView"; } }
 
 		public event ItemCallback ItemActivated;
 

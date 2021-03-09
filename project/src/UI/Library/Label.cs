@@ -6,7 +6,7 @@ namespace SynergyUI
 {
 	class Label : Panel
 	{
-		public override string TypeName { get { return "label"; } }
+		public override string TypeName { get { return "Label"; } }
 
 		public const int AlignLeft = 0x01;
 		public const int AlignCenter = 0x02;

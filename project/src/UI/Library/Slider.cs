@@ -8,10 +8,10 @@ namespace SynergyUI
 {
 	class Slider : Widget
 	{
+		public override string TypeName { get { return "Slider"; } }
+
 		public delegate void ValueCallback(float f);
 		public event ValueCallback ValueChanged;
-
-		public override string TypeName { get { return "slider"; } }
 
 		private UIDynamicSlider slider_ = null;
 
@@ -159,6 +159,8 @@ namespace SynergyUI
 
 	class TextSlider : Panel
 	{
+		public override string TypeName { get { return "TextSlider"; } }
+
 		public delegate void ValueCallback(float f);
 		public event ValueCallback ValueChanged;
 

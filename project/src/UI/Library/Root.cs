@@ -32,6 +32,8 @@ namespace SynergyUI
 
 	class Overlay : Widget
 	{
+		public override string TypeName { get { return "Overlay"; } }
+
 		private Image graphics_ = null;
 
 		public Overlay(Rectangle b)
@@ -59,6 +61,8 @@ namespace SynergyUI
 
 	class RootPanel : Panel
 	{
+		public override string TypeName { get { return "RootPanel"; } }
+
 		private readonly Root root_;
 
 		public RootPanel(Root r)
@@ -241,9 +245,9 @@ namespace SynergyUI
 			get { return bounds_; }
 		}
 
-		public void DoLayoutIfNeeded()
+		public void DoLayoutIfNeeded(bool force=false)
 		{
-			if (dirty_)
+			if (dirty_ || force)
 			{
 				var start = Time.realtimeSinceStartup;
 

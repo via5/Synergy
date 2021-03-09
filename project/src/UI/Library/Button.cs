@@ -6,6 +6,8 @@ namespace SynergyUI
 {
 	class Button : Widget
 	{
+		public override string TypeName { get { return "Button"; } }
+
 		public struct Polishing
 		{
 			public Color textColor, disabledTextColor;
@@ -29,8 +31,6 @@ namespace SynergyUI
 			}
 		}
 
-
-		public override string TypeName { get { return "button"; } }
 
 		public event Callback Clicked;
 
@@ -203,6 +203,8 @@ namespace SynergyUI
 
 	class ToolButton : UI.Button
 	{
+		public override string TypeName { get { return "ToolButton"; } }
+
 		public ToolButton(string text = "", Callback clicked = null)
 			: base(text, clicked)
 		{
@@ -223,6 +225,8 @@ namespace SynergyUI
 
 	class CustomButton : UI.Button
 	{
+		public override string TypeName { get { return "CustomButton"; } }
+
 		public CustomButton(string text = "", Callback clicked = null)
 			: base(text, clicked)
 		{

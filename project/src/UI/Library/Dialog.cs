@@ -2,6 +2,8 @@
 {
 	class Dialog : Panel
 	{
+		public override string TypeName { get { return "Dialog"; } }
+
 		public delegate void CloseHandler(int result);
 		public event CloseHandler Closed;
 
@@ -79,6 +81,8 @@
 
 	class ButtonBox : Panel
 	{
+		public override string TypeName { get { return "ButtonBox"; } }
+
 		public delegate void ButtonCallback(int id);
 		public event ButtonCallback ButtonClicked;
 
@@ -123,6 +127,8 @@
 
 	class DialogWithButtons : Dialog
 	{
+		public override string TypeName { get { return "DialogWithButtons"; } }
+
 		// sync with ButtonBox
 		public const int OK     = 0x01;
 		public const int Cancel = 0x02;
@@ -163,6 +169,8 @@
 
 	class MessageDialog : DialogWithButtons
 	{
+		public override string TypeName { get { return "MessageDialog"; } }
+
 		public MessageDialog(Root r, int buttons, string title, string text)
 			: base(r, buttons, title)
 		{
@@ -175,6 +183,8 @@
 
 	class InputDialog : DialogWithButtons
 	{
+		public override string TypeName { get { return "InputDialog"; } }
+
 		public delegate void TextHandler(string value);
 
 		private readonly TextBox textbox_;
@@ -234,6 +244,8 @@
 
 	class TaskDialog : Dialog
 	{
+		public override string TypeName { get { return "TaskDialog"; } }
+
 		public TaskDialog(Root r, string title, string mainText, string secondaryText="")
 			: base(r, title)
 		{

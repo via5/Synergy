@@ -8,7 +8,7 @@ namespace SynergyUI
 	class ComboBoxList<ItemType> : TypedList<ItemType>
 		where ItemType : class
 	{
-		public override string TypeName { get { return "comboboxlist"; } }
+		public override string TypeName { get { return "ComboBoxList"; } }
 
 		public event Callback Opened;
 
@@ -248,7 +248,7 @@ namespace SynergyUI
 	class ComboBox<ItemType> : Widget
 		where ItemType : class
 	{
-		public override string TypeName { get { return "combobox"; } }
+		public override string TypeName { get { return "ComboBox"; } }
 
 		public event Callback Opened;
 

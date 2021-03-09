@@ -139,7 +139,7 @@ namespace SynergyUI
 
 	abstract class Widget : IDisposable, IWidget
 	{
-		public virtual string TypeName { get { return "widget"; } }
+		public virtual string TypeName { get { return "Widget"; } }
 
 		public delegate void Callback();
 		public event Callback Created;
@@ -281,10 +281,36 @@ namespace SynergyUI
 					if (mainObject_ != null)
 						mainObject_.SetActive(visible_);
 
-					if (dirty_)
-						NeedsLayout("visibility changed");
+					if (visible_)
+					{
+						var dirtyChild = AnyDirtyChild();
+						if (dirtyChild != null)
+						{
+							NeedsLayout(
+								"visibility changed, dirty child:\n" +
+								dirtyChild.DebugLine);
+						}
+					}
 				}
 			}
+		}
+
+		private Widget AnyDirtyChild()
+		{
+			if (!visible_)
+				return null;
+
+			if (dirty_)
+				return this;
+
+			foreach (var c in children_)
+			{
+				var w = c.AnyDirtyChild();
+				if (w != null)
+					return w;
+			}
+
+			return null;
 		}
 
 		public bool IsVisibleOnScreen()
@@ -589,6 +615,8 @@ namespace SynergyUI
 				list.Add("rb=" + RelativeBounds.ToString());
 				list.Add("ps=" + GetRealPreferredSize(DontCare, DontCare).ToString());
 				list.Add("ly=" + (Layout?.TypeName ?? "none"));
+				list.Add("v=" + visible_.ToString());
+				list.Add("d=" + dirty_.ToString());
 
 				return string.Join(" ", list.ToArray());
 			}
@@ -656,7 +684,7 @@ namespace SynergyUI
 					w.DoLayout();
 			}
 
-			dirty_ = false;
+			SetDirty(false);
 		}
 
 		public virtual void Create()
@@ -751,7 +779,15 @@ namespace SynergyUI
 			if (Visible)
 				NeedsLayoutImpl(TypeName + ": " + why);
 			else
-				dirty_ = true;
+				SetDirty(true, TypeName + ": " + why);
+		}
+
+		private void SetDirty(bool b, string why = "")
+		{
+			dirty_ = b;
+
+			if (why != "")
+				Glue.LogVerbose("SetDirty: " + why);
 		}
 
 		protected virtual void NeedsLayoutImpl(string why)
@@ -760,12 +796,41 @@ namespace SynergyUI
 				parent_.NeedsLayoutImpl(why);
 		}
 
-		public void Dump(int indent = 0)
+		public void Dump()
 		{
-			Glue.LogError(new string(' ', indent * 2) + DebugLine);
+			Glue.LogVerbose(DumpString());
+		}
 
+		public string DumpString()
+		{
+			var lines = new List<string>();
+
+			var p = Parent;
+			while (p != null)
+			{
+				lines.Insert(0, p.DebugLine);
+				p = p.Parent;
+			}
+
+			for (int i = 0; i < lines.Count; ++i)
+				lines[i] = new string(' ', i * 2) + lines[i];
+
+			int indent = lines.Count;
+
+			lines.Add(new string(' ', indent * 2)  + DebugLine + "    *** <-");
+
+			DumpChildren(lines, indent + 1);
+
+			return string.Join("\n", lines.ToArray());
+		}
+
+		private void DumpChildren(List<string> lines, int indent)
+		{
 			foreach (var w in children_)
-				w.Dump(indent + 1);
+			{
+				lines.Add(new string(' ', indent * 2) + w.DebugLine);
+				w.DumpChildren(lines, indent + 1);
+			}
 		}
 
 
@@ -817,6 +882,8 @@ namespace SynergyUI
 
 	class Panel : Widget
 	{
+		public override string TypeName { get { return "Panel"; } }
+
 		private GameObject bgObject_ = null;
 		private Color bgColor_ = new Color(0, 0, 0, 0);
 
@@ -904,6 +971,8 @@ namespace SynergyUI
 
 	class Spacer : Panel
 	{
+		public override string TypeName { get { return "Spacer"; } }
+
 		private int size_;
 
 		public Spacer(int size)
@@ -925,6 +994,8 @@ namespace SynergyUI
 
 	class HorizontalStretch : Panel
 	{
+		public override string TypeName { get { return "HorizontalStretch"; } }
+
 		public HorizontalStretch()
 		{
 		}
@@ -943,6 +1014,8 @@ namespace SynergyUI
 
 	class VerticalStretch : Panel
 	{
+		public override string TypeName { get { return "VerticalStretch"; } }
+
 		public VerticalStretch()
 		{
 		}

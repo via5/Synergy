@@ -23,6 +23,8 @@ namespace SynergyUI
 
 	class TooltipWidget : Panel
 	{
+		public override string TypeName { get { return "TooltipWidget"; } }
+
 		private readonly Label label_;
 
 		public TooltipWidget()

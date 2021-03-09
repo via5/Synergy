@@ -7,6 +7,8 @@ namespace SynergyUI
 	class TypedList<ItemType> : Widget
 		where ItemType : class
 	{
+		public override string TypeName { get { return "TypedList"; } }
+
 		protected class Item
 		{
 			private ItemType object_;

@@ -6,7 +6,7 @@ namespace SynergyUI
 {
 	class Stack : Widget
 	{
-		public override string TypeName { get { return "stack"; } }
+		public override string TypeName { get { return "Stack"; } }
 
 		private readonly List<Widget> widgets_ = new List<Widget>();
 		private int selection_ = -1;
@@ -44,6 +44,8 @@ namespace SynergyUI
 	//
 	class TabButtons : Panel
 	{
+		public override string TypeName { get { return "TabButtons"; } }
+
 		public TabButtons()
 		{
 			Layout = new AbsoluteLayout();
@@ -97,7 +99,7 @@ namespace SynergyUI
 
 	class Tabs : Widget
 	{
-		public override string TypeName { get { return "tabs"; } }
+		public override string TypeName { get { return "Tabs"; } }
 
 		class Tab
 		{
