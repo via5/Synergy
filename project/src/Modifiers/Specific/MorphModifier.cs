@@ -533,6 +533,7 @@ namespace Synergy
 			morphs_.AddRange(fixedMorphs);
 
 			Progression.MorphsChanged();
+			FireNameChanged();
 		}
 
 		protected override void AtomChanged()
