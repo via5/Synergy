@@ -21,14 +21,17 @@ namespace Synergy.NewUI
 			Layout = new UI.HorizontalFlow(5);
 
 			Add(text_);
+
+			Add(new UI.ToolButton("-10", () => AddValue(-10)));
 			Add(new UI.ToolButton("-1", () => AddValue(-1)));
 			Add(new UI.ToolButton("-.1", () => AddValue(-0.1f)));
-			Add(new UI.ToolButton("-.01", () => AddValue(-0.01f)));
+			//Add(new UI.ToolButton("-.01", () => AddValue(-0.01f)));
 			Add(new UI.ToolButton("0", () => SetValue(0)));
-			Add(new UI.ToolButton("+.01", () => AddValue(+0.01f)));
+			//Add(new UI.ToolButton("+.01", () => AddValue(+0.01f)));
 			Add(new UI.ToolButton("+.1", () => AddValue(+0.1f)));
 			Add(new UI.ToolButton("+1", () => AddValue(+1)));
-			Add(new UI.ToolButton(S("Reset"), () => Reset()));
+			Add(new UI.ToolButton("+10", () => AddValue(+10)));
+			Add(new UI.ToolButton(S("R"), () => Reset()));
 
 			if (changed != null)
 				Changed += changed;

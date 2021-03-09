@@ -62,6 +62,11 @@ namespace SynergyUI
 			logWarning_(s);
 		}
 
+		public static void LogWarningST(string s)
+		{
+			logWarning_(s + "\n" + new StackTrace(1).ToString());
+		}
+
 		public static void LogError(string s)
 		{
 			logError_(s);

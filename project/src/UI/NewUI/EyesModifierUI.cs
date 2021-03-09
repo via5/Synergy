@@ -338,6 +338,7 @@ namespace Synergy.NewUI
 		private EyesModifier modifier_ = null;
 
 		private IgnoreFlag ignore_ = new IgnoreFlag();
+		private UI.ToolButton add_, clone_, remove_;
 		private readonly UI.ListView<Target> targets_;
 		private readonly UI.Panel panel_;
 		private readonly UI.CheckBox enabled_;
@@ -354,8 +355,18 @@ namespace Synergy.NewUI
 			ui_ = new FactoryObjectWidget<EyesTargetFactory, IEyesTarget, EyesTargetUIFactory>();
 
 			var buttons = new UI.Panel(new UI.HorizontalFlow(10));
-			buttons.Add(new UI.ToolButton(UI.Utilities.AddSymbol, AddTarget));
-			buttons.Add(new UI.ToolButton(UI.Utilities.RemoveSymbol, RemoveTarget));
+
+			add_ = buttons.Add(new UI.ToolButton(
+				UI.Utilities.AddSymbol, AddTarget,
+				S("Add a new target")));
+
+			clone_ = buttons.Add(new UI.ToolButton(
+				UI.Utilities.CloneSymbol, CloneTarget,
+				S("Clone this target")));
+
+			remove_ = buttons.Add(new UI.ToolButton(
+				UI.Utilities.RemoveSymbol, RemoveTarget,
+				S("Delete this target")));
 
 			var left = new UI.Panel(new UI.BorderLayout());
 			left.Add(targets_, UI.BorderLayout.Center);
@@ -402,13 +413,19 @@ namespace Synergy.NewUI
 			if (modifier_ == null)
 				return;
 
-			var t = new Target();
-			t.tc = new EyesTargetContainer();
+			AddTargetImpl(new EyesTargetContainer());
+		}
 
-			modifier_.AddTarget(t.tc);
-			targets_.AddItem(t);
+		public void CloneTarget()
+		{
+			if (modifier_ == null)
+				return;
 
-			targets_.Select(targets_.Count - 1);
+			var t = targets_.Selected;
+			if (t == null)
+				return;
+
+			AddTargetImpl(t.tc.Clone(0));
 		}
 
 		public void RemoveTarget()
@@ -420,19 +437,30 @@ namespace Synergy.NewUI
 			if (t == null)
 				return;
 
-			var d = new UI.MessageDialog(
-				GetRoot(), UI.MessageDialog.Yes | UI.MessageDialog.No,
-				S("Remove target"),
-				S("Are you sure you want to delete target {0}?", t.tc.Name));
-
-			d.RunDialog((button) =>
-			{
-				if (button != UI.MessageDialog.Yes)
-					return;
+			//var d = new UI.MessageDialog(
+			//	GetRoot(), UI.MessageDialog.Yes | UI.MessageDialog.No,
+			//	S("Remove target"),
+			//	S("Are you sure you want to delete target {0}?", t.tc.Name));
+			//
+			//d.RunDialog((button) =>
+			//{
+			//	if (button != UI.MessageDialog.Yes)
+			//		return;
 
 				modifier_.RemoveTarget(t.tc);
 				targets_.RemoveItem(t);
-			});
+			//});
+		}
+
+		private void AddTargetImpl(EyesTargetContainer tc)
+		{
+			var t = new Target();
+			t.tc = tc;
+
+			modifier_.AddTarget(t.tc);
+			targets_.AddItem(t);
+
+			targets_.Select(targets_.Count - 1);
 		}
 
 		public void NameChanged()
@@ -490,6 +518,9 @@ namespace Synergy.NewUI
 					if (ui_.FactoryWidget != null)
 						((IEyesTargetUI)ui_.FactoryWidget).SetUI(this);
 				}
+
+				clone_.Enabled = (t != null);
+				remove_.Enabled = (t != null);
 			});
 		}
 	}

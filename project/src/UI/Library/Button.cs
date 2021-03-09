@@ -56,10 +56,16 @@ namespace SynergyUI
 
 			set
 			{
-				text_ = value;
+				if (text_ != value)
+				{
+					text_ = value;
 
-				if (button_ != null)
-					button_.buttonText.text = value;
+					if (button_ != null)
+					{
+						button_.buttonText.text = value;
+						NeedsLayout("text changed");
+					}
+				}
 			}
 		}
 
@@ -205,9 +211,11 @@ namespace SynergyUI
 	{
 		public override string TypeName { get { return "ToolButton"; } }
 
-		public ToolButton(string text = "", Callback clicked = null)
+		public ToolButton(string text = "", Callback clicked = null, string tooltip = "")
 			: base(text, clicked)
 		{
+			if (tooltip != "")
+				Tooltip.Text = tooltip;
 		}
 
 		protected override Size DoGetPreferredSize(

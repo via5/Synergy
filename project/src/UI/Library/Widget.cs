@@ -336,12 +336,15 @@ namespace SynergyUI
 
 			set
 			{
-				enabled_ = value;
-
-				if (widgetObject_ != null)
+				if (enabled_ != value)
 				{
-					DoSetEnabled(enabled_);
-					PolishRecursive();
+					enabled_ = value;
+
+					if (widgetObject_ != null)
+					{
+						DoSetEnabled(enabled_);
+						PolishRecursive();
+					}
 				}
 			}
 		}
@@ -631,6 +634,9 @@ namespace SynergyUI
 		public T Add<T>(T w, LayoutData d = null)
 			where T : Widget
 		{
+			if (w.parent_ != null)
+				Glue.LogWarningST("widget already has a parent");
+
 			w.parent_ = this;
 			children_.Add(w);
 			layout_?.Add(w, d);

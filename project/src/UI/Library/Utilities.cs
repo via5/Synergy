@@ -95,6 +95,10 @@ namespace SynergyUI
 		public const string UpArrow = "\x25b2";
 		public const string DownArrow = "\x25bc";
 
+		// no emojis
+		public const string LockedSymbol = "U";//"\U0001F512";
+		public const string UnlockedSymbol = "L";//"\U0001F513";
+
 		public static void Handler(Action a)
 		{
 			try

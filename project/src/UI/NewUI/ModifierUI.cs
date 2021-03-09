@@ -391,6 +391,7 @@ namespace Synergy.NewUI
 		public event Callback ModifierTypeChanged;
 
 		private readonly FactoryComboBox<ModifierFactory, IModifier> type_;
+		private UI.ToolButton lock_;
 		private readonly UI.CheckBox enabled_;
 		private readonly UI.Button disableOthers_, enableAll_;
 		private ModifierContainer mc_ = null;
@@ -400,7 +401,9 @@ namespace Synergy.NewUI
 		{
 			type_ = new FactoryComboBox<ModifierFactory, IModifier>(
 				OnTypeChanged);
+
 			enabled_ = new UI.CheckBox(S("Enabled"));
+			lock_ = new UI.ToolButton("", OnLock);
 			disableOthers_ = new UI.Button(S("Disable others"), OnDisableOthers);
 			enableAll_ = new UI.Button(S("Enable all"), OnEnableAll);
 
@@ -411,9 +414,13 @@ namespace Synergy.NewUI
 			p.Add(disableOthers_);
 			p.Add(enableAll_);
 
+			var typeAndLock = new UI.Panel(new UI.BorderLayout(0));
+			typeAndLock.Add(type_, UI.BorderLayout.Center);
+			typeAndLock.Add(lock_, UI.BorderLayout.Right);
+
 			var left = new UI.Panel(new UI.BorderLayout(10));
 			left.Add(new UI.Label(S("Modifier type")), UI.BorderLayout.Left);
-			left.Add(type_, UI.BorderLayout.Center);
+			left.Add(typeAndLock, UI.BorderLayout.Center);
 
 			Layout = new UI.BorderLayout(20);
 			Add(left, UI.BorderLayout.Center);
@@ -429,6 +436,7 @@ namespace Synergy.NewUI
 				mc_ = m;
 				enabled_.Checked = m.Enabled;
 				type_.Select(m.Modifier);
+				SetLocked(m.Modifier != null);
 			});
 		}
 
@@ -447,6 +455,28 @@ namespace Synergy.NewUI
 
 			mc_.Modifier = m;
 			ModifierTypeChanged?.Invoke();
+			SetLocked(mc_?.Modifier != null);
+		}
+
+		public void SetLocked(bool b)
+		{
+			if (b)
+			{
+				type_.Enabled = false;
+				lock_.Text = UI.Utilities.LockedSymbol;
+				lock_.Tooltip.Text = S("Unlock modifier type");
+			}
+			else
+			{
+				type_.Enabled = true;
+				lock_.Text = UI.Utilities.UnlockedSymbol;
+				lock_.Tooltip.Text = S("Lock modifier type");
+			}
+		}
+
+		private void OnLock()
+		{
+			SetLocked(type_.Enabled);
 		}
 
 		private void OnDisableOthers()

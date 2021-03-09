@@ -996,6 +996,22 @@ namespace SynergyUI
 				{
 					i.color = theme_.ButtonBackgroundColor;
 				});
+
+				// child items, this is necessary in case the enabled state has
+				// changed but the popup has already been opened
+				var itemPolish = Button.Polishing.Default;
+				foreach (var item in viewport.GetComponentsInChildren<UIPopupButton>())
+				{
+					ForComponentInChildren<UIStyleText>(item, (st) =>
+					{
+						if (info.Enabled)
+							st.color = itemPolish.textColor;
+						else
+							st.color = itemPolish.disabledTextColor;
+
+						st.UpdateStyle();
+					});
+				}
 			}
 			catch (Exception)
 			{
