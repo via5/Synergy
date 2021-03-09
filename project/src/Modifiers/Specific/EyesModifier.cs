@@ -374,6 +374,8 @@ namespace Synergy
 			t.yRange_ = yRange_;
 			t.avoidXRange_ = avoidXRange_;
 			t.avoidYRange_ = avoidYRange_;
+			t.atom_ = atom_;
+			t.rel_ = rel_;
 		}
 
 		public override string Name
