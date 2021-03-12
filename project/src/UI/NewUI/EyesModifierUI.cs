@@ -125,15 +125,15 @@ namespace Synergy.NewUI
 
 				switch (setting)
 				{
-					case EyesModifier.SettingIgnore:
+					case Integration.SettingIgnore:
 						list_.Select(0);
 						break;
 
-					case EyesModifier.SettingEnable:
+					case Integration.SettingEnable:
 						list_.Select(1);
 						break;
 
-					case EyesModifier.SettingDisable:
+					case Integration.SettingDisable:
 						list_.Select(2);
 						break;
 				}
@@ -203,8 +203,8 @@ namespace Synergy.NewUI
 			ignore_.Do(() =>
 			{
 				minDistance_.Set(modifier_.MinDistance);
-				gaze_.Set(modifier_.GazeAvailable, modifier_.GazeSetting);
-				blink_.Set(modifier_.BlinkAvailable, modifier_.BlinkSetting);
+				gaze_.Set(modifier_.Gaze.Available, modifier_.Gaze.Setting);
+				blink_.Set(modifier_.Blink.Available, modifier_.Blink.Setting);
 			});
 		}
 
@@ -223,7 +223,7 @@ namespace Synergy.NewUI
 				return;
 
 			if (modifier_ != null)
-				modifier_.GazeSetting = setting;
+				modifier_.Gaze.Setting = setting;
 		}
 
 		private void OnBlinkChanged(int setting)
@@ -232,7 +232,7 @@ namespace Synergy.NewUI
 				return;
 
 			if (modifier_ != null)
-				modifier_.BlinkSetting = setting;
+				modifier_.Blink.Setting = setting;
 		}
 	}
 

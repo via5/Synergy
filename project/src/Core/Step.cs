@@ -397,6 +397,13 @@ namespace Synergy
 			return true;
 		}
 
+		public T AddModifier<T>(T m)
+			where T : IModifier
+		{
+			var c = AddModifier(new ModifierContainer(m));
+			return m;
+		}
+
 		public ModifierContainer AddModifier(ModifierContainer m)
 		{
 			m.ParentStep = this;

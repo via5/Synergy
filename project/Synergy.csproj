@@ -63,6 +63,7 @@
     <Compile Include="src\Modifiers\ModifierContainer.cs" />
     <Compile Include="src\Modifiers\ModifierSyncs.cs" />
     <Compile Include="src\Modifiers\Specific\AudioModifier.cs" />
+    <Compile Include="src\Modifiers\Specific\TimelineModifier.cs" />
     <Compile Include="src\Modifiers\Specific\EyesModifier.cs" />
     <Compile Include="src\Modifiers\Specific\LightModifier.cs" />
     <Compile Include="src\Modifiers\Specific\LinkModifier.cs" />
@@ -139,6 +140,7 @@
     <Compile Include="src\UI\Widgets\RigidbodyList.cs" />
     <Compile Include="src\UI\Widgets\Widgets.cs" />
     <Compile Include="src\Utilities\Factory.cs" />
+    <Compile Include="src\Utilities\Integration.cs" />
     <Compile Include="src\Utilities\JsonUtilities.cs" />
     <Compile Include="src\Utilities\Overlapper.cs" />
     <Compile Include="src\Utilities\Parameters.cs" />

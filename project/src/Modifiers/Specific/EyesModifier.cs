@@ -791,10 +791,6 @@ namespace Synergy
 		public static string DisplayName { get; } = "Eyes";
 		public override string GetDisplayName() { return DisplayName; }
 
-		public const int SettingIgnore = 0;
-		public const int SettingEnable = 1;
-		public const int SettingDisable = 2;
-
 		private Rigidbody head_ = null;
 		private Rigidbody eyes_ = null;
 		private Rigidbody chest_ = null;
@@ -815,11 +811,8 @@ namespace Synergy
 		private FloatParameter minDistance_ = new FloatParameter(
 			"MinDistance", 0.5f, 0.1f);
 
-		private int gazeSetting_ = SettingIgnore;
 		private Integration.Gaze gaze_ = new Integration.Gaze();
-
-		private int blinkSetting_ = SettingIgnore;
-		private JSONStorableBool blink_ = null;
+		private Integration.Blink blink_ = new Integration.Blink();
 
 		private int currentOrder_ = -1;
 		private float lastProgress_ = -1;
@@ -896,34 +889,14 @@ namespace Synergy
 			get { return minDistance_; }
 		}
 
-		public bool GazeAvailable
-		{
-			get { return gaze_.Available(); }
-		}
-
-		public int GazeSetting
-		{
-			get { return gazeSetting_; }
-			set { gazeSetting_ = value; }
-		}
-
 		public Integration.Gaze Gaze
 		{
-			get
-			{
-				return gaze_;
-			}
+			get { return gaze_; }
 		}
 
-		public bool BlinkAvailable
+		public Integration.Blink Blink
 		{
-			get { return EnsureBlink(); }
-		}
-
-		public int BlinkSetting
-		{
-			get { return blinkSetting_; }
-			set { blinkSetting_ = value; }
+			get { return blink_; }
 		}
 
 		public List<EyesTargetContainer> Targets
@@ -964,7 +937,7 @@ namespace Synergy
 
 			m.targets_.Clear();
 			foreach (var t in targets_)
-				AddTarget(t.Clone(cloneFlags));
+				m.AddTarget(t.Clone(cloneFlags));
 
 			m.saccadeTime_ = saccadeTime_.Clone(cloneFlags);
 
@@ -977,9 +950,8 @@ namespace Synergy
 
 			m.minDistance_.Value = minDistance_.Value;
 			m.focusDuration_ = focusDuration_.Clone(cloneFlags);
-			m.gazeSetting_ = gazeSetting_;
 			m.gaze_ = gaze_.Clone(cloneFlags);
-			m.blinkSetting_ = blinkSetting_;
+			m.blink_ = blink_.Clone(cloneFlags);
 		}
 
 		public override FloatRange PreferredRange
@@ -1255,88 +1227,15 @@ namespace Synergy
 			if (!ParentContainer.Enabled)
 				return;
 
-			bool e;
-
-			if (gazeSetting_ == SettingEnable)
-				e = true;
-			else if (gazeSetting_ == SettingDisable)
-				e = false;
-			else
-				return;
-
-			if (!gaze_.SetEnabled(Atom, e))
-			{
-				Synergy.LogError(
-					"gaze: can't set value, changing setting to Ignore");
-
-				gazeSetting_ = SettingIgnore;
-			}
-		}
-
-		private bool EnsureBlink()
-		{
-			if (!ParentContainer.Enabled)
-				return true;
-
-			if (blink_ == null && Atom != null)
-			{
-				var ec = Atom.GetStorableByID("EyelidControl");
-				if (ec == null)
-				{
-					Synergy.LogError(
-						"blink: EyelidControl not found, " +
-						"changing setting to Ignore");
-
-					return false;
-				}
-
-				blink_ = ec.GetBoolJSONParam("blinkEnabled");
-				if (blink_ == null)
-				{
-					Synergy.LogError(
-						"blink: blinkEnabled not found in EyelidControl, " +
-						"changing setting to Ignore");
-
-					return false;
-				}
-			}
-
-			return true;
+			gaze_.Check();
 		}
 
 		private void CheckBlink()
 		{
-			if (Atom == null)
+			if (!ParentContainer.Enabled)
 				return;
 
-			bool e;
-
-			if (blinkSetting_ == SettingEnable)
-				e = true;
-			else if (blinkSetting_ == SettingDisable)
-				e = false;
-			else
-				return;
-
-			if (!EnsureBlink())
-			{
-				blinkSetting_ = SettingIgnore;
-				return;
-			}
-
-
-			try
-			{
-				blink_.val = e;
-			}
-			catch(Exception ex)
-			{
-				Synergy.LogError(
-					"blink: can't set value on blinkEnabled, " +
-					ex.ToString() + ", changing setting to Ignore");
-
-				blinkSetting_ = SettingIgnore;
-			}
+			blink_.Check();
 		}
 
 		protected override void DoSet(bool paused)
@@ -1410,8 +1309,8 @@ namespace Synergy
 			o.Add("saccadeMax", saccadeMax_);
 			o.Add("minDistance", minDistance_);
 			o.Add("focusDuration", focusDuration_);
-			o.Add("gaze", gazeSetting_);
-			o.Add("blink", blinkSetting_);
+			o.Add("gaze2", gaze_);
+			o.Add("blink2", blink_);
 
 			return o;
 		}
@@ -1443,8 +1342,28 @@ namespace Synergy
 			o.Opt("saccadeMax", saccadeMax_);
 			o.Opt("minDistance", minDistance_);
 			o.Opt("focusDuration", ref focusDuration_);
-			o.Opt("gaze", ref gazeSetting_);
-			o.Opt("blink", ref blinkSetting_);
+
+			if (o.HasKey("gaze2"))
+			{
+				o.Opt("gaze2", ref gaze_);
+			}
+			else
+			{
+				int i = 0;
+				o.Opt("gaze", ref i);
+				gaze_.Setting = i;
+			}
+
+			if (o.HasKey("blink2"))
+			{
+				o.Opt("blink2", ref blink_);
+			}
+			else
+			{
+				int i = 0;
+				o.Opt("blink", ref i);
+				blink_.Setting = i;
+			}
 
 			UpdateAtom();
 
@@ -1454,7 +1373,7 @@ namespace Synergy
 		private void UpdateAtom()
 		{
 			gaze_.Atom = Atom;
-			blink_ = null;
+			blink_.Atom = Atom;
 
 			// this would be nice, but it wouldn't be picked up by the UI, so
 			// AtomChanged() is only called in AddTarget() through setting

@@ -593,11 +593,11 @@ namespace Synergy
 				return;
 
 			if (s == "disable")
-				modifier_.GazeSetting = EyesModifier.SettingDisable;
+				modifier_.Gaze.Setting = Integration.SettingDisable;
 			else if (s == "enable")
-				modifier_.GazeSetting = EyesModifier.SettingEnable;
+				modifier_.Gaze.Setting = Integration.SettingEnable;
 			else
-				modifier_.GazeSetting = EyesModifier.SettingIgnore;
+				modifier_.Gaze.Setting = Integration.SettingIgnore;
 		}
 
 		private void BlinkChanged(string s)
@@ -606,11 +606,11 @@ namespace Synergy
 				return;
 
 			if (s == "disable")
-				modifier_.BlinkSetting = EyesModifier.SettingDisable;
+				modifier_.Blink.Setting = Integration.SettingDisable;
 			else if (s == "enable")
-				modifier_.BlinkSetting = EyesModifier.SettingEnable;
+				modifier_.Blink.Setting = Integration.SettingEnable;
 			else
-				modifier_.BlinkSetting = EyesModifier.SettingIgnore;
+				modifier_.Blink.Setting = Integration.SettingIgnore;
 		}
 
 		private void AddTarget()
@@ -636,7 +636,7 @@ namespace Synergy
 
 		private void UpdateGaze()
 		{
-			if (modifier_ == null || !modifier_.Gaze.Available())
+			if (modifier_ == null || !modifier_.Gaze.Available)
 			{
 				gaze_.Choices = new List<string>() { };
 				gaze_.DisplayChoices = new List<string>() { };
@@ -645,12 +645,12 @@ namespace Synergy
 				return;
 			}
 
-			UpdateSetting(gaze_, modifier_.GazeSetting);
+			UpdateSetting(gaze_, modifier_.Gaze.Setting);
 		}
 
 		private void UpdateBlink()
 		{
-			UpdateSetting(blink_, modifier_.BlinkSetting);
+			UpdateSetting(blink_, modifier_.Blink.Setting);
 		}
 
 		private void UpdateSetting(StringList list, int setting)
@@ -661,15 +661,15 @@ namespace Synergy
 
 			switch (setting)
 			{
-				case EyesModifier.SettingIgnore:
+				case Integration.SettingIgnore:
 					list.Value = "ignore";
 					break;
 
-				case EyesModifier.SettingEnable:
+				case Integration.SettingEnable:
 					list.Value = "enable";
 					break;
 
-				case EyesModifier.SettingDisable:
+				case Integration.SettingDisable:
 					list.Value = "disable";
 					break;
 			}

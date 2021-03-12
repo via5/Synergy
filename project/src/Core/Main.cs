@@ -171,10 +171,14 @@ namespace Synergy
 		{
 			var s = manager_.AddStep(new Step("1"));
 
-			s.AddModifier(new ModifierContainer(
-				new RigidbodyModifier(), new UnsyncedModifier()));
+			var tl = s.AddModifier(new TimelineModifier());
 
-			s.AddModifier(new ModifierContainer(new RigidbodyModifier()));
+			tl.Atom = a;
+			tl.Delay.EndForwardsDuration = new RandomDuration(1);
+			tl.Gaze.Setting = Integration.SettingDisable;
+			tl.Blink.Setting = Integration.SettingDisable;
+			tl.Animation = "1";
+			tl.DisableEyeModifiers = true;
 		}
 
 		public UI.Timer CreateTimer(float seconds, UI.Timer.Callback f, int flags = 0)

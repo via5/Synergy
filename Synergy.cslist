@@ -21,6 +21,7 @@ project\src\Modifiers\Specific\MorphProgressions.cs
 project\src\Modifiers\Specific\RigidbodyModifier.cs
 project\src\Modifiers\Specific\StepExtenderModifier.cs
 project\src\Modifiers\Specific\StorableModifier.cs
+project\src\Modifiers\Specific\TimelineModifier.cs
 project\src\UI\Library\BorderLayout.cs
 project\src\UI\Library\Button.cs
 project\src\UI\Library\CheckBox.cs
@@ -89,6 +90,7 @@ project\src\UI\Widgets\MorphCheckboxes.cs
 project\src\UI\Widgets\RigidbodyList.cs
 project\src\UI\Widgets\Widgets.cs
 project\src\Utilities\Factory.cs
+project\src\Utilities\Integration.cs
 project\src\Utilities\JsonUtilities.cs
 project\src\Utilities\Overlapper.cs
 project\src\Utilities\Parameters.cs
