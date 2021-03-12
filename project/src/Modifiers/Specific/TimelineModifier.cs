@@ -55,11 +55,27 @@
 			get { return delay_; }
 		}
 
+		public override bool HardDuration
+		{
+			get { return true; }
+		}
+
+		public override float TimeRemaining
+		{
+			get { return tl_.TimeRemaining; }
+		}
+
+		public override bool Finished
+		{
+			get { return TimeRemaining <= 0; }
+		}
+
 
 		public override void Reset()
 		{
 			base.Reset();
 			delay_.Reset();
+			delay_.ActiveType = Delay.None;
 		}
 
 		protected override void DoTick(
@@ -67,11 +83,12 @@
 		{
 			base.DoTick(deltaTime, progress, firstHalf);
 
+//			Synergy.LogError(TimeRemaining.ToString());
+
 			if (delay_.ActiveType == Delay.None)
 			{
 				if (tl_.IsPlaying)
 				{
-					//Synergy.LogError(tl_.TimeRemaining.ToString());
 				}
 				else
 				{

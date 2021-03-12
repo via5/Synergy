@@ -175,8 +175,9 @@ namespace Synergy
 
 		private void CreateTestStuff(Atom a)
 		{
-			var s = manager_.AddStep(new Step("1"));
+			Options.OverlapTime = 0;
 
+			var s = manager_.AddStep(new Step("1"));
 			var tl = s.AddModifier(new TimelineModifier());
 
 			tl.Atom = a;
@@ -194,6 +195,14 @@ namespace Synergy
 			em.ParentContainer.ModifierSync = new UnsyncedModifier(new RandomDuration(0.5f));
 			em.Gaze.Setting = Integration.SettingEnable;
 			em.AddTarget(new RandomEyesTarget(a));
+
+
+			s = manager_.AddStep(new Step("2"));
+			s.Duration = new RandomDuration(1);
+			var rm = new RigidbodyModifier(a, "rHand");
+			rm.Movement = new Movement(0, 100);
+			rm.Direction = new Vector3(0, 1, 0);
+			s.AddModifier(rm);
 		}
 
 		public UI.Timer CreateTimer(float seconds, UI.Timer.Callback f, int flags = 0)
