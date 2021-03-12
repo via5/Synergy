@@ -42,6 +42,9 @@ namespace Synergy
 		private const float EnabledCheckInterval = 1;
 		private float nextEnabledCheck_ = 0;
 
+		private int inhibit_ = 0;
+		private int nextInhibit_ = 0;
+
 
 		public Step()
 		{
@@ -213,6 +216,11 @@ namespace Synergy
 				s = "#" + (i + 1).ToString() + " " + s;
 
 			return s;
+		}
+
+		public void AddInhibit(int v)
+		{
+			nextInhibit_ |= v;
 		}
 
 		public List<ModifierContainer> Modifiers
@@ -489,13 +497,13 @@ namespace Synergy
 				m.Enabled = (m == except);
 		}
 
-		public void Reset()
+		public void Reset(bool forceResetModifiers=false)
 		{
 			Duration.Reset();
 			Repeat.Reset();
 			Delay.Reset();
 
-			if (!Synergy.Instance.Manager.IsOnlyEnabledStep(this))
+			if (forceResetModifiers || !Synergy.Instance.Manager.IsOnlyEnabledStep(this))
 			{
 				foreach (var m in modifiers_)
 				{
@@ -545,6 +553,15 @@ namespace Synergy
 			if (paused_)
 				return false;
 
+			nextInhibit_ = 0;
+			bool b = DoTick(deltaTime, stepForwards);
+			inhibit_ = nextInhibit_;
+
+			return b;
+		}
+
+		private bool DoTick(float deltaTime, bool stepForwards)
+		{
 			nextEnabledCheck_ += deltaTime;
 			if (nextEnabledCheck_ >= EnabledCheckInterval)
 				GatherEnabledModifiers();
@@ -792,30 +809,55 @@ namespace Synergy
 			return true;
 		}
 
+
+		private bool ActiveModifier(ModifierContainer mc)
+		{
+			if (mc.Modifier == null)
+				return false;
+
+			if ((mc.Modifier.ModifierType & inhibit_) != 0)
+				return false;
+
+			return true;
+		}
+
+
 		private void DoModifierTicks(
 			float deltaTime, float progress, bool forwards)
 		{
 			foreach (var m in modifiers_)
-				m.Modifier?.Tick(deltaTime, progress, forwards);
+			{
+				if (ActiveModifier(m))
+					m.Modifier?.Tick(deltaTime, progress, forwards);
+			}
 		}
 
 		private void DoModifierTicksPaused(float deltaTime)
 		{
 			foreach (var m in modifiers_)
-				m.Modifier?.TickPaused(deltaTime);
+			{
+				if (ActiveModifier(m))
+					m.Modifier?.TickPaused(deltaTime);
+			}
 		}
 
 		private void DoModifierTicksDelayed(
 			float deltaTime, float progress, bool forwards)
 		{
 			foreach (var m in modifiers_)
-				m.Modifier?.TickDelayed(deltaTime, progress, forwards);
+			{
+				if (ActiveModifier(m))
+					m.Modifier?.TickDelayed(deltaTime, progress, forwards);
+			}
 		}
 
 		public void Set(bool paused)
 		{
 			foreach (var m in enabledModifiers_)
-				m.Modifier?.Set(paused);
+			{
+				if (ActiveModifier(m))
+					m.Modifier?.Set(paused);
+			}
 		}
 	}
 }

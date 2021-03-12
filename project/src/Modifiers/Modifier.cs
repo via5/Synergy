@@ -19,6 +19,7 @@ namespace Synergy
 		int SetCalls { get; }
 		bool HardDuration { get; }
 		bool UsesSync { get; }
+		int ModifierType { get; }
 
 		IModifier Clone(int cloneFlags = 0);
 
@@ -55,6 +56,8 @@ namespace Synergy
 
 	abstract class BasicModifier : IModifier
 	{
+		public const int EyeModifierType = 0x01;
+
 		private ModifierContainer parent_ = null;
 
 		protected BasicModifier()
@@ -64,6 +67,11 @@ namespace Synergy
 		public virtual void DeferredInit()
 		{
 			// no-op
+		}
+
+		public virtual int ModifierType
+		{
+			get { return 0; }
 		}
 
 		public abstract IModifier Clone(int cloneFlags = 0);

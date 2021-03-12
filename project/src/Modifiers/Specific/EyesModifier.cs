@@ -347,10 +347,10 @@ namespace Synergy
 		{
 		}
 
-		public RandomEyesTarget(Atom a, Rigidbody rel)
+		public RandomEyesTarget(Atom a, Rigidbody rel=null)
 		{
 			atom_ = a;
-			rel_ = rel;
+			rel_ = rel ?? GetPreferredTarget(a);
 		}
 
 		public static Rigidbody GetPreferredTarget(Atom a)
@@ -960,6 +960,18 @@ namespace Synergy
 			{
 				return new FloatRange(0, 1);
 			}
+		}
+
+		public override int ModifierType
+		{
+			get { return EyeModifierType; }
+		}
+
+		public T AddTarget<T>(T t)
+			where T : IEyesTarget
+		{
+			AddTarget(new EyesTargetContainer(t));
+			return t;
 		}
 
 		public EyesTargetContainer AddTarget(EyesTargetContainer t=null)

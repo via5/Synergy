@@ -208,7 +208,7 @@ namespace Synergy
 		public void ResetAllSteps()
 		{
 			foreach (var s in steps_)
-				s.Reset();
+				s.Reset(true);
 		}
 
 		public void DisableAllExcept(Step except)

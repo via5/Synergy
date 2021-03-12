@@ -9,11 +9,14 @@
 		public override string GetDisplayName() { return DisplayName; }
 
 		private string anim_ = "";
-		private Integration.Gaze gaze_ = new Integration.Gaze();
-		private Integration.Blink blink_ = new Integration.Blink();
+		private Integration.Gaze gazeActive_ = new Integration.Gaze();
+		private Integration.Gaze gazeInactive_ = new Integration.Gaze();
+		private Integration.Blink blinkActive_ = new Integration.Blink();
+		private Integration.Blink blinkInactive_ = new Integration.Blink();
 		private Integration.Timeline tl_ = new Integration.Timeline();
-		private bool disableEyeModifiers_;
+		private bool inhibitEyeModifiers_ = false;
 		private Delay delay_ = new Delay();
+		private bool active_ = false;
 
 		public string Animation
 		{
@@ -21,20 +24,30 @@
 			set { anim_ = value; }
 		}
 
-		public Integration.Gaze Gaze
+		public Integration.Gaze GazeActive
 		{
-			get { return gaze_; }
+			get { return gazeActive_; }
 		}
 
-		public Integration.Blink Blink
+		public Integration.Gaze GazeInactive
 		{
-			get { return blink_; }
+			get { return gazeInactive_; }
 		}
 
-		public bool DisableEyeModifiers
+		public Integration.Blink BlinkActive
 		{
-			get { return disableEyeModifiers_; }
-			set { disableEyeModifiers_ = value; }
+			get { return blinkActive_; }
+		}
+
+		public Integration.Blink BlinkInactive
+		{
+			get { return blinkInactive_; }
+		}
+
+		public bool InhibitEyeModifiers
+		{
+			get { return inhibitEyeModifiers_; }
+			set { inhibitEyeModifiers_ = value; }
 		}
 
 		public Delay Delay
@@ -56,16 +69,42 @@
 
 			if (delay_.ActiveType == Delay.None)
 			{
-				if (!tl_.IsPlaying)
+				if (tl_.IsPlaying)
+				{
+					//Synergy.LogError(tl_.TimeRemaining.ToString());
+				}
+				else
 				{
 					tl_.Play(anim_);
-					delay_.ActiveType = Delay.EndForwardsType;
+					active_ = true;
+					gazeActive_.Check();
+					blinkActive_.Check();
+
+					if (delay_.EndForwards)
+						delay_.ActiveType = Delay.EndForwardsType;
 				}
+
+				if (inhibitEyeModifiers_)
+					ParentStep.AddInhibit(EyeModifierType);
 			}
 			else
 			{
-				if (!tl_.IsPlaying)
+				if (tl_.IsPlaying)
 				{
+					if (inhibitEyeModifiers_)
+						ParentStep.AddInhibit(EyeModifierType);
+
+					//	Synergy.LogError(tl_.TimeRemaining.ToString());
+				}
+				else
+				{
+					if (active_)
+					{
+						active_ = false;
+						gazeInactive_.Check();
+						blinkInactive_.Check();
+					}
+
 					delay_.ActiveDuration.Tick(deltaTime);
 
 					if (delay_.ActiveDuration.Finished)
@@ -75,6 +114,12 @@
 					}
 				}
 			}
+		}
+
+		public override void Removed()
+		{
+			base.Removed();
+			delay_.Removed();
 		}
 
 
@@ -90,10 +135,12 @@
 			base.CopyTo(m, cloneFlags);
 
 			m.anim_ = anim_;
-			m.gaze_ = gaze_.Clone();
-			m.blink_ = blink_.Clone();
+			m.gazeActive_ = gazeActive_.Clone();
+			m.gazeInactive_ = gazeInactive_.Clone();
+			m.blinkActive_ = blinkActive_.Clone();
+			m.blinkInactive_ = blinkInactive_.Clone();
 			m.tl_ = tl_.Clone();
-			m.disableEyeModifiers_ = disableEyeModifiers_;
+			m.inhibitEyeModifiers_ = inhibitEyeModifiers_;
 			m.delay_ = delay_.Clone(cloneFlags);
 		}
 
@@ -113,8 +160,10 @@
 		{
 			base.AtomChanged();
 			tl_.Atom = Atom;
-			gaze_.Atom = Atom;
-			blink_.Atom = Atom;
+			gazeActive_.Atom = Atom;
+			gazeInactive_.Atom = Atom;
+			blinkActive_.Atom = Atom;
+			blinkInactive_.Atom = Atom;
 		}
 
 		public override FloatRange PreferredRange

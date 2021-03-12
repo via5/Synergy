@@ -158,9 +158,15 @@ namespace Synergy
 				SetStringParamValue("dummy", "dummy");
 
 				if (GetAtomById("synergyuitest") != null)
+				{
 					CreateTestStuff(GetAtomById("synergyuitest"));
+					Manager.ResetAllSteps();
+				}
 				else if (GetAtomById("synergyuitest1") != null)
+				{
 					CreateTestStuff(GetAtomById("synergyuitest1"));
+					Manager.ResetAllSteps();
+				}
 
 				LogVerbose("OK");
 				enabled_ = true;
@@ -174,11 +180,20 @@ namespace Synergy
 			var tl = s.AddModifier(new TimelineModifier());
 
 			tl.Atom = a;
-			tl.Delay.EndForwardsDuration = new RandomDuration(1);
-			tl.Gaze.Setting = Integration.SettingDisable;
-			tl.Blink.Setting = Integration.SettingDisable;
+			tl.Delay.EndForwardsDuration = new RandomDuration(3);
+			tl.Delay.EndForwards = true;
+			tl.Delay.SameDelay = false;
+			tl.GazeActive.Setting = Integration.SettingDisable;
+			tl.GazeInactive.Setting = Integration.SettingEnable;
+			tl.BlinkActive.Setting = Integration.SettingDisable;
+			tl.BlinkInactive.Setting = Integration.SettingEnable;
 			tl.Animation = "1";
-			tl.DisableEyeModifiers = true;
+			tl.InhibitEyeModifiers = true;
+
+			var em = s.AddModifier(new EyesModifier());
+			em.ParentContainer.ModifierSync = new UnsyncedModifier(new RandomDuration(0.5f));
+			em.Gaze.Setting = Integration.SettingEnable;
+			em.AddTarget(new RandomEyesTarget(a));
 		}
 
 		public UI.Timer CreateTimer(float seconds, UI.Timer.Callback f, int flags = 0)

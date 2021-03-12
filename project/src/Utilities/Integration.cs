@@ -366,6 +366,19 @@ namespace Synergy
 				}
 			}
 
+			public float TimeRemaining
+			{
+				get
+				{
+					Ensure();
+
+					if (remaining_ == null)
+						return 0;
+					else
+						return remaining_.val;
+				}
+			}
+
 			public void Play(string anim)
 			{
 				Ensure();
