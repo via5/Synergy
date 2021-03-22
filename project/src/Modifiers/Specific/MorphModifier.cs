@@ -241,7 +241,7 @@ namespace Synergy
 
 			if (Atom != null && uid != "")
 			{
-				morph_ = Utilities.GetAtomMorph(Atom, uid);
+				morph_ = Utilities.FindMorph(Atom, uid);
 
 				if (morph_  == null)
 				{
@@ -408,7 +408,7 @@ namespace Synergy
 				return null;
 			}
 
-			var m = Utilities.GetAtomMorph(Atom, id);
+			var m = Utilities.FindMorph(Atom, id);
 			if (m == null)
 			{
 				Synergy.LogError(

@@ -3,7 +3,7 @@
 	class Version
 	{
 		public const int Major = 3;
-		public const int Minor = 2;
+		public const int Minor = 3;
 
 		public static string String
 		{
