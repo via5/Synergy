@@ -44,6 +44,11 @@
 			get { return blinkInactive_; }
 		}
 
+		public Integration.Timeline Timeline
+		{
+			get { return tl_; }
+		}
+
 		public bool InhibitEyeModifiers
 		{
 			get { return inhibitEyeModifiers_; }
@@ -176,6 +181,7 @@
 		protected override void AtomChanged()
 		{
 			base.AtomChanged();
+
 			tl_.Atom = Atom;
 			gazeActive_.Atom = Atom;
 			gazeInactive_.Atom = Atom;

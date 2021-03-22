@@ -133,6 +133,7 @@
     <Compile Include="src\UI\NewUI\RigidbodyUI.cs" />
     <Compile Include="src\UI\NewUI\StepUI.cs" />
     <Compile Include="src\UI\NewUI\StorableModifierUI.cs" />
+    <Compile Include="src\UI\NewUI\TimelineModifierUI.cs" />
     <Compile Include="src\UI\Widgets\AtomList.cs" />
     <Compile Include="src\UI\Widgets\AudioClipsCheckboxes.cs" />
     <Compile Include="src\UI\Widgets\Collapsible.cs" />

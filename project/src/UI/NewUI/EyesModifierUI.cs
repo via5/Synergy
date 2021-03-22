@@ -183,9 +183,9 @@ namespace Synergy.NewUI
 
 			top.Add(new UI.Label(S("Minimum distance")));
 			top.Add(minDistance_);
-			top.Add(new UI.Label(S("MacGruber's Gaze")));
+			top.Add(new UI.Label(Integration.Gaze.Name));
 			top.Add(gaze_);
-			top.Add(new UI.Label(S("Blink")));
+			top.Add(new UI.Label(Integration.Blink.Name));
 			top.Add(blink_);
 
 			Add(top, UI.BorderLayout.Top);

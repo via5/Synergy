@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Synergy
 {
@@ -15,6 +14,11 @@ namespace Synergy
 			private Atom atom_ = null;
 			private JSONStorableBool toggle_ = null;
 			private int setting_ = SettingIgnore;
+
+			public static string Name
+			{
+				get { return "Blink"; }
+			}
 
 			public Blink Clone(int cloneFlags = 0)
 			{
@@ -164,6 +168,11 @@ namespace Synergy
 			private Atom atom_ = null;
 			private JSONStorableBool toggle_ = null;
 			private int setting_ = SettingIgnore;
+
+			public static string Name
+			{
+				get { return "MacGruber's Gaze"; }
+			}
 
 			public Gaze Clone(int cloneFlags = 0)
 			{
@@ -322,7 +331,13 @@ namespace Synergy
 			private JSONStorable tl_ = null;
 			private JSONStorableBool playing_ = null;
 			private JSONStorableFloat remaining_ = null;
+			private JSONStorableStringChooser list_ = null;
 			private bool stale_ = false;
+
+			public static string Name
+			{
+				get { return "AcidBubble's Timeline"; }
+			}
 
 			public Timeline Clone()
 			{
@@ -379,6 +394,19 @@ namespace Synergy
 				}
 			}
 
+			public List<string> Animations
+			{
+				get
+				{
+					Ensure();
+
+					if (list_ == null)
+						return new List<string>();
+
+					return new List<string>(list_.choices);
+				}
+			}
+
 			public void Play(string anim)
 			{
 				Ensure();
@@ -418,6 +446,10 @@ namespace Synergy
 				remaining_ = tl_.GetFloatJSONParam("Time Remaining");
 				if (remaining_ == null)
 					Synergy.LogError("'Time Remaining' not found");
+
+				list_ = tl_.GetStringChooserJSONParam("Animation");
+				if (list_ == null)
+					Synergy.LogError("'Animation' not found");
 
 				Synergy.LogError("timeline: ensure ok");
 				stale_ = false;
